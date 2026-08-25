@@ -17,6 +17,28 @@ wire identifier. It is not shown as the product name; the app presents the
 hardware to farmers as **VayPulse Node**. Existing firmware can therefore keep
 working through the brand migration.
 
+## Bring-up compatibility (`GET /sensors`)
+
+During early hardware testing the app also accepts the lightweight endpoint used
+by the AHT10-only firmware:
+
+```json
+{
+  "deviceId": "PHYTO-NODE-001",
+  "online": true,
+  "temperature": 29.42,
+  "humidity": 68.31,
+  "light": null,
+  "soilMoisture": null,
+  "plantVoltage": null
+}
+```
+
+Only temperature and humidity are required in this temporary mode. Missing
+sensors are explicitly shown as **Not connected yet** in the ESP32 Live
+workspace and are never replaced with simulation values. The full `/api/data`
+contract below remains the target as additional sensors are connected.
+
 ## `GET /api/status`
 
 Return HTTP 200 when the node is ready.

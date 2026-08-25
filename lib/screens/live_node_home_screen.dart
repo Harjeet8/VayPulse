@@ -27,18 +27,24 @@ class LiveNodeHomeScreen extends StatelessWidget {
     final sensors = scope.sensors;
     final reading = sensors.current;
     final node = sensors.nodes.isEmpty ? null : sensors.nodes.first;
-    final analysis = reading == null
+    final analysis = reading == null || !reading.hasFullCoreReading
         ? null
         : AiAnalysisService.analyze(
             reading,
             sensors.historyFor(reading.nodeId),
             crop: 'Tomato',
           );
-    final photoPrompt = MultimodalDiseaseService.evaluatePhotoPrompt(
-      reading,
-      null,
-      crop: 'Tomato',
-    );
+    final photoPrompt = reading?.plantSignalAvailable == true
+        ? MultimodalDiseaseService.evaluatePhotoPrompt(
+            reading,
+            null,
+            crop: 'Tomato',
+          )
+        : MultimodalDiseaseService.evaluatePhotoPrompt(
+            null,
+            null,
+            crop: 'Tomato',
+          );
 
     return Scaffold(
       appBar: AppBar(
@@ -100,6 +106,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _LiveSensorGrid(reading: reading),
               const SizedBox(height: 22),
+              if (!reading.hasFullCoreReading) ...[
+                _PartialHardwareCard(reading: reading),
+                const SizedBox(height: 22),
+              ],
               _SectionTitle(title: context.tr('ai_field_insight')),
               const SizedBox(height: 12),
               if (analysis != null)
@@ -114,11 +124,14 @@ class LiveNodeHomeScreen extends StatelessWidget {
                           ? Theme.of(context).colorScheme.tertiary
                           : Theme.of(context).colorScheme.primary,
                 ),
-              const SizedBox(height: 12),
-              _EvidenceCard(
-                evidenceKey: analysis?.evidenceKey,
-                confidence: analysis?.confidence,
-              ),
+              if (analysis != null) ...[
+                const SizedBox(height: 12),
+                _EvidenceCard(
+                  evidenceKey: analysis.evidenceKey,
+                  confidence: analysis.confidence,
+                ),
+              ] else if (!reading.hasFullCoreReading)
+                const _PartialAnalysisCard(),
               if (photoPrompt.shouldPrompt) ...[
                 const SizedBox(height: 14),
                 _PhotoPrompt(reasonKeys: photoPrompt.reasonKeys),
@@ -469,6 +482,117 @@ class _Meta extends StatelessWidget {
       );
 }
 
+class _PartialHardwareCard extends StatelessWidget {
+  final SensorReading reading;
+
+  const _PartialHardwareCard({required this.reading});
+
+  @override
+  Widget build(BuildContext context) {
+    final connected = <String>[
+      if (reading.temperatureAvailable) 'temperature',
+      if (reading.humidityAvailable) 'humidity',
+      if (reading.soilMoistureAvailable) 'soil moisture',
+      if (reading.lightAvailable) 'light',
+      if (reading.plantSignalAvailable) 'plant signal',
+    ];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.cable_rounded,
+                color: Theme.of(context).colorScheme.primary),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Hardware bring-up mode',
+                    style: TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    'Live ${connected.join(' + ')} received from the ESP32. '
+                    'Sensors not connected yet are shown as unavailable, not as simulated values.',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PartialAnalysisCard extends StatelessWidget {
+  const _PartialAnalysisCard();
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.science_outlined,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Text(
+                  'Live readings are connected. Full plant-health analysis will start automatically once the remaining core sensors are connected.',
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _UnavailableSensorCard extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String message;
+
+  const _UnavailableSensorCard({
+    required this.icon,
+    required this.title,
+    this.message = 'Not connected yet',
+  });
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              const SizedBox(height: 12),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 7),
+              Text(
+                '—',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                message,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
 class _LiveSensorGrid extends StatelessWidget {
   final SensorReading reading;
 
@@ -487,76 +611,113 @@ class _LiveSensorGrid extends StatelessWidget {
           const spacing = 10.0;
           final width =
               (constraints.maxWidth - spacing * (columns - 1)) / columns;
-          final cards = [
-            SensorCard(
-              icon: Icons.water_drop_outlined,
-              title: context.tr('soil_moisture'),
-              value: reading.soilMoisture.toStringAsFixed(0),
-              numericValue: reading.soilMoisture,
-              unit: '%',
-              preferredRange: context.tr('preferred_soil_range'),
-              animate: !AppScope.of(context).settings.value.reducedMotion,
-              status: context.tr('range_validated'),
-              accent: const Color(0xFF2F80C1),
-            ),
-            SensorCard(
-              icon: Icons.thermostat_outlined,
-              title: context.tr('temperature'),
-              value: reading.temperature.toStringAsFixed(1),
-              numericValue: reading.temperature,
-              unit: '°C',
-              decimals: 1,
-              preferredRange: context.tr('preferred_temperature_range'),
-              animate: !AppScope.of(context).settings.value.reducedMotion,
-              status: context.tr('range_validated'),
-              accent: phytoTerracotta,
-            ),
-            SensorCard(
-              icon: Icons.water_outlined,
-              title: context.tr('humidity'),
-              value: reading.humidity.toStringAsFixed(0),
-              numericValue: reading.humidity,
-              unit: '%',
-              preferredRange: context.tr('preferred_humidity_range'),
-              animate: !AppScope.of(context).settings.value.reducedMotion,
-              status: context.tr('range_validated'),
-              accent: const Color(0xFF377B99),
-            ),
-            SensorCard(
-              icon: Icons.light_mode_outlined,
-              title: context.tr('light'),
-              value: reading.light.toStringAsFixed(0),
-              numericValue: reading.light,
-              unit: '%',
-              preferredRange: context.tr('preferred_light_range'),
-              animate: !AppScope.of(context).settings.value.reducedMotion,
-              status: context.tr('range_validated'),
-              accent: phytoAmber,
-            ),
-            SensorCard(
-              icon: Icons.monitor_heart_outlined,
-              title: context.tr('plant_signal'),
-              value: reading.plantSignal.toStringAsFixed(0),
-              numericValue: reading.plantSignal,
-              unit: '%',
-              preferredRange: context.tr('preferred_signal_range'),
-              animate: !AppScope.of(context).settings.value.reducedMotion,
-              status: context.tr('electrode_input'),
-              accent: Theme.of(context).colorScheme.primary,
-            ),
-            SensorCard(
-              icon: Icons.warning_amber_rounded,
-              title: context.tr('stress'),
-              value: reading.stressScore.toStringAsFixed(0),
-              numericValue: reading.stressScore,
-              unit: '%',
-              preferredRange: context.tr('preferred_stress_range'),
-              animate: !AppScope.of(context).settings.value.reducedMotion,
-              status: context.tr(reading.healthStatus),
-              accent: reading.stressScore > 55
-                  ? Theme.of(context).colorScheme.error
-                  : Theme.of(context).colorScheme.primary,
-            ),
+          final cards = <Widget>[
+            if (reading.soilMoistureAvailable)
+              SensorCard(
+                icon: Icons.water_drop_outlined,
+                title: context.tr('soil_moisture'),
+                value: reading.soilMoisture.toStringAsFixed(0),
+                numericValue: reading.soilMoisture,
+                unit: '%',
+                preferredRange: context.tr('preferred_soil_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: const Color(0xFF2F80C1),
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.water_drop_outlined,
+                title: context.tr('soil_moisture'),
+              ),
+            if (reading.temperatureAvailable)
+              SensorCard(
+                icon: Icons.thermostat_outlined,
+                title: context.tr('temperature'),
+                value: reading.temperature.toStringAsFixed(1),
+                numericValue: reading.temperature,
+                unit: '°C',
+                decimals: 1,
+                preferredRange: context.tr('preferred_temperature_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: phytoTerracotta,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.thermostat_outlined,
+                title: context.tr('temperature'),
+              ),
+            if (reading.humidityAvailable)
+              SensorCard(
+                icon: Icons.water_outlined,
+                title: context.tr('humidity'),
+                value: reading.humidity.toStringAsFixed(0),
+                numericValue: reading.humidity,
+                unit: '%',
+                preferredRange: context.tr('preferred_humidity_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: const Color(0xFF377B99),
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.water_outlined,
+                title: context.tr('humidity'),
+              ),
+            if (reading.lightAvailable)
+              SensorCard(
+                icon: Icons.light_mode_outlined,
+                title: context.tr('light'),
+                value: reading.light.toStringAsFixed(0),
+                numericValue: reading.light,
+                unit: '%',
+                preferredRange: context.tr('preferred_light_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: phytoAmber,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.light_mode_outlined,
+                title: context.tr('light'),
+              ),
+            if (reading.plantSignalAvailable)
+              SensorCard(
+                icon: Icons.monitor_heart_outlined,
+                title: context.tr('plant_signal'),
+                value: reading.plantSignal.toStringAsFixed(0),
+                numericValue: reading.plantSignal,
+                unit: '%',
+                preferredRange: context.tr('preferred_signal_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('electrode_input'),
+                accent: Theme.of(context).colorScheme.primary,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.monitor_heart_outlined,
+                title: context.tr('plant_signal'),
+              ),
+            if (reading.hasFullCoreReading)
+              SensorCard(
+                icon: Icons.warning_amber_rounded,
+                title: context.tr('stress'),
+                value: reading.stressScore.toStringAsFixed(0),
+                numericValue: reading.stressScore,
+                unit: '%',
+                preferredRange: context.tr('preferred_stress_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr(reading.healthStatus),
+                accent: reading.stressScore > 55
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.primary,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.warning_amber_rounded,
+                title: context.tr('stress'),
+                message: 'Waiting for the remaining sensors',
+              ),
           ];
           return Wrap(
             spacing: spacing,

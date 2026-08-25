@@ -121,21 +121,26 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   }
 
   void _validate(SensorReading reading) {
-    final valid = reading.soilMoisture.isFinite &&
-        reading.soilMoisture >= 0 &&
-        reading.soilMoisture <= 100 &&
-        reading.temperature.isFinite &&
-        reading.temperature >= -10 &&
-        reading.temperature <= 65 &&
-        reading.humidity.isFinite &&
-        reading.humidity >= 0 &&
-        reading.humidity <= 100 &&
-        reading.light.isFinite &&
-        reading.light >= 0 &&
-        reading.light <= 100 &&
-        reading.plantSignal.isFinite &&
-        reading.plantSignal >= 0 &&
-        reading.plantSignal <= 100;
+    final valid = (!reading.soilMoistureAvailable ||
+            (reading.soilMoisture.isFinite &&
+                reading.soilMoisture >= 0 &&
+                reading.soilMoisture <= 100)) &&
+        (!reading.temperatureAvailable ||
+            (reading.temperature.isFinite &&
+                reading.temperature >= -10 &&
+                reading.temperature <= 65)) &&
+        (!reading.humidityAvailable ||
+            (reading.humidity.isFinite &&
+                reading.humidity >= 0 &&
+                reading.humidity <= 100)) &&
+        (!reading.lightAvailable ||
+            (reading.light.isFinite &&
+                reading.light >= 0 &&
+                reading.light <= 100)) &&
+        (!reading.plantSignalAvailable ||
+            (reading.plantSignal.isFinite &&
+                reading.plantSignal >= 0 &&
+                reading.plantSignal <= 100));
     if (!valid) throw const FormatException('Out-of-range sensor data');
   }
 
