@@ -1,4 +1,4 @@
-# VayPulse — Judge Presentation Guide
+# PhytoSense AI — Judge Presentation Guide
 
 ## Before the event
 
@@ -28,7 +28,7 @@ zones, manual inspection can become late or inconsistent.”
 
 ### 0:35–1:05 — Solution
 
-“VayPulse combines an affordable sensor node with a farmer-first bilingual
+“PhytoSense AI combines an affordable sensor node with a farmer-first bilingual
 app. It does not only show numbers: it explains the likely concern, the evidence
 behind it and what the farmer should inspect next.”
 
@@ -50,7 +50,7 @@ Presentation** immediately before the judges arrive.
    next** guidance.
 9. Open **Irrigation** and show how soil moisture and rain forecast are
    cross-checked before guidance appears.
-10. Open **About VayPulse → Farm impact & savings estimator**. Show the
+10. Open **About PhytoSense AI → Farm impact & savings estimator**. Show the
     rupee result, expand the assumptions and change acreage or crop value so
     judges can see that the number is calculated rather than hard-coded.
 11. Open **More → Engineering Evidence Center → System X-Ray** to show the live
@@ -77,14 +77,14 @@ successful server response.”
 
 ### 2:30–3:00 — Impact
 
-“VayPulse Version 9.0 is a complete one-node deployment application. The same architecture
+“PhytoSense AI Version 9.0 is a complete one-node deployment application. The same architecture
 can add node IDs to more fields and zones without changing the farmer workflow.
 The system is local-first, bilingual and keeps the farmer in control instead of
 automating irrigation without confirmation.”
 
 If a judge asks whether the camera feature is a trained AI model, answer:
 
-“VayPulse performs transparent multimodal candidate ranking for ten
+“PhytoSense AI performs transparent multimodal candidate ranking for ten
 major Tamil Nadu crop contexts. The farmer confirms the crop, the app rejects
 unusable or unrelated photos, and then visible colour patterns are cross-checked
 with plant-electrode response, soil, temperature, humidity and fresh weather.
@@ -96,7 +96,7 @@ If a judge asks why pesticide and dose are not generated, answer:
 
 “The app helps the farmer identify what to inspect first, but chemical choice
 and quantity depend on the confirmed problem, crop stage, product formulation,
-local approval and label. VayPulse therefore sends the farmer to qualified
+local approval and label. PhytoSense AI therefore sends the farmer to qualified
 local advice instead of inventing a chemical instruction.”
 
 ## Evidence to collect after hardware integration

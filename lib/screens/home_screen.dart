@@ -95,7 +95,13 @@ class HomeScreen extends StatelessWidget {
                   child: const Icon(Icons.eco_rounded, color: Colors.white),
                 ),
                 const SizedBox(width: 10),
-                const Text('VayPulse'),
+                const Flexible(
+                  child: Text(
+                    'PhytoSense AI',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
               ],
             ),
             actions: [

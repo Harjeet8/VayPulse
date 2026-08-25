@@ -68,7 +68,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   ),
                   const SizedBox(width: 10),
                   const Text(
-                    'VayPulse',
+                    'PhytoSense AI',
                     style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18),
                   ),
                 ],

@@ -89,13 +89,13 @@ BEGIN
     BEGIN
         BLOCK "040904e4"
         BEGIN
-            VALUE "CompanyName", "VayPulse" "\0"
-            VALUE "FileDescription", "VayPulse" "\0"
+            VALUE "CompanyName", "PhytoSense AI" "\0"
+            VALUE "FileDescription", "PhytoSense AI" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
             VALUE "InternalName", "phytosense_ai" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2026 VayPulse. All rights reserved." "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2026 PhytoSense AI. All rights reserved." "\0"
             VALUE "OriginalFilename", "phytosense_ai.exe" "\0"
-            VALUE "ProductName", "VayPulse" "\0"
+            VALUE "ProductName", "PhytoSense AI" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

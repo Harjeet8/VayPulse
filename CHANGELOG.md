@@ -1,11 +1,12 @@
 # Changelog
 
-## 9.0.0 — VayPulse brand launch
+## 9.0.0 — PhytoSense AI primary identity
 
-- Rebranded all user-facing legacy identity to VayPulse.
-- Adopted the official tagline: “The Pulse of Your Field.”
+- Established PhytoSense AI as the primary farmer-facing product name.
+- Adopted the official tagline: “Know Your Crop. Protect Your Yield.”
 - Updated Android, iOS, web, Windows, macOS and Linux display metadata.
-- Introduced VayPulse AI, VayPulse Node and VayPulse Vision product naming.
+- Retained VayPulse as the supporting technology identity and VayPulse Node as
+  the ESP32 hardware name.
 - Preserved package IDs, bundle IDs, wire identifiers, local storage keys and
   the complete SensorDataProvider architecture for backwards compatibility.
 
@@ -105,7 +106,7 @@
   accessible text, clearer borders and coordinated Material components.
 - Replaced the appearance dropdown with an immediate visual System / Light /
   Dark theme picker.
-- Added an interactive farm-impact estimator to About VayPulse with concrete
+- Added an interactive farm-impact estimator to About PhytoSense AI with concrete
   rupee outputs for potential loss prevented, input savings, first-season net
   benefit and benefit-to-cost ratio.
 - Added editable acreage, crop value, risk, early-detection, savings and system
@@ -148,7 +149,7 @@
 - Added plant-signal monitoring and chart metric
 - Added early moisture-trend and plant-signal cross-check analysis
 - Added source-labelled farmer dashboard and node diagnostics
-- Added detailed About VayPulse screen inside Settings and More
+- Added detailed About PhytoSense AI screen inside Settings and More
 - Added Competition Center, evidence readiness and judge FAQ
 - Added guided presentation mode with live simulation console
 - Added local-network platform configuration and ESP32 API contract

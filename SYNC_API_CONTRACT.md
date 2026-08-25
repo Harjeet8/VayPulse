@@ -1,6 +1,6 @@
-# VayPulse Optional Synchronization API
+# PhytoSense AI Optional Synchronization API
 
-VayPulse works without a cloud server. Every sensor reading is first queued in
+PhytoSense AI works without a cloud server. Every sensor reading is first queued in
 local app storage. If a farm, school or future production backend is available,
 the farmer can configure its base URL under **More → Offline data and sync**.
 Only validated ESP32 readings enter this queue; simulated demonstration values
@@ -10,7 +10,7 @@ clears the pending sync queue but does not erase that local chart history.
 
 The `phytosense-mobile` device value below is an intentionally preserved
 legacy protocol identifier. It remains non-visible so existing backends and
-saved records are not broken by the VayPulse display-name migration.
+saved records are not broken by the PhytoSense AI display-name migration.
 
 ## Endpoint
 

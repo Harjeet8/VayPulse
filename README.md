@@ -1,8 +1,10 @@
-# VayPulse — Version 9.0.0
+# PhytoSense AI — Version 9.0.0
 
-**The Pulse of Your Field.**
+**Know Your Crop. Protect Your Yield.**
 
-VayPulse is a farmer-first Flutter platform that turns environmental and
+**Powered by VayPulse technology.**
+
+PhytoSense AI is a farmer-first Flutter platform that turns environmental and
 plant-response sensor readings into clear, explainable field decisions. The
 main farmer interface stays simple; engineering evidence and presentation
 material are separated into the Competition Center.
@@ -64,7 +66,7 @@ material are separated into the Competition Center.
 - Healthy, dry, overwatered, heat, low-light, critical, offline and sensor-fault
   presentation scenarios
 - Sensor range validation, timeouts, invalid-JSON handling and diagnostics
-- Detailed About VayPulse and Competition Center pages
+- Detailed About PhytoSense AI and Competition Center pages
 - Guided presentation mode with an honest simulation console
 - Engineering Evidence Center with a live system pipeline X-ray
 - Persistent controlled-trial records with baseline, stress and outcome evidence
@@ -95,7 +97,7 @@ uses the key-free Open-Meteo forecast endpoint and falls back to the last saved
 forecast if the network is unavailable. Farmers can enter farm/village
 coordinates manually or use phone GPS in the Weather Center. A nearest-city
 label is resolved on-device for major Tamil Nadu locations; GPS coordinates are
-shown when no listed city is nearby. VayPulse does not continuously track the
+shown when no listed city is nearby. PhytoSense AI does not continuously track the
 phone. The Coimbatore fallback exists only inside
 the farm simulation workspace; ESP32 Live hides farm location and weather so
 unrelated demonstration context cannot be mistaken for physical-node data.
@@ -155,14 +157,14 @@ migration.
 ## Scientific integrity
 
 Simulation values are always marked **DEMO** and live readings are marked
-**LIVE**. VayPulse Version 9 presents completed software capabilities and clearly labels
+**LIVE**. PhytoSense AI Version 9 presents completed software capabilities and clearly labels
 the physical-node connection as deployment-ready. No accuracy figure is shown
 until repeated hardware trials produce measured evidence.
 
 The disease feature is an explainable crop-confirmed candidate-ranking tool,
 not an automatic crop-species detector, trained pathogen classifier or
 laboratory diagnosis. Its percentages are transparent rule-based match scores,
-not accuracy figures. VayPulse identifies potential disease, pest or
+not accuracy figures. PhytoSense AI identifies potential disease, pest or
 environmental-stress types so farmers know what to inspect first. It
 intentionally does not select pesticides or chemical quantities; farmers
 should compare multiple plants and use qualified local agricultural advice

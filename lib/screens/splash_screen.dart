@@ -74,7 +74,7 @@ class _SplashScreenState extends State<SplashScreen> {
                     ),
                     const SizedBox(height: 24),
                     const Text(
-                      'VayPulse',
+                      'PhytoSense AI',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 30,
@@ -92,7 +92,18 @@ class _SplashScreenState extends State<SplashScreen> {
                         fontWeight: FontWeight.w600,
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 7),
+                    Text(
+                      context.tr('powered_by_vaypulse'),
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.62),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     const SizedBox(
                       width: 240,
                       child: PlantPulse(color: Color(0xFF8BE0B7)),

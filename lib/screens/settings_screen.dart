@@ -673,29 +673,21 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
   Future<void> _preview() async {
     final scope = AppScope.of(context);
     final language = scope.settings.value.languageCode;
-    final previewText = context.tr('voice_preview_sample');
-    final unavailableText = context.tr('voice_unavailable');
-
     setState(() => previewing = true);
-
     final prepared = await scope.voice.prepareVoice(language);
-    if (!mounted) return;
-
     final spoken = await scope.voice.speak(
-      text: previewText,
+      text: context.tr('voice_preview_sample'),
       languageCode: language,
     );
     if (!mounted) return;
-
     setState(() {
       previewing = false;
       voiceName = prepared;
       voiceLanguage = language;
     });
-
     if (!spoken) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(unavailableText)),
+        SnackBar(content: Text(context.tr('voice_unavailable'))),
       );
     }
   }

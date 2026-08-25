@@ -54,7 +54,7 @@ class AboutVayPulseScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        'VayPulse',
+                        'PhytoSense AI',
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -69,6 +69,15 @@ class AboutVayPulseScreen extends StatelessWidget {
                         style: TextStyle(
                           color: Colors.white.withValues(alpha: 0.82),
                           fontSize: 16,
+                        ),
+                      ),
+                      const SizedBox(height: 7),
+                      Text(
+                        context.tr('powered_by_vaypulse'),
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.68),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],

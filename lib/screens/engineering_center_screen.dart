@@ -536,8 +536,8 @@ class JudgeReportScreen extends StatelessWidget {
         ? 'esp32_live'
         : 'simulation_mode');
     final buffer = StringBuffer()
-      ..writeln('VAYPULSE — ENGINEERING EVIDENCE REPORT')
-      ..writeln('VayPulse Version 9.0.0')
+      ..writeln('PHYTOSENSE AI — ENGINEERING EVIDENCE REPORT')
+      ..writeln('PhytoSense AI Version 9.0.0 • Powered by VayPulse')
       ..writeln('Generated: ${DateTime.now().toIso8601String()}')
       ..writeln()
       ..writeln('1. ACTIVE SYSTEM')

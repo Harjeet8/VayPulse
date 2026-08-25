@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>VayPulse</string>
+	<string>PhytoSense AI</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>VayPulse</string>
+	<string>PhytoSense AI</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,13 +27,13 @@
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>VayPulse connects to your ESP32 sensor node on the local network.</string>
+	<string>PhytoSense AI connects to your VayPulse Node on the local network.</string>
 	<key>NSCameraUsageDescription</key>
-	<string>VayPulse uses the camera to screen plant leaves for visible stress and disease-risk patterns.</string>
+	<string>PhytoSense AI uses the camera to screen plant leaves for visible stress and disease-risk patterns.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>VayPulse lets you choose a leaf photo for on-device plant health screening.</string>
+	<string>PhytoSense AI lets you choose a leaf photo for on-device plant health screening.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>VayPulse uses your location only when requested to load weather for the farm you are visiting.</string>
+	<string>PhytoSense AI uses your location only when requested to load weather for the farm you are visiting.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsLocalNetworking</key>

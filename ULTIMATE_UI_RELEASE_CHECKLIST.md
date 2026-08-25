@@ -1,4 +1,4 @@
-# VayPulse 9.0 — Brand Launch Release Checklist
+# PhytoSense AI 9.0 — Brand Launch Release Checklist
 
 This document maps the final product-polish brief to visible app behaviour. It
 is also a quick verification sheet for the team before a competition demo.
@@ -55,7 +55,7 @@ is also a quick verification sheet for the team before a competition demo.
 
 ## 31. Small details that make it feel real
 
-- Custom launcher icon, branded splash/startup and consistent **VayPulse**
+- Custom launcher icon, branded splash/startup and consistent **PhytoSense AI**
   product naming across Android, iOS, web and desktop runners.
 - Haptics for important source, mode and crop-selection actions on supported
   mobile devices.

@@ -1,4 +1,4 @@
-# VayPulse ESP32 API Contract
+# PhytoSense AI ESP32 API Contract
 
 This contract allows one ESP32 node to plug into the Competition Edition app
 without changing dashboards, charts, alerts or analysis code.
@@ -65,7 +65,7 @@ collecting a healthy baseline for the actual electrode placement and crop.
   inspection.
 - A calibrated normal working band should normally sit away from `0` and `100`;
   the included demo uses roughly `50–85` for stable conditions.
-- VayPulse requests a representative leaf photo when `plantSignal < 38` or
+- PhytoSense AI requests a representative leaf photo when `plantSignal < 38` or
   `plantSignal > 92`, then cross-checks the photo with all other evidence.
 - Keep electrode placement, contact method and sample interval consistent
   during trials. Record the raw value separately in your experiment notes; the

@@ -1,11 +1,11 @@
 {
-    "name": "VayPulse",
-    "short_name": "VayPulse",
+    "name": "PhytoSense AI",
+    "short_name": "PhytoSense",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0D3D2C",
     "theme_color": "#176B4D",
-    "description": "Farmer-first smart plant health monitoring.",
+    "description": "PhytoSense AI crop intelligence and early-warning platform, powered by VayPulse.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

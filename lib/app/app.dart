@@ -92,7 +92,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
         animation: settings,
         builder: (_, __) => MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'VayPulse',
+          title: 'PhytoSense AI',
           theme: buildTheme(Brightness.light),
           darkTheme: buildTheme(Brightness.dark),
           themeMode: settings.value.themeMode,
@@ -173,7 +173,7 @@ class _StartupLoading extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   Text(
-                    'VayPulse',
+                    'PhytoSense AI',
                     style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           letterSpacing: -0.6,
@@ -214,7 +214,7 @@ class _StartupError extends StatelessWidget {
                       Icon(Icons.error_outline_rounded, size: 46),
                       SizedBox(height: 14),
                       Text(
-                        'VayPulse could not start',
+                        'PhytoSense AI could not start',
                         style: TextStyle(
                             fontSize: 20, fontWeight: FontWeight.w900),
                       ),
