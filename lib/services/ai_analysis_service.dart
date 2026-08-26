@@ -27,14 +27,12 @@ class AiAnalysisService {
     String crop = '',
   }) {
     final confidence = reading.analysisConfidence > 0
-        ? reading.analysisConfidence.round().clamp(20, 100)
+        ? reading.analysisConfidence.round().clamp(20, 100).toInt()
         : (70 + (history.length * 2).clamp(0, 24)).toInt();
     final cropName = crop.toLowerCase();
     final isFloodedRice =
         cropName.contains('rice') || cropName.contains('paddy');
 
-    // Important: environmental wetness is risk evidence, not a disease
-    // diagnosis. Existing localized wording is kept farmer-friendly.
     if ((reading.diseaseRisk ?? 0) >= 75) {
       return AiAnalysisResult(
         headlineKey: 'ai_combined_stress',
@@ -131,7 +129,6 @@ class AiAnalysisService {
       );
     }
 
-    // Never penalize normal darkness at night.
     if (reading.daytime && reading.lightAvailable && reading.light < 25) {
       return AiAnalysisResult(
         headlineKey: 'ai_low_light',
