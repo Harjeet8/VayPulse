@@ -4,6 +4,7 @@ import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import 'esp32_client.dart';
 import 'hardware_sensor_provider.dart';
+import 'health_analysis_engine.dart';
 import 'sensor_data_provider.dart';
 
 class Esp32SensorProvider extends HardwareSensorProvider {
@@ -17,9 +18,10 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   bool _polling = false;
   SensorConnectionStatus _status = SensorConnectionStatus.offline;
   String? _errorMessage;
+  int _consecutiveFailures = 0;
   SensorNode _node = SensorNode(
     id: _nodeId,
-    name: 'VayPulse Node 01',
+    name: 'PhytoSense Node 01',
     farmId: '',
     fieldId: '',
     zoneId: '',
@@ -69,19 +71,13 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   @override
   void start() {
     if (_timer != null) return;
-    _current = null;
     _status = SensorConnectionStatus.loading;
     _errorMessage = null;
-    _node = _node.copyWith(
-      signalPercent: 0,
-      lastSeen: DateTime.fromMillisecondsSinceEpoch(0),
-      isOnline: false,
-    );
+    _consecutiveFailures = 0;
+    _node = _node.copyWith(isOnline: false);
     notifyListeners();
     unawaited(_poll());
-    _timer = Timer.periodic(pollInterval, (_) {
-      unawaited(_poll());
-    });
+    _timer = Timer.periodic(pollInterval, (_) => unawaited(_poll()));
   }
 
   Future<void> _poll() async {
@@ -89,11 +85,21 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _polling = true;
     try {
       final snapshot = await client.getSnapshot();
-      final reading = snapshot.reading.copyWith(
+      final raw = snapshot.reading.copyWith(
         nodeId: _nodeId,
         timestamp: DateTime.now(),
       );
-      _validate(reading);
+      _validate(raw);
+
+      // Hardware and simulation go through the same app-side engine. The
+      // ESP32's own score is retained in esp32HealthScore for diagnostics.
+      final reading = HealthAnalysisEngine.apply(
+        raw,
+        _history,
+        crop: 'Tomato',
+        growthStage: 'vegetative',
+      );
+
       _current = reading;
       _history.add(reading);
       if (_history.length > 600) _history.removeAt(0);
@@ -103,44 +109,53 @@ class Esp32SensorProvider extends HardwareSensorProvider {
         lastSeen: reading.timestamp,
         isOnline: true,
       );
+      _consecutiveFailures = 0;
       _status = SensorConnectionStatus.ready;
       _errorMessage = null;
       _controller.add(reading);
     } on FormatException {
-      _status = SensorConnectionStatus.error;
-      _errorMessage = 'hardware_invalid_data';
-      _node = _node.copyWith(isOnline: false);
+      _registerFailure('hardware_invalid_data', invalidData: true);
     } catch (_) {
-      _status = SensorConnectionStatus.offline;
-      _errorMessage = 'hardware_unreachable';
-      _node = _node.copyWith(isOnline: false);
+      _registerFailure('hardware_unreachable');
     } finally {
       _polling = false;
       notifyListeners();
     }
   }
 
+  void _registerFailure(String key, {bool invalidData = false}) {
+    _consecutiveFailures++;
+    // One missed packet on an AP link should not make the dashboard flicker.
+    // After two failures the node is clearly marked unavailable while the last
+    // validated reading remains visible for context.
+    if (_consecutiveFailures < 2 && _current != null) return;
+    _status = invalidData
+        ? SensorConnectionStatus.error
+        : SensorConnectionStatus.offline;
+    _errorMessage = key;
+    _node = _node.copyWith(isOnline: false);
+  }
+
   void _validate(SensorReading reading) {
+    bool between(double value, double low, double high) =>
+        value.isFinite && value >= low && value <= high;
+
     final valid = (!reading.soilMoistureAvailable ||
-            (reading.soilMoisture.isFinite &&
-                reading.soilMoisture >= 0 &&
-                reading.soilMoisture <= 100)) &&
+            between(reading.soilMoisture, 0, 100)) &&
         (!reading.temperatureAvailable ||
-            (reading.temperature.isFinite &&
-                reading.temperature >= -10 &&
-                reading.temperature <= 65)) &&
-        (!reading.humidityAvailable ||
-            (reading.humidity.isFinite &&
-                reading.humidity >= 0 &&
-                reading.humidity <= 100)) &&
+            between(reading.temperature, -20, 70)) &&
+        (!reading.humidityAvailable || between(reading.humidity, 0, 100)) &&
         (!reading.lightAvailable ||
-            (reading.light.isFinite &&
-                reading.light >= 0 &&
-                reading.light <= 100)) &&
+            (reading.lightLux == null || between(reading.lightLux!, 0, 200000))) &&
+        (!reading.soilTemperatureAvailable ||
+            (reading.soilTemperature != null &&
+                between(reading.soilTemperature!, -20, 70))) &&
+        (!reading.leafWetnessAvailable ||
+            (reading.leafWetness != null && between(reading.leafWetness!, 0, 100))) &&
         (!reading.plantSignalAvailable ||
-            (reading.plantSignal.isFinite &&
-                reading.plantSignal >= 0 &&
-                reading.plantSignal <= 100));
+            (reading.plantVoltageMv == null ||
+                between(reading.plantVoltageMv!, 0, 5000))) &&
+        between(reading.bioSignalQuality, 0, 100);
     if (!valid) throw const FormatException('Out-of-range sensor data');
   }
 
@@ -150,6 +165,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   @override
   void retry() {
     _status = SensorConnectionStatus.loading;
+    _errorMessage = null;
     notifyListeners();
     unawaited(_poll());
   }
