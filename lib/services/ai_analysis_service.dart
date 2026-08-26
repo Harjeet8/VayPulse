@@ -26,12 +26,30 @@ class AiAnalysisService {
     List<SensorReading> history, {
     String crop = '',
   }) {
-    final confidence = (70 + (history.length * 2).clamp(0, 24)).toInt();
+    final confidence = reading.analysisConfidence > 0
+        ? reading.analysisConfidence.round().clamp(20, 100)
+        : (70 + (history.length * 2).clamp(0, 24)).toInt();
     final cropName = crop.toLowerCase();
     final isFloodedRice =
         cropName.contains('rice') || cropName.contains('paddy');
 
-    if (reading.soilMoisture < 20 && reading.temperature > 31) {
+    // Important: environmental wetness is risk evidence, not a disease
+    // diagnosis. Existing localized wording is kept farmer-friendly.
+    if ((reading.diseaseRisk ?? 0) >= 75) {
+      return AiAnalysisResult(
+        headlineKey: 'ai_combined_stress',
+        explanationKey: 'ai_combined_stress_explanation',
+        recommendationKey: 'ai_combined_stress_action',
+        evidenceKey: 'evidence_signal_crosscheck',
+        level: InsightLevel.attention,
+        confidence: confidence,
+      );
+    }
+
+    if (reading.soilMoistureAvailable &&
+        reading.temperatureAvailable &&
+        reading.soilMoisture < 20 &&
+        reading.temperature > 31) {
       return AiAnalysisResult(
         headlineKey: 'ai_combined_stress',
         explanationKey: 'ai_combined_stress_explanation',
@@ -41,7 +59,8 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
-    if (reading.soilMoisture < 30) {
+
+    if (reading.soilMoistureAvailable && reading.soilMoisture < 30) {
       return AiAnalysisResult(
         headlineKey: 'ai_water_stress',
         explanationKey: 'ai_water_stress_explanation',
@@ -53,21 +72,31 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
-    if (history.length >= 6) {
-      final recent = history.sublist(history.length - 6);
-      final moistureDrop = recent.first.soilMoisture - recent.last.soilMoisture;
-      if (moistureDrop >= 10 && reading.soilMoisture < 45) {
-        return AiAnalysisResult(
-          headlineKey: 'ai_early_water_stress',
-          explanationKey: 'ai_early_water_stress_explanation',
-          recommendationKey: 'ai_early_water_stress_action',
-          evidenceKey: 'evidence_falling_soil',
-          level: InsightLevel.attention,
-          confidence: confidence,
-        );
+
+    if (reading.soilMoistureAvailable && history.length >= 6) {
+      final recent = history
+          .where((item) => item.soilMoistureAvailable)
+          .toList(growable: false);
+      if (recent.length >= 6) {
+        final window = recent.sublist(recent.length - 6);
+        final moistureDrop =
+            window.first.soilMoisture - window.last.soilMoisture;
+        if (moistureDrop >= 10 && reading.soilMoisture < 45) {
+          return AiAnalysisResult(
+            headlineKey: 'ai_early_water_stress',
+            explanationKey: 'ai_early_water_stress_explanation',
+            recommendationKey: 'ai_early_water_stress_action',
+            evidenceKey: 'evidence_falling_soil',
+            level: InsightLevel.attention,
+            confidence: confidence,
+          );
+        }
       }
     }
-    if (reading.plantSignal < 25 && reading.soilMoisture < 45) {
+
+    if (reading.plantSignalAvailable &&
+        reading.bioBaselineReady &&
+        (reading.bioelectricStability ?? reading.plantSignal) < 55) {
       return AiAnalysisResult(
         headlineKey: 'ai_signal_stress',
         explanationKey: 'ai_signal_stress_explanation',
@@ -77,7 +106,10 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
-    if (reading.soilMoisture > 88 && !isFloodedRice) {
+
+    if (reading.soilMoistureAvailable &&
+        reading.soilMoisture > 88 &&
+        !isFloodedRice) {
       return AiAnalysisResult(
         headlineKey: 'ai_overwatering',
         explanationKey: 'ai_overwatering_explanation',
@@ -87,7 +119,8 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
-    if (reading.temperature > 33) {
+
+    if (reading.temperatureAvailable && reading.temperature > 33) {
       return AiAnalysisResult(
         headlineKey: 'ai_heat_stress',
         explanationKey: 'ai_heat_stress_explanation',
@@ -97,7 +130,9 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
-    if (reading.light < 25) {
+
+    // Never penalize normal darkness at night.
+    if (reading.daytime && reading.lightAvailable && reading.light < 25) {
       return AiAnalysisResult(
         headlineKey: 'ai_low_light',
         explanationKey: 'ai_low_light_explanation',
@@ -107,7 +142,10 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
-    if (reading.soilMoisture > 88 && isFloodedRice) {
+
+    if (reading.soilMoistureAvailable &&
+        reading.soilMoisture > 88 &&
+        isFloodedRice) {
       return AiAnalysisResult(
         headlineKey: 'ai_paddy_water_expected',
         explanationKey: 'ai_paddy_water_expected_explanation',
@@ -117,6 +155,7 @@ class AiAnalysisService {
         confidence: confidence,
       );
     }
+
     return AiAnalysisResult(
       headlineKey: 'ai_healthy',
       explanationKey: 'ai_healthy_explanation',
