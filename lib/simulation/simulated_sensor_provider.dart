@@ -21,8 +21,6 @@ class SimulationSensorProvider extends SensorDataProvider {
 
   SimulationSensorProvider() {
     final now = DateTime.now();
-    // Tomato is deliberately first and selected by default for the portable
-    // competition demonstration. Other crops can remain in the wider app.
     _nodes = [
       SensorNode(
         id: 'node-tomato-a1',
@@ -171,13 +169,14 @@ class SimulationSensorProvider extends SensorDataProvider {
         ? (target.light + zoneOffset + noise(4)).clamp(0, 100).toDouble()
         : 0.0;
     final lightLux = daytime ? lightPercent * 700 : 0.0;
-    final rootTemperature = (temperature - 1.5 + noise(0.5)).clamp(-10, 60).toDouble();
+    final rootTemperature =
+        (temperature - 1.5 + noise(0.5)).clamp(-10, 60).toDouble();
 
     final leafWetness = switch (_mode) {
       DemoMode.overwatered => (82 + noise(5)).clamp(0, 100).toDouble(),
       DemoMode.lowLight => (52 + noise(7)).clamp(0, 100).toDouble(),
       DemoMode.critical => (68 + noise(8)).clamp(0, 100).toDouble(),
-      _ => (14 + mathMax(0, humidity - 70) * 0.7 + noise(5))
+      _ => (14 + _max(0, humidity - 70) * 0.7 + noise(5))
           .clamp(0, 100)
           .toDouble(),
     };
@@ -194,7 +193,7 @@ class SimulationSensorProvider extends SensorDataProvider {
       DemoMode.dry => (68 + noise(6)).clamp(0, 100).toDouble(),
       _ => (90 + noise(5)).clamp(0, 100).toDouble(),
     };
-    final baselineMv = 1500.0;
+    const baselineMv = 1500.0;
     final plantVoltageMv = baselineMv + (100 - bioStability) * 0.7 + noise(4);
 
     final sensorFault = _mode == DemoMode.sensorFault;
@@ -213,8 +212,8 @@ class SimulationSensorProvider extends SensorDataProvider {
       healthScore: 75,
       stressScore: 25,
       healthStatus: 'starting',
-      soilRaw: (3200 - soil * 18.5).round().clamp(0, 4095),
-      leafRaw: (3900 - leafWetness * 27).round().clamp(0, 4095),
+      soilRaw: (3200 - soil * 18.5).round().clamp(0, 4095).toInt(),
+      leafRaw: (3900 - leafWetness * 27).round().clamp(0, 4095).toInt(),
       soilCalibrated: true,
       leafCalibrated: true,
       daytime: daytime,
@@ -244,7 +243,7 @@ class SimulationSensorProvider extends SensorDataProvider {
     );
   }
 
-  double mathMax(double a, double b) => a > b ? a : b;
+  double _max(double a, double b) => a > b ? a : b;
 
   @override
   void selectNode(String nodeId) {
@@ -271,12 +270,11 @@ class SimulationSensorProvider extends SensorDataProvider {
       _status = SensorConnectionStatus.offline;
       _nodes = _nodes.map((node) => node.copyWith(isOnline: false)).toList();
     } else {
-      // A sensor-fault scenario keeps the node online and marks individual
-      // channels unavailable. This demonstrates correct renormalization and
-      // confidence reduction instead of treating a failed probe as dead plant.
       _status = SensorConnectionStatus.ready;
       _nodes = _nodes.map((node) => node.copyWith(isOnline: true)).toList();
-      if (_mode == DemoMode.sensorFault) _errorMessage = 'hardware_invalid_data';
+      if (_mode == DemoMode.sensorFault) {
+        _errorMessage = 'hardware_invalid_data';
+      }
     }
   }
 
