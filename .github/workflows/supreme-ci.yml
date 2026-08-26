@@ -5,6 +5,9 @@ on:
     branches:
       - main
       - phytosense-ai-supreme
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
