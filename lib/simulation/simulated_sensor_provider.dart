@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:math';
 
+import '../models/edge_intelligence.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import '../services/health_analysis_engine.dart';
@@ -24,7 +25,7 @@ class SimulationSensorProvider extends SensorDataProvider {
     _nodes = [
       SensorNode(
         id: 'node-tomato-a1',
-        name: 'Tomato Demo Node',
+        name: 'Tomato Simulation Node',
         farmId: 'green-valley',
         fieldId: 'tomato-field',
         zoneId: 'tomato-east',
@@ -71,33 +72,203 @@ class SimulationSensorProvider extends SensorDataProvider {
 
   @override
   SensorDataSource get source => SensorDataSource.simulation;
+
   @override
   SensorReading? get current => _latest[_selectedNodeId];
+
   @override
   Map<String, SensorReading> get latestReadings =>
       Map<String, SensorReading>.unmodifiable(_latest);
+
   @override
   List<SensorNode> get nodes => List<SensorNode>.unmodifiable(_nodes);
+
   @override
   String get selectedNodeId => _selectedNodeId;
+
   @override
   List<SensorReading> historyFor(String nodeId) =>
       List<SensorReading>.unmodifiable(_history[nodeId] ?? const []);
+
   @override
   bool get connected => _status == SensorConnectionStatus.ready;
+
   @override
   SensorConnectionStatus get connectionStatus => _status;
+
   @override
   String? get errorMessage => _errorMessage;
+
   @override
   Stream<SensorReading> get stream => _controller.stream;
+
   @override
   bool get supportsScenarios => true;
+
   @override
   String get scenarioId => _mode.id;
+
   @override
   List<String> get scenarioIds =>
       DemoMode.values.map((mode) => mode.id).toList(growable: false);
+
+  @override
+  EdgeIntelligence? get edgeIntelligence {
+    final reading = current;
+    if (reading == null) return null;
+    final history = _history[_selectedNodeId] ?? const <SensorReading>[];
+    final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
+    final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
+    final soilTrend = _trend(
+      history.length >= 2 ? history[history.length - 2].soilMoisture : reading.soilMoisture,
+      reading.soilMoisture,
+    );
+    final rootTrend = reading.soilTemperatureAvailable &&
+            reading.soilTemperature != null &&
+            history.length >= 2 &&
+            history[history.length - 2].soilTemperature != null
+        ? _trend(history[history.length - 2].soilTemperature!, reading.soilTemperature!)
+        : 'STABLE';
+
+    final cause = switch (_mode) {
+      DemoMode.dry => const RootCauseAnalysis(
+          primary: 'Root-zone moisture is low',
+          secondary: 'Soil moisture is falling',
+        ),
+      DemoMode.overwatered => const RootCauseAnalysis(
+          primary: 'Root-zone moisture is very high',
+          secondary: 'Leaves have remained wet',
+        ),
+      DemoMode.heatStress => const RootCauseAnalysis(
+          primary: 'Air temperature is high',
+          secondary: 'Water demand is increasing',
+        ),
+      DemoMode.critical => const RootCauseAnalysis(
+          primary: 'Heat and low soil moisture are occurring together',
+          secondary: 'Plant signal has moved away from its baseline',
+        ),
+      DemoMode.lowLight => const RootCauseAnalysis(primary: 'Light is low'),
+      DemoMode.sensorFault => const RootCauseAnalysis(
+          primary: 'Some sensor information is unavailable',
+        ),
+      _ => const RootCauseAnalysis(),
+    };
+
+    final recommendation = switch (_mode) {
+      DemoMode.dry => 'Check root-zone moisture and consider irrigation.',
+      DemoMode.overwatered => 'Avoid watering now and check drainage.',
+      DemoMode.heatStress => 'Reduce avoidable heat exposure and keep monitoring root-zone moisture.',
+      DemoMode.critical => 'Inspect the root zone now and reduce heat stress where practical.',
+      DemoMode.lowLight => 'Check shade or covering before changing field practice.',
+      DemoMode.sensorFault => 'Check the unavailable sensor while environmental monitoring continues.',
+      _ => 'Conditions are currently acceptable. Continue monitoring.',
+    };
+
+    final state = reading.healthScore >= 82
+        ? 'HEALTHY'
+        : reading.healthScore >= 65
+            ? 'WATCH'
+            : reading.healthScore >= 42
+                ? 'STRESSED'
+                : 'CRITICAL';
+
+    return EdgeIntelligence(
+      firmwareVersion: 'simulation-model',
+      capabilities: const FirmwareCapabilities(
+        edgeDecision: true,
+        plantState: true,
+        sensorConfidence: true,
+        trends: true,
+        rootCause: true,
+        recovery: true,
+        cropProfile: true,
+        growthStage: true,
+      ),
+      healthScore: reading.healthScore,
+      overallConfidence: _mode == DemoMode.sensorFault ? 62 : 90,
+      plantState: state,
+      farmerSummary: cause.primary,
+      recommendation: recommendation,
+      decisionExplanation: cause.primary == null
+          ? 'The simulated readings remain within the current crop profile.'
+          : '${cause.primary}. ${cause.secondary ?? ''}'.trim(),
+      generatedOnDevice: false,
+      degradedAnalysis: _mode == DemoMode.sensorFault,
+      degradedReason: _mode == DemoMode.sensorFault
+          ? 'Simulation scenario includes unavailable sensors.'
+          : null,
+      rootCause: cause,
+      recovery: const RecoveryInfo(active: false),
+      sensorConfidence: [
+        SensorConfidence(
+            channel: 'airTemperature',
+            percent: reading.temperatureAvailable ? 98 : 0,
+            valid: reading.temperatureAvailable),
+        SensorConfidence(
+            channel: 'humidity',
+            percent: reading.humidityAvailable ? 98 : 0,
+            valid: reading.humidityAvailable),
+        SensorConfidence(
+            channel: 'light',
+            percent: reading.lightAvailable ? 95 : 0,
+            valid: reading.lightAvailable),
+        SensorConfidence(
+            channel: 'soilMoisture',
+            percent: reading.soilMoistureAvailable ? 93 : 0,
+            valid: reading.soilMoistureAvailable),
+        SensorConfidence(
+            channel: 'rootTemperature',
+            percent: reading.soilTemperatureAvailable ? 97 : 0,
+            valid: reading.soilTemperatureAvailable),
+        SensorConfidence(
+            channel: 'leafWetness',
+            percent: reading.leafWetnessAvailable ? 91 : 0,
+            valid: reading.leafWetnessAvailable),
+        SensorConfidence(
+            channel: 'bioelectric',
+            percent: reading.plantSignalAvailable ? reading.bioSignalQuality : 0,
+            valid: reading.plantSignalAvailable),
+      ],
+      trends: [
+        SensorTrend(channel: 'soilMoisture', state: soilTrend),
+        SensorTrend(channel: 'rootTemperature', state: rootTrend),
+        const SensorTrend(channel: 'bioelectric', state: 'STABLE'),
+      ],
+      cropProfile: CropProfileInfo(
+        profile: crop,
+        growthStage: stage,
+        supportedProfiles: const [
+          'universal',
+          'tomato',
+          'hibiscus',
+          'rice',
+          'sugarcane',
+          'banana',
+          'eggplant',
+          'okra',
+          'maize',
+          'groundnut',
+        ],
+        supportedStages: const [
+          'general',
+          'young',
+          'vegetative',
+          'flowering',
+          'fruiting',
+          'mature',
+        ],
+        switchable: false,
+      ),
+      diseaseRiskScore: reading.diseaseRisk,
+      diseaseRiskLevel: reading.diseaseRisk == null
+          ? null
+          : reading.diseaseRisk! >= 70
+              ? 'HIGH'
+              : reading.diseaseRisk! >= 40
+                  ? 'MODERATE'
+                  : 'LOW',
+    );
+  }
 
   @override
   void start() {
@@ -241,6 +412,15 @@ class SimulationSensorProvider extends SensorDataProvider {
       crop: node.id.startsWith('node-rice') ? 'Rice' : 'Tomato',
       growthStage: node.id.startsWith('node-rice') ? 'tillering' : 'vegetative',
     );
+  }
+
+  String _trend(double previous, double current) {
+    final delta = current - previous;
+    if (delta > 4) return 'RISING_FAST';
+    if (delta > 0.6) return 'RISING';
+    if (delta < -4) return 'FALLING_FAST';
+    if (delta < -0.6) return 'FALLING';
+    return 'STABLE';
   }
 
   double _max(double a, double b) => a > b ? a : b;
