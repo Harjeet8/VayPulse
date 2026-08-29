@@ -410,8 +410,8 @@ class _AdvancedDetails extends StatelessWidget {
             _Row(
               'Prediction',
               edge!.prediction.message ??
-                  edge.prediction.explanation ??
-                  edge.prediction.state ??
+                  edge!.prediction.explanation ??
+                  edge!.prediction.state ??
                   'Unavailable',
             ),
           if (edge?.prediction.target != null)
