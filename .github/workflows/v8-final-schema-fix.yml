@@ -1,0 +1,87 @@
+name: PhytoSense AI V8 Final Schema Fix
+
+on:
+  push:
+    branches:
+      - phytosense-v8-ultra-final
+    paths:
+      - '.github/workflows/v8-final-schema-fix.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix-validate-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout synchronized V8
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fix final analyzer null-safety issue
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('lib/screens/farmer_analysis_screen.dart')
+          s = p.read_text()
+          s2 = s.replace('edge.prediction.explanation', 'edge!.prediction.explanation')
+          s2 = s2.replace('edge.prediction.state', 'edge!.prediction.state')
+          if s2 == s:
+              raise SystemExit('Expected prediction null-safety references were not found')
+          p.write_text(s2)
+          PY
+          rm -f .github/workflows/v8-final-schema-fix.yml
+
+      - name: Commit exact final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Fix final V8 schema sync analyzer issues'
+          git push origin HEAD:phytosense-v8-ultra-final
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Strict Flutter analyze
+        run: flutter analyze
+
+      - name: Flutter tests
+        run: flutter test
+
+      - name: Chrome web release build
+        run: flutter build web --release
+
+      - name: Android release APK
+        run: flutter build apk --release
+
+      - name: Package final synchronized V8
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip -r 'PhytoSense-AI-V8-ULTRA-FINAL.zip' . \
+            -x '.git/*' '.dart_tool/*' 'build/*' '*.zip' '.v8sync/*'
+          cp build/app/outputs/flutter-apk/app-release.apk 'PhytoSense-AI-V8-ULTRA-FINAL.apk'
+
+      - name: Upload final synchronized V8
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-V8-ULTRA-FINAL-SCHEMA8
+          path: |
+            PhytoSense-AI-V8-ULTRA-FINAL.zip
+            PhytoSense-AI-V8-ULTRA-FINAL.apk
+          if-no-files-found: error
+          retention-days: 30
