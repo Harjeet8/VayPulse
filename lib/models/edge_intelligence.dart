@@ -6,6 +6,9 @@ class FirmwareCapabilities {
   final bool rootCause;
   final bool recovery;
   final bool prediction;
+  final bool compoundStress;
+  final bool responseLag;
+  final bool anomaly;
   final bool baseline;
   final bool derivedEnvironment;
   final bool stressEvidence;
@@ -24,6 +27,9 @@ class FirmwareCapabilities {
     this.rootCause = false,
     this.recovery = false,
     this.prediction = false,
+    this.compoundStress = false,
+    this.responseLag = false,
+    this.anomaly = false,
     this.baseline = false,
     this.derivedEnvironment = false,
     this.stressEvidence = false,
@@ -39,6 +45,9 @@ class FirmwareCapabilities {
       trends ||
       rootCause ||
       recovery ||
+      compoundStress ||
+      responseLag ||
+      anomaly ||
       baseline ||
       stressEvidence ||
       sensorFaults ||
@@ -66,31 +75,73 @@ class SensorTrend {
   final String? state;
   final double? slope;
   final double? variability;
+  final double? ratePerMinute;
+  final double? shortSlopePerMinute;
+  final double? longSlopePerMinute;
+  final double? confidence;
 
   const SensorTrend({
     required this.channel,
     this.state,
     this.slope,
     this.variability,
+    this.ratePerMinute,
+    this.shortSlopePerMinute,
+    this.longSlopePerMinute,
+    this.confidence,
   });
+}
+
+class RootCauseCandidate {
+  final String? name;
+  final double? confidence;
+  final String? evidenceFor;
+  final String? evidenceAgainst;
+
+  const RootCauseCandidate({
+    this.name,
+    this.confidence,
+    this.evidenceFor,
+    this.evidenceAgainst,
+  });
+
+  bool get hasData =>
+      name != null || confidence != null || evidenceFor != null || evidenceAgainst != null;
 }
 
 class RootCauseAnalysis {
   final String? primary;
   final String? secondary;
   final String? additionalContributor;
+  final RootCauseCandidate? primaryCandidate;
+  final RootCauseCandidate? secondaryCandidate;
+  final List<RootCauseCandidate> ranked;
 
   const RootCauseAnalysis({
     this.primary,
     this.secondary,
     this.additionalContributor,
+    this.primaryCandidate,
+    this.secondaryCandidate,
+    this.ranked = const [],
   });
 
-  bool get hasAny => primary != null || secondary != null || additionalContributor != null;
+  bool get hasAny =>
+      primary != null ||
+      secondary != null ||
+      additionalContributor != null ||
+      primaryCandidate?.hasData == true ||
+      secondaryCandidate?.hasData == true ||
+      ranked.isNotEmpty;
 }
 
 class RecoveryInfo {
   final bool active;
+  final String? state;
+  final double? confidence;
+  final bool? environmentImproved;
+  final bool? bioResponseDecreasing;
+  final String? farmerResult;
   final String? quality;
   final double? durationSeconds;
   final String? improved;
@@ -98,13 +149,27 @@ class RecoveryInfo {
 
   const RecoveryInfo({
     this.active = false,
+    this.state,
+    this.confidence,
+    this.environmentImproved,
+    this.bioResponseDecreasing,
+    this.farmerResult,
     this.quality,
     this.durationSeconds,
     this.improved,
     this.remainingConcern,
   });
 
-  bool get hasData => active || quality != null || improved != null || remainingConcern != null;
+  bool get hasData =>
+      active ||
+      state != null ||
+      confidence != null ||
+      environmentImproved != null ||
+      bioResponseDecreasing != null ||
+      farmerResult != null ||
+      quality != null ||
+      improved != null ||
+      remainingConcern != null;
 }
 
 
@@ -117,11 +182,16 @@ class BioelectricIntelligence {
   final double? normalizedDeviation;
   final double? noiseMv;
   final double? signalQuality;
+  final String? signalQualityState;
   final double? confidence;
   final String? trend;
   final double? stressScore;
   final String? stressState;
   final double? persistenceSeconds;
+  final double? stressLoad;
+  final String? stressLoadState;
+  final bool? baselineLearningPaused;
+  final double? rawAdc;
   final bool? corroborated;
   final List<String> corroboratedBy;
   final String? farmerResult;
@@ -135,11 +205,16 @@ class BioelectricIntelligence {
     this.normalizedDeviation,
     this.noiseMv,
     this.signalQuality,
+    this.signalQualityState,
     this.confidence,
     this.trend,
     this.stressScore,
     this.stressState,
     this.persistenceSeconds,
+    this.stressLoad,
+    this.stressLoadState,
+    this.baselineLearningPaused,
+    this.rawAdc,
     this.corroborated,
     this.corroboratedBy = const [],
     this.farmerResult,
@@ -151,6 +226,8 @@ class BioelectricIntelligence {
       baselineMv != null ||
       stressScore != null ||
       stressState != null ||
+      stressLoad != null ||
+      stressLoadState != null ||
       farmerResult != null;
 }
 
@@ -193,21 +270,105 @@ class BioticStressInfo {
 }
 
 class PredictionInfo {
+  final bool? available;
   final String? state;
+  final String? target;
   final String? explanation;
   final String? whatIfExplanation;
+  final String? message;
   final double? confidence;
+  final double? minutesToWarning;
   final double? minutesToWaterStressWarning;
 
   const PredictionInfo({
+    this.available,
     this.state,
+    this.target,
     this.explanation,
     this.whatIfExplanation,
+    this.message,
     this.confidence,
+    this.minutesToWarning,
     this.minutesToWaterStressWarning,
   });
 
-  bool get hasData => state != null || explanation != null || minutesToWaterStressWarning != null;
+  bool get hasData =>
+      available != null ||
+      state != null ||
+      target != null ||
+      explanation != null ||
+      message != null ||
+      minutesToWarning != null ||
+      minutesToWaterStressWarning != null;
+}
+
+class CompoundStressInfo {
+  final String? state;
+  final double? severity;
+  final double? waterEvidence;
+  final double? heatEvidence;
+  final double? rootEvidence;
+  final double? atmosphericEvidence;
+
+  const CompoundStressInfo({
+    this.state,
+    this.severity,
+    this.waterEvidence,
+    this.heatEvidence,
+    this.rootEvidence,
+    this.atmosphericEvidence,
+  });
+
+  bool get hasData =>
+      state != null ||
+      severity != null ||
+      waterEvidence != null ||
+      heatEvidence != null ||
+      rootEvidence != null ||
+      atmosphericEvidence != null;
+}
+
+class ResponseLagInfo {
+  final double? environmentToBioResponseSeconds;
+  final double? irrigationToBioDecreaseSeconds;
+  final String? interpretation;
+
+  const ResponseLagInfo({
+    this.environmentToBioResponseSeconds,
+    this.irrigationToBioDecreaseSeconds,
+    this.interpretation,
+  });
+
+  bool get hasData =>
+      environmentToBioResponseSeconds != null ||
+      irrigationToBioDecreaseSeconds != null ||
+      interpretation != null;
+}
+
+class AnomalyInfo {
+  final String? state;
+  final bool? detected;
+  final bool? changePointDetected;
+  final double? score;
+  final double? confidence;
+  final String? reason;
+
+  const AnomalyInfo({
+    this.state,
+    this.detected,
+    this.changePointDetected,
+    this.score,
+    this.confidence,
+    this.reason,
+  });
+
+  bool get hasData =>
+      state != null ||
+      detected != null ||
+      changePointDetected != null ||
+      score != null ||
+      confidence != null ||
+      reason != null;
 }
 
 class PlantBaselineInfo {
@@ -339,6 +500,7 @@ class TinyMlInfo {
 
 class EdgeIntelligence {
   final String firmwareVersion;
+  final int? schemaVersion;
   final FirmwareCapabilities capabilities;
   final double? healthScore;
   final double? overallConfidence;
@@ -355,6 +517,9 @@ class EdgeIntelligence {
   final BioelectricIntelligence bioelectric;
   final BioticStressInfo bioticStress;
   final PredictionInfo prediction;
+  final CompoundStressInfo compoundStress;
+  final ResponseLagInfo responseLag;
+  final AnomalyInfo anomaly;
   final PlantBaselineInfo baseline;
   final StressEvidence stressEvidence;
   final DerivedEnvironmentInfo derivedEnvironment;
@@ -373,6 +538,7 @@ class EdgeIntelligence {
 
   const EdgeIntelligence({
     required this.firmwareVersion,
+    this.schemaVersion,
     required this.capabilities,
     this.healthScore,
     this.overallConfidence,
@@ -389,6 +555,9 @@ class EdgeIntelligence {
     this.bioelectric = const BioelectricIntelligence(),
     this.bioticStress = const BioticStressInfo(),
     this.prediction = const PredictionInfo(),
+    this.compoundStress = const CompoundStressInfo(),
+    this.responseLag = const ResponseLagInfo(),
+    this.anomaly = const AnomalyInfo(),
     this.baseline = const PlantBaselineInfo(),
     this.stressEvidence = const StressEvidence(),
     this.derivedEnvironment = const DerivedEnvironmentInfo(),
@@ -461,6 +630,21 @@ class EdgeIntelligence {
       plantHealth['prediction'],
       edge['forecast'],
       data['forecast'],
+    ]);
+    final compoundStressMap = _firstMap([
+      edge['compoundStress'],
+      data['compoundStress'],
+      plantHealth['compoundStress'],
+    ]);
+    final responseLagMap = _firstMap([
+      edge['responseLag'],
+      data['responseLag'],
+      plantHealth['responseLag'],
+    ]);
+    final anomalyMap = _firstMap([
+      edge['anomaly'],
+      data['anomaly'],
+      plantHealth['anomaly'],
     ]);
     final baselineMap = _firstMap([
       edge['baseline'],
@@ -609,15 +793,22 @@ class EdgeIntelligence {
       ));
     }
 
+    final primaryCandidate = _rootCauseCandidate(
+      _first([rootCauseMap['primary'], rootCauseMap['primaryCause']]),
+    );
+    final secondaryCandidate = _rootCauseCandidate(
+      _first([rootCauseMap['secondary'], rootCauseMap['secondaryCause']]),
+    );
+    final rankedCandidates = _parseRootCauseCandidates(rootCauseMap['ranked']);
     final rootCause = RootCauseAnalysis(
-      primary: _text(_first([
+      primary: primaryCandidate?.name ?? _text(_first([
         rootCauseMap['primary'],
         rootCauseMap['primaryCause'],
         edge['primaryCause'],
         data['primaryCause'],
         data['primaryFinding'],
       ])),
-      secondary: _text(_first([
+      secondary: secondaryCandidate?.name ?? _text(_first([
         rootCauseMap['secondary'],
         rootCauseMap['secondaryCause'],
         edge['secondaryCause'],
@@ -629,8 +820,16 @@ class EdgeIntelligence {
         edge['additionalContributor'],
         data['additionalContributor'],
       ])),
+      primaryCandidate: primaryCandidate,
+      secondaryCandidate: secondaryCandidate,
+      ranked: rankedCandidates,
     );
 
+    final recoveryState = _text(_first([
+      recoveryMap['state'],
+      edge['recoveryState'],
+      data['recoveryState'],
+    ]));
     final recovery = RecoveryInfo(
       active: _bool(_first([
             recoveryMap['active'],
@@ -638,7 +837,29 @@ class EdgeIntelligence {
             data['recoveryActive'],
           ])) ==
           true ||
-          (plantState?.toUpperCase() == 'RECOVERING'),
+          (plantState?.toUpperCase() == 'RECOVERING') ||
+          (recoveryState?.toUpperCase() == 'RECOVERING'),
+      state: recoveryState,
+      confidence: _percent(_first([
+        recoveryMap['confidence'],
+        edge['recoveryConfidence'],
+        data['recoveryConfidence'],
+      ])),
+      environmentImproved: _bool(_first([
+        recoveryMap['environmentImproved'],
+        edge['environmentImproved'],
+        data['environmentImproved'],
+      ])),
+      bioResponseDecreasing: _bool(_first([
+        recoveryMap['bioResponseDecreasing'],
+        edge['bioResponseDecreasing'],
+        data['bioResponseDecreasing'],
+      ])),
+      farmerResult: _text(_first([
+        recoveryMap['farmerResult'],
+        edge['recoveryFarmerResult'],
+        data['recoveryFarmerResult'],
+      ])),
       quality: _text(_first([
         recoveryMap['quality'],
         edge['recoveryQuality'],
@@ -685,6 +906,10 @@ class EdgeIntelligence {
         bioelectricMap['signalQuality'],
         bioelectricMap['signalQualityPercent'],
       ])),
+      signalQualityState: _text(_first([
+        bioelectricMap['signalQualityState'],
+        bioelectricMap['qualityState'],
+      ])),
       confidence: _percent(bioelectricMap['confidence']),
       trend: _text(bioelectricMap['trend']),
       stressScore: _percent(bioelectricMap['stressScore']),
@@ -692,6 +917,18 @@ class EdgeIntelligence {
       persistenceSeconds: _num(_first([
         bioelectricMap['persistenceSeconds'],
         bioelectricMap['persistentSeconds'],
+      ])),
+      stressLoad: _num(bioelectricMap['stressLoad']),
+      stressLoadState: _text(bioelectricMap['stressLoadState']),
+      baselineLearningPaused: _bool(_first([
+        bioelectricMap['baselineLearningPaused'],
+        bioelectricMap['learningPaused'],
+      ])),
+      rawAdc: _num(_first([
+        bioelectricMap['rawADC'],
+        bioelectricMap['rawAdc'],
+        bioelectricMap['adcRaw'],
+        bioelectricMap['raw'],
       ])),
       corroborated: _bool(bioelectricMap['corroborated']),
       corroboratedBy: _strings(bioelectricMap['corroboratedBy']),
@@ -715,14 +952,17 @@ class EdgeIntelligence {
     );
 
     final prediction = PredictionInfo(
+      available: _bool(predictionMap['available']),
       state: _text(_first([
         predictionMap['state'],
         predictionMap['predictionState'],
         edge['predictionState'],
         data['predictionState'],
       ])),
+      target: _text(predictionMap['target']),
       explanation: _text(_first([
         predictionMap['explanation'],
+        predictionMap['message'],
         predictionMap['predictionExplanation'],
         edge['predictionExplanation'],
         data['predictionExplanation'],
@@ -733,11 +973,13 @@ class EdgeIntelligence {
         edge['whatIfExplanation'],
         data['whatIfExplanation'],
       ])),
+      message: _text(predictionMap['message']),
       confidence: _percent(_first([
         predictionMap['confidence'],
         edge['predictionConfidence'],
         data['predictionConfidence'],
       ])),
+      minutesToWarning: _minutes(predictionMap['minutesToWarning']),
       minutesToWaterStressWarning: _minutes(_first([
         predictionMap['minutesToWaterStressWarning'],
         predictionMap['estimatedTimeToWaterStressWarningMinutes'],
@@ -746,6 +988,32 @@ class EdgeIntelligence {
         edge['estimatedTimeToWaterStressWarning'],
         data['estimatedTimeToWaterStressWarning'],
       ])),
+    );
+
+    final compoundStress = CompoundStressInfo(
+      state: _text(compoundStressMap['state']),
+      severity: _percent(compoundStressMap['severity']),
+      waterEvidence: _percent(compoundStressMap['waterEvidence']),
+      heatEvidence: _percent(compoundStressMap['heatEvidence']),
+      rootEvidence: _percent(compoundStressMap['rootEvidence']),
+      atmosphericEvidence: _percent(compoundStressMap['atmosphericEvidence']),
+    );
+
+    final responseLag = ResponseLagInfo(
+      environmentToBioResponseSeconds:
+          _num(responseLagMap['environmentToBioResponseSeconds']),
+      irrigationToBioDecreaseSeconds:
+          _num(responseLagMap['irrigationToBioDecreaseSeconds']),
+      interpretation: _text(responseLagMap['interpretation']),
+    );
+
+    final anomaly = AnomalyInfo(
+      state: _text(_first([anomalyMap['state'], anomalyMap['status']])),
+      detected: _bool(_first([anomalyMap['detected'], anomalyMap['anomalyDetected']])),
+      changePointDetected: _bool(anomalyMap['changePointDetected']),
+      score: _percent(_first([anomalyMap['score'], anomalyMap['anomalyScore']])),
+      confidence: _percent(anomalyMap['confidence']),
+      reason: _text(_first([anomalyMap['reason'], anomalyMap['explanation']])),
     );
 
     final baseline = PlantBaselineInfo(
@@ -974,6 +1242,9 @@ class EdgeIntelligence {
       rootCause: rootCause.hasAny,
       recovery: recovery.hasData,
       prediction: prediction.hasData,
+      compoundStress: compoundStress.hasData,
+      responseLag: responseLag.hasData,
+      anomaly: anomaly.hasData,
       baseline: baseline.hasData,
       derivedEnvironment: derived.hasData,
       stressEvidence: stressEvidence.hasData,
@@ -987,6 +1258,7 @@ class EdgeIntelligence {
 
     return EdgeIntelligence(
       firmwareVersion: firmwareVersion,
+      schemaVersion: _int(_first([data['schemaVersion'], root['schemaVersion']])),
       capabilities: capabilities,
       healthScore: healthScore,
       overallConfidence: confidence,
@@ -1003,6 +1275,9 @@ class EdgeIntelligence {
       bioelectric: bioelectric,
       bioticStress: bioticStress,
       prediction: prediction,
+      compoundStress: compoundStress,
+      responseLag: responseLag,
+      anomaly: anomaly,
       baseline: baseline,
       stressEvidence: stressEvidence,
       derivedEnvironment: derived,
@@ -1029,6 +1304,32 @@ class EdgeIntelligence {
       confirmedDisease: _bool(diseaseMap['confirmedDisease']),
     );
   }
+}
+
+RootCauseCandidate? _rootCauseCandidate(dynamic raw) {
+  if (raw == null) return null;
+  if (raw is String || raw is num) {
+    final name = _text(raw);
+    return name == null ? null : RootCauseCandidate(name: name);
+  }
+  final map = _map(raw);
+  if (map.isEmpty) return null;
+  final candidate = RootCauseCandidate(
+    name: _text(_first([map['name'], map['cause'], map['label'], map['result']])),
+    confidence: _percent(_first([map['confidence'], map['score'], map['probability']])),
+    evidenceFor: _text(_first([map['evidenceFor'], map['for'], map['supportingEvidence']])),
+    evidenceAgainst:
+        _text(_first([map['evidenceAgainst'], map['against'], map['counterEvidence']])),
+  );
+  return candidate.hasData ? candidate : null;
+}
+
+List<RootCauseCandidate> _parseRootCauseCandidates(dynamic raw) {
+  if (raw is! List) return const [];
+  return raw
+      .map(_rootCauseCandidate)
+      .whereType<RootCauseCandidate>()
+      .toList(growable: false);
 }
 
 List<SensorConfidence> _parseConfidences(dynamic raw) {
@@ -1078,8 +1379,12 @@ List<SensorTrend> _parseTrends(dynamic raw) {
       result.add(SensorTrend(
         channel: '${entry.key}',
         state: _text(details.isEmpty ? entry.value : _first([details['state'], details['trend']])),
-        slope: _num(_first([details['slope'], details['rate']])),
+        slope: _num(_first([details['slope'], details['rate'], details['ratePerMinute']])),
         variability: _num(_first([details['variability'], details['variance'], details['noise']])),
+        ratePerMinute: _num(details['ratePerMinute']),
+        shortSlopePerMinute: _num(details['shortSlopePerMinute']),
+        longSlopePerMinute: _num(details['longSlopePerMinute']),
+        confidence: _percent(details['confidence']),
       ));
     }
   } else if (raw is List) {
@@ -1090,8 +1395,12 @@ List<SensorTrend> _parseTrends(dynamic raw) {
       result.add(SensorTrend(
         channel: channel,
         state: _text(_first([details['state'], details['trend']])),
-        slope: _num(_first([details['slope'], details['rate']])),
+        slope: _num(_first([details['slope'], details['rate'], details['ratePerMinute']])),
         variability: _num(_first([details['variability'], details['variance']])),
+        ratePerMinute: _num(details['ratePerMinute']),
+        shortSlopePerMinute: _num(details['shortSlopePerMinute']),
+        longSlopePerMinute: _num(details['longSlopePerMinute']),
+        confidence: _percent(details['confidence']),
       ));
     }
   }
@@ -1175,6 +1484,12 @@ double? _num(dynamic value) {
   if (value == null || value is bool) return null;
   final parsed = value is num ? value.toDouble() : double.tryParse('$value');
   return parsed?.isFinite == true ? parsed : null;
+}
+
+int? _int(dynamic value) {
+  if (value == null || value is bool) return null;
+  if (value is num) return value.toInt();
+  return int.tryParse('$value');
 }
 
 double? _percent(dynamic value) {

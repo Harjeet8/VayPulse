@@ -127,7 +127,7 @@ class FarmerAnalysisScreen extends StatelessWidget {
     if (edge.recovery.active || edge.plantState?.toUpperCase() == 'RECOVERING') {
       return FarmerLanguage.firmware(
         context,
-        edge.recovery.improved,
+        edge.recovery.improved ?? edge.recovery.farmerResult,
         fallback: FarmerLanguage.label(context, 'recovery_summary'),
       );
     }
@@ -314,6 +314,8 @@ class _AdvancedDetails extends StatelessWidget {
         childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
         children: [
           _Row('Firmware', edge?.firmwareVersion ?? 'Unknown'),
+          if (edge?.schemaVersion != null)
+            _Row('API schema', 'v${edge!.schemaVersion}'),
           if (edge?.healthScore != null)
             _Row('Health score', '${edge!.healthScore!.round()} / 100'),
           if (exactConfidence != null)
@@ -322,8 +324,34 @@ class _AdvancedDetails extends StatelessWidget {
             _Row('Crop profile', edge!.cropProfile.profile!),
           if (edge?.cropProfile.growthStage != null)
             _Row('Growth stage', edge!.cropProfile.growthStage!),
+          if (edge?.rootCause.primary != null)
+            _Row('Primary cause', edge!.rootCause.primary!),
+          if (edge?.rootCause.primaryCandidate?.confidence != null)
+            _Row(
+              'Primary cause confidence',
+              '${edge!.rootCause.primaryCandidate!.confidence!.round()}%',
+            ),
+          if (edge?.rootCause.primaryCandidate?.evidenceFor != null)
+            _Row('Evidence for', edge!.rootCause.primaryCandidate!.evidenceFor!),
+          if (edge?.rootCause.primaryCandidate?.evidenceAgainst != null)
+            _Row('Evidence against', edge!.rootCause.primaryCandidate!.evidenceAgainst!),
           if (edge?.rootCause.secondary != null)
             _Row('Secondary cause', edge!.rootCause.secondary!),
+          if (edge?.rootCause.secondaryCandidate?.confidence != null)
+            _Row(
+              'Secondary confidence',
+              '${edge!.rootCause.secondaryCandidate!.confidence!.round()}%',
+            ),
+          if (edge?.rootCause.ranked.isNotEmpty == true)
+            _Row(
+              'Ranked causes',
+              edge!.rootCause.ranked
+                  .where((candidate) => candidate.name != null)
+                  .map((candidate) => candidate.confidence == null
+                      ? candidate.name!
+                      : '${candidate.name!} (${candidate.confidence!.round()}%)')
+                  .join(' • '),
+            ),
           if (edge?.degradedReason != null)
             _Row('Reduced-confidence reason', edge!.degradedReason!),
           if (edge?.derivedEnvironment.vpdKpa != null)
@@ -345,6 +373,72 @@ class _AdvancedDetails extends StatelessWidget {
             _Row('Signal quality', '${bio!.signalQuality!.round()}%'),
           if (bio?.persistenceSeconds != null)
             _Row('Persistence', '${bio!.persistenceSeconds!.round()} sec'),
+          if (bio?.stressLoadState != null)
+            _Row('Stress load state', bio!.stressLoadState!),
+          if (bio?.stressLoad != null)
+            _Row('Stress load', bio!.stressLoad!.toStringAsFixed(1)),
+          if (bio?.signalQualityState != null)
+            _Row('Signal quality state', bio!.signalQualityState!),
+          if (bio?.baselineLearningPaused != null)
+            _Row(
+              'Baseline learning',
+              bio!.baselineLearningPaused! ? 'Paused' : 'Active',
+            ),
+          if (bio?.rawAdc != null)
+            _Row('Raw ADC', bio!.rawAdc!.toStringAsFixed(0)),
+          if (edge?.recovery.state != null)
+            _Row('Recovery state', edge!.recovery.state!),
+          if (edge?.recovery.confidence != null)
+            _Row('Recovery confidence', '${edge!.recovery.confidence!.round()}%'),
+          if (edge?.recovery.environmentImproved != null)
+            _Row(
+              'Environment improved',
+              edge!.recovery.environmentImproved! ? 'Yes' : 'No',
+            ),
+          if (edge?.recovery.bioResponseDecreasing != null)
+            _Row(
+              'Plant response decreasing',
+              edge!.recovery.bioResponseDecreasing! ? 'Yes' : 'No',
+            ),
+          if (edge?.recovery.farmerResult != null)
+            _Row('Recovery result', edge!.recovery.farmerResult!),
+          if (edge?.compoundStress.state != null)
+            _Row('Compound stress', edge!.compoundStress.state!),
+          if (edge?.compoundStress.severity != null)
+            _Row('Compound severity', '${edge!.compoundStress.severity!.round()} / 100'),
+          if (edge?.prediction.hasData == true)
+            _Row(
+              'Prediction',
+              edge!.prediction.message ??
+                  edge.prediction.explanation ??
+                  edge.prediction.state ??
+                  'Unavailable',
+            ),
+          if (edge?.prediction.target != null)
+            _Row('Prediction target', edge!.prediction.target!),
+          if (edge?.prediction.minutesToWarning != null)
+            _Row(
+              'Minutes to warning',
+              edge!.prediction.minutesToWarning!.toStringAsFixed(0),
+            ),
+          if (edge?.responseLag.environmentToBioResponseSeconds != null)
+            _Row(
+              'Environment → plant response lag',
+              '${edge!.responseLag.environmentToBioResponseSeconds!.round()} sec',
+            ),
+          if (edge?.responseLag.irrigationToBioDecreaseSeconds != null)
+            _Row(
+              'Irrigation → response decrease lag',
+              '${edge!.responseLag.irrigationToBioDecreaseSeconds!.round()} sec',
+            ),
+          if (edge?.responseLag.interpretation != null)
+            _Row('Response timing note', edge!.responseLag.interpretation!),
+          if (edge?.anomaly.state != null)
+            _Row('Anomaly state', edge!.anomaly.state!),
+          if (edge?.anomaly.score != null)
+            _Row('Anomaly score', '${edge!.anomaly.score!.round()} / 100'),
+          if (edge?.anomaly.reason != null)
+            _Row('Anomaly reason', edge!.anomaly.reason!),
           if (edge?.sensorFaults.isNotEmpty == true)
             _Row('Sensor issues', edge!.sensorFaults.length.toString()),
           if (edge?.tinyMl.hasData == true)

@@ -5,6 +5,9 @@ class HardwareSensorDetail {
   final String? contribution;
   final String? trend;
   final double? ratePerHour;
+  final double? ratePerMinute;
+  final double? shortSlopePerMinute;
+  final double? longSlopePerMinute;
   final double? confidence;
   final String? status;
   final String? quality;
@@ -17,6 +20,9 @@ class HardwareSensorDetail {
     this.contribution,
     this.trend,
     this.ratePerHour,
+    this.ratePerMinute,
+    this.shortSlopePerMinute,
+    this.longSlopePerMinute,
     this.confidence,
     this.status,
     this.quality,
@@ -123,6 +129,8 @@ class HardwareTelemetry {
       'rootTemperature': const ['rootTemperature', 'soilTemperature', 'rootZone'],
       'leafWetness': const ['leafWetness', 'leaf'],
       'plantSignal': const ['plantSignal', 'bioelectric', 'bio'],
+      'vpd': const ['vpd', 'airDryingDemand', 'atmosphericDryingDemand'],
+      'airDryingDemand': const ['airDryingDemand', 'vpd', 'atmosphericDryingDemand'],
     };
 
     HardwareSensorDetail build(
@@ -165,7 +173,9 @@ class HardwareTelemetry {
           contributionMap['label'],
           contributionMap['state'],
           contributionValue is String ? contributionValue : null,
+          resultMap['effectOnPlant'],
           resultMap['contribution'],
+          readingMap['effectOnPlant'],
           readingMap['contribution'],
         ])),
         trend: _text(_first([
@@ -177,9 +187,21 @@ class HardwareTelemetry {
         ratePerHour: _num(_first([
           trendMap['ratePerHour'],
           trendMap['slopePerHour'],
-          trendMap['rate'],
           readingMap['ratePerHour'],
           readingMap['rateOfChangePerHour'],
+        ])),
+        ratePerMinute: _num(_first([
+          trendMap['ratePerMinute'],
+          readingMap['ratePerMinute'],
+          readingMap['rateOfChangePerMinute'],
+        ])),
+        shortSlopePerMinute: _num(_first([
+          trendMap['shortSlopePerMinute'],
+          readingMap['shortSlopePerMinute'],
+        ])),
+        longSlopePerMinute: _num(_first([
+          trendMap['longSlopePerMinute'],
+          readingMap['longSlopePerMinute'],
         ])),
         confidence: _percent(_first([
           confidenceMap['confidence'],
@@ -275,12 +297,22 @@ class HardwareTelemetry {
           data['plantSignalState'],
         ]),
         fallbackQuality: _first([
+          bio['signalQualityState'],
+          bio['qualityState'],
           bio['signalQualityPercent'],
           bio['signalQuality'],
           data['bioSignalQuality'],
         ]),
-        raw: _first([bio['raw'], bio['adcRaw'], data['plantAdcRaw']]),
+        raw: _first([
+          bio['rawADC'],
+          bio['rawAdc'],
+          bio['raw'],
+          bio['adcRaw'],
+          data['plantAdcRaw'],
+        ]),
       ),
+      'vpd': build('vpd'),
+      'airDryingDemand': build('airDryingDemand'),
     };
 
     final airTemp = _num(_first([

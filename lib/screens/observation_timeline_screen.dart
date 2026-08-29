@@ -139,6 +139,10 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
                   ),
                 ),
               ),
+              if (edge?.responseLag.hasData == true) ...[
+                const SizedBox(height: 12),
+                _ResponseTimingCard(info: edge!.responseLag),
+              ],
               const SizedBox(height: 16),
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
@@ -225,6 +229,60 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
       color: color,
     );
   }
+}
+
+class _ResponseTimingCard extends StatelessWidget {
+  final ResponseLagInfo info;
+
+  const _ResponseTimingCard({required this.info});
+
+  @override
+  Widget build(BuildContext context) {
+    final tamil = FarmerLanguage.isTamil(context);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              tamil ? 'கவனிக்கப்பட்ட பதில் நேரம்' : 'Observed response timing',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            if (info.environmentToBioResponseSeconds != null)
+              Text(
+                tamil
+                    ? 'சூழல் மாற்றம் → plant response: ${_lag(info.environmentToBioResponseSeconds!)}'
+                    : 'Environment change → plant response: ${_lag(info.environmentToBioResponseSeconds!)}',
+              ),
+            if (info.irrigationToBioDecreaseSeconds != null)
+              Text(
+                tamil
+                    ? 'நீர்ப்பாசனம் → plant response குறைவு: ${_lag(info.irrigationToBioDecreaseSeconds!)}'
+                    : 'Irrigation → plant response decrease: ${_lag(info.irrigationToBioDecreaseSeconds!)}',
+              ),
+            if (info.interpretation != null) ...[
+              const SizedBox(height: 6),
+              Text(
+                FarmerLanguage.firmware(
+                  context,
+                  info.interpretation,
+                  fallback: info.interpretation!,
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _lag(double seconds) {
+  if (seconds < 60) return '${seconds.round()} sec';
+  return '${(seconds / 60).toStringAsFixed(1)} min';
 }
 
 class _HistoryCharts extends StatelessWidget {

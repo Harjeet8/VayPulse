@@ -129,7 +129,11 @@ class _ConditionCard extends StatelessWidget {
     final trend = _conditionTrend(context, edge);
     final severity = _severity(context, edge?.urgency, rawState, recovering);
     final summary = recovering
-        ? FarmerLanguage.label(context, 'recovery_summary')
+        ? FarmerLanguage.firmware(
+            context,
+            edge?.recovery.farmerResult ?? edge?.recovery.improved,
+            fallback: FarmerLanguage.label(context, 'recovery_summary'),
+          )
         : FarmerLanguage.firmware(
             context,
             edge?.farmerSummary ?? main,
@@ -593,7 +597,7 @@ List<String> _changes(BuildContext context, EdgeIntelligence? edge) {
     return [
       FarmerLanguage.firmware(
         context,
-        edge.recovery.improved,
+        edge.recovery.improved ?? edge.recovery.farmerResult,
         fallback: FarmerLanguage.label(context, 'recovery_summary'),
       )
     ];
@@ -618,7 +622,13 @@ List<String> _evidence(BuildContext context, EdgeIntelligence? edge) {
   }
 
   add(edge.rootCause.primary);
+  add(edge.rootCause.primaryCandidate?.evidenceFor);
+  final counterEvidence = edge.rootCause.primaryCandidate?.evidenceAgainst;
+  if (counterEvidence != null) {
+    add('Counter-evidence: $counterEvidence');
+  }
   add(edge.rootCause.secondary);
+  add(edge.rootCause.secondaryCandidate?.evidenceFor);
   if (edge.bioelectric.corroborated == true && edge.bioelectric.corroboratedBy.isNotEmpty) {
     result.add('${FarmerLanguage.label(context, 'plant_response_supported_by')}: ${edge.bioelectric.corroboratedBy.map((e) => _friendlyChannel(context, e)).join(', ')}');
   }

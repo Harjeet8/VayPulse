@@ -217,6 +217,26 @@ class LiveSensorsScreen extends StatelessWidget {
                             ? 'DEGRADED'
                             : telemetry?.analysisQuality,
                       ),
+                      if (edge?.compoundStress.hasData == true)
+                        _DerivedCard(
+                          title: 'Compound stress',
+                          value: edge!.compoundStress.state,
+                          result: edge.compoundStress.severity == null
+                              ? edge.compoundStress.state
+                              : '${edge.compoundStress.severity!.round()} / 100',
+                          note: 'ESP32 confidence-weighted combination of measured stress evidence.',
+                        ),
+                      if (edge?.prediction.hasData == true)
+                        _DerivedCard(
+                          title: 'Trend prediction',
+                          value: edge!.prediction.message ?? edge.prediction.explanation,
+                          result: edge.prediction.available == false
+                              ? 'UNAVAILABLE'
+                              : edge.prediction.state,
+                          note: edge.prediction.available == false
+                              ? 'The ESP32 did not find a stable enough trend for a reliable prediction.'
+                              : null,
+                        ),
                     ],
                   ),
                 ],
@@ -396,6 +416,8 @@ class _SensorCard extends StatelessWidget {
                 _Meta('${FarmerLanguage.label(context, 'data_age')}: ${_age(timestamp)}'),
                 if (detail?.ratePerHour != null)
                   _Meta('${FarmerLanguage.label(context, 'rate')}: ${_signed(detail!.ratePerHour!)} /h'),
+                if (detail?.ratePerHour == null && detail?.ratePerMinute != null)
+                  _Meta('${FarmerLanguage.label(context, 'rate')}: ${_signed(detail!.ratePerMinute!)} /min'),
               ],
             ),
             if (extra != null) ...[
@@ -413,7 +435,10 @@ class _SensorCard extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
             ],
-            if (detail?.rawValue != null || detail?.quality != null)
+            if (detail?.rawValue != null ||
+                detail?.quality != null ||
+                detail?.shortSlopePerMinute != null ||
+                detail?.longSlopePerMinute != null)
               ExpansionTile(
                 tilePadding: EdgeInsets.zero,
                 title: Text(FarmerLanguage.label(context, 'technical')),
@@ -423,6 +448,16 @@ class _SensorCard extends StatelessWidget {
                         detail!.rawValue!.toStringAsFixed(0)),
                   if (detail?.quality != null)
                     _Technical('Quality / noise', detail!.quality!),
+                  if (detail?.shortSlopePerMinute != null)
+                    _Technical(
+                      'Short trend slope',
+                      '${_signed(detail!.shortSlopePerMinute!)} /min',
+                    ),
+                  if (detail?.longSlopePerMinute != null)
+                    _Technical(
+                      'Long trend slope',
+                      '${_signed(detail!.longSlopePerMinute!)} /min',
+                    ),
                 ],
               ),
           ],
@@ -566,6 +601,19 @@ class _BioelectricCard extends StatelessWidget {
                       ? '${bio!.signalQuality!.round()}%'
                       : '${reading.bioSignalQuality.round()}%',
                 ),
+                if (bio?.signalQualityState != null)
+                  _Technical('Signal quality state', bio!.signalQualityState!),
+                if (bio?.stressLoadState != null)
+                  _Technical('Stress load state', bio!.stressLoadState!),
+                if (bio?.stressLoad != null)
+                  _Technical('Stress load', bio!.stressLoad!.toStringAsFixed(1)),
+                if (bio?.baselineLearningPaused != null)
+                  _Technical(
+                    'Baseline learning',
+                    bio!.baselineLearningPaused! ? 'Paused' : 'Active',
+                  ),
+                if (bio?.rawAdc != null)
+                  _Technical('Raw ADC', bio!.rawAdc!.toStringAsFixed(0)),
                 if (detail?.rawValue != null)
                   _Technical(
                     FarmerLanguage.label(context, 'raw'),
