@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/edge_intelligence.dart';
+import '../models/hardware_telemetry.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 
@@ -27,6 +28,10 @@ abstract class SensorDataProvider extends ChangeNotifier {
   /// may legitimately return null. UI must capability-detect rather than
   /// hard-code a firmware version.
   EdgeIntelligence? get edgeIntelligence => null;
+
+  /// Technical transparency payload for the dedicated Live Sensors page.
+  /// This is never synthesized in simulation/hardware fallback paths.
+  HardwareTelemetry? get hardwareTelemetry => null;
 
   void start();
   void stop();
