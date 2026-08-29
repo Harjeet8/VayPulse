@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../l10n/app_strings.dart';
+import '../services/firmware_text_adapter.dart';
 
 class BottomNav extends StatelessWidget {
   final int index;
@@ -58,9 +60,15 @@ class BottomNav extends StatelessWidget {
               label: context.tr(live ? 'nav_device' : 'nav_fields'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.insights_outlined),
-              selectedIcon: const Icon(Icons.insights_rounded),
-              label: context.tr('nav_insights'),
+              icon: Icon(live
+                  ? Icons.psychology_alt_outlined
+                  : Icons.insights_outlined),
+              selectedIcon: Icon(live
+                  ? Icons.psychology_alt_rounded
+                  : Icons.insights_rounded),
+              label: live
+                  ? FirmwareTextAdapter.label(context, 'nav')
+                  : context.tr('nav_insights'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.notifications_none_rounded),
