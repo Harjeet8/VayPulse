@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import '../models/edge_intelligence.dart';
+import '../models/hardware_telemetry.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
-import 'edge_intelligence_client.dart';
 import 'esp32_client.dart';
 import 'hardware_sensor_provider.dart';
 import 'health_analysis_engine.dart';
@@ -13,11 +13,11 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   static const _nodeId = 'phytosense-live-01';
 
   final Duration pollInterval;
-  final EdgeIntelligenceClient _edgeClient;
   final _controller = StreamController<SensorReading>.broadcast();
   final List<SensorReading> _history = [];
   SensorReading? _current;
   EdgeIntelligence? _edgeIntelligence;
+  HardwareTelemetry? _hardwareTelemetry;
   Timer? _timer;
   bool _polling = false;
   SensorConnectionStatus _status = SensorConnectionStatus.offline;
@@ -38,8 +38,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   Esp32SensorProvider({
     required Esp32Client client,
     this.pollInterval = const Duration(seconds: 3),
-  })  : _edgeClient = EdgeIntelligenceClient(client.baseUrl),
-        super(client);
+  }) : super(client);
 
   String get endpoint => client.baseUrl;
 
@@ -48,6 +47,9 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
   @override
   EdgeIntelligence? get edgeIntelligence => _edgeIntelligence;
+
+  @override
+  HardwareTelemetry? get hardwareTelemetry => _hardwareTelemetry;
 
   @override
   Map<String, SensorReading> get latestReadings => _current == null
@@ -93,7 +95,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _polling = true;
     try {
       final snapshot = await client.getSnapshot();
-      final edge = await _edgeClient.getIntelligence();
+      final edge = snapshot.edgeIntelligence;
       final raw = snapshot.reading.copyWith(
         nodeId: _nodeId,
         timestamp: DateTime.now(),
@@ -101,8 +103,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
       _validate(raw);
 
       final SensorReading reading;
-      if (edge?.hasAuthoritativeAnalysis == true) {
-        final health = edge!.healthScore ?? raw.healthScore;
+      if (edge.hasAuthoritativeAnalysis) {
+        final health = edge.healthScore ?? raw.healthScore;
         final confidence = edge.overallConfidence ??
             raw.esp32HealthConfidence ??
             raw.analysisConfidence;
@@ -125,12 +127,13 @@ class Esp32SensorProvider extends HardwareSensorProvider {
         reading = HealthAnalysisEngine.apply(
           raw,
           _history,
-          crop: edge?.cropProfile.profile ?? 'Universal',
-          growthStage: edge?.cropProfile.growthStage ?? 'vegetative',
+          crop: edge.cropProfile.profile ?? 'Universal',
+          growthStage: edge.cropProfile.growthStage ?? 'vegetative',
         );
       }
 
       _edgeIntelligence = edge;
+      _hardwareTelemetry = snapshot.telemetry;
       _current = reading;
       _history.add(reading);
       if (_history.length > 600) _history.removeAt(0);
@@ -177,7 +180,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
             between(reading.temperature, -20, 70)) &&
         (!reading.humidityAvailable || between(reading.humidity, 0, 100)) &&
         (!reading.lightAvailable ||
-            (reading.lightLux == null || between(reading.lightLux!, 0, 200000))) &&
+            (reading.lightLux == null ||
+                between(reading.lightLux!, 0, 200000))) &&
         (!reading.soilTemperatureAvailable ||
             (reading.soilTemperature != null &&
                 between(reading.soilTemperature!, -20, 70))) &&
