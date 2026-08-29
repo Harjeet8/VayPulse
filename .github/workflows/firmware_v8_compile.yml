@@ -1,0 +1,84 @@
+name: PhytoSense Firmware V8 Compile
+
+on:
+  push:
+    branches:
+      - firmware-v8-ultra-final-build
+    paths:
+      - 'firmware_v8_ci/**'
+      - '.github/workflows/firmware_v8_compile.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install PlatformIO
+        run: python -m pip install --disable-pip-version-check platformio==6.1.18
+
+      - name: Restore exact final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p firmware_v8_ci/src
+          base64 -d firmware_v8_ci/source.cpp.gz.b64 | gzip -d > firmware_v8_ci/src/main.cpp
+          echo '8d065d7ae641ffcbc73b21b777dc5f3de1497a02d73ee156d4516d322f95c018  firmware_v8_ci/src/main.cpp' | sha256sum -c -
+
+      - name: Integrity audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'FW_VERSION  = "8.0.0-ULTRA-FINAL"' firmware_v8_ci/src/main.cpp
+          grep -q 'Possible biotic stress' firmware_v8_ci/src/main.cpp
+          grep -q 'STRONG_STRESS_SIGNAL' firmware_v8_ci/src/main.cpp
+          grep -q '/api/config/crop' firmware_v8_ci/src/main.cpp
+          grep -q '/api/diagnostics' firmware_v8_ci/src/main.cpp
+          grep -q 'modelLoaded.*false' firmware_v8_ci/src/main.cpp || grep -q 'modelLoaded".*false' firmware_v8_ci/src/main.cpp
+          if grep -RniE 'ADS1115|Adafruit_ADS|Adafruit ADS1X15' firmware_v8_ci/src firmware_v8_ci/platformio.ini; then
+            echo 'Forbidden ADS1115 reference found'
+            exit 1
+          fi
+
+      - name: PlatformIO build pass 1
+        shell: bash
+        run: |
+          set -o pipefail
+          platformio run -d firmware_v8_ci | tee firmware_v8_ci/build-pass-1.log
+
+      - name: Clean between passes
+        run: platformio run -d firmware_v8_ci -t clean
+
+      - name: Verify source unchanged
+        shell: bash
+        run: echo '8d065d7ae641ffcbc73b21b777dc5f3de1497a02d73ee156d4516d322f95c018  firmware_v8_ci/src/main.cpp' | sha256sum -c -
+
+      - name: PlatformIO build pass 2
+        shell: bash
+        run: |
+          set -o pipefail
+          platformio run -d firmware_v8_ci | tee firmware_v8_ci/build-pass-2.log
+
+      - name: Final source hash
+        run: sha256sum firmware_v8_ci/src/main.cpp
+
+      - name: Upload build evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: phytosense-v8-build-evidence
+          if-no-files-found: warn
+          path: |
+            firmware_v8_ci/build-pass-1.log
+            firmware_v8_ci/build-pass-2.log
+            firmware_v8_ci/.pio/build/esp32doit-devkit-v1/firmware.bin
+            firmware_v8_ci/.pio/build/esp32doit-devkit-v1/firmware.elf
