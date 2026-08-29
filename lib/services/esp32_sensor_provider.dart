@@ -1,10 +1,12 @@
 import 'dart:async';
 
 import '../models/edge_intelligence.dart';
+import '../models/esp32_configuration.dart';
 import '../models/hardware_telemetry.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import 'esp32_client.dart';
+import 'esp32_control_client.dart';
 import 'hardware_sensor_provider.dart';
 import 'health_analysis_engine.dart';
 import 'sensor_data_provider.dart';
@@ -13,6 +15,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   static const _nodeId = 'phytosense-live-01';
 
   final Duration pollInterval;
+  late final Esp32ControlClient _controlClient;
   final _controller = StreamController<SensorReading>.broadcast();
   final List<SensorReading> _history = [];
   SensorReading? _current;
@@ -37,8 +40,10 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
   Esp32SensorProvider({
     required Esp32Client client,
-    this.pollInterval = const Duration(seconds: 3),
-  }) : super(client);
+    this.pollInterval = const Duration(seconds: 2),
+  }) : super(client) {
+    _controlClient = Esp32ControlClient(client.baseUrl);
+  }
 
   String get endpoint => client.baseUrl;
 
@@ -77,6 +82,34 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
   @override
   Stream<SensorReading> get stream => _controller.stream;
+
+  @override
+  Future<Esp32Config?> fetchHardwareConfig() => _controlClient.getConfig();
+
+  @override
+  Future<Esp32Config?> setCropProfile(String cropId) async {
+    final confirmed = await _controlClient.setCrop(cropId);
+    if (confirmed != null) await _poll();
+    return confirmed;
+  }
+
+  @override
+  Future<Esp32Config?> setGrowthStage(String stageId) async {
+    final confirmed = await _controlClient.setStage(stageId);
+    if (confirmed != null) await _poll();
+    return confirmed;
+  }
+
+  @override
+  Future<Esp32Config?> resetAdaptiveBaseline() async {
+    final confirmed = await _controlClient.resetBaseline();
+    if (confirmed != null) await _poll();
+    return confirmed;
+  }
+
+  @override
+  Future<Esp32Diagnostics?> fetchHardwareDiagnostics() =>
+      _controlClient.getDiagnostics();
 
   @override
   void start() {
