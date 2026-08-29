@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
+import '../services/firmware_text_adapter.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/bottom_nav.dart';
 import 'alerts_screen.dart';
 import 'app_command_search.dart';
 import 'devices_screen.dart';
+import 'farmer_analysis_screen.dart';
 import 'home_screen.dart';
 import 'insights_screen.dart';
 import 'plants_screen.dart';
@@ -37,7 +40,7 @@ class _ShellScreenState extends State<ShellScreen> {
             onOpenFields: () => setState(() => index = 1),
           ),
           live ? const DevicesScreen() : const PlantsScreen(),
-          const InsightsScreen(),
+          live ? const FarmerAnalysisScreen() : const InsightsScreen(),
           const AlertsScreen(),
           const ProfileScreen(),
         ];
@@ -120,10 +123,15 @@ class _ShellScreenState extends State<ShellScreen> {
                                       .tr(live ? 'nav_device' : 'nav_fields')),
                                 ),
                                 NavigationRailDestination(
-                                  icon: const Icon(Icons.insights_outlined),
-                                  selectedIcon:
-                                      const Icon(Icons.insights_rounded),
-                                  label: Text(context.tr('nav_insights')),
+                                  icon: Icon(live
+                                      ? Icons.psychology_alt_outlined
+                                      : Icons.insights_outlined),
+                                  selectedIcon: Icon(live
+                                      ? Icons.psychology_alt_rounded
+                                      : Icons.insights_rounded),
+                                  label: Text(live
+                                      ? FirmwareTextAdapter.label(context, 'nav')
+                                      : context.tr('nav_insights')),
                                 ),
                                 NavigationRailDestination(
                                   icon: const Icon(
