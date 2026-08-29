@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/edge_intelligence.dart';
+import '../models/esp32_configuration.dart';
 import '../models/hardware_telemetry.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
@@ -30,8 +31,16 @@ abstract class SensorDataProvider extends ChangeNotifier {
   EdgeIntelligence? get edgeIntelligence => null;
 
   /// Technical transparency payload for the dedicated Live Sensors page.
-  /// This is never synthesized in simulation/hardware fallback paths.
+  /// This is never synthesized in hardware mode when firmware data is absent.
   HardwareTelemetry? get hardwareTelemetry => null;
+
+  /// ESP32 v6.2 configuration/diagnostics flow. Defaults keep simulation and
+  /// older providers backward-compatible without UI-side HTTP calls.
+  Future<Esp32Config?> fetchHardwareConfig() async => null;
+  Future<Esp32Config?> setCropProfile(String cropId) async => null;
+  Future<Esp32Config?> setGrowthStage(String stageId) async => null;
+  Future<Esp32Config?> resetAdaptiveBaseline() async => null;
+  Future<Esp32Diagnostics?> fetchHardwareDiagnostics() async => null;
 
   void start();
   void stop();
