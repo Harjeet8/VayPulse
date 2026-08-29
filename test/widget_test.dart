@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:phytosense_ai/models/farm_impact_projection.dart';
+import 'package:phytosense_ai/models/edge_intelligence.dart';
 import 'package:phytosense_ai/models/crop_catalog.dart';
 import 'package:phytosense_ai/models/disease_assessment.dart';
 import 'package:phytosense_ai/models/leaf_screening_result.dart';
@@ -16,12 +17,78 @@ import 'package:phytosense_ai/services/sensor_data_provider.dart';
 import 'package:phytosense_ai/services/sensor_provider_manager.dart';
 
 void main() {
-  test('new installs start in the farmer-safe experience', () {
+  test('new installs use safe source and accessibility defaults', () {
     final settings = AppSettings();
-    expect(settings.experienceMode, 'farmer');
     expect(settings.largeText, isFalse);
     expect(settings.reducedMotion, isFalse);
     expect(settings.dataSource, 'simulation');
+  });
+
+  test('v6.2 bioelectric and biotic fields parse without a health score', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'plantState': 'STRESSED',
+        'recommendation': 'Check the root-zone soil and water if it is dry.',
+        'rootCause': <String, dynamic>{
+          'primary': 'WATER_STRESS',
+          'secondary': 'HIGH_ATMOSPHERIC_DRYING_DEMAND',
+        },
+        'bioelectric': <String, dynamic>{
+          'available': true,
+          'voltageMv': 482.0,
+          'baselineMv': 451.0,
+          'signedChangeMv': 31.0,
+          'deviationMv': 31.0,
+          'normalizedDeviation': 9.7,
+          'noiseMv': 3.2,
+          'signalQuality': 91,
+          'confidence': 86,
+          'trend': 'RISING',
+          'stressScore': 84,
+          'stressState': 'STRESS_SIGNAL',
+          'persistenceSeconds': 28,
+          'corroborated': true,
+          'corroboratedBy': <String>['soilMoisture', 'vpd'],
+          'farmerResult': 'Plant stress detected — likely water stress',
+        },
+        'bioticStress': <String, dynamic>{
+          'state': 'SUSPECTED',
+          'evidenceScore': 68,
+          'confidence': 74,
+          'unexplainedBioResponse': true,
+          'abioticCauseFound': false,
+          'diseaseConduciveSupport': true,
+          'reason': 'Stress remains partly unexplained.',
+          'farmerResult':
+              'Possible biotic stress — inspect for pests or infection',
+          'pestIdentified': false,
+          'infectionConfirmed': false,
+        },
+      },
+      firmwareVersion: '6.2',
+    );
+    expect(edge.hasAuthoritativeAnalysis, isTrue);
+    expect(edge.healthScore, isNull);
+    expect(edge.bioelectric.stressScore, 84);
+    expect(edge.bioelectric.persistenceSeconds, 28);
+    expect(edge.bioelectric.corroboratedBy, contains('vpd'));
+    expect(edge.bioticStress.suspected, isTrue);
+  });
+
+  test('biotic suspicion is not retained after explicit confirmation fields', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'bioticStress': <String, dynamic>{
+          'state': 'SUSPECTED',
+          'pestIdentified': true,
+          'infectionConfirmed': false,
+        },
+      },
+      firmwareVersion: '6.2',
+    );
+    expect(edge.bioticStress.suspected, isFalse);
   });
 
   SensorReading reading({
@@ -215,25 +282,7 @@ void main() {
     expect(prompt.shouldPrompt, isFalse);
   });
 
-  test('rice screening ranks blast first for brown humid rain evidence', () {
-    final weather = WeatherSnapshot(
-      location: 'Test farm',
-      updatedAt: DateTime.now(),
-      temperature: 28,
-      humidity: 88,
-      windSpeed: 5,
-      weatherCode: 63,
-      forecast: [
-        WeatherDay(
-          date: DateTime.now(),
-          minimumTemperature: 23,
-          maximumTemperature: 30,
-          precipitationProbability: 86,
-          precipitationMillimetres: 10,
-          weatherCode: 63,
-        ),
-      ],
-    );
+  test('rice visual screening ranks blast first from brown evidence', () {
     final assessment = MultimodalDiseaseService.assess(
       visual: LeafScreeningResult(
         riskKey: 'leaf_result_spot_risk',
@@ -246,20 +295,14 @@ void main() {
         screenedAt: DateTime.now(),
       ),
       crop: 'Rice',
-      reading: reading(
-        temperature: 28,
-        humidity: 88,
-        plantSignal: 28,
-        health: 57,
-      ),
-      weather: weather,
     );
     expect(assessment.candidates.first.nameKey, 'disease_rice_blast');
-    expect(assessment.usedSensorEvidence, isTrue);
-    expect(assessment.usedWeatherEvidence, isTrue);
+    expect(assessment.usedSensorEvidence, isFalse);
+    expect(assessment.usedWeatherEvidence, isFalse);
+    expect(assessment.sensorTriggered, isFalse);
   });
 
-  test('tomato yellowing plus low plant response ranks leaf curl first', () {
+  test('tomato yellowing with visible curl and whiteflies ranks leaf curl', () {
     final assessment = MultimodalDiseaseService.assess(
       visual: LeafScreeningResult(
         riskKey: 'leaf_result_yellowing',
@@ -272,17 +315,19 @@ void main() {
         screenedAt: DateTime.now(),
       ),
       crop: 'Tomato',
-      reading: reading(
-        soil: 28,
-        temperature: 36,
-        plantSignal: 24,
-        health: 50,
+      symptoms: const DiseaseSymptomAnswers(
+        concentricRings: FieldObservation.no,
+        waterSoakedLesions: FieldObservation.no,
+        yellowHalos: FieldObservation.no,
+        leafCurling: FieldObservation.yes,
+        whitefliesPresent: FieldObservation.yes,
       ),
     );
     expect(
       assessment.candidates.first.nameKey,
       'disease_tomato_leaf_curl',
     );
+    expect(assessment.usedSensorEvidence, isFalse);
   });
 
   test('tomato target-like rings rank early blight first', () {
@@ -298,7 +343,6 @@ void main() {
         screenedAt: DateTime.now(),
       ),
       crop: 'Tomato',
-      reading: reading(temperature: 29, humidity: 72, health: 66),
       symptoms: const DiseaseSymptomAnswers(
         concentricRings: FieldObservation.yes,
         waterSoakedLesions: FieldObservation.no,
@@ -327,7 +371,6 @@ void main() {
         screenedAt: DateTime.now(),
       ),
       crop: 'Tomato',
-      reading: reading(soil: 86, humidity: 88, temperature: 27),
       symptoms: const DiseaseSymptomAnswers(
         concentricRings: FieldObservation.no,
         waterSoakedLesions: FieldObservation.yes,
@@ -355,7 +398,6 @@ void main() {
         screenedAt: DateTime.now(),
       ),
       crop: 'Tomato',
-      reading: reading(temperature: 34, plantSignal: 30, health: 58),
       symptoms: const DiseaseSymptomAnswers(
         concentricRings: FieldObservation.no,
         waterSoakedLesions: FieldObservation.no,
@@ -386,13 +428,6 @@ void main() {
       final assessment = MultimodalDiseaseService.assess(
         visual: visual,
         crop: crop.name,
-        reading: reading(
-          soil: 42,
-          temperature: 30,
-          humidity: 82,
-          plantSignal: 32,
-          health: 58,
-        ),
       );
       expect(assessment.candidates, isNotEmpty, reason: crop.name);
       expect(

@@ -3,11 +3,10 @@ import 'package:flutter/services.dart';
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
-import '../widgets/phyto_ui.dart';
 import 'about_screen.dart';
-import 'onboarding_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -23,29 +22,6 @@ class SettingsScreen extends StatelessWidget {
         appBar: AppBar(title: Text(context.tr('settings_title'))),
         body: PageFrame(
           children: [
-            _SettingsLabel(context.tr('experience_mode')),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(context.tr('experience_mode_body')),
-                    const SizedBox(height: 14),
-                    ExperienceModeSelector(
-                      selected: value.experienceMode,
-                      onChanged: settings.setExperienceMode,
-                      farmerTitle: context.tr('farmer_mode'),
-                      farmerBody: context.tr('farmer_mode_body'),
-                      judgeTitle: context.tr('judge_mode'),
-                      judgeBody: context.tr('judge_mode_body'),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 18),
             _SettingsLabel(context.tr('source_control')),
             const SizedBox(height: 8),
             Card(
@@ -60,7 +36,7 @@ class SettingsScreen extends StatelessWidget {
                       children: [
                         _SettingsOption(
                           icon: Icons.science_outlined,
-                          title: context.tr('simulation_mode'),
+                          title: FarmerLanguage.label(context, 'simulation'),
                           selected: scope.sensorManager.source ==
                               SensorDataSource.simulation,
                           onTap: () async {
@@ -93,10 +69,9 @@ class SettingsScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      context.tr(
-                          scope.sensorManager.source == SensorDataSource.esp32
-                              ? 'esp32_description'
-                              : 'simulation_description'),
+                      scope.sensorManager.source == SensorDataSource.esp32
+                          ? context.tr('esp32_description')
+                          : FarmerLanguage.label(context, 'simulation_description'),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -206,55 +181,34 @@ class SettingsScreen extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            _SettingsLabel(context.tr('demo_controls')),
-            const SizedBox(height: 8),
-            Card(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    if (scope.sensors.supportsScenarios) ...[
-                      DropdownButtonFormField<String>(
-                        initialValue: scope.sensors.scenarioId,
-                        decoration: InputDecoration(
-                          labelText: context.tr('demo_scenario'),
-                          prefixIcon: const Icon(Icons.science_outlined),
-                        ),
-                        items: scope.sensors.scenarioIds
-                            .map((scenario) => DropdownMenuItem(
-                                  value: scenario,
-                                  child: Text(context.tr('scenario_$scenario')),
-                                ))
-                            .toList(),
-                        onChanged: (scenario) {
-                          if (scenario == null) return;
-                          settings.setScenario(scenario);
-                          scope.sensors.setScenario(scenario);
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () async {
-                          await settings.resetOnboarding();
-                          if (!context.mounted) return;
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(
-                              builder: (_) => const OnboardingScreen(),
-                            ),
-                          );
-                        },
-                        icon: const Icon(Icons.replay_rounded),
-                        label: Text(context.tr('replay_onboarding')),
-                      ),
+            if (scope.sensors.supportsScenarios) ...[
+              const SizedBox(height: 18),
+              const _SettingsLabel('Simulation controls'),
+              const SizedBox(height: 8),
+              Card(
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: DropdownButtonFormField<String>(
+                    initialValue: scope.sensors.scenarioId,
+                    decoration: const InputDecoration(
+                      labelText: 'Simulation scenario',
+                      prefixIcon: Icon(Icons.science_outlined),
                     ),
-                  ],
+                    items: scope.sensors.scenarioIds
+                        .map((scenario) => DropdownMenuItem(
+                              value: scenario,
+                              child: Text(context.tr('scenario_$scenario')),
+                            ))
+                        .toList(),
+                    onChanged: (scenario) {
+                      if (scenario == null) return;
+                      settings.setScenario(scenario);
+                      scope.sensors.setScenario(scenario);
+                    },
+                  ),
                 ),
               ),
-            ),
+            ],
             const SizedBox(height: 18),
             Card(
               color:
@@ -673,10 +627,11 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
   Future<void> _preview() async {
     final scope = AppScope.of(context);
     final language = scope.settings.value.languageCode;
+    final previewText = context.tr('voice_preview_sample');
     setState(() => previewing = true);
     final prepared = await scope.voice.prepareVoice(language);
     final spoken = await scope.voice.speak(
-      text: context.tr('voice_preview_sample'),
+      text: previewText,
       languageCode: language,
     );
     if (!mounted) return;

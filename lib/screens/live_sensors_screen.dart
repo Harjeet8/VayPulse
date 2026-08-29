@@ -21,30 +21,33 @@ class LiveSensorsScreen extends StatelessWidget {
         final reading = sensors.current;
         final edge = sensors.edgeIntelligence;
         final telemetry = sensors.hardwareTelemetry;
+        final live = sensors.source == SensorDataSource.esp32;
         return Scaffold(
           appBar: AppBar(
             title: Text(FarmerLanguage.label(context, 'live_sensors')),
             actions: [
-              IconButton(
-                tooltip: 'Plant Intelligence',
-                icon: const Icon(Icons.tune_rounded),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const PlantIntelligenceSettingsScreen(),
+              if (live) ...[
+                IconButton(
+                  tooltip: 'Plant Intelligence',
+                  icon: const Icon(Icons.tune_rounded),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const PlantIntelligenceSettingsScreen(),
+                    ),
                   ),
                 ),
-              ),
-              IconButton(
-                tooltip: 'System Diagnostics',
-                icon: const Icon(Icons.monitor_heart_outlined),
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => const Esp32DiagnosticsScreen(),
+                IconButton(
+                  tooltip: 'System Diagnostics',
+                  icon: const Icon(Icons.monitor_heart_outlined),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const Esp32DiagnosticsScreen(),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ],
           ),
           body: RefreshIndicator(
@@ -64,9 +67,9 @@ class LiveSensorsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 if (sensors.connectionStatus != SensorConnectionStatus.ready)
-                  _ConnectionCard(reading: reading),
+                  _ConnectionCard(reading: reading, live: live),
                 if (reading == null)
-                  const _WaitingCard()
+                  _WaitingCard(live: live)
                 else ...[
                   _OverallCard(reading: reading, edge: edge, telemetry: telemetry),
                   const SizedBox(height: 16),
@@ -92,10 +95,10 @@ class LiveSensorsScreen extends StatelessWidget {
                       ),
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'vpd'),
-                        value: telemetry?.vpdKpa == null
+                        value: (telemetry?.vpdKpa ?? edge?.derivedEnvironment.vpdKpa) == null
                             ? null
-                            : '${telemetry!.vpdKpa!.toStringAsFixed(2)} kPa',
-                        result: _dryingDemand(context, telemetry?.vpdKpa),
+                            : '${(telemetry?.vpdKpa ?? edge!.derivedEnvironment.vpdKpa)!.toStringAsFixed(2)} kPa',
+                        result: telemetry?.sensor('vpd')?.result ?? telemetry?.sensor('airDryingDemand')?.result,
                         note: FarmerLanguage.label(context, 'vpd_note'),
                       ),
                     ],
@@ -180,27 +183,10 @@ class LiveSensorsScreen extends StatelessWidget {
                     title: FarmerLanguage.label(context, 'plant_signal'),
                     icon: Icons.electric_bolt_outlined,
                     cards: [
-                      _SensorCard(
-                        title: FarmerLanguage.label(context, 'bio_signal'),
-                        value: reading.plantSignalAvailable && reading.plantVoltageMv != null
-                            ? '${reading.plantVoltageMv!.toStringAsFixed(1)} mV'
-                            : null,
-                        detail: telemetry?.sensor('plantSignal'),
-                        timestamp: reading.timestamp,
-                        extra: _bioExtra(reading, telemetry),
-                        note: FarmerLanguage.label(context, 'baseline_note'),
-                      ),
-                      _DerivedCard(
-                        title: FarmerLanguage.label(context, 'bio_baseline'),
-                        value: reading.bioBaselineMv == null
-                            ? null
-                            : '${reading.bioBaselineMv!.toStringAsFixed(1)} mV',
-                        result: reading.bioBaselineReady ? 'READY' : 'LEARNING_BASELINE',
-                      ),
-                      _DerivedCard(
-                        title: FarmerLanguage.label(context, 'bio_deviation'),
-                        value: _bioDeviation(reading, telemetry),
-                        result: telemetry?.sensor('plantSignal')?.result,
+                      _BioelectricCard(
+                        reading: reading,
+                        edge: edge,
+                        telemetry: telemetry,
                       ),
                     ],
                   ),
@@ -210,15 +196,18 @@ class LiveSensorsScreen extends StatelessWidget {
                     cards: [
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'health_score'),
-                        value: '${reading.healthScore.round()} / 100',
-                        result: edge?.plantState ?? reading.healthStatus,
+                        value: _healthValue(reading, edge),
+                        result: edge?.plantState ??
+                            (edge?.hasAuthoritativeAnalysis == true
+                                ? null
+                                : reading.healthStatus),
                       ),
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'analysis_confidence'),
-                        value: '${(edge?.overallConfidence ?? reading.analysisConfidence).round()} %',
+                        value: _confidenceValue(reading, edge),
                         result: FarmerLanguage.confidence(
                           context,
-                          edge?.overallConfidence ?? reading.analysisConfidence,
+                          _confidenceNumber(reading, edge),
                         ),
                       ),
                       _DerivedCard(
@@ -238,6 +227,25 @@ class LiveSensorsScreen extends StatelessWidget {
       },
     );
   }
+}
+
+String? _healthValue(SensorReading reading, EdgeIntelligence? edge) {
+  final value = edge?.hasAuthoritativeAnalysis == true
+      ? edge?.healthScore
+      : (edge?.healthScore ?? reading.esp32HealthScore ?? reading.healthScore);
+  return value == null ? null : '${value.round()} / 100';
+}
+
+double? _confidenceNumber(SensorReading reading, EdgeIntelligence? edge) {
+  if (edge?.hasAuthoritativeAnalysis == true) return edge?.overallConfidence;
+  return edge?.overallConfidence ??
+      reading.esp32HealthConfidence ??
+      reading.analysisConfidence;
+}
+
+String? _confidenceValue(SensorReading reading, EdgeIntelligence? edge) {
+  final value = _confidenceNumber(reading, edge);
+  return value == null ? null : '${value.round()} %';
 }
 
 class _OverallCard extends StatelessWidget {
@@ -289,7 +297,7 @@ class _OverallCard extends StatelessWidget {
               FarmerLanguage.label(context, 'analysis_confidence'),
               FarmerLanguage.confidence(
                 context,
-                edge?.overallConfidence ?? reading.analysisConfidence,
+                _confidenceNumber(reading, edge),
               ),
             ),
           ],
@@ -430,6 +438,174 @@ class _SensorCard extends StatelessWidget {
   }
 }
 
+
+class _BioelectricCard extends StatelessWidget {
+  final SensorReading reading;
+  final EdgeIntelligence? edge;
+  final HardwareTelemetry? telemetry;
+
+  const _BioelectricCard({
+    required this.reading,
+    required this.edge,
+    required this.telemetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final bio = edge?.bioelectric;
+    final detail = telemetry?.sensor('plantSignal');
+    final available = bio?.available ??
+        (reading.plantSignalAvailable && reading.plantVoltageMv != null);
+    final result = available
+        ? FarmerLanguage.firmware(
+            context,
+            bio?.farmerResult ?? detail?.result,
+            fallback: FarmerLanguage.label(context, 'no_interpretation'),
+          )
+        : FarmerLanguage.label(context, 'unavailable');
+    final state = available
+        ? _bioState(context, bio)
+        : FarmerLanguage.label(context, 'signal_unavailable');
+    final trend = bio?.trend ?? detail?.trend;
+    final confidence = bio?.confidence ?? detail?.confidence;
+    final persistence = bio?.persistenceSeconds;
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              FarmerLanguage.label(context, 'plant_electrical_response'),
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              state,
+              style: Theme.of(context)
+                  .textTheme
+                  .headlineSmall
+                  ?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            if (bio?.stressScore != null) ...[
+              const SizedBox(height: 4),
+              Text(
+                '${FarmerLanguage.label(context, 'stress_score')}: ${bio!.stressScore!.round()} / 100',
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Text(
+              '${FarmerLanguage.label(context, 'result')}: $result',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            const SizedBox(height: 8),
+            Wrap(
+              spacing: 14,
+              runSpacing: 6,
+              children: [
+                _Meta(
+                  '${FarmerLanguage.label(context, 'trend')}: ${trend == null ? FarmerLanguage.label(context, 'no_trend') : FarmerLanguage.firmware(context, trend)}',
+                ),
+                _Meta(
+                  '${FarmerLanguage.label(context, 'confidence')}: ${confidence == null ? FarmerLanguage.label(context, 'no_confidence') : '${confidence.round()}%'}',
+                ),
+                if (persistence != null)
+                  _Meta(
+                    '${FarmerLanguage.label(context, 'persistent_for')}: ${_duration(persistence)}',
+                  ),
+                if (bio?.corroborated == true)
+                  _Meta(
+                    '${FarmerLanguage.label(context, 'plant_response_supported_by')}: ${bio!.corroboratedBy.isEmpty ? 'ESP32 sensor fusion' : bio.corroboratedBy.join(', ')}',
+                  ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              FarmerLanguage.label(context, 'baseline_note'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            ExpansionTile(
+              tilePadding: EdgeInsets.zero,
+              title: Text(FarmerLanguage.label(context, 'technical')),
+              children: [
+                _Technical(
+                  'Voltage',
+                  bio?.voltageMv != null
+                      ? '${bio!.voltageMv!.toStringAsFixed(1)} mV'
+                      : reading.plantVoltageMv != null
+                          ? '${reading.plantVoltageMv!.toStringAsFixed(1)} mV'
+                          : '—',
+                ),
+                _Technical(
+                  'Learned baseline',
+                  bio?.baselineMv != null
+                      ? '${bio!.baselineMv!.toStringAsFixed(1)} mV'
+                      : reading.bioBaselineMv != null
+                          ? '${reading.bioBaselineMv!.toStringAsFixed(1)} mV'
+                          : '—',
+                ),
+                _Technical(
+                  'Signed change',
+                  bio?.signedChangeMv == null
+                      ? '—'
+                      : '${_signed(bio!.signedChangeMv!)} mV',
+                ),
+                _Technical(
+                  'Normalized deviation',
+                  bio?.normalizedDeviation == null
+                      ? '—'
+                      : '${_signed(bio!.normalizedDeviation!)} %',
+                ),
+                _Technical(
+                  'Noise',
+                  bio?.noiseMv != null
+                      ? '${bio!.noiseMv!.toStringAsFixed(1)} mV'
+                      : reading.bioNoiseMv != null
+                          ? '${reading.bioNoiseMv!.toStringAsFixed(1)} mV'
+                          : '—',
+                ),
+                _Technical(
+                  'Signal quality',
+                  bio?.signalQuality != null
+                      ? '${bio!.signalQuality!.round()}%'
+                      : '${reading.bioSignalQuality.round()}%',
+                ),
+                if (detail?.rawValue != null)
+                  _Technical(
+                    FarmerLanguage.label(context, 'raw'),
+                    detail!.rawValue!.toStringAsFixed(0),
+                  ),
+                if (detail?.quality != null)
+                  _Technical('Quality / noise', detail!.quality!),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _bioState(BuildContext context, BioelectricIntelligence? bio) {
+  if (bio == null || bio.available == false) {
+    return FarmerLanguage.label(context, 'signal_unavailable');
+  }
+  final state = bio.stressState?.toUpperCase() ?? '';
+  if (state.contains('RECOVER')) return FarmerLanguage.label(context, 'recovering');
+  if (state.contains('STRONG') || (bio.stressScore != null && bio.stressScore! >= 80)) {
+    return FarmerLanguage.label(context, 'strongly_stressed');
+  }
+  if (state.contains('STRESS') || (bio.stressScore != null && bio.stressScore! >= 55)) {
+    return FarmerLanguage.label(context, 'stressed');
+  }
+  if (state.contains('MILD') || (bio.stressScore != null && bio.stressScore! >= 30)) {
+    return FarmerLanguage.label(context, 'mild_response');
+  }
+  return FarmerLanguage.label(context, 'calm');
+}
+
 class _DerivedCard extends StatelessWidget {
   final String title;
   final String? value;
@@ -517,39 +693,65 @@ class _Technical extends StatelessWidget {
 
 class _ConnectionCard extends StatelessWidget {
   final SensorReading? reading;
-  const _ConnectionCard({required this.reading});
+  final bool live;
+  const _ConnectionCard({required this.reading, required this.live});
+
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(children: [
-            Icon(Icons.portable_wifi_off_rounded,
-                color: Theme.of(context).colorScheme.error),
+  Widget build(BuildContext context) {
+    final label = FarmerLanguage.label(
+      context,
+      live ? 'disconnected' : 'simulation_waiting',
+    );
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          children: [
+            Icon(
+              live ? Icons.portable_wifi_off_rounded : Icons.hourglass_top_rounded,
+              color: Theme.of(context).colorScheme.tertiary,
+            ),
             const SizedBox(width: 12),
             Expanded(
-              child: Text(reading == null
-                  ? FarmerLanguage.label(context, 'disconnected')
-                  : '${FarmerLanguage.label(context, 'disconnected')} • ${FarmerLanguage.label(context, 'last_reading')}: ${_time(reading!.timestamp)}'),
+              child: Text(
+                reading == null
+                    ? label
+                    : '$label • ${FarmerLanguage.label(context, 'last_reading')}: ${_time(reading!.timestamp)}',
+              ),
             ),
-          ]),
+          ],
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _WaitingCard extends StatelessWidget {
-  const _WaitingCard();
+  final bool live;
+  const _WaitingCard({required this.live});
+
   @override
-  Widget build(BuildContext context) => const Card(
+  Widget build(BuildContext context) => Card(
         child: Padding(
-          padding: EdgeInsets.all(20),
-          child: Row(children: [
-            SizedBox(
+          padding: const EdgeInsets.all(20),
+          child: Row(
+            children: [
+              const SizedBox(
                 width: 20,
                 height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2.5)),
-            SizedBox(width: 14),
-            Expanded(child: Text('Waiting for live ESP32 measurements…')),
-          ]),
+                child: CircularProgressIndicator(strokeWidth: 2.5),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  FarmerLanguage.label(
+                    context,
+                    live ? 'waiting_esp32' : 'simulation_waiting',
+                  ),
+                ),
+              ),
+            ],
+          ),
         ),
       );
 }
@@ -560,36 +762,6 @@ String? _airRootDelta(SensorReading r, HardwareTelemetry? t) {
     return null;
   }
   return '${_signed(r.temperature - r.soilTemperature!)} °C';
-}
-
-String? _bioDeviation(SensorReading r, HardwareTelemetry? t) {
-  if (t?.bioelectricDeviationPercent != null) {
-    return '${_signed(t!.bioelectricDeviationPercent!)} %';
-  }
-  if (r.bioBaselineMv == null || r.plantVoltageMv == null || r.bioBaselineMv == 0) {
-    return null;
-  }
-  return '${_signed(((r.plantVoltageMv! - r.bioBaselineMv!) / r.bioBaselineMv!) * 100)} %';
-}
-
-String? _bioExtra(SensorReading r, HardwareTelemetry? t) {
-  final parts = <String>[];
-  if (r.bioBaselineMv != null) {
-    parts.add('Baseline: ${r.bioBaselineMv!.toStringAsFixed(1)} mV');
-  }
-  final d = _bioDeviation(r, t);
-  if (d != null) parts.add('Deviation: $d');
-  if (r.bioNoiseMv != null) parts.add('Noise: ${r.bioNoiseMv!.toStringAsFixed(1)} mV');
-  return parts.isEmpty ? null : parts.join(' • ');
-}
-
-String? _dryingDemand(BuildContext context, double? vpd) {
-  if (vpd == null) return null;
-  if (vpd < 0.5) return FarmerLanguage.isTamil(context) ? 'குறைந்த drying demand' : 'Low drying demand';
-  if (vpd < 1.2) return FarmerLanguage.isTamil(context) ? 'வசதியான drying demand' : 'Comfortable drying demand';
-  if (vpd < 1.8) return FarmerLanguage.isTamil(context) ? 'நடுத்தர drying demand' : 'Moderate drying demand';
-  if (vpd < 2.5) return FarmerLanguage.isTamil(context) ? 'அதிக drying demand' : 'High drying demand';
-  return FarmerLanguage.isTamil(context) ? 'மிக அதிக drying demand' : 'Very high drying demand';
 }
 
 String _age(DateTime timestamp) {

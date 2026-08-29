@@ -1,7 +1,7 @@
 name: phytosense_ai
-description: PhytoSense AI - intelligent, farmer-first crop monitoring and decision support, powered by VayPulse.
+description: PhytoSense AI V8 ULTRA FINAL - farmer-first ESP32 edge-intelligence companion, powered by VayPulse.
 publish_to: "none"
-version: 9.0.0+14
+version: 8.0.0+80
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

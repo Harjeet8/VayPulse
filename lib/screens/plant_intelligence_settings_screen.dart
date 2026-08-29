@@ -111,6 +111,7 @@ class _PlantIntelligenceSettingsScreenState
   }
 
   Future<void> _resetBaseline() async {
+    final sensors = AppScope.of(context).sensors;
     final tamil = FarmerLanguage.isTamil(context);
     final confirmed = await showDialog<bool>(
       context: context,
@@ -138,7 +139,7 @@ class _PlantIntelligenceSettingsScreenState
       _saving = true;
       _message = null;
     });
-    final result = await AppScope.of(context).sensors.resetAdaptiveBaseline();
+    final result = await sensors.resetAdaptiveBaseline();
     if (!mounted) return;
     setState(() {
       _config = result ?? _config;
@@ -218,7 +219,8 @@ class _PlantIntelligenceSettingsScreenState
                     const LinearProgressIndicator()
                   else ...[
                     DropdownButtonFormField<String>(
-                      value: _crops.containsKey(cropId) ? cropId : 'universal',
+                      key: ValueKey('crop-$cropId'),
+                      initialValue: _crops.containsKey(cropId) ? cropId : 'universal',
                       decoration: InputDecoration(
                         labelText: tamil ? 'Crop Profile' : 'Crop Profile',
                         prefixIcon: const Icon(Icons.eco_outlined),
@@ -235,7 +237,8 @@ class _PlantIntelligenceSettingsScreenState
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
-                      value: _stages.containsKey(stageId) ? stageId : 'general',
+                      key: ValueKey('stage-$stageId'),
+                      initialValue: _stages.containsKey(stageId) ? stageId : 'general',
                       decoration: InputDecoration(
                         labelText: tamil ? 'Growth Stage' : 'Growth Stage',
                         prefixIcon: const Icon(Icons.timeline_rounded),

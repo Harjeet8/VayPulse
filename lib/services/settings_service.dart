@@ -11,17 +11,12 @@ class SettingsService extends ChangeNotifier {
       final p = await SharedPreferences.getInstance();
       value.metricUnits = p.getBool('metricUnits') ?? true;
       value.notificationsEnabled = p.getBool('notifications') ?? true;
-      value.onboardingComplete = p.getBool('onboardingComplete') ?? false;
       value.languageCode = p.getString('languageCode') ?? 'en';
       value.demoScenario = p.getString('scenario') ?? 'healthy';
       value.dataSource = p.getString('dataSource') ?? 'simulation';
       value.esp32Endpoint =
           p.getString('esp32Endpoint') ?? 'http://192.168.4.1';
       value.syncEndpoint = p.getString('syncEndpoint') ?? '';
-      // Public builds stay farmer-first. Older installs that saved an internal
-      // alternate experience are normalized back to the farmer interface.
-      value.experienceMode = 'farmer';
-      await p.setString('experienceMode', 'farmer');
       value.reducedMotion = p.getBool('reducedMotion') ?? false;
       value.largeText = p.getBool('largeText') ?? false;
       final dark = p.getBool('dark');
@@ -94,12 +89,6 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setExperienceMode(String mode) async {
-    value.experienceMode = 'farmer';
-    final p = await SharedPreferences.getInstance();
-    await p.setString('experienceMode', 'farmer');
-    notifyListeners();
-  }
 
   Future<void> setReducedMotion(bool enabled) async {
     value.reducedMotion = enabled;
@@ -115,17 +104,5 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> completeOnboarding() async {
-    value.onboardingComplete = true;
-    final p = await SharedPreferences.getInstance();
-    await p.setBool('onboardingComplete', true);
-    notifyListeners();
-  }
 
-  Future<void> resetOnboarding() async {
-    value.onboardingComplete = false;
-    final p = await SharedPreferences.getInstance();
-    await p.setBool('onboardingComplete', false);
-    notifyListeners();
-  }
 }

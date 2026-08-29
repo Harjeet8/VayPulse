@@ -3,6 +3,7 @@ import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/sensor_node.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/page_frame.dart';
@@ -65,10 +66,9 @@ class DevicesScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     _DiagnosticRow(
                       label: context.tr('diagnostic_provider'),
-                      value: context.tr(
-                          sensors.source == SensorDataSource.simulation
-                              ? 'simulation_mode'
-                              : 'esp32_live'),
+                      value: sensors.source == SensorDataSource.simulation
+                          ? FarmerLanguage.label(context, 'simulation')
+                          : context.tr('esp32_live'),
                       healthy: true,
                     ),
                     _DiagnosticRow(

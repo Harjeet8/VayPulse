@@ -6,6 +6,7 @@ import '../models/alert.dart';
 import '../services/alert_service.dart';
 import '../services/app_scope.dart';
 import '../services/engineering_evidence_service.dart';
+import '../services/edge_alert_language.dart';
 import '../widgets/page_frame.dart';
 
 enum _AlertFilter { all, action, monitor, resolved, system }
@@ -245,7 +246,7 @@ class _AlertCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            context.tr(alert.titleKey),
+                            EdgeAlertLanguage.text(context, alert.titleKey) ?? context.tr(alert.titleKey),
                             style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -261,7 +262,7 @@ class _AlertCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 5),
-                    Text(context.tr(alert.messageKey)),
+                    Text(EdgeAlertLanguage.text(context, alert.messageKey) ?? context.tr(alert.messageKey)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,

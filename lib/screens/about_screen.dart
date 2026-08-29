@@ -156,10 +156,12 @@ class AboutVayPulseScreen extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 title: Text(
-                  context.tr('version'),
+                  'PhytoSense AI V8 ULTRA FINAL',
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
-                subtitle: Text(context.tr('about_build_status')),
+                subtitle: Text(FarmerLanguage.isTamil(context)
+                    ? 'ESP32 authoritative intelligence • விவசாயி மைய UI • English/தமிழ் • Sensor/visual evidence தனித்தனி'
+                    : 'ESP32-authoritative intelligence • Farmer-first UI • English/Tamil • Sensor and visual evidence kept separate'),
               ),
             ),
           ],
@@ -188,12 +190,18 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
     super.didChangeDependencies();
     if (initialized) return;
     final scope = AppScope.of(context);
-    final live = scope.sensors.source == SensorDataSource.esp32;
     final field = scope.farms.selectedField;
-    final crop = live ? 'Tomato' : field.crop;
-    areaAcres = live ? 1 : field.areaAcres.clamp(1, 20).toDouble();
+    final crop = _activeCrop(scope, field.crop);
+    areaAcres = field.areaAcres.clamp(1, 20).toDouble();
     seasonalValuePerAcre = _defaultCropValue(crop);
     initialized = true;
+  }
+
+  String _activeCrop(AppScope scope, String fallback) {
+    if (scope.sensors.source != SensorDataSource.esp32) return fallback;
+    return scope.sensors.hardwareTelemetry?.cropProfile ??
+        scope.sensors.edgeIntelligence?.cropProfile.profile ??
+        fallback;
   }
 
   double _defaultCropValue(String crop) {
@@ -205,11 +213,10 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
 
   void _reset() {
     final scope = AppScope.of(context);
-    final live = scope.sensors.source == SensorDataSource.esp32;
     final field = scope.farms.selectedField;
-    final crop = live ? 'Tomato' : field.crop;
+    final crop = _activeCrop(scope, field.crop);
     setState(() {
-      areaAcres = live ? 1 : field.areaAcres.clamp(1, 20).toDouble();
+      areaAcres = field.areaAcres.clamp(1, 20).toDouble();
       seasonalValuePerAcre = _defaultCropValue(crop);
       lossRiskPercent = 15;
       preventableSharePercent = 35;
@@ -229,8 +236,7 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
     final scheme = Theme.of(context).colorScheme;
     final scope = AppScope.of(context);
     final field = scope.farms.selectedField;
-    final crop =
-        scope.sensors.source == SensorDataSource.esp32 ? 'Tomato' : field.crop;
+    final crop = _activeCrop(scope, field.crop);
     final projection = FarmImpactProjection(
       areaAcres: areaAcres,
       seasonalValuePerAcre: seasonalValuePerAcre,

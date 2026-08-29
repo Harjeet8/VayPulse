@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import '../app/theme.dart';
 
@@ -359,107 +358,6 @@ class FarmerActionCard extends StatelessWidget {
               ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-class ExperienceModeSelector extends StatelessWidget {
-  final String selected;
-  final ValueChanged<String> onChanged;
-  final String farmerTitle;
-  final String farmerBody;
-  final String judgeTitle;
-  final String judgeBody;
-
-  const ExperienceModeSelector({
-    super.key,
-    required this.selected,
-    required this.onChanged,
-    required this.farmerTitle,
-    required this.farmerBody,
-    required this.judgeTitle,
-    required this.judgeBody,
-  });
-
-  @override
-  Widget build(BuildContext context) => _ExperienceOption(
-        icon: Icons.agriculture_rounded,
-        title: farmerTitle,
-        body: farmerBody,
-        selected: true,
-        onTap: () async {
-          await HapticFeedback.selectionClick();
-          onChanged('farmer');
-        },
-      );
-}
-
-class _ExperienceOption extends StatelessWidget {
-  final IconData icon;
-  final String title;
-  final String body;
-  final bool selected;
-  final VoidCallback onTap;
-
-  const _ExperienceOption({
-    required this.icon,
-    required this.title,
-    required this.body,
-    required this.selected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return Material(
-      color: selected ? scheme.primaryContainer : scheme.surface,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
-        side: BorderSide(
-          color: selected ? scheme.primary : scheme.outlineVariant,
-          width: selected ? 2 : 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.all(17),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 46,
-                height: 46,
-                decoration: BoxDecoration(
-                  color: selected
-                      ? scheme.primary.withValues(alpha: 0.13)
-                      : scheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(15),
-                ),
-                child: Icon(icon, color: scheme.primary),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title,
-                        style: const TextStyle(fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 4),
-                    Text(body, style: Theme.of(context).textTheme.bodySmall),
-                  ],
-                ),
-              ),
-              Icon(
-                Icons.check_circle_rounded,
-                color: scheme.primary,
-              ),
-            ],
-          ),
         ),
       ),
     );

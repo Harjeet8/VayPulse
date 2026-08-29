@@ -77,7 +77,7 @@ class FirmwareTextAdapter {
     'tinyml': 'TinyML model',
     'model_loaded': 'Loaded',
     'model_not_loaded': 'Not loaded',
-    'explainable_engine': 'Current edge intelligence uses explainable sensor fusion and prediction.',
+    'explainable_engine': 'Current edge intelligence uses explainable sensor fusion, root-cause analysis and recovery verification.',
     'irrigation_detected': 'Probable watering detected',
     'no_action_from_node': 'The ESP32 has not issued a specific action. Keep monitoring.',
     'low_confidence_warning': 'Check unreliable sensors before making a major decision.',

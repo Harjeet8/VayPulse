@@ -31,6 +31,14 @@ class AlertService extends ChangeNotifier {
 
   void _evaluate(SensorReading reading) {
     if (!settings.value.notificationsEnabled) return;
+
+    if (sensors.source == SensorDataSource.esp32 &&
+        sensors.edgeIntelligence?.hasAuthoritativeAnalysis == true) {
+      _evaluateEdgeIntelligence(reading);
+      _evaluateNodeHealth(reading.nodeId);
+      return;
+    }
+
     String? titleKey;
     String? messageKey;
     var severity = AlertSeverity.warning;
@@ -64,6 +72,73 @@ class AlertService extends ChangeNotifier {
       );
     }
     _evaluateNodeHealth(reading.nodeId);
+  }
+
+
+  void _evaluateEdgeIntelligence(SensorReading reading) {
+    final edge = sensors.edgeIntelligence;
+    if (edge == null) return;
+
+    if (edge.sensorFaults.isNotEmpty || edge.degradedAnalysis) {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_sensor_attention',
+        messageKey: 'alert_sensor_attention_message',
+        severity: AlertSeverity.warning,
+      );
+    }
+
+    final state = edge.plantState?.toUpperCase() ?? '';
+    if (edge.recovery.active || state == 'RECOVERING') {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_plant_recovering',
+        messageKey: 'alert_plant_recovering_message',
+        severity: AlertSeverity.info,
+      );
+      return;
+    }
+
+    if (edge.bioticStress.suspected) {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_possible_biotic',
+        messageKey: 'alert_possible_biotic_message',
+        severity: AlertSeverity.warning,
+      );
+      return;
+    }
+
+    final cause = (edge.rootCause.primary ?? edge.farmerSummary ?? '').toUpperCase();
+    if (cause.contains('WATER') || cause.contains('DRY') || cause.contains('MOISTURE')) {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_water_stress_edge',
+        messageKey: 'alert_water_stress_edge_message',
+        severity: state.contains('CRITICAL') ? AlertSeverity.critical : AlertSeverity.warning,
+      );
+    } else if (cause.contains('HEAT') || cause.contains('HOT') || cause.contains('THERMAL')) {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_heat_stress_edge',
+        messageKey: 'alert_heat_stress_edge_message',
+        severity: state.contains('CRITICAL') ? AlertSeverity.critical : AlertSeverity.warning,
+      );
+    } else if (cause.contains('ROOT')) {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_root_stress_edge',
+        messageKey: 'alert_root_stress_edge_message',
+        severity: AlertSeverity.warning,
+      );
+    } else if (state.contains('STRESS') || state.contains('ATTENTION') || state.contains('CRITICAL')) {
+      _addAlert(
+        nodeId: reading.nodeId,
+        titleKey: 'alert_plant_stress_edge',
+        messageKey: 'alert_plant_stress_edge_message',
+        severity: state.contains('CRITICAL') ? AlertSeverity.critical : AlertSeverity.warning,
+      );
+    }
   }
 
   bool _isFloodedRiceNode(String nodeId) {
@@ -113,9 +188,9 @@ class AlertService extends ChangeNotifier {
     if (sensors.connectionStatus == SensorConnectionStatus.error) {
       _addAlert(
         nodeId: sensors.selectedNodeId,
-        titleKey: 'alert_abnormal_sensor',
-        messageKey: 'alert_abnormal_sensor_message',
-        severity: AlertSeverity.critical,
+        titleKey: 'alert_sensor_attention',
+        messageKey: 'alert_sensor_attention_message',
+        severity: AlertSeverity.warning,
       );
     }
   }

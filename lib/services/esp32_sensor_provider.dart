@@ -137,21 +137,28 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
       final SensorReading reading;
       if (edge.hasAuthoritativeAnalysis) {
-        final health = edge.healthScore ?? raw.healthScore;
+        final firmwareHealth = edge.healthScore ?? raw.esp32HealthScore;
+        final health = firmwareHealth ?? 50.0;
         final confidence = edge.overallConfidence ??
             raw.esp32HealthConfidence ??
-            raw.analysisConfidence;
+            0.0;
+        final stress = edge.bioelectric.stressScore ??
+            (firmwareHealth == null
+                ? 50.0
+                : (100.0 - health).clamp(0.0, 100.0).toDouble());
 
-        // ESP32 WINS in hardware mode. Flutter only normalizes the firmware
-        // result into the existing SensorReading contract for cards/charts.
-        // It does not recalculate a competing plant-health conclusion.
+        // ESP32 WINS in hardware mode. Flutter only normalizes explicit
+        // firmware intelligence into the existing SensorReading contract.
+        // When firmware omits health, a neutral internal placeholder keeps the
+        // legacy non-null model valid; hardware UI never presents it as a
+        // measured or inferred score.
         reading = raw.copyWith(
           healthScore: health,
-          stressScore: (100.0 - health).clamp(0.0, 100.0).toDouble(),
+          stressScore: stress,
           healthStatus: edge.plantState ?? raw.healthStatus,
           analysisConfidence: confidence,
-          esp32HealthScore: health,
-          esp32HealthConfidence: confidence,
+          esp32HealthScore: firmwareHealth,
+          esp32HealthConfidence: edge.overallConfidence ?? raw.esp32HealthConfidence,
           diseaseRisk: edge.diseaseRiskScore ?? raw.diseaseRisk,
         );
       } else {

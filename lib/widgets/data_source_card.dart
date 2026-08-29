@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 
 class DataSourceCard extends StatelessWidget {
@@ -47,7 +48,7 @@ class DataSourceCard extends StatelessWidget {
                         Text(
                           live
                               ? context.tr('esp32_live')
-                              : context.tr('simulation_mode'),
+                              : FarmerLanguage.label(context, 'simulation'),
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 2),
@@ -74,8 +75,9 @@ class DataSourceCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(99),
                     ),
                     child: Text(
-                      context
-                          .tr(live ? 'source_live_badge' : 'source_demo_badge'),
+                      live
+                          ? context.tr('source_live_badge')
+                          : FarmerLanguage.label(context, 'simulated'),
                       style: TextStyle(
                         color: accent,
                         fontSize: 11,
@@ -117,14 +119,14 @@ class DataSourceCard extends StatelessWidget {
               ),
               const SizedBox(height: 6),
               Text(
-                context.tr('data_source_separation_note'),
+                FarmerLanguage.label(context, 'source_separation'),
                 style: Theme.of(context).textTheme.bodySmall,
               ),
               const SizedBox(height: 14),
               _SourceOption(
                 icon: Icons.science_outlined,
-                title: context.tr('simulation_mode'),
-                body: context.tr('simulation_description'),
+                title: FarmerLanguage.label(context, 'simulation'),
+                body: FarmerLanguage.label(context, 'simulation_description'),
                 selected:
                     scope.sensorManager.source == SensorDataSource.simulation,
                 onTap: () => Navigator.pop(
@@ -163,11 +165,11 @@ class DataSourceCard extends StatelessWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: Text(context.tr(
+        content: Text(
           selected == SensorDataSource.esp32
-              ? 'live_workspace_enabled'
-              : 'demo_workspace_enabled',
-        )),
+              ? context.tr('live_workspace_enabled')
+              : FarmerLanguage.label(context, 'simulation_enabled'),
+        ),
       ),
     );
   }

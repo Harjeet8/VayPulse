@@ -39,7 +39,6 @@ class FirmwareCapabilities {
       trends ||
       rootCause ||
       recovery ||
-      prediction ||
       baseline ||
       stressEvidence ||
       sensorFaults ||
@@ -106,6 +105,91 @@ class RecoveryInfo {
   });
 
   bool get hasData => active || quality != null || improved != null || remainingConcern != null;
+}
+
+
+class BioelectricIntelligence {
+  final bool? available;
+  final double? voltageMv;
+  final double? baselineMv;
+  final double? signedChangeMv;
+  final double? deviationMv;
+  final double? normalizedDeviation;
+  final double? noiseMv;
+  final double? signalQuality;
+  final double? confidence;
+  final String? trend;
+  final double? stressScore;
+  final String? stressState;
+  final double? persistenceSeconds;
+  final bool? corroborated;
+  final List<String> corroboratedBy;
+  final String? farmerResult;
+
+  const BioelectricIntelligence({
+    this.available,
+    this.voltageMv,
+    this.baselineMv,
+    this.signedChangeMv,
+    this.deviationMv,
+    this.normalizedDeviation,
+    this.noiseMv,
+    this.signalQuality,
+    this.confidence,
+    this.trend,
+    this.stressScore,
+    this.stressState,
+    this.persistenceSeconds,
+    this.corroborated,
+    this.corroboratedBy = const [],
+    this.farmerResult,
+  });
+
+  bool get hasData =>
+      available != null ||
+      voltageMv != null ||
+      baselineMv != null ||
+      stressScore != null ||
+      stressState != null ||
+      farmerResult != null;
+}
+
+class BioticStressInfo {
+  final String? state;
+  final double? evidenceScore;
+  final double? confidence;
+  final bool unexplainedBioResponse;
+  final bool abioticCauseFound;
+  final bool diseaseConduciveSupport;
+  final String? reason;
+  final String? farmerResult;
+  final bool pestIdentified;
+  final bool infectionConfirmed;
+
+  const BioticStressInfo({
+    this.state,
+    this.evidenceScore,
+    this.confidence,
+    this.unexplainedBioResponse = false,
+    this.abioticCauseFound = false,
+    this.diseaseConduciveSupport = false,
+    this.reason,
+    this.farmerResult,
+    this.pestIdentified = false,
+    this.infectionConfirmed = false,
+  });
+
+  bool get suspected =>
+      state?.toUpperCase() == 'SUSPECTED' &&
+      !pestIdentified &&
+      !infectionConfirmed;
+
+  bool get hasData =>
+      state != null ||
+      evidenceScore != null ||
+      confidence != null ||
+      reason != null ||
+      farmerResult != null;
 }
 
 class PredictionInfo {
@@ -268,6 +352,8 @@ class EdgeIntelligence {
   final String? degradedReason;
   final RootCauseAnalysis rootCause;
   final RecoveryInfo recovery;
+  final BioelectricIntelligence bioelectric;
+  final BioticStressInfo bioticStress;
   final PredictionInfo prediction;
   final PlantBaselineInfo baseline;
   final StressEvidence stressEvidence;
@@ -300,6 +386,8 @@ class EdgeIntelligence {
     this.degradedReason,
     this.rootCause = const RootCauseAnalysis(),
     this.recovery = const RecoveryInfo(),
+    this.bioelectric = const BioelectricIntelligence(),
+    this.bioticStress = const BioticStressInfo(),
     this.prediction = const PredictionInfo(),
     this.baseline = const PlantBaselineInfo(),
     this.stressEvidence = const StressEvidence(),
@@ -318,13 +406,15 @@ class EdgeIntelligence {
     this.confirmedDisease,
   });
 
-  bool get hasAuthoritativeAnalysis => healthScore != null &&
-      (capabilities.edgeDecision ||
-          generatedOnDevice ||
-          recommendation != null ||
-          decisionExplanation != null ||
-          plantState != null ||
-          rootCause.hasAny);
+  bool get hasAuthoritativeAnalysis =>
+      capabilities.edgeDecision ||
+      generatedOnDevice ||
+      recommendation != null ||
+      decisionExplanation != null ||
+      plantState != null ||
+      rootCause.hasAny ||
+      bioelectric.farmerResult != null ||
+      bioticStress.hasData;
 
   factory EdgeIntelligence.fromPayload({
     required Map<String, dynamic> root,
@@ -353,6 +443,17 @@ class EdgeIntelligence {
       edge['recovery'],
       data['recovery'],
       plantHealth['recovery'],
+    ]);
+    final bioelectricMap = _firstMap([
+      edge['bioelectric'],
+      data['bioelectric'],
+      plantHealth['bioelectric'],
+      _map(data['readings'])['bioelectric'],
+    ]);
+    final bioticStressMap = _firstMap([
+      edge['bioticStress'],
+      data['bioticStress'],
+      plantHealth['bioticStress'],
     ]);
     final predictionMap = _firstMap([
       edge['prediction'],
@@ -452,8 +553,8 @@ class EdgeIntelligence {
     final explanation = _text(_first([
       edge['decisionExplanation'],
       data['decisionExplanation'],
+      data['explanation'],
       decision['because'],
-      predictionMap['explanation'],
     ]));
     final farmerSummary = _text(_first([
       edge['farmerSummary'],
@@ -461,6 +562,8 @@ class EdgeIntelligence {
       decision['farmerFriendly'],
       decision['finding'],
       data['primaryFinding'],
+      bioelectricMap['farmerResult'],
+      bioticStressMap['farmerResult'],
     ]));
 
     final sensorConfidence = _parseConfidences(_first([
@@ -557,6 +660,58 @@ class EdgeIntelligence {
         recoveryMap['remaining'],
         edge['recoveryRemainingConcern'],
       ])),
+    );
+
+
+    final bioelectric = BioelectricIntelligence(
+      available: _bool(bioelectricMap['available']),
+      voltageMv: _num(bioelectricMap['voltageMv']),
+      baselineMv: _num(bioelectricMap['baselineMv']),
+      signedChangeMv: _num(_first([
+        bioelectricMap['signedChangeMv'],
+        bioelectricMap['signedChange'],
+      ])),
+      deviationMv: _num(bioelectricMap['deviationMv']),
+      normalizedDeviation: _num(_first([
+        bioelectricMap['normalizedDeviation'],
+        bioelectricMap['deviationPercent'],
+        bioelectricMap['normalizedDeviationPercent'],
+      ])),
+      noiseMv: _num(_first([
+        bioelectricMap['noiseMv'],
+        bioelectricMap['noise'],
+      ])),
+      signalQuality: _percent(_first([
+        bioelectricMap['signalQuality'],
+        bioelectricMap['signalQualityPercent'],
+      ])),
+      confidence: _percent(bioelectricMap['confidence']),
+      trend: _text(bioelectricMap['trend']),
+      stressScore: _percent(bioelectricMap['stressScore']),
+      stressState: _text(bioelectricMap['stressState']),
+      persistenceSeconds: _num(_first([
+        bioelectricMap['persistenceSeconds'],
+        bioelectricMap['persistentSeconds'],
+      ])),
+      corroborated: _bool(bioelectricMap['corroborated']),
+      corroboratedBy: _strings(bioelectricMap['corroboratedBy']),
+      farmerResult: _text(bioelectricMap['farmerResult']),
+    );
+
+    final bioticStress = BioticStressInfo(
+      state: _text(bioticStressMap['state']),
+      evidenceScore: _percent(bioticStressMap['evidenceScore']),
+      confidence: _percent(bioticStressMap['confidence']),
+      unexplainedBioResponse:
+          _bool(bioticStressMap['unexplainedBioResponse']) == true,
+      abioticCauseFound: _bool(bioticStressMap['abioticCauseFound']) == true,
+      diseaseConduciveSupport:
+          _bool(bioticStressMap['diseaseConduciveSupport']) == true,
+      reason: _text(bioticStressMap['reason']),
+      farmerResult: _text(bioticStressMap['farmerResult']),
+      pestIdentified: _bool(bioticStressMap['pestIdentified']) == true,
+      infectionConfirmed:
+          _bool(bioticStressMap['infectionConfirmed']) == true,
     );
 
     final prediction = PredictionInfo(
@@ -807,7 +962,12 @@ class EdgeIntelligence {
         true;
 
     final capabilities = FirmwareCapabilities(
-      edgeDecision: decision.isNotEmpty || recommendation != null || explanation != null,
+      edgeDecision: decision.isNotEmpty ||
+          recommendation != null ||
+          explanation != null ||
+          rootCause.hasAny ||
+          bioelectric.farmerResult != null ||
+          bioticStress.hasData,
       plantState: plantState != null,
       sensorConfidence: sensorConfidence.isNotEmpty,
       trends: trends.isNotEmpty,
@@ -840,6 +1000,8 @@ class EdgeIntelligence {
       degradedReason: degradedReason,
       rootCause: rootCause,
       recovery: recovery,
+      bioelectric: bioelectric,
+      bioticStress: bioticStress,
       prediction: prediction,
       baseline: baseline,
       stressEvidence: stressEvidence,

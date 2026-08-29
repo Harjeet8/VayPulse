@@ -1,9 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../l10n/app_strings.dart';
-import '../services/app_scope.dart';
 import '../widgets/plant_pulse.dart';
-import 'onboarding_screen.dart';
 import 'shell_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -21,13 +19,9 @@ class _SplashScreenState extends State<SplashScreen> {
     super.initState();
     timer = Timer(const Duration(milliseconds: 1450), () {
       if (!mounted) return;
-      final complete = AppScope.of(context).settings.value.onboardingComplete;
       Navigator.pushReplacement(
         context,
-        MaterialPageRoute(
-          builder: (_) =>
-              complete ? const ShellScreen() : const OnboardingScreen(),
-        ),
+        MaterialPageRoute(builder: (_) => const ShellScreen()),
       );
     });
   }
@@ -101,6 +95,24 @@ class _SplashScreenState extends State<SplashScreen> {
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
                         letterSpacing: 0.3,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.10),
+                        borderRadius: BorderRadius.circular(99),
+                        border: Border.all(color: Colors.white24),
+                      ),
+                      child: const Text(
+                        'V8 ULTRA FINAL',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 0.8,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

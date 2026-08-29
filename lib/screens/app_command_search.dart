@@ -2,14 +2,11 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import 'about_screen.dart';
-import 'competition_center_screen.dart';
 import 'devices_screen.dart';
-import 'engineering_center_screen.dart';
 import 'irrigation_advisor_screen.dart';
 import 'leaf_screening_screen.dart';
 import 'observation_timeline_screen.dart';
 import 'offline_sync_screen.dart';
-import 'presentation_mode_screen.dart';
 import 'settings_screen.dart';
 import 'weather_center_screen.dart';
 
@@ -79,24 +76,6 @@ class AppCommandSearch extends SearchDelegate<void> {
         const OfflineSyncScreen(),
       ),
       _Command(
-        Icons.engineering_outlined,
-        context.tr('engineering_center'),
-        context.tr('engineering_center_menu_body'),
-        const EngineeringCenterScreen(),
-      ),
-      _Command(
-        Icons.emoji_events_outlined,
-        context.tr('competition_center'),
-        context.tr('competition_center_subtitle'),
-        const CompetitionCenterScreen(),
-      ),
-      _Command(
-        Icons.slideshow_outlined,
-        context.tr('presentation_mode'),
-        context.tr('presentation_mode_body'),
-        const PresentationModeScreen(),
-      ),
-      _Command(
         Icons.settings_outlined,
         context.tr('settings'),
         context.tr('settings_subtitle'),
@@ -105,7 +84,7 @@ class AppCommandSearch extends SearchDelegate<void> {
       _Command(
         Icons.info_outline_rounded,
         context.tr('about'),
-        context.tr('version'),
+        'PhytoSense AI V8 ULTRA FINAL',
         const AboutVayPulseScreen(),
       ),
     ];

@@ -7,8 +7,8 @@ import '../l10n/app_strings.dart';
 import '../models/crop_catalog.dart';
 import '../models/disease_assessment.dart';
 import '../models/leaf_screening_result.dart';
-import '../models/sensor_reading.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language.dart';
 import '../services/leaf_screening_service.dart';
 import '../services/multimodal_disease_service.dart';
 import '../services/sensor_data_provider.dart';
@@ -49,11 +49,14 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     if (cropInitialized) return;
     final scope = AppScope.of(context);
     final fieldCrop = scope.farms.selectedField.crop;
-    selectedCrop = scope.sensors.source == SensorDataSource.esp32
-        ? 'Tomato'
-        : CropCatalog.supports(fieldCrop)
-            ? CropCatalog.normalize(fieldCrop)
-            : CropCatalog.supported.first.name;
+    final hardwareCrop = scope.sensors.hardwareTelemetry?.cropProfile ??
+        scope.sensors.edgeIntelligence?.cropProfile.profile;
+    final preferredCrop = scope.sensors.source == SensorDataSource.esp32
+        ? hardwareCrop ?? fieldCrop
+        : fieldCrop;
+    selectedCrop = CropCatalog.supports(preferredCrop)
+        ? CropCatalog.normalize(preferredCrop)
+        : CropCatalog.supported.first.name;
     cropInitialized = true;
   }
 
@@ -84,17 +87,11 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
       });
       final screening = await LeafScreeningService.analyze(bytes);
       if (!mounted) return;
-      final scope = AppScope.of(context);
-      final live = scope.sensors.source == SensorDataSource.esp32;
       final diseaseAssessment = _isTomato
           ? null
           : MultimodalDiseaseService.assess(
               visual: screening,
               crop: selectedCrop!,
-              reading: scope.sensors.current,
-              weather: !live && scope.weather.isFresh
-                  ? scope.weather.snapshot
-                  : null,
             );
       setState(() {
         result = screening;
@@ -124,14 +121,10 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     if (screening == null || crop == null || !symptomAnswers.isComplete) {
       return;
     }
-    final scope = AppScope.of(context);
-    final live = scope.sensors.source == SensorDataSource.esp32;
     setState(() {
       assessment = MultimodalDiseaseService.assess(
         visual: screening,
         crop: crop,
-        reading: scope.sensors.current,
-        weather: !live && scope.weather.isFresh ? scope.weather.snapshot : null,
         symptoms: symptomAnswers,
       );
     });
@@ -248,14 +241,10 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
             },
           ),
           const SizedBox(height: 14),
-          _MultimodalContextCard(
+          _EvidenceSeparationCard(
             crop: context.tr(CropCatalog.profileFor(
               selectedCrop ?? CropCatalog.supported.first.name,
             ).localizationKey),
-            reading: scope.sensors.current,
-            hasWeather: scope.sensors.source != SensorDataSource.esp32 &&
-                scope.weather.isFresh,
-            isLive: scope.sensors.source == SensorDataSource.esp32,
             sensorPrompt: widget.sensorPrompt,
           ),
           const SizedBox(height: 14),
@@ -667,24 +656,17 @@ class _CropConfirmationCard extends StatelessWidget {
       );
 }
 
-class _MultimodalContextCard extends StatelessWidget {
+class _EvidenceSeparationCard extends StatelessWidget {
   final String crop;
-  final SensorReading? reading;
-  final bool hasWeather;
-  final bool isLive;
   final bool sensorPrompt;
 
-  const _MultimodalContextCard({
+  const _EvidenceSeparationCard({
     required this.crop,
-    required this.reading,
-    required this.hasWeather,
-    required this.isLive,
     required this.sensorPrompt,
   });
 
   @override
   Widget build(BuildContext context) {
-    final sourceColor = isLive ? const Color(0xFF2775B6) : phytoGreen;
     return Card(
       color: sensorPrompt ? phytoAmber.withValues(alpha: 0.07) : null,
       child: Padding(
@@ -697,68 +679,55 @@ class _MultimodalContextCard extends StatelessWidget {
                 Icon(
                   sensorPrompt
                       ? Icons.notification_important_outlined
-                      : Icons.hub_outlined,
+                      : Icons.visibility_outlined,
                   color: sensorPrompt ? phytoAmber : phytoGreen,
                 ),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
-                    context.tr(
-                      sensorPrompt
-                          ? 'disease_prompt_context_title'
-                          : 'disease_context_title',
-                    ),
+                    FarmerLanguage.label(context, 'evidence_separation_title'),
                     style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: sourceColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    context
-                        .tr(isLive ? 'source_live_badge' : 'source_demo_badge'),
-                    style: TextStyle(
-                      color: sourceColor,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w900,
-                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            Text(context.tr(
+            const SizedBox(height: 9),
+            Text(
               sensorPrompt
-                  ? 'disease_prompt_context_body'
-                  : 'disease_context_body',
-            )),
+                  ? FarmerLanguage.label(context, 'sensor_inspection_prompt')
+                  : FarmerLanguage.label(context, 'camera_visual_only'),
+            ),
             const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                Chip(
-                  avatar: const Icon(Icons.grass_outlined, size: 17),
-                  label: Text('${context.tr('crop')}: $crop'),
-                ),
-                Chip(
-                  avatar: const Icon(Icons.sensors_outlined, size: 17),
-                  label: Text(reading == null
-                      ? context.tr('disease_context_no_sensor')
-                      : '${context.tr('plant_signal')}: '
-                          '${reading!.plantSignal.toStringAsFixed(0)}%'),
-                ),
-                Chip(
-                  avatar: const Icon(Icons.cloud_outlined, size: 17),
-                  label: Text(context.tr(hasWeather
-                      ? 'disease_context_weather_ready'
-                      : 'disease_context_weather_unavailable')),
-                ),
-              ],
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.surfaceContainer,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    FarmerLanguage.label(context, 'visual_evidence'),
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(FarmerLanguage.label(context, 'visual_evidence_body')),
+                  const SizedBox(height: 10),
+                  Text(
+                    FarmerLanguage.label(context, 'sensor_evidence'),
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(FarmerLanguage.label(context, 'sensor_evidence_body')),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            Chip(
+              avatar: const Icon(Icons.grass_outlined, size: 17),
+              label: Text('${context.tr('crop')}: $crop'),
             ),
           ],
         ),
