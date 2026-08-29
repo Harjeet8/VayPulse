@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../models/edge_intelligence.dart';
+import '../models/hardware_telemetry.dart';
 import '../models/sensor_reading.dart';
 
 class Esp32Client {
@@ -36,7 +38,8 @@ class Esp32Client {
   }
 
   Future<bool> ping() async {
-    for (final path in const ['/api/status', '/status', '/api/sensors', '/sensors']) {
+    for (final path
+        in const ['/api/status', '/status', '/api/sensors', '/sensors']) {
       if (await _tryGet(path) != null) return true;
     }
     return false;
@@ -75,7 +78,10 @@ class Esp32Client {
     final leaf = _map(readings['leaf']);
     final bio = _map(readings['bioelectric']);
     final calibration = _map(data['calibration']);
-    final components = _map(data['healthComponents']);
+    final components = _firstNonEmptyMap([
+      data['healthComponents'],
+      _map(data['plantHealth'])['components'],
+    ]);
     final plantHealth = _map(data['plantHealth']);
 
     dynamic first(Iterable<dynamic> values) {
@@ -113,7 +119,6 @@ class Esp32Client {
       data['lux'],
       data['lightLux'],
       light['lux'],
-      // Current production firmware may keep `light` as a flat lux alias.
       if (_asDouble(data['light']) != null && _asDouble(data['light'])! > 100)
         data['light'],
     ]);
@@ -158,7 +163,9 @@ class Esp32Client {
     final luxValue = lightValid ? _asDouble(lux) : null;
     final legacyLightValue = _asDouble(legacyLight);
     final normalizedLight = legacyLightValue ??
-        (luxValue == null ? null : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
+        (luxValue == null
+            ? null
+            : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
     final leafValue = leafValid ? _asDouble(leafWetness) : null;
     final voltageValue = bioValid ? _asDouble(plantVoltageMv) : null;
     final stabilityValue = bioValid ? _asDouble(bioStability) : null;
@@ -177,15 +184,18 @@ class Esp32Client {
       data['healthScore'],
       data['health'],
       plantHealth['score'],
+      plantHealth['index'],
     ]));
     final espConfidence = _asDouble(first([
       data['healthConfidence'],
       data['analysisConfidence'],
+      data['overallAnalysisConfidence'],
       plantHealth['confidence'],
     ]));
 
     final normalized = <String, dynamic>{
-      'nodeId': '${first([data['deviceId'], root['deviceId'], data['device'], 'PHYTO-NODE-001'])}',
+      'nodeId':
+          '${first([data['deviceId'], root['deviceId'], data['device'], 'PHYTO-NODE-001'])}',
       'timestamp': _timestamp(data),
       'soilMoisture': soilValue,
       'temperature': tempValue,
@@ -196,18 +206,39 @@ class Esp32Client {
       'leafWetness': leafValue,
       'plantSignal': stabilityValue,
       'plantVoltageMv': voltageValue,
-      // The provider replaces this fallback with the app-side Health Index.
       'healthScore': espHealth,
-      'healthStatus': '${first([data['healthStatus'], plantHealth['status'], 'starting'])}',
-      'analysisConfidence': 0,
+      'healthStatus':
+          '${first([data['plantState'], data['healthStatus'], plantHealth['plantCondition'], plantHealth['status'], 'starting'])}',
+      'analysisConfidence': espConfidence ?? 0,
       'esp32HealthScore': espHealth,
       'esp32HealthConfidence': espConfidence,
-      'waterScore': _asDouble(first([components['waterScore'], data['waterScore']])),
-      'thermalScore': _asDouble(first([components['thermalScore'], data['thermalScore']])),
-      'rootZoneScore': _asDouble(first([components['rootZoneScore'], data['rootZoneScore']])),
-      'atmosphericScore': _asDouble(first([components['atmosphericScore'], data['atmosphericScore']])),
-      'lightScore': _asDouble(first([components['lightScore'], data['lightScore']])),
+      'waterScore': _asDouble(first([
+        components['water'],
+        components['waterScore'],
+        data['waterScore'],
+      ])),
+      'thermalScore': _asDouble(first([
+        components['thermal'],
+        components['thermalScore'],
+        data['thermalScore'],
+      ])),
+      'rootZoneScore': _asDouble(first([
+        components['rootZone'],
+        components['rootZoneScore'],
+        data['rootZoneScore'],
+      ])),
+      'atmosphericScore': _asDouble(first([
+        components['atmospheric'],
+        components['atmosphericScore'],
+        data['atmosphericScore'],
+      ])),
+      'lightScore': _asDouble(first([
+        components['light'],
+        components['lightScore'],
+        data['lightScore'],
+      ])),
       'diseaseRisk': _asDouble(first([
+        _map(plantHealth['diseaseConduciveRisk'])['score'],
         components['diseaseRiskPercent'],
         data['diseaseRiskPercent'],
         data['diseaseRisk'],
@@ -242,9 +273,17 @@ class Esp32Client {
       'bioBaselineSamples': _asInt(bio['baselineSamples']) ?? 0,
       'bioBaselineMv': _asDouble(bio['baselineMv']),
       'bioDeviationMv': _asDouble(bio['deviationMv']),
-      'bioNoiseMv': _asDouble(bio['noiseMv']),
+      'bioNoiseMv': _asDouble(first([bio['noiseMv'], bio['batchNoiseMv']])),
       'bioSignalQuality': qualityValue ?? 0,
     };
+
+    final firmwareVersion = '${first([
+      data['firmware'],
+      data['firmwareVersion'],
+      root['firmware'],
+      root['firmwareVersion'],
+      'unknown',
+    ])}';
 
     return Esp32Snapshot(
       reading: SensorReading.fromJson(normalized),
@@ -256,13 +295,7 @@ class Esp32Client {
         data['signalPercent'],
         root['signalPercent'],
       ]), 100),
-      firmwareVersion: '${first([
-        data['firmware'],
-        data['firmwareVersion'],
-        root['firmware'],
-        root['firmwareVersion'],
-        'unknown',
-      ])}',
+      firmwareVersion: firmwareVersion,
       endpoint: endpoint,
       sensorCount: [
         soilValue,
@@ -273,12 +306,30 @@ class Esp32Client {
         leafValue,
         voltageValue,
       ].where((v) => v != null).length,
+      edgeIntelligence: EdgeIntelligence.fromPayload(
+        root: root,
+        data: data,
+        firmwareVersion: firmwareVersion,
+      ),
+      telemetry: HardwareTelemetry.fromPayload(
+        root: root,
+        data: data,
+        firmwareVersion: firmwareVersion,
+      ),
     );
   }
 
   static Map<String, dynamic> _map(dynamic value) => value is Map
       ? Map<String, dynamic>.from(value)
       : <String, dynamic>{};
+
+  static Map<String, dynamic> _firstNonEmptyMap(List<dynamic> values) {
+    for (final value in values) {
+      final mapped = _map(value);
+      if (mapped.isNotEmpty) return mapped;
+    }
+    return <String, dynamic>{};
+  }
 
   static double? _asDouble(dynamic value) {
     if (value == null) return null;
@@ -308,6 +359,8 @@ class Esp32Snapshot {
   final String firmwareVersion;
   final String endpoint;
   final int sensorCount;
+  final EdgeIntelligence edgeIntelligence;
+  final HardwareTelemetry telemetry;
 
   const Esp32Snapshot({
     required this.reading,
@@ -316,5 +369,7 @@ class Esp32Snapshot {
     required this.firmwareVersion,
     required this.endpoint,
     required this.sensorCount,
+    required this.edgeIntelligence,
+    required this.telemetry,
   });
 }
