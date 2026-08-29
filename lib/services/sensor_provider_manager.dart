@@ -123,6 +123,9 @@ class SensorProviderManager extends SensorDataProvider {
   get edgeIntelligence => _active.edgeIntelligence;
 
   @override
+  get hardwareTelemetry => _active.hardwareTelemetry;
+
+  @override
   void start() {
     _started = true;
     _active.start();
