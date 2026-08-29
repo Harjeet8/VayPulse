@@ -1,4 +1,6 @@
 import 'package:flutter/foundation.dart';
+
+import '../models/edge_intelligence.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 
@@ -20,6 +22,11 @@ abstract class SensorDataProvider extends ChangeNotifier {
   bool get supportsScenarios;
   String get scenarioId;
   List<String> get scenarioIds;
+
+  /// Rich reasoning produced by the live ESP32. Simulation and old firmware
+  /// may legitimately return null. UI must capability-detect rather than
+  /// hard-code a firmware version.
+  EdgeIntelligence? get edgeIntelligence => null;
 
   void start();
   void stop();
