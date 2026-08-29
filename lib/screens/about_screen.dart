@@ -5,6 +5,7 @@ import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/farm_impact_projection.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
 import '../widgets/plant_pulse.dart';
@@ -155,9 +156,9 @@ class AboutVayPulseScreen extends StatelessWidget {
                   Icons.info_outline_rounded,
                   color: Theme.of(context).colorScheme.primary,
                 ),
-                title: Text(
+                title: const Text(
                   'PhytoSense AI V8 ULTRA FINAL',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+                  style: TextStyle(fontWeight: FontWeight.w900),
                 ),
                 subtitle: Text(FarmerLanguage.isTamil(context)
                     ? 'ESP32 authoritative intelligence • விவசாயி மைய UI • English/தமிழ் • Sensor/visual evidence தனித்தனி'

@@ -163,7 +163,6 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final scope = AppScope.of(context);
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('leaf_screening_title'))),
       body: PageFrame(

@@ -375,7 +375,7 @@ class _TrendChartCard extends StatelessWidget {
                       bottomTitles:
                           AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     ),
-                    lineTouchData: LineTouchData(enabled: false),
+                    lineTouchData: const LineTouchData(enabled: false),
                     lineBarsData: [
                       LineChartBarData(
                         spots: spots,

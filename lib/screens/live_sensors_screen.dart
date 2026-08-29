@@ -344,7 +344,6 @@ class _SensorCard extends StatelessWidget {
   final HardwareSensorDetail? detail;
   final DateTime timestamp;
   final String? extra;
-  final String? note;
 
   const _SensorCard({
     required this.title,
@@ -352,7 +351,6 @@ class _SensorCard extends StatelessWidget {
     required this.detail,
     required this.timestamp,
     this.extra,
-    this.note,
   });
 
   @override
@@ -414,10 +412,6 @@ class _SensorCard extends StatelessWidget {
                 '${FarmerLanguage.label(context, 'effect')}: ${FarmerLanguage.firmware(context, detail!.contribution)}',
                 style: const TextStyle(fontWeight: FontWeight.w700),
               ),
-            ],
-            if (note != null) ...[
-              const SizedBox(height: 8),
-              Text(note!, style: Theme.of(context).textTheme.bodySmall),
             ],
             if (detail?.rawValue != null || detail?.quality != null)
               ExpansionTile(

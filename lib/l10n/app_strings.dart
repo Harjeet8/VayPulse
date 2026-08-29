@@ -513,7 +513,7 @@ class AppStrings {
           'Use the camera for explainable on-device disease-risk screening.',
       'leaf_screening_hero': 'Camera-assisted leaf check',
       'leaf_screening_hero_body':
-          'Combine the leaf photo with plant-electrode, sensor and weather evidence without uploading the photo.',
+          'Analyse visible leaf symptoms from the photo without uploading it. ESP32 sensor evidence remains separate.',
       'confirm_crop_title': 'Confirm the crop before screening',
       'confirm_crop_body':
           'PhytoSense AI uses the active field as a suggestion. Select the crop in the photo so an unrelated disease list is never forced onto the result.',
@@ -541,7 +541,7 @@ class AppStrings {
       'leaf_camera_unavailable':
           'The camera or photo picker is unavailable on this device. Try the gallery or use the Android app.',
       'analyzing_leaf':
-          'Analysing the photo and cross-checking crop, electrode, sensor and weather evidence…',
+          'Analysing the photo and the visible symptoms you confirmed…',
       'photo_guide_title': 'For a reliable screening photo',
       'photo_guide_light': 'Use bright, even daylight without harsh shadows.',
       'photo_guide_single_leaf':
@@ -576,7 +576,7 @@ class AppStrings {
       'disease_context_title': 'Evidence ready for this screening',
       'disease_prompt_context_title': 'Sensor-triggered field check',
       'disease_context_body':
-          'PhytoSense AI will rank crop-specific possibilities using every fresh evidence source available.',
+          'PhytoSense AI ranks crop-specific visual possibilities from the photo and your visible-symptom observations.',
       'disease_prompt_context_body':
           'An unusual field signal opened this workflow. Photograph a representative affected leaf for a stronger cross-check.',
       'disease_context_no_sensor': 'Photo-only mode',
@@ -603,7 +603,7 @@ class AppStrings {
       'disease_potential_matches': 'Potential issue matches',
       'disease_crop_context': 'Crop-specific ranking for {crop}',
       'disease_ranking_explanation':
-          'These are transparent match scores from leaf colour proportions, farmer observations and available field evidence. A higher score means “inspect this first,” not “confirmed disease.”',
+          'These are transparent visual match scores from leaf colour proportions and farmer-confirmed visible symptoms. A higher score means “inspect this first,” not “confirmed disease.”',
       'disease_inconclusive_title': 'Evidence is inconclusive',
       'disease_inconclusive_body':
           'The leading score is low or too close to another possibility. Inspect several plants, take a clearer photo and ask a qualified agricultural expert before treatment.',
@@ -632,27 +632,27 @@ class AppStrings {
       'disease_category_clear': 'No clear concern',
       'disease_no_clear_match': 'No clear disease pattern',
       'disease_no_clear_match_reason':
-          'The photographed leaf is mostly green and the available field signals are within their preferred bands.',
+          'The photographed leaf is mostly green and does not show a strong visible pattern in this screening.',
       'disease_no_clear_match_inspect':
           'Keep monitoring and compare the same area with a new photo if symptoms appear or spread.',
       'disease_rice_blast': 'Rice blast pattern',
       'disease_rice_blast_reason':
-          'Brown lesion coverage combined with warm, humid or rainy conditions can resemble rice blast.',
+          'Brown lesion coverage in the photo can resemble a rice-blast pattern.',
       'disease_rice_blast_inspect':
           'Look for spindle-shaped spots with darker edges on several leaves and check whether the pattern is spreading.',
       'disease_rice_brown_spot': 'Rice brown spot pattern',
       'disease_rice_brown_spot_reason':
-          'Brown spotting with yellowing or plant stress can resemble rice brown spot.',
+          'Brown spotting with visible yellowing can resemble a rice brown-spot pattern.',
       'disease_rice_brown_spot_inspect':
           'Check older leaves for many small round or oval brown spots and compare plants across the zone.',
       'disease_rice_blight': 'Rice bacterial leaf blight pattern',
       'disease_rice_blight_reason':
-          'Yellow-brown damage together with wet, humid or rainy conditions can resemble bacterial leaf blight.',
+          'Yellow-brown visible damage can resemble a bacterial leaf-blight pattern.',
       'disease_rice_blight_inspect':
           'Inspect leaf tips and edges for lengthening yellow-to-straw coloured areas across multiple plants.',
       'disease_rice_stem_borer': 'Rice stem-borer or pest-stress pattern',
       'disease_rice_stem_borer_reason':
-          'Yellowing plus an unusual plant-electrode response may indicate pest-related stress, including stem damage.',
+          'Visible yellowing or stem-damage symptoms can resemble a stem-borer or pest-damage pattern.',
       'disease_rice_stem_borer_inspect':
           'Check the central shoot, leaf sheaths and nearby stems for wilting, entry marks or insect activity.',
       'disease_tomato_early_blight': 'Tomato early blight pattern',
@@ -662,7 +662,7 @@ class AppStrings {
           'Check older lower leaves for expanding brown spots with ring-like patterns and yellow margins.',
       'disease_tomato_late_blight': 'Tomato late blight pattern',
       'disease_tomato_late_blight_reason':
-          'Farmer-confirmed water-soaked dark lesions together with humid or wet conditions are more consistent with late blight.',
+          'Farmer-confirmed water-soaked dark lesions are more consistent with a late-blight visual pattern.',
       'disease_tomato_late_blight_inspect':
           'Check several leaves and stems for rapidly expanding dark water-soaked areas, especially after wet weather.',
       'disease_tomato_bacterial_spot': 'Tomato bacterial spot pattern',
@@ -673,12 +673,12 @@ class AppStrings {
       'disease_tomato_leaf_curl':
           'Tomato leaf-curl or sap-feeding pest pattern',
       'disease_tomato_leaf_curl_reason':
-          'Farmer-confirmed curling plus whiteflies, yellowing or unusual plant response is more consistent with leaf-curl or sap-feeding pest stress.',
+          'Farmer-confirmed curling, whiteflies or visible yellowing are more consistent with a leaf-curl or sap-feeding pest pattern.',
       'disease_tomato_leaf_curl_inspect':
           'Check new growth for curling and inspect leaf undersides for tiny insects or clustered activity.',
       'tomato_symptoms_title': 'Advanced tomato symptom check',
       'tomato_symptoms_body':
-          'Tomato is the competition reference crop. Confirm all five visible observations so the photo, sensors, electrode response and weather can be ranked together.',
+          'Confirm the five visible observations so the camera result is based only on the photo and symptoms you can actually see.',
       'tomato_question_rings':
           'Do brown spots contain circular target-like rings?',
       'tomato_question_water_soaked':
@@ -694,17 +694,17 @@ class AppStrings {
       'rank_potential_issues': 'Rank potential issues',
       'disease_maize_leaf_blight': 'Maize leaf-blight pattern',
       'disease_maize_leaf_blight_reason':
-          'Lengthening brown areas in warm, humid conditions can resemble maize leaf blight.',
+          'Brown leaf damage in the photo can resemble a maize leaf-blight pattern.',
       'disease_maize_leaf_blight_inspect':
           'Check several leaves for long grey-green or brown lesions that expand along the blade.',
       'disease_maize_downy_mildew': 'Maize downy-mildew pattern',
       'disease_maize_downy_mildew_reason':
-          'Yellow striping with persistent humidity can resemble downy-mildew stress.',
+          'Visible yellow striping can resemble a downy-mildew pattern.',
       'disease_maize_downy_mildew_inspect':
           'Inspect young leaves for pale lengthwise stripes and unusual white growth, especially in the morning.',
       'disease_maize_fall_armyworm': 'Maize fall-armyworm damage pattern',
       'disease_maize_fall_armyworm_reason':
-          'Irregular brown damage and plant stress can match chewing-pest activity.',
+          'Irregular visible brown damage can resemble chewing-pest activity.',
       'disease_maize_fall_armyworm_inspect':
           'Open the whorl and check for fresh holes, scraped tissue and insect activity across nearby plants.',
       'disease_groundnut_leaf_spot': 'Groundnut tikka leaf-spot pattern',
@@ -714,7 +714,7 @@ class AppStrings {
           'Compare older leaves for many circular dark spots, yellow margins and increasing leaf drop.',
       'disease_groundnut_rust': 'Groundnut rust pattern',
       'disease_groundnut_rust_reason':
-          'Warm weather and brown-orange spotting can resemble groundnut rust.',
+          'Visible brown-orange spotting can resemble a groundnut-rust pattern.',
       'disease_groundnut_rust_inspect':
           'Check the lower leaf surface for small raised orange-brown pustules on several plants.',
       'disease_groundnut_leaf_miner': 'Groundnut leaf-miner damage pattern',
@@ -724,7 +724,7 @@ class AppStrings {
           'Look for folded leaflets, pale mines and larvae or webbing inside damaged leaves.',
       'disease_cotton_bacterial_blight': 'Cotton bacterial-blight pattern',
       'disease_cotton_bacterial_blight_reason':
-          'Angular brown areas after humid or rainy weather can resemble bacterial blight.',
+          'Visible angular brown areas can resemble a bacterial-blight pattern.',
       'disease_cotton_bacterial_blight_inspect':
           'Check whether spots follow leaf veins and appear angular on several cotton plants.',
       'disease_cotton_alternaria': 'Cotton Alternaria leaf-spot pattern',
@@ -754,7 +754,7 @@ class AppStrings {
           'Check young shoots for a drying central leaf and small entry holes near the lower stem.',
       'disease_banana_sigatoka': 'Banana Sigatoka leaf-spot pattern',
       'disease_banana_sigatoka_reason':
-          'Increasing brown streaks and yellow areas under humid conditions can resemble Sigatoka.',
+          'Visible brown streaks and yellow areas can resemble a Sigatoka pattern.',
       'disease_banana_sigatoka_inspect':
           'Compare older leaves for narrow streaks that expand into dark spots with yellow margins.',
       'disease_banana_bunchy_top': 'Banana bunchy-top pattern',
@@ -769,12 +769,12 @@ class AppStrings {
           'Inspect the lower pseudostem and corm area for holes, tunnelling material or weakened plants.',
       'disease_coconut_leaf_rot': 'Coconut leaf-rot pattern',
       'disease_coconut_leaf_rot_reason':
-          'Brown damaged areas during humid weather can resemble coconut leaf rot.',
+          'Visible brown damaged areas can resemble a coconut leaf-rot pattern.',
       'disease_coconut_leaf_rot_inspect':
           'Inspect the youngest opened leaves for blackened, rotting or easily separating tissue.',
       'disease_coconut_bud_rot': 'Coconut bud-rot risk pattern',
       'disease_coconut_bud_rot_reason':
-          'Yellow-brown crown damage with wet weather can indicate a serious bud-rot risk.',
+          'Visible yellow-brown crown damage can resemble a serious bud-rot pattern.',
       'disease_coconut_bud_rot_inspect':
           'From a safe ground position, check for a drooping or discoloured central spear and contact a trained worker for crown inspection.',
       'disease_coconut_caterpillar': 'Coconut leaf-eating caterpillar damage',
@@ -784,7 +784,7 @@ class AppStrings {
           'Check fallen or reachable leaflets for scraped tissue, webbing, droppings or clustered larvae.',
       'disease_brinjal_leaf_spot': 'Brinjal leaf-spot pattern',
       'disease_brinjal_leaf_spot_reason':
-          'Circular brown lesions during humid conditions can resemble fungal leaf spot.',
+          'Visible circular brown lesions can resemble a fungal leaf-spot pattern.',
       'disease_brinjal_leaf_spot_inspect':
           'Compare older leaves for expanding round spots with pale centres or yellow margins.',
       'disease_brinjal_little_leaf': 'Brinjal little-leaf pattern',
@@ -804,17 +804,17 @@ class AppStrings {
           'Inspect new growth for upward curling, shortened internodes and tiny insects underneath.',
       'disease_chilli_anthracnose': 'Chilli anthracnose pattern',
       'disease_chilli_anthracnose_reason':
-          'Brown lesions under warm, humid conditions can resemble anthracnose.',
+          'Visible brown lesions can resemble an anthracnose pattern.',
       'disease_chilli_anthracnose_inspect':
           'Check leaves and fruit for enlarging sunken dark spots, especially after wet weather.',
       'disease_chilli_thrips': 'Chilli thrips damage pattern',
       'disease_chilli_thrips_reason':
-          'Yellowing, curling and dry-weather stress can match thrips feeding.',
+          'Visible yellowing and curling can resemble thrips feeding damage.',
       'disease_chilli_thrips_inspect':
           'Check young leaves and flowers for silvery scraping, distortion and tiny moving insects.',
       'disease_generic_leaf_spot': 'Possible fungal leaf-spot pattern',
       'disease_generic_leaf_spot_reason':
-          'Brown lesion coverage with humid weather can match a general fungal leaf-spot pattern.',
+          'Visible brown lesion coverage can resemble a general fungal leaf-spot pattern.',
       'disease_generic_leaf_spot_inspect':
           'Compare spot shape and spread on several upper and lower leaf surfaces.',
       'disease_generic_pest_damage': 'Possible pest-related damage',
@@ -1896,22 +1896,22 @@ class AppStrings {
           'தொடர்ந்து கண்காணித்து அறிகுறி தோன்றினால் அல்லது பரவினால் அதே பகுதியை புதிய photo-வுடன் ஒப்பிடவும்.',
       'disease_rice_blast': 'நெல் blast pattern',
       'disease_rice_blast_reason':
-          'Brown lesion coverage மற்றும் warm, humid அல்லது rainy condition இணைந்தால் rice blast போல இருக்கலாம்.',
+          'புகைப்படத்தில் தெரியும் brown lesion coverage rice-blast pattern போல இருக்கலாம்.',
       'disease_rice_blast_inspect':
           'பல இலைகளில் கருமையான ஓரத்துடன் spindle வடிவ spots உள்ளதா, pattern பரவுகிறதா பார்க்கவும்.',
       'disease_rice_brown_spot': 'நெல் brown spot pattern',
       'disease_rice_brown_spot_reason':
-          'Brown spots, yellowing அல்லது plant stress இணைந்தால் rice brown spot போல இருக்கலாம்.',
+          'புகைப்படத்தில் தெரியும் brown spots மற்றும் yellowing rice brown-spot pattern போல இருக்கலாம்.',
       'disease_rice_brown_spot_inspect':
           'பழைய இலைகளில் சிறிய round அல்லது oval brown spots அதிகமாக உள்ளதா பார்த்து zone முழுவதும் ஒப்பிடவும்.',
       'disease_rice_blight': 'நெல் bacterial leaf blight pattern',
       'disease_rice_blight_reason':
-          'Yellow-brown damage மற்றும் wet, humid அல்லது rainy condition இணைந்தால் bacterial leaf blight போல இருக்கலாம்.',
+          'புகைப்படத்தில் தெரியும் yellow-brown damage bacterial leaf-blight pattern போல இருக்கலாம்.',
       'disease_rice_blight_inspect':
           'பல செடிகளின் இலை நுனி மற்றும் ஓரத்தில் நீளமாகும் yellow-to-straw colour பகுதிகள் உள்ளதா பார்க்கவும்.',
       'disease_rice_stem_borer': 'நெல் stem-borer அல்லது pest-stress pattern',
       'disease_rice_stem_borer_reason':
-          'Yellowing மற்றும் unusual plant-electrode response stem damage உட்பட pest-related stress-ஐ காட்டலாம்.',
+          'காணக்கூடிய yellowing அல்லது stem damage stem-borer / pest-damage pattern போல இருக்கலாம்.',
       'disease_rice_stem_borer_inspect':
           'மைய shoot, leaf sheath மற்றும் அருகிலுள்ள stem-ல் wilting, entry mark அல்லது insect activity உள்ளதா பார்க்கவும்.',
       'disease_tomato_early_blight': 'தக்காளி early blight pattern',
@@ -1921,7 +1921,7 @@ class AppStrings {
           'கீழ் பழைய இலைகளில் ring-like pattern மற்றும் yellow margin கொண்ட பெருகும் brown spots உள்ளதா பார்க்கவும்.',
       'disease_tomato_late_blight': 'தக்காளி late blight pattern',
       'disease_tomato_late_blight_reason':
-          'Farmer உறுதி செய்த water-soaked dark lesions மற்றும் humid அல்லது wet condition late blight-க்கு அதிகம் பொருந்தும்.',
+          'Farmer உறுதி செய்த water-soaked dark lesions late-blight visual pattern-க்கு அதிகம் பொருந்தும்.',
       'disease_tomato_late_blight_inspect':
           'Wet weather பிறகு பல இலை மற்றும் stem-ல் விரைவாக பெருகும் dark, water-soaked பகுதிகள் உள்ளதா பார்க்கவும்.',
       'disease_tomato_bacterial_spot': 'தக்காளி bacterial spot pattern',
@@ -1937,7 +1937,7 @@ class AppStrings {
           'புதிய வளர்ச்சியில் curling உள்ளதா, இலை கீழ்புறத்தில் tiny insects அல்லது clustered activity உள்ளதா பார்க்கவும்.',
       'tomato_symptoms_title': 'Advanced தக்காளி symptom check',
       'tomato_symptoms_body':
-          'தக்காளி competition reference crop. Photo, sensors, electrode response மற்றும் weather evidence ஒன்றாக rank செய்ய ஐந்து visible observations-க்கும் பதில் அளிக்கவும்.',
+          'கேமரா முடிவு புகைப்படம் மற்றும் நீங்கள் நேரில் காணும் அறிகுறிகளை மட்டும் அடிப்படையாகக் கொள்ள ஐந்து visible observations-க்கும் பதில் அளிக்கவும்.',
       'tomato_question_rings': 'Brown spots-ல் target போன்ற வட்ட rings உள்ளதா?',
       'tomato_question_water_soaked':
           'Dark lesions ஈரமாக அல்லது water-soaked போல உள்ளதா?',
@@ -1952,17 +1952,17 @@ class AppStrings {
       'rank_potential_issues': 'Potential issues-ஐ rank செய்யவும்',
       'disease_maize_leaf_blight': 'மக்காச்சோள leaf-blight pattern',
       'disease_maize_leaf_blight_reason':
-          'Warm, humid நிலையில் நீளமாகும் brown பகுதிகள் maize leaf blight போல இருக்கலாம்.',
+          'புகைப்படத்தில் தெரியும் brown leaf damage maize leaf-blight pattern போல இருக்கலாம்.',
       'disease_maize_leaf_blight_inspect':
           'பல இலைகளில் blade வழியாக பெருகும் நீண்ட grey-green அல்லது brown lesions உள்ளதா பார்க்கவும்.',
       'disease_maize_downy_mildew': 'மக்காச்சோள downy-mildew pattern',
       'disease_maize_downy_mildew_reason':
-          'Yellow stripes மற்றும் தொடர்ந்து அதிக humidity downy-mildew stress போல இருக்கலாம்.',
+          'காணக்கூடிய yellow stripes downy-mildew pattern போல இருக்கலாம்.',
       'disease_maize_downy_mildew_inspect':
           'இளம் இலைகளில் நீளமான வெளிர் கோடுகள் மற்றும் காலை நேர white growth உள்ளதா பார்க்கவும்.',
       'disease_maize_fall_armyworm': 'மக்காச்சோள fall-armyworm damage pattern',
       'disease_maize_fall_armyworm_reason':
-          'ஒழுங்கற்ற brown damage மற்றும் plant stress chewing-pest activity-க்கு பொருந்தலாம்.',
+          'காணக்கூடிய ஒழுங்கற்ற brown damage chewing-pest activity போல இருக்கலாம்.',
       'disease_maize_fall_armyworm_inspect':
           'Whorl-ஐ திறந்து புதிய holes, scraped tissue மற்றும் அருகிலுள்ள செடிகளில் insect activity பார்க்கவும்.',
       'disease_groundnut_leaf_spot': 'நிலக்கடலை tikka leaf-spot pattern',
@@ -1972,7 +1972,7 @@ class AppStrings {
           'பழைய இலைகளில் பல வட்ட dark spots, yellow margin மற்றும் leaf drop உள்ளதா பார்க்கவும்.',
       'disease_groundnut_rust': 'நிலக்கடலை rust pattern',
       'disease_groundnut_rust_reason':
-          'Warm weather மற்றும் brown-orange spotting groundnut rust போல இருக்கலாம்.',
+          'காணக்கூடிய brown-orange spotting groundnut-rust pattern போல இருக்கலாம்.',
       'disease_groundnut_rust_inspect':
           'பல செடிகளின் இலை கீழ்புறத்தில் சிறிய raised orange-brown pustules உள்ளதா பார்க்கவும்.',
       'disease_groundnut_leaf_miner': 'நிலக்கடலை leaf-miner damage pattern',
@@ -1982,7 +1982,7 @@ class AppStrings {
           'மடிந்த leaflets, pale mines மற்றும் சேதமான இலைக்குள் larvae அல்லது webbing உள்ளதா பார்க்கவும்.',
       'disease_cotton_bacterial_blight': 'பருத்தி bacterial-blight pattern',
       'disease_cotton_bacterial_blight_reason':
-          'Humid அல்லது rainy weather பிறகு angular brown பகுதிகள் bacterial blight போல இருக்கலாம்.',
+          'காணக்கூடிய angular brown பகுதிகள் bacterial-blight pattern போல இருக்கலாம்.',
       'disease_cotton_bacterial_blight_inspect':
           'பல பருத்தி இலைகளில் spots vein வழியாக angular shape-ல் உள்ளதா பார்க்கவும்.',
       'disease_cotton_alternaria': 'பருத்தி Alternaria leaf-spot pattern',
@@ -2012,7 +2012,7 @@ class AppStrings {
           'இளம் shoot-ல் drying central leaf மற்றும் lower stem அருகில் entry holes உள்ளதா பார்க்கவும்.',
       'disease_banana_sigatoka': 'வாழை Sigatoka leaf-spot pattern',
       'disease_banana_sigatoka_reason':
-          'Humid நிலையில் அதிகரிக்கும் brown streaks மற்றும் yellow பகுதிகள் Sigatoka போல இருக்கலாம்.',
+          'காணக்கூடிய brown streaks மற்றும் yellow பகுதிகள் Sigatoka pattern போல இருக்கலாம்.',
       'disease_banana_sigatoka_inspect':
           'பழைய இலைகளில் dark spot மற்றும் yellow margin ஆக பெருகும் narrow streaks உள்ளதா பார்க்கவும்.',
       'disease_banana_bunchy_top': 'வாழை bunchy-top pattern',
@@ -2027,12 +2027,12 @@ class AppStrings {
           'Lower pseudostem மற்றும் corm பகுதியில் holes, tunnelling material அல்லது weak plants உள்ளதா பார்க்கவும்.',
       'disease_coconut_leaf_rot': 'தென்னை leaf-rot pattern',
       'disease_coconut_leaf_rot_reason':
-          'Humid weather-ல் brown damaged பகுதிகள் coconut leaf rot போல இருக்கலாம்.',
+          'காணக்கூடிய brown damaged பகுதிகள் coconut leaf-rot pattern போல இருக்கலாம்.',
       'disease_coconut_leaf_rot_inspect':
           'புதிதாக விரிந்த இலைகளில் blackened, rotting அல்லது எளிதில் பிரியும் tissue உள்ளதா பார்க்கவும்.',
       'disease_coconut_bud_rot': 'தென்னை bud-rot risk pattern',
       'disease_coconut_bud_rot_reason':
-          'Wet weather உடன் yellow-brown crown damage serious bud-rot risk ஆக இருக்கலாம்.',
+          'காணக்கூடிய yellow-brown crown damage serious bud-rot pattern போல இருக்கலாம்.',
       'disease_coconut_bud_rot_inspect':
           'தரையிலிருந்து பாதுகாப்பாக central spear drooping அல்லது discoloured ஆக உள்ளதா பார்க்கவும்; crown inspection-க்கு trained worker உதவி பெறவும்.',
       'disease_coconut_caterpillar': 'தென்னை leaf-eating caterpillar damage',
@@ -2042,7 +2042,7 @@ class AppStrings {
           'விழுந்த அல்லது எட்டக்கூடிய leaflets-ல் scraped tissue, webbing, droppings அல்லது larvae பார்க்கவும்.',
       'disease_brinjal_leaf_spot': 'கத்திரிக்காய் leaf-spot pattern',
       'disease_brinjal_leaf_spot_reason':
-          'Humid நிலையில் வட்ட brown lesions fungal leaf spot போல இருக்கலாம்.',
+          'காணக்கூடிய வட்ட brown lesions fungal leaf-spot pattern போல இருக்கலாம்.',
       'disease_brinjal_leaf_spot_inspect':
           'பழைய இலைகளில் pale centre அல்லது yellow margin கொண்ட பெருகும் round spots உள்ளதா பார்க்கவும்.',
       'disease_brinjal_little_leaf': 'கத்திரிக்காய் little-leaf pattern',
@@ -2063,17 +2063,17 @@ class AppStrings {
           'புதிய growth-ல் upward curling, shortened internodes மற்றும் கீழ்புற tiny insects பார்க்கவும்.',
       'disease_chilli_anthracnose': 'மிளகாய் anthracnose pattern',
       'disease_chilli_anthracnose_reason':
-          'Warm, humid நிலையில் brown lesions anthracnose போல இருக்கலாம்.',
+          'காணக்கூடிய brown lesions anthracnose pattern போல இருக்கலாம்.',
       'disease_chilli_anthracnose_inspect':
           'Wet weather பிறகு leaf மற்றும் fruit-ல் பெருகும் sunken dark spots உள்ளதா பார்க்கவும்.',
       'disease_chilli_thrips': 'மிளகாய் thrips damage pattern',
       'disease_chilli_thrips_reason':
-          'Yellowing, curling மற்றும் dry-weather stress thrips feeding-க்கு பொருந்தலாம்.',
+          'காணக்கூடிய yellowing மற்றும் curling thrips feeding damage போல இருக்கலாம்.',
       'disease_chilli_thrips_inspect':
           'Young leaves மற்றும் flowers-ல் silvery scraping, distortion மற்றும் tiny moving insects பார்க்கவும்.',
       'disease_generic_leaf_spot': 'Fungal leaf-spot pattern இருக்கலாம்',
       'disease_generic_leaf_spot_reason':
-          'Humid weather உடன் brown lesion coverage பொதுவான fungal leaf-spot pattern-க்கு பொருந்தலாம்.',
+          'காணக்கூடிய brown lesion coverage பொதுவான fungal leaf-spot pattern போல இருக்கலாம்.',
       'disease_generic_leaf_spot_inspect':
           'பல இலைகளின் மேல் மற்றும் கீழ் surface-ல் spot shape மற்றும் spread-ஐ ஒப்பிடவும்.',
       'disease_generic_pest_damage': 'Pest-related damage இருக்கலாம்',
