@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'alert_service.dart';
 import 'farm_repository.dart';
 import 'engineering_evidence_service.dart';
+import 'inspection_history_service.dart';
 import 'offline_sync_service.dart';
 import 'settings_service.dart';
 import 'sensor_data_provider.dart';
@@ -18,6 +19,7 @@ class AppScope extends InheritedWidget {
   final VoiceGuidanceService voice;
   final OfflineSyncService offlineSync;
   final EngineeringEvidenceService engineeringEvidence;
+  final InspectionHistoryService inspectionHistory;
 
   SensorDataProvider get sensors => sensorManager;
 
@@ -31,6 +33,7 @@ class AppScope extends InheritedWidget {
     required this.voice,
     required this.offlineSync,
     required this.engineeringEvidence,
+    required this.inspectionHistory,
     required super.child,
   });
 

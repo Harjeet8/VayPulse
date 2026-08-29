@@ -5,6 +5,8 @@ import '../models/sensor_reading.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
+import '../widgets/biotic_stress_card.dart';
+import 'leaf_screening_screen.dart';
 
 class FarmerAnalysisScreen extends StatelessWidget {
   const FarmerAnalysisScreen({super.key});
@@ -45,6 +47,20 @@ class FarmerAnalysisScreen extends StatelessWidget {
                 if (reading == null)
                   _WaitingCard(live: sensors.source == SensorDataSource.esp32)
                 else ...[
+                  if (edge?.bioticStress.suspected == true) ...[
+                    BioticStressCard(
+                      info: edge!.bioticStress,
+                      onScan: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LeafScreeningScreen(
+                            sensorPrompt: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   _AnswerCard(
                     icon: Icons.eco_rounded,
                     title: FarmerLanguage.label(context, 'plant_condition'),
@@ -62,14 +78,21 @@ class FarmerAnalysisScreen extends StatelessWidget {
                   _AnswerCard(
                     icon: Icons.report_problem_outlined,
                     title: FarmerLanguage.label(context, 'main_problem'),
-                    value: FarmerLanguage.firmware(
-                      context,
-                      edge?.rootCause.primary ??
-                          edge?.farmerSummary ??
-                          edge?.bioelectric.farmerResult,
-                      fallback: FarmerLanguage.label(context, 'no_problem'),
-                    ),
-                    secondary: edge?.rootCause.secondary == null
+                    value: edge?.bioticStress.suspected == true
+                        ? FarmerLanguage.label(
+                            context,
+                            'possible_biotic_title',
+                          )
+                        : FarmerLanguage.firmware(
+                            context,
+                            edge?.rootCause.primary ??
+                                edge?.farmerSummary ??
+                                edge?.bioelectric.farmerResult,
+                            fallback:
+                                FarmerLanguage.label(context, 'no_problem'),
+                          ),
+                    secondary: edge?.bioticStress.suspected == true ||
+                            edge?.rootCause.secondary == null
                         ? null
                         : FarmerLanguage.firmware(
                             context,
@@ -90,8 +113,15 @@ class FarmerAnalysisScreen extends StatelessWidget {
                       context,
                       edge?.recovery.active == true
                           ? FarmerLanguage.label(context, 'recovery_action')
-                          : edge?.recommendation,
-                      fallback: FarmerLanguage.label(context, 'keep_monitoring'),
+                          : edge?.bioticStress.suspected == true
+                              ? edge?.bioticStress.recommendation
+                              : edge?.recommendation,
+                      fallback: edge?.bioticStress.suspected == true
+                          ? FarmerLanguage.label(
+                              context,
+                              'biotic_inspect_action',
+                            )
+                          : FarmerLanguage.label(context, 'keep_monitoring'),
                     ),
                     accent: Theme.of(context).colorScheme.primary,
                   ),
@@ -379,6 +409,74 @@ class _AdvancedDetails extends StatelessWidget {
             _Row('Stress load', bio!.stressLoad!.toStringAsFixed(1)),
           if (bio?.signalQualityState != null)
             _Row('Signal quality state', bio!.signalQualityState!),
+          if (edge?.bioticStress.hasData == true) ...[
+            const Divider(height: 24),
+            _Row(
+              FarmerLanguage.label(context, 'biotic_analysis'),
+              FarmerLanguage.firmware(
+                context,
+                edge!.bioticStress.state,
+                fallback: FarmerLanguage.label(context, 'not_available'),
+              ),
+            ),
+            if (edge!.bioticStress.evidenceScore != null)
+              _Row(
+                FarmerLanguage.label(context, 'biotic_evidence'),
+                '${edge!.bioticStress.evidenceScore!.round()}%',
+              ),
+            if (edge!.bioticStress.confidence != null)
+              _Row(
+                FarmerLanguage.label(context, 'biotic_confidence'),
+                '${edge!.bioticStress.confidence!.round()}%',
+              ),
+            if (bio?.stressScore != null)
+              _Row(
+                FarmerLanguage.label(context, 'bio_stress_score'),
+                '${bio!.stressScore!.round()} / 100',
+              ),
+            if (bio?.signalQuality != null)
+              _Row(
+                FarmerLanguage.label(context, 'bio_signal_quality'),
+                '${bio!.signalQuality!.round()}%',
+              ),
+            if (edge!.bioticStress.abioticCauseFound != null)
+              _Row(
+                FarmerLanguage.label(context, 'environmental_explanation'),
+                edge!.bioticStress.abioticCauseFound!
+                    ? FarmerLanguage.label(context, 'high')
+                    : FarmerLanguage.label(context, 'low'),
+              ),
+            if (edge!.bioticStress.reason != null)
+              _Row(
+                FarmerLanguage.label(context, 'primary_interpretation'),
+                edge!.bioticStress.reason!,
+              ),
+            if (edge!.bioticStress.recommendation != null)
+              _Row(
+                FarmerLanguage.label(context, 'biotic_recommendation'),
+                edge!.bioticStress.recommendation!,
+              ),
+            if (edge!.compoundStress.waterEvidence != null)
+              _Row(
+                FarmerLanguage.label(context, 'water_stress_evidence'),
+                '${edge!.compoundStress.waterEvidence!.round()}%',
+              ),
+            if (edge!.compoundStress.heatEvidence != null)
+              _Row(
+                FarmerLanguage.label(context, 'heat_stress_evidence'),
+                '${edge!.compoundStress.heatEvidence!.round()}%',
+              ),
+            if (edge!.compoundStress.rootEvidence != null)
+              _Row(
+                FarmerLanguage.label(context, 'root_stress_evidence'),
+                '${edge!.compoundStress.rootEvidence!.round()}%',
+              ),
+            if (edge!.compoundStress.atmosphericEvidence != null)
+              _Row(
+                FarmerLanguage.label(context, 'air_drying_evidence'),
+                '${edge!.compoundStress.atmosphericEvidence!.round()}%',
+              ),
+          ],
           if (bio?.baselineLearningPaused != null)
             _Row(
               'Baseline learning',

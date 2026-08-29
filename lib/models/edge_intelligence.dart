@@ -235,38 +235,53 @@ class BioticStressInfo {
   final String? state;
   final double? evidenceScore;
   final double? confidence;
-  final bool unexplainedBioResponse;
-  final bool abioticCauseFound;
-  final bool diseaseConduciveSupport;
+  final bool? unexplainedBioResponse;
+  final bool? abioticCauseFound;
+  final bool? diseaseConduciveSupport;
   final String? reason;
   final String? farmerResult;
-  final bool pestIdentified;
-  final bool infectionConfirmed;
+  final String? recommendation;
+  final bool? pestIdentified;
+  final bool? infectionConfirmed;
 
   const BioticStressInfo({
     this.state,
     this.evidenceScore,
     this.confidence,
-    this.unexplainedBioResponse = false,
-    this.abioticCauseFound = false,
-    this.diseaseConduciveSupport = false,
+    this.unexplainedBioResponse,
+    this.abioticCauseFound,
+    this.diseaseConduciveSupport,
     this.reason,
     this.farmerResult,
-    this.pestIdentified = false,
-    this.infectionConfirmed = false,
+    this.recommendation,
+    this.pestIdentified,
+    this.infectionConfirmed,
   });
 
+  String? get normalizedState {
+    final value = state?.trim().toUpperCase().replaceAll(' ', '_');
+    return value == null || value.isEmpty ? null : value;
+  }
+
+  /// This is an ESP32-originated suspicion, never a Flutter diagnosis.
+  /// `SUSPECTED` remains accepted for older firmware compatibility.
   bool get suspected =>
-      state?.toUpperCase() == 'SUSPECTED' &&
-      !pestIdentified &&
-      !infectionConfirmed;
+      (normalizedState == 'POSSIBLE_BIOTIC_STRESS' ||
+          normalizedState == 'SUSPECTED') &&
+      pestIdentified != true &&
+      infectionConfirmed != true;
+
+  bool get insufficientData => normalizedState == 'INSUFFICIENT_DATA';
+  bool get lowConfidence => normalizedState == 'LOW_CONFIDENCE';
+  bool get none => normalizedState == 'NONE';
 
   bool get hasData =>
       state != null ||
       evidenceScore != null ||
       confidence != null ||
       reason != null ||
-      farmerResult != null;
+      farmerResult != null ||
+      recommendation != null;
 }
 
 class PredictionInfo {
@@ -621,8 +636,11 @@ class EdgeIntelligence {
     ]);
     final bioticStressMap = _firstMap([
       edge['bioticStress'],
+      edge['bioticAnalysis'],
       data['bioticStress'],
+      data['bioticAnalysis'],
       plantHealth['bioticStress'],
+      plantHealth['bioticAnalysis'],
     ]);
     final predictionMap = _firstMap([
       edge['prediction'],
@@ -936,19 +954,55 @@ class EdgeIntelligence {
     );
 
     final bioticStress = BioticStressInfo(
-      state: _text(bioticStressMap['state']),
-      evidenceScore: _percent(bioticStressMap['evidenceScore']),
-      confidence: _percent(bioticStressMap['confidence']),
-      unexplainedBioResponse:
-          _bool(bioticStressMap['unexplainedBioResponse']) == true,
-      abioticCauseFound: _bool(bioticStressMap['abioticCauseFound']) == true,
-      diseaseConduciveSupport:
-          _bool(bioticStressMap['diseaseConduciveSupport']) == true,
-      reason: _text(bioticStressMap['reason']),
+      state: _text(_first([
+        bioticStressMap['state'],
+        edge['bioticState'],
+        data['bioticState'],
+        plantHealth['bioticState'],
+      ])),
+      evidenceScore: _percent(_first([
+        bioticStressMap['evidenceScore'],
+        bioticStressMap['evidence'],
+        edge['bioticEvidence'],
+        data['bioticEvidence'],
+        plantHealth['bioticEvidence'],
+      ])),
+      confidence: _percent(_first([
+        bioticStressMap['confidence'],
+        edge['bioticConfidence'],
+        data['bioticConfidence'],
+        plantHealth['bioticConfidence'],
+      ])),
+      unexplainedBioResponse: _bool(_first([
+        bioticStressMap['unexplainedBioResponse'],
+        edge['unexplainedBioResponse'],
+        data['unexplainedBioResponse'],
+      ])),
+      abioticCauseFound: _bool(_first([
+        bioticStressMap['abioticCauseFound'],
+        edge['abioticCauseFound'],
+        data['abioticCauseFound'],
+      ])),
+      diseaseConduciveSupport: _bool(_first([
+        bioticStressMap['diseaseConduciveSupport'],
+        edge['diseaseConduciveSupport'],
+        data['diseaseConduciveSupport'],
+      ])),
+      reason: _text(_first([
+        bioticStressMap['reason'],
+        edge['bioticReason'],
+        data['bioticReason'],
+        plantHealth['bioticReason'],
+      ])),
       farmerResult: _text(bioticStressMap['farmerResult']),
-      pestIdentified: _bool(bioticStressMap['pestIdentified']) == true,
-      infectionConfirmed:
-          _bool(bioticStressMap['infectionConfirmed']) == true,
+      recommendation: _text(_first([
+        bioticStressMap['recommendation'],
+        edge['bioticRecommendation'],
+        data['bioticRecommendation'],
+        plantHealth['bioticRecommendation'],
+      ])),
+      pestIdentified: _bool(bioticStressMap['pestIdentified']),
+      infectionConfirmed: _bool(bioticStressMap['infectionConfirmed']),
     );
 
     final prediction = PredictionInfo(

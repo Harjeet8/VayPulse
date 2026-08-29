@@ -17,9 +17,9 @@ class EdgeAlertLanguage {
     'alert_plant_recovering': 'Plant recovering',
     'alert_plant_recovering_message':
         'Stress is decreasing after conditions improved. Continue monitoring.',
-    'alert_possible_biotic': 'Possible pest or infection-related stress',
+    'alert_possible_biotic': 'Possible Biotic Stress',
     'alert_possible_biotic_message':
-        'The plant shows unexplained stress. Inspect leaves and stems for visible pests or symptoms.',
+        'PhytoSense detected unexplained plant stress. Inspect leaves and stems for pests or disease.',
     'alert_water_stress_edge': 'Water stress detected',
     'alert_water_stress_edge_message':
         'Root-zone evidence and the plant response indicate water stress. Check the soil and water if it is genuinely dry.',
@@ -41,9 +41,9 @@ class EdgeAlertLanguage {
     'alert_plant_recovering': 'செடி மீண்டு வருகிறது',
     'alert_plant_recovering_message':
         'சூழல் மேம்பட்ட பிறகு stress குறைந்து வருகிறது. தொடர்ந்து கண்காணிக்கவும்.',
-    'alert_possible_biotic': 'பூச்சி அல்லது தொற்று தொடர்பான stress இருக்கலாம்',
+    'alert_possible_biotic': 'உயிரியல் அழுத்தம் இருக்கலாம்',
     'alert_possible_biotic_message':
-        'காரணம் முழுமையாக விளங்காத stress உள்ளது. இலை மற்றும் தண்டுகளில் பூச்சி அல்லது அறிகுறிகள் உள்ளதா பாருங்கள்.',
+        'காரணம் தெளிவில்லாத செடி அழுத்தத்தை PhytoSense கண்டது. இலை மற்றும் தண்டுகளில் பூச்சி அல்லது நோய் அறிகுறிகள் உள்ளதா பாருங்கள்.',
     'alert_water_stress_edge': 'நீர் பற்றாக்குறை stress கண்டறியப்பட்டது',
     'alert_water_stress_edge_message':
         'வேர் பகுதி தகவலும் செடியின் பதிலும் water stress-ஐ காட்டுகின்றன. மண் உண்மையில் உலர்ந்திருந்தால் நீர் விடவும்.',

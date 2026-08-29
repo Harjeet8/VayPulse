@@ -7,7 +7,9 @@ import '../services/alert_service.dart';
 import '../services/app_scope.dart';
 import '../services/engineering_evidence_service.dart';
 import '../services/edge_alert_language.dart';
+import '../services/farmer_language.dart';
 import '../widgets/page_frame.dart';
+import 'leaf_screening_screen.dart';
 
 enum _AlertFilter { all, action, monitor, resolved, system }
 
@@ -280,6 +282,32 @@ class _AlertCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 9),
+                    if (alert.titleKey == 'alert_possible_biotic') ...[
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            service.markRead(alert.id);
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LeafScreeningScreen(
+                                  sensorPrompt: true,
+                                ),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.photo_camera_outlined),
+                          label: Text(
+                            FarmerLanguage.label(
+                              context,
+                              'scan_plant_camera',
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                    ],
                     if (recordedFeedback != null)
                       Chip(
                         avatar: const Icon(Icons.verified_outlined, size: 17),

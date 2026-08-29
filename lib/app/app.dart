@@ -7,6 +7,7 @@ import '../services/alert_service.dart';
 import '../services/app_scope.dart';
 import '../services/farm_repository.dart';
 import '../services/engineering_evidence_service.dart';
+import '../services/inspection_history_service.dart';
 import '../services/offline_sync_service.dart';
 import '../services/settings_service.dart';
 import '../services/sensor_data_provider.dart';
@@ -30,6 +31,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
   late final VoiceGuidanceService voice;
   late final OfflineSyncService offlineSync;
   late final EngineeringEvidenceService engineeringEvidence;
+  late final InspectionHistoryService inspectionHistory;
   late final Future<void> initialization;
 
   @override
@@ -42,6 +44,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
     voice = VoiceGuidanceService();
     offlineSync = OfflineSyncService(sensors, settings);
     engineeringEvidence = EngineeringEvidenceService(sensors);
+    inspectionHistory = InspectionHistoryService();
     alerts = AlertService(sensors, settings, weather, farms);
     initialization = _initialize();
   }
@@ -52,6 +55,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
       farms.load(),
       offlineSync.load(),
       engineeringEvidence.load(),
+      inspectionHistory.load(),
     ]);
     sensors.setScenario(settings.value.demoScenario);
     sensors.configure(
@@ -72,6 +76,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
     alerts.dispose();
     offlineSync.dispose();
     engineeringEvidence.dispose();
+    inspectionHistory.dispose();
     unawaited(voice.stop());
     sensors.dispose();
     super.dispose();
@@ -88,6 +93,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
       voice: voice,
       offlineSync: offlineSync,
       engineeringEvidence: engineeringEvidence,
+      inspectionHistory: inspectionHistory,
       child: AnimatedBuilder(
         animation: settings,
         builder: (_, __) => MaterialApp(

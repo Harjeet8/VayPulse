@@ -1,6 +1,7 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
+import '../l10n/app_strings.dart';
 import '../models/edge_intelligence.dart';
 import '../models/sensor_reading.dart';
 import '../services/app_scope.dart';
@@ -27,7 +28,11 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
     return AnimatedBuilder(
-      animation: Listenable.merge([scope.sensors, scope.alerts]),
+      animation: Listenable.merge([
+        scope.sensors,
+        scope.alerts,
+        scope.inspectionHistory,
+      ]),
       builder: (context, _) {
         final history = scope.sensors
             .historyFor(scope.sensors.selectedNodeId)
@@ -52,6 +57,19 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
               color: alert.severity.name == 'critical'
                   ? Theme.of(context).colorScheme.error
                   : Theme.of(context).colorScheme.tertiary,
+            ),
+          for (final event in scope.inspectionHistory.eventsFor(
+            scope.sensors.selectedNodeId,
+          ))
+            _TimelineEntry(
+              time: event.timestamp,
+              type: _TimelineFilter.plant,
+              icon: Icons.photo_camera_outlined,
+              title: FarmerLanguage.label(context, event.titleKey),
+              body: event.detailKey == null
+                  ? FarmerLanguage.label(context, 'camera_result_separation')
+                  : _localizedEventDetail(context, event.detailKey!),
+              color: Theme.of(context).colorScheme.secondary,
             ),
           if (scope.sensors.current case final reading?)
             _TimelineEntry(
@@ -229,6 +247,12 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
       color: color,
     );
   }
+}
+
+String _localizedEventDetail(BuildContext context, String key) {
+  final farmerText = FarmerLanguage.label(context, key);
+  if (farmerText != key) return farmerText;
+  return context.tr(key);
 }
 
 class _ResponseTimingCard extends StatelessWidget {

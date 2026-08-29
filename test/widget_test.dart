@@ -91,6 +91,44 @@ void main() {
     expect(edge.bioticStress.suspected, isFalse);
   });
 
+  test('new flat biotic API aliases parse as nullable ESP32 intelligence', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'bioticState': 'POSSIBLE_BIOTIC_STRESS',
+        'bioticEvidence': 72,
+        'bioticReason': 'Unexplained persistent bioelectric stress',
+        'bioticConfidence': 81,
+        'bioticRecommendation': 'Inspect plant visually and run camera analysis',
+      },
+      firmwareVersion: '8.0.0-ULTRA-FINAL',
+    );
+
+    expect(edge.bioticStress.normalizedState, 'POSSIBLE_BIOTIC_STRESS');
+    expect(edge.bioticStress.suspected, isTrue);
+    expect(edge.bioticStress.evidenceScore, 72);
+    expect(edge.bioticStress.confidence, 81);
+    expect(edge.bioticStress.reason, contains('Unexplained'));
+    expect(edge.bioticStress.recommendation, contains('camera'));
+    expect(edge.bioticStress.unexplainedBioResponse, isNull);
+  });
+
+  test('all non-suspicion biotic states remain non-diagnostic', () {
+    for (final state in const <String>[
+      'NONE',
+      'INSUFFICIENT_DATA',
+      'LOW_CONFIDENCE',
+    ]) {
+      final info = BioticStressInfo(state: state);
+      expect(info.suspected, isFalse, reason: state);
+    }
+    expect(
+      const BioticStressInfo(state: 'POSSIBLE_BIOTIC_STRESS').suspected,
+      isTrue,
+    );
+    expect(const BioticStressInfo().hasData, isFalse);
+  });
+
   SensorReading reading({
     double soil = 62,
     double temperature = 25,

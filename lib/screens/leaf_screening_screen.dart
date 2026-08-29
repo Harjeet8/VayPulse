@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -6,6 +8,7 @@ import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/crop_catalog.dart';
 import '../models/disease_assessment.dart';
+import '../models/edge_intelligence.dart';
 import '../models/leaf_screening_result.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
@@ -85,6 +88,15 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
         analyzing = true;
         symptomAnswers = const DiseaseSymptomAnswers();
       });
+      final scope = AppScope.of(context);
+      final bioticPrompt = widget.sensorPrompt &&
+          scope.sensors.source == SensorDataSource.esp32 &&
+          scope.sensors.edgeIntelligence?.bioticStress.suspected == true;
+      final nodeId = scope.sensors.selectedNodeId;
+      if (bioticPrompt) {
+        await scope.inspectionHistory.recordStarted(nodeId);
+        if (!mounted) return;
+      }
       final screening = await LeafScreeningService.analyze(bytes);
       if (!mounted) return;
       final diseaseAssessment = _isTomato
@@ -98,6 +110,18 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
         assessment = diseaseAssessment;
         analyzing = false;
       });
+      if (bioticPrompt && diseaseAssessment != null) {
+        final top = diseaseAssessment.candidates.isEmpty
+            ? null
+            : diseaseAssessment.candidates.first;
+        await scope.inspectionHistory.recordCompleted(
+          nodeId,
+          visualResultKey: diseaseAssessment.isInconclusive ||
+                  top?.nameKey == 'disease_no_clear_match'
+              ? null
+              : top?.nameKey,
+        );
+      }
     } on LeafScreeningException catch (error) {
       if (!mounted) return;
       setState(() {
@@ -121,13 +145,25 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     if (screening == null || crop == null || !symptomAnswers.isComplete) {
       return;
     }
-    setState(() {
-      assessment = MultimodalDiseaseService.assess(
-        visual: screening,
-        crop: crop,
-        symptoms: symptomAnswers,
-      );
-    });
+    final completed = MultimodalDiseaseService.assess(
+      visual: screening,
+      crop: crop,
+      symptoms: symptomAnswers,
+    );
+    setState(() => assessment = completed);
+    final scope = AppScope.of(context);
+    if (widget.sensorPrompt &&
+        scope.sensors.source == SensorDataSource.esp32 &&
+        scope.sensors.edgeIntelligence?.bioticStress.suspected == true) {
+      final top = completed.candidates.isEmpty ? null : completed.candidates.first;
+      unawaited(scope.inspectionHistory.recordCompleted(
+        scope.sensors.selectedNodeId,
+        visualResultKey: completed.isInconclusive ||
+                top?.nameKey == 'disease_no_clear_match'
+            ? null
+            : top?.nameKey,
+      ));
+    }
   }
 
   Future<void> _speakResult() async {
@@ -163,6 +199,16 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final biotic = AppScope.of(context).sensors.source ==
+                SensorDataSource.esp32 &&
+            AppScope.of(context)
+                    .sensors
+                    .edgeIntelligence
+                    ?.bioticStress
+                    .suspected ==
+                true
+        ? AppScope.of(context).sensors.edgeIntelligence!.bioticStress
+        : null;
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('leaf_screening_title'))),
       body: PageFrame(
@@ -371,6 +417,13 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
           if (assessment != null) ...[
             const SizedBox(height: 14),
             _DiseaseAssessmentCard(assessment: assessment!),
+            if (widget.sensorPrompt && biotic != null) ...[
+              const SizedBox(height: 14),
+              _BioticCameraOutcomeCard(
+                info: biotic,
+                assessment: assessment!,
+              ),
+            ],
           ],
           const SizedBox(height: 14),
           Card(
@@ -388,6 +441,83 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BioticCameraOutcomeCard extends StatelessWidget {
+  final BioticStressInfo info;
+  final DiseaseAssessment assessment;
+
+  const _BioticCameraOutcomeCard({
+    required this.info,
+    required this.assessment,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final top = assessment.candidates.isEmpty ? null : assessment.candidates.first;
+    final noClearResult = assessment.isInconclusive ||
+        top == null ||
+        top.nameKey == 'disease_no_clear_match';
+    final scheme = Theme.of(context).colorScheme;
+    return Card(
+      color: scheme.secondaryContainer.withValues(alpha: 0.38),
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              FarmerLanguage.label(context, 'camera_sensor_combined'),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              noClearResult
+                  ? FarmerLanguage.label(context, 'camera_no_clear_title')
+                  : '${FarmerLanguage.label(context, 'camera_possible_match')}: ${context.tr(top.nameKey)}',
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                  ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              noClearResult
+                  ? FarmerLanguage.label(context, 'camera_no_clear_body')
+                  : FarmerLanguage.label(context, 'camera_combined_body'),
+            ),
+            if (info.confidence != null) ...[
+              const SizedBox(height: 7),
+              Text(
+                '${FarmerLanguage.label(context, 'biotic_confidence')}: ${info.confidence!.round()}%',
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
+            ],
+            if (!noClearResult) ...[
+              const SizedBox(height: 7),
+              Text(
+                FarmerLanguage.label(
+                  context,
+                  'camera_confirm_before_treatment',
+                ),
+              ),
+            ],
+            const SizedBox(height: 10),
+            Text(
+              FarmerLanguage.label(context, 'camera_result_separation'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              FarmerLanguage.label(context, 'biotic_safety_note'),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ],
+        ),
       ),
     );
   }

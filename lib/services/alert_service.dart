@@ -105,6 +105,7 @@ class AlertService extends ChangeNotifier {
         titleKey: 'alert_possible_biotic',
         messageKey: 'alert_possible_biotic_message',
         severity: AlertSeverity.warning,
+        cooldown: const Duration(hours: 6),
       );
       return;
     }

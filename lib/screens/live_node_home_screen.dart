@@ -9,6 +9,7 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
+import '../widgets/biotic_stress_card.dart';
 import '../widgets/page_frame.dart';
 import 'leaf_screening_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
@@ -86,7 +87,17 @@ class LiveNodeHomeScreen extends StatelessWidget {
               ],
               if (edge?.bioticStress.suspected == true) ...[
                 const SizedBox(height: 12),
-                _BioticInspectionCard(info: edge!.bioticStress),
+                BioticStressCard(
+                  info: edge!.bioticStress,
+                  onScan: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LeafScreeningScreen(
+                        sensorPrompt: true,
+                      ),
+                    ),
+                  ),
+                ),
               ],
               const SizedBox(height: 12),
               _WhatChangedCard(edge: edge),
@@ -117,14 +128,27 @@ class _ConditionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final rawState = edge?.plantState ?? reading.healthStatus;
     final recovering = edge?.recovery.active == true || rawState.toUpperCase() == 'RECOVERING';
+    final possibleBiotic = edge?.bioticStress.suspected == true;
     final title = recovering
         ? FarmerLanguage.label(context, 'recovering_title')
         : FarmerLanguage.firmware(context, rawState).toUpperCase();
-    final main = edge?.rootCause.primary ?? edge?.farmerSummary ?? edge?.bioelectric.farmerResult;
-    final secondary = edge?.rootCause.secondary;
+    final main = possibleBiotic
+        ? FarmerLanguage.label(context, 'possible_biotic_title')
+        : edge?.rootCause.primary ??
+            edge?.farmerSummary ??
+            edge?.bioelectric.farmerResult;
+    final secondary = possibleBiotic ? null : edge?.rootCause.secondary;
     final action = recovering
         ? FarmerLanguage.label(context, 'recovery_action')
-        : edge?.recommendation ?? FarmerLanguage.label(context, 'keep_monitoring');
+        : possibleBiotic
+            ? FarmerLanguage.firmware(
+                context,
+                edge?.bioticStress.recommendation,
+                fallback:
+                    FarmerLanguage.label(context, 'biotic_inspect_action'),
+              )
+            : edge?.recommendation ??
+                FarmerLanguage.label(context, 'keep_monitoring');
     final confidence = edge?.overallConfidence ?? reading.esp32HealthConfidence ?? reading.analysisConfidence;
     final trend = _conditionTrend(context, edge);
     final severity = _severity(context, edge?.urgency, rawState, recovering);
@@ -345,48 +369,6 @@ class _PlantResponseCard extends StatelessWidget {
       ),
     );
   }
-}
-
-class _BioticInspectionCard extends StatelessWidget {
-  final BioticStressInfo info;
-  const _BioticInspectionCard({required this.info});
-
-  @override
-  Widget build(BuildContext context) => Card(
-        color: Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.38),
-        child: Padding(
-          padding: const EdgeInsets.all(17),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                FarmerLanguage.label(context, 'possible_biotic_title'),
-                style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 17),
-              ),
-              const SizedBox(height: 6),
-              Text(FarmerLanguage.firmware(
-                context,
-                info.farmerResult ?? info.reason,
-                fallback: FarmerLanguage.label(context, 'possible_biotic_body'),
-              )),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LeafScreeningScreen(sensorPrompt: true)),
-                ),
-                icon: const Icon(Icons.photo_camera_outlined),
-                label: Text(FarmerLanguage.label(context, 'inspect_plant')),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                FarmerLanguage.label(context, 'biotic_safety_note'),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        ),
-      );
 }
 
 class _WhatChangedCard extends StatelessWidget {
