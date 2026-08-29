@@ -31,7 +31,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p firmware_v8_ci/src
-          base64 -d firmware_v8_ci/source.cpp.gz.b64 | gzip -d > firmware_v8_ci/src/main.cpp
+          base64 -d firmware_v8_ci/source.cpp.xz.b64 | xz -d > firmware_v8_ci/src/main.cpp
           echo '8d065d7ae641ffcbc73b21b777dc5f3de1497a02d73ee156d4516d322f95c018  firmware_v8_ci/src/main.cpp' | sha256sum -c -
 
       - name: Integrity audit
@@ -43,7 +43,7 @@ jobs:
           grep -q 'STRONG_STRESS_SIGNAL' firmware_v8_ci/src/main.cpp
           grep -q '/api/config/crop' firmware_v8_ci/src/main.cpp
           grep -q '/api/diagnostics' firmware_v8_ci/src/main.cpp
-          grep -q 'modelLoaded.*false' firmware_v8_ci/src/main.cpp || grep -q 'modelLoaded".*false' firmware_v8_ci/src/main.cpp
+          grep -q 'modelLoaded.*false' firmware_v8_ci/src/main.cpp
           if grep -RniE 'ADS1115|Adafruit_ADS|Adafruit ADS1X15' firmware_v8_ci/src firmware_v8_ci/platformio.ini; then
             echo 'Forbidden ADS1115 reference found'
             exit 1
