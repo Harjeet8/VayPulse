@@ -1,0 +1,100 @@
+name: PhytoSense AI V8 Ultra Final
+
+on:
+  push:
+    branches:
+      - phytosense-v8-ultra-final
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize-validate-package:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Checkout V8 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct verified V8 source patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v8patch/part*.b64 > /tmp/phyto_v8_runtime.patch.gz.b64
+          echo "dd48aadffc6f9d162288571ee566183607f19ab181ce18ec95a81f23be351aa7  /tmp/phyto_v8_runtime.patch.gz.b64" | sha256sum -c -
+          base64 -d /tmp/phyto_v8_runtime.patch.gz.b64 > /tmp/phyto_v8_runtime.patch.gz
+          echo "2e45113169bd619ab66bdc2c0a53d63c97deebb7ca9e99f240a103651898cc70  /tmp/phyto_v8_runtime.patch.gz" | sha256sum -c -
+          gzip -t /tmp/phyto_v8_runtime.patch.gz
+          gunzip -c /tmp/phyto_v8_runtime.patch.gz > /tmp/phyto_v8_runtime.patch
+          echo "b2ed37a0641a252f903fc9da85de5efa5e5b40eba49b15b6a61b00bbdeea684e  /tmp/phyto_v8_runtime.patch" | sha256sum -c -
+
+      - name: Apply V8 Ultra Final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          patch --dry-run -p1 < /tmp/phyto_v8_runtime.patch
+          patch -p1 < /tmp/phyto_v8_runtime.patch
+          rm -rf .v8patch
+          rm -f JUDGE_PRESENTATION_GUIDE.md
+          test ! -e lib/screens/onboarding_screen.dart
+          test ! -e lib/screens/competition_center_screen.dart
+          test ! -e lib/screens/presentation_mode_screen.dart
+          grep -q '^version: 8.0.0+80$' pubspec.yaml
+
+      - name: Commit finalized V8 source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Finalize PhytoSense AI V8 ULTRA FINAL"
+            git push origin HEAD:phytosense-v8-ultra-final
+          fi
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Tests
+        run: flutter test
+
+      - name: Chrome web release build
+        run: flutter build web --release
+
+      - name: Android release APK
+        run: flutter build apk --release
+
+      - name: Package V8 Ultra Final
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip -r "PhytoSense-AI-V8-ULTRA-FINAL.zip" . \
+            -x ".git/*" ".dart_tool/*" "build/*" "*.zip" ".v8patch/*"
+          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-V8-ULTRA-FINAL.apk"
+
+      - name: Upload V8 Ultra Final
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-V8-ULTRA-FINAL
+          path: |
+            PhytoSense-AI-V8-ULTRA-FINAL.zip
+            PhytoSense-AI-V8-ULTRA-FINAL.apk
+          if-no-files-found: error
+          retention-days: 30
