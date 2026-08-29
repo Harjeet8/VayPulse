@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import '../models/edge_intelligence.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
+import 'edge_intelligence_client.dart';
 import 'esp32_client.dart';
 import 'hardware_sensor_provider.dart';
 import 'health_analysis_engine.dart';
@@ -11,9 +13,11 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   static const _nodeId = 'phytosense-live-01';
 
   final Duration pollInterval;
+  final EdgeIntelligenceClient _edgeClient;
   final _controller = StreamController<SensorReading>.broadcast();
   final List<SensorReading> _history = [];
   SensorReading? _current;
+  EdgeIntelligence? _edgeIntelligence;
   Timer? _timer;
   bool _polling = false;
   SensorConnectionStatus _status = SensorConnectionStatus.offline;
@@ -34,12 +38,16 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   Esp32SensorProvider({
     required Esp32Client client,
     this.pollInterval = const Duration(seconds: 3),
-  }) : super(client);
+  })  : _edgeClient = EdgeIntelligenceClient(client.baseUrl),
+        super(client);
 
   String get endpoint => client.baseUrl;
 
   @override
   SensorReading? get current => _current;
+
+  @override
+  EdgeIntelligence? get edgeIntelligence => _edgeIntelligence;
 
   @override
   Map<String, SensorReading> get latestReadings => _current == null
@@ -85,21 +93,44 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _polling = true;
     try {
       final snapshot = await client.getSnapshot();
+      final edge = await _edgeClient.getIntelligence();
       final raw = snapshot.reading.copyWith(
         nodeId: _nodeId,
         timestamp: DateTime.now(),
       );
       _validate(raw);
 
-      // Hardware and simulation go through the same app-side engine. The
-      // ESP32's own score is retained in esp32HealthScore for diagnostics.
-      final reading = HealthAnalysisEngine.apply(
-        raw,
-        _history,
-        crop: 'Tomato',
-        growthStage: 'vegetative',
-      );
+      final SensorReading reading;
+      if (edge?.hasAuthoritativeAnalysis == true) {
+        final health = edge!.healthScore ?? raw.healthScore;
+        final confidence = edge.overallConfidence ??
+            raw.esp32HealthConfidence ??
+            raw.analysisConfidence;
 
+        // ESP32 WINS in hardware mode. Flutter only normalizes the firmware
+        // result into the existing SensorReading contract for cards/charts.
+        // It does not recalculate a competing plant-health conclusion.
+        reading = raw.copyWith(
+          healthScore: health,
+          stressScore: (100.0 - health).clamp(0.0, 100.0).toDouble(),
+          healthStatus: edge.plantState ?? raw.healthStatus,
+          analysisConfidence: confidence,
+          esp32HealthScore: health,
+          esp32HealthConfidence: confidence,
+          diseaseRisk: edge.diseaseRiskScore ?? raw.diseaseRisk,
+        );
+      } else {
+        // Compatibility fallback for older firmware that only provides raw
+        // sensor channels and no authoritative edge decision.
+        reading = HealthAnalysisEngine.apply(
+          raw,
+          _history,
+          crop: edge?.cropProfile.profile ?? 'Universal',
+          growthStage: edge?.cropProfile.growthStage ?? 'vegetative',
+        );
+      }
+
+      _edgeIntelligence = edge;
       _current = reading;
       _history.add(reading);
       if (_history.length > 600) _history.removeAt(0);
@@ -151,7 +182,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
             (reading.soilTemperature != null &&
                 between(reading.soilTemperature!, -20, 70))) &&
         (!reading.leafWetnessAvailable ||
-            (reading.leafWetness != null && between(reading.leafWetness!, 0, 100))) &&
+            (reading.leafWetness != null &&
+                between(reading.leafWetness!, 0, 100))) &&
         (!reading.plantSignalAvailable ||
             (reading.plantVoltageMv == null ||
                 between(reading.plantVoltageMv!, 0, 5000))) &&
