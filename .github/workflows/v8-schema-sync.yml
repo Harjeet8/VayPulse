@@ -1,0 +1,103 @@
+name: PhytoSense AI V8 Schema 8 Final Sync
+
+on:
+  push:
+    branches:
+      - phytosense-v8-ultra-final
+    paths:
+      - '.github/workflows/v8-schema-sync.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  sync-validate-build-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout V8 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply ESP32 schema 8 synchronization
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 -d .v8sync/schema_patch.gz.b64 > /tmp/v8_schema_sync.patch.gz
+          echo 'b7bdd2a019578aa6069ba506974da62fb5455505d4434a44522803b688a482f9  /tmp/v8_schema_sync.patch.gz' | sha256sum -c -
+          gzip -t /tmp/v8_schema_sync.patch.gz
+          gunzip -c /tmp/v8_schema_sync.patch.gz > /tmp/v8_schema_sync.patch
+          echo '5962d5a059355919df02466538afeb9675d853f6d16ff4ba7ca9faba2e6fed85  /tmp/v8_schema_sync.patch' | sha256sum -c -
+          patch --dry-run -p1 < /tmp/v8_schema_sync.patch
+          patch -p1 < /tmp/v8_schema_sync.patch
+          rm -rf .v8sync
+          rm -f .github/workflows/v8-schema-sync.yml
+
+      - name: Verify schema 8 coverage
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'class RootCauseCandidate' lib/models/edge_intelligence.dart
+          grep -q 'stressLoadState' lib/models/edge_intelligence.dart
+          grep -q 'class CompoundStressInfo' lib/models/edge_intelligence.dart
+          grep -q 'class ResponseLagInfo' lib/models/edge_intelligence.dart
+          grep -q 'class AnomalyInfo' lib/models/edge_intelligence.dart
+          grep -q 'minutesToWarning' lib/models/edge_intelligence.dart
+          grep -q 'effectOnPlant' lib/models/hardware_telemetry.dart
+          grep -q 'ratePerMinute' lib/models/hardware_telemetry.dart
+          grep -q 'firmware_v8_schema_sync_test.dart' < <(find test -maxdepth 1 -type f -printf '%f\n')
+          grep -q '^version: 8.0.0+80$' pubspec.yaml
+
+      - name: Commit final synchronized source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Sync PhytoSense V8 app with ESP32 schema 8 final API'
+          git push origin HEAD:phytosense-v8-ultra-final
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Strict Flutter analyze
+        run: flutter analyze
+
+      - name: Flutter tests including schema 8 contract
+        run: flutter test
+
+      - name: Chrome web release build
+        run: flutter build web --release
+
+      - name: Android release APK
+        run: flutter build apk --release
+
+      - name: Package final V8 source and APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip -r 'PhytoSense-AI-V8-ULTRA-FINAL.zip' . \
+            -x '.git/*' '.dart_tool/*' 'build/*' '*.zip' '.v8sync/*'
+          cp build/app/outputs/flutter-apk/app-release.apk 'PhytoSense-AI-V8-ULTRA-FINAL.apk'
+
+      - name: Upload final V8 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-V8-ULTRA-FINAL
+          path: |
+            PhytoSense-AI-V8-ULTRA-FINAL.zip
+            PhytoSense-AI-V8-ULTRA-FINAL.apk
+          if-no-files-found: error
+          retention-days: 30
