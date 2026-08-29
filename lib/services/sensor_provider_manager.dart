@@ -120,6 +120,9 @@ class SensorProviderManager extends SensorDataProvider {
   List<String> get scenarioIds => _active.scenarioIds;
 
   @override
+  get edgeIntelligence => _active.edgeIntelligence;
+
+  @override
   void start() {
     _started = true;
     _active.start();
