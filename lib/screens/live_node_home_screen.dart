@@ -1226,12 +1226,6 @@ String _duration(double seconds) {
   return '${(seconds / 3600).toStringAsFixed(1)} h';
 }
 
-String _time(DateTime value) {
-  final local = value.toLocal();
-  String two(int n) => n.toString().padLeft(2, '0');
-  return '${two(local.hour)}:${two(local.minute)}:${two(local.second)}';
-}
-
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
 }
