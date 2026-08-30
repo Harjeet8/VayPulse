@@ -27,23 +27,22 @@ jobs:
           path = Path('lib/screens/about_screen.dart')
           text = path.read_text(encoding='utf-8')
 
-          old_builder = """                tamil
-                    ? 'Embedded systems, sensing மற்றும் நடைமுறை AI மீது கவனம் செலுத்தும் student builder.'
-                    : 'Student builder focused on embedded systems, sensing and practical AI.',
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              ),
-            ),
-            const SizedBox(height: 16),
+          if "title: 'EchoSkin AI'" in text:
+              raise SystemExit(0)
+
+          old_en = 'Student builder focused on embedded systems, sensing and practical AI.'
+          new_en = 'Student builder creating end-to-end systems from raw sensor physics to embedded intelligence and user-facing software.'
+          old_ta = 'Embedded systems, sensing மற்றும் நடைமுறை AI மீது கவனம் செலுத்தும் student builder.'
+          new_ta = 'Raw sensor physics முதல் embedded intelligence மற்றும் user-facing software வரை end-to-end systems உருவாக்கும் student builder.'
+
+          if old_en not in text or old_ta not in text:
+              raise SystemExit('Creator intro text not found')
+          text = text.replace(old_en, new_en, 1).replace(old_ta, new_ta, 1)
+
+          project_marker = """            const SizedBox(height: 16),
             _CreatorBuild(
               title: 'PhytoSense AI',"""
-
-          new_builder = """                tamil
-                    ? 'Raw sensor physics முதல் embedded intelligence மற்றும் user-facing software வரை end-to-end systems உருவாக்கும் student builder.'
-                    : 'Student builder creating end-to-end systems from raw sensor physics to embedded intelligence and user-facing software.',
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              ),
-            ),
-            const SizedBox(height: 14),
+          pipeline_block = """            const SizedBox(height: 14),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(13),
@@ -61,15 +60,13 @@ jobs:
             const SizedBox(height: 16),
             _CreatorBuild(
               title: 'PhytoSense AI',"""
-
-          if old_builder not in text:
-              raise SystemExit('Creator builder marker not found')
-          text = text.replace(old_builder, new_builder, 1)
+          if project_marker not in text:
+              raise SystemExit('PhytoSense project marker not found')
+          text = text.replace(project_marker, pipeline_block, 1)
 
           aura_marker = """            const SizedBox(height: 11),
             _CreatorBuild(
               title: 'AURA',"""
-
           echo_block = """            const SizedBox(height: 11),
             _CreatorBuild(
               title: 'EchoSkin AI',
@@ -80,7 +77,6 @@ jobs:
             const SizedBox(height: 11),
             _CreatorBuild(
               title: 'AURA',"""
-
           if aura_marker not in text:
               raise SystemExit('AURA insertion marker not found')
           text = text.replace(aura_marker, echo_block, 1)
