@@ -77,7 +77,9 @@ class LiveNodeHomeScreen extends StatelessWidget {
               live: live,
             ),
             const SizedBox(height: 14),
-            if (reading == null)
+            if (edge?.firmwareCompatible == false)
+              const _FirmwareCompatibilityCard()
+            else if (reading == null)
               _WaitingCard(onRetry: sensors.retry, live: live)
             else ...[
               _ConditionCard(reading: reading, edge: edge, telemetry: telemetry),
@@ -121,6 +123,47 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 _CoverageCard(edge: edge!),
               ],
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _FirmwareCompatibilityCard extends StatelessWidget {
+  const _FirmwareCompatibilityCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      color: colors.errorContainer,
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Icon(Icons.system_update_alt_rounded, color: colors.onErrorContainer),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    FarmerLanguage.label(context, 'firmware_compatibility_title'),
+                    style: TextStyle(
+                      color: colors.onErrorContainer,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    FarmerLanguage.label(context, 'firmware_compatibility_body'),
+                    style: TextStyle(color: colors.onErrorContainer),
+                  ),
+                ],
+              ),
+            ),
           ],
         ),
       ),

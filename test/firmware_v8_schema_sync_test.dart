@@ -205,6 +205,7 @@ void main() {
       root: const <String, dynamic>{},
       data: const <String, dynamic>{
         'schemaVersion': 8,
+        'apiVersion': '8',
         'healthIndex': 91,
         'plantState': 'HEALTHY',
         'priority': 'WATCH',
@@ -245,6 +246,8 @@ void main() {
     );
 
     expect(edge.hasAuthoritativeAnalysis, isTrue);
+    expect(edge.apiVersion, '8');
+    expect(edge.firmwareCompatible, isTrue);
     expect(edge.healthScore, 91);
     expect(edge.plantState, 'HEALTHY');
     expect(edge.urgency, 'WATCH');
@@ -295,5 +298,22 @@ void main() {
     expect(edge.cameraInspectionRecommended, isFalse);
     expect(edge.waterBalance.hasData, isFalse);
     expect(edge.bioelectric.excludedByFirmware, isFalse);
+  });
+
+  test('newer unsupported schema is retained and reported safely', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'schemaVersion': 99,
+        'apiVersion': '99-preview',
+        'plantState': 'HEALTHY',
+      },
+      firmwareVersion: 'future-build',
+    );
+
+    expect(edge.schemaVersion, 99);
+    expect(edge.apiVersion, '99-preview');
+    expect(edge.firmwareCompatible, isFalse);
+    expect(edge.compatibilityIssue, 'Firmware compatibility issue');
   });
 }

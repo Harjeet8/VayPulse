@@ -604,6 +604,7 @@ class TinyMlInfo {
 class EdgeIntelligence {
   final String firmwareVersion;
   final int? schemaVersion;
+  final String? apiVersion;
   final FirmwareCapabilities capabilities;
   final double? healthScore;
   final double? overallConfidence;
@@ -646,6 +647,7 @@ class EdgeIntelligence {
   const EdgeIntelligence({
     required this.firmwareVersion,
     this.schemaVersion,
+    this.apiVersion,
     required this.capabilities,
     this.healthScore,
     this.overallConfidence,
@@ -703,6 +705,14 @@ class EdgeIntelligence {
   /// or reports its own POSSIBLE_BIOTIC_STRESS state.
   bool get cameraInspectionRecommended =>
       cameraHandoff.recommended == true || bioticStress.suspected;
+
+  /// Versionless legacy packets and schemas 1-8 are supported. Newer schemas
+  /// remain visible in diagnostics but are not silently treated as compatible.
+  bool get firmwareCompatible =>
+      schemaVersion == null || (schemaVersion! >= 1 && schemaVersion! <= 8);
+
+  String? get compatibilityIssue =>
+      firmwareCompatible ? null : 'Firmware compatibility issue';
 
   factory EdgeIntelligence.fromPayload({
     required Map<String, dynamic> root,
@@ -1620,7 +1630,18 @@ class EdgeIntelligence {
 
     return EdgeIntelligence(
       firmwareVersion: firmwareVersion,
-      schemaVersion: _int(_first([data['schemaVersion'], root['schemaVersion']])),
+      schemaVersion: _int(_first([
+        data['schemaVersion'],
+        data['apiSchemaVersion'],
+        root['schemaVersion'],
+        root['apiSchemaVersion'],
+      ])),
+      apiVersion: _text(_first([
+        data['apiVersion'],
+        _map(data['api'])['version'],
+        root['apiVersion'],
+        _map(root['api'])['version'],
+      ])),
       capabilities: capabilities,
       healthScore: healthScore,
       overallConfidence: confidence,

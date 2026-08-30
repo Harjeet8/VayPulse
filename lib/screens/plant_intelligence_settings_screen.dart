@@ -80,8 +80,8 @@ class _PlantIntelligenceSettingsScreenState
       _saving = false;
       _message = confirmed == null
           ? (FarmerLanguage.isTamil(context)
-              ? 'Crop மாற்றத்தை ESP32 உறுதிப்படுத்தவில்லை.'
-              : 'The ESP32 did not confirm the crop change.')
+              ? 'CROP PROFILE ஒத்திசைக்கப்படவில்லை. PhytoSense node-ஐ மீண்டும் இணைத்து முயற்சிக்கவும்.'
+              : 'CROP PROFILE NOT SYNCED. Reconnect to the PhytoSense node and try again.')
           : (FarmerLanguage.isTamil(context)
               ? 'Active crop: ${confirmed.cropName}'
               : 'Active Crop: ${confirmed.cropName}');

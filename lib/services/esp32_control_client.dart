@@ -16,9 +16,19 @@ class Esp32ControlClient {
   }
 
   Future<Esp32Config?> setCrop(String cropId) async {
-    final ok = await _postJson('/api/config/crop', {'crop': cropId});
+    final requested = _normalizeCrop(cropId);
+    final ok = await _postJson(
+      '/api/config/crop',
+      {'crop': _firmwareCropName(requested)},
+    );
     if (!ok) return null;
-    return getConfig();
+    final confirmed = await getConfig();
+    if (confirmed == null) return null;
+
+    final confirmedId = _normalizeCrop(confirmed.cropId);
+    final confirmedName = _normalizeCrop(confirmed.cropName);
+    if (confirmedId != requested && confirmedName != requested) return null;
+    return confirmed;
   }
 
   Future<Esp32Config?> setStage(String stageId) async {
@@ -70,5 +80,33 @@ class Esp32ControlClient {
     } catch (_) {
       return false;
     }
+  }
+
+  static String _normalizeCrop(String value) {
+    final normalized = value
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if (normalized == 'brinjal' || normalized == 'aubergine') {
+      return 'eggplant';
+    }
+    if (normalized == 'ladyfinger' || normalized == 'bhindi') return 'okra';
+    return normalized;
+  }
+
+  static String _firmwareCropName(String cropId) {
+    const names = <String, String>{
+      'universal': 'Universal',
+      'tomato': 'Tomato',
+      'hibiscus': 'Hibiscus',
+      'rice': 'Rice',
+      'sugarcane': 'Sugarcane',
+      'banana': 'Banana',
+      'eggplant': 'Eggplant',
+      'okra': 'Okra',
+      'maize': 'Maize',
+      'groundnut': 'Groundnut',
+    };
+    return names[cropId] ?? cropId;
   }
 }

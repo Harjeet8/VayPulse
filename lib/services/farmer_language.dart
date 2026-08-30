@@ -204,6 +204,8 @@ class FarmerLanguage {
     'sensor_event': 'Sensor event',
     'plant_event': 'Plant event',
     'alert_event': 'Alert',
+    'firmware_compatibility_title': 'Firmware compatibility issue',
+    'firmware_compatibility_body': 'This ESP32 payload uses a newer unsupported schema. Update PhytoSense AI before trusting the analysis.',
   };
 
   static const _taLabels = <String, String>{
@@ -375,6 +377,8 @@ class FarmerLanguage {
     'sensor_event': 'சென்சார் நிகழ்வு',
     'plant_event': 'செடி நிகழ்வு',
     'alert_event': 'எச்சரிக்கை',
+    'firmware_compatibility_title': 'Firmware பொருந்தவில்லை',
+    'firmware_compatibility_body': 'இந்த ESP32 payload ஆதரிக்கப்படாத புதிய schema-ஐ பயன்படுத்துகிறது. பகுப்பாய்வை நம்புவதற்கு முன் PhytoSense AI-ஐ புதுப்பிக்கவும்.',
   };
 
   static const _enFirmware = <String, String>{

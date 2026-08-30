@@ -44,7 +44,9 @@ class FarmerAnalysisScreen extends StatelessWidget {
                     reading: reading,
                     live: sensors.source == SensorDataSource.esp32,
                   ),
-                if (reading == null)
+                if (edge?.firmwareCompatible == false)
+                  const _FirmwareCompatibilityNotice()
+                else if (reading == null)
                   _WaitingCard(live: sensors.source == SensorDataSource.esp32)
                 else ...[
                   if (edge?.bioticStress.suspected == true) ...[
@@ -195,6 +197,32 @@ class FarmerAnalysisScreen extends StatelessWidget {
     return reasons.isEmpty
         ? FarmerLanguage.label(context, 'why_unavailable')
         : reasons.join('. ');
+  }
+}
+
+class _FirmwareCompatibilityNotice extends StatelessWidget {
+  const _FirmwareCompatibilityNotice();
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      color: colors.errorContainer,
+      child: ListTile(
+        leading: Icon(Icons.system_update_alt_rounded, color: colors.onErrorContainer),
+        title: Text(
+          FarmerLanguage.label(context, 'firmware_compatibility_title'),
+          style: TextStyle(
+            color: colors.onErrorContainer,
+            fontWeight: FontWeight.w900,
+          ),
+        ),
+        subtitle: Text(
+          FarmerLanguage.label(context, 'firmware_compatibility_body'),
+          style: TextStyle(color: colors.onErrorContainer),
+        ),
+      ),
+    );
   }
 }
 
@@ -407,6 +435,10 @@ class _AdvancedDetails extends StatelessWidget {
           _Row('Firmware', edge?.firmwareVersion ?? 'Unknown'),
           if (edge?.schemaVersion != null)
             _Row('API schema', 'v${edge!.schemaVersion}'),
+          if (edge?.apiVersion != null)
+            _Row('API version', edge!.apiVersion!),
+          if (edge?.compatibilityIssue != null)
+            _Row('Compatibility', edge!.compatibilityIssue!),
           if (edge?.healthScore != null)
             _Row('Health score', '${edge!.healthScore!.round()} / 100'),
           if (exactConfidence != null)

@@ -129,6 +129,14 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     try {
       final snapshot = await client.getSnapshot();
       final edge = snapshot.edgeIntelligence;
+      if (!edge.firmwareCompatible) {
+        _edgeIntelligence = edge;
+        _hardwareTelemetry = snapshot.telemetry;
+        _status = SensorConnectionStatus.error;
+        _errorMessage = 'firmware_compatibility';
+        _node = _node.copyWith(isOnline: false);
+        return;
+      }
       final raw = snapshot.reading.copyWith(
         nodeId: _nodeId,
         timestamp: DateTime.now(),
