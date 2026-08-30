@@ -131,7 +131,7 @@ class LiveNodeHomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _SensorReliabilityCard(edge: edge),
               const SizedBox(height: 12),
-              _HomeActionsCard(),
+              const _HomeActionsCard(),
               const SizedBox(height: 12),
               _WhatChangedCard(edge: edge),
               if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
