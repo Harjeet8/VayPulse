@@ -221,9 +221,24 @@ class _CreatorCard extends StatelessWidget {
               alignment: Alignment.centerLeft,
               child: Text(
                 tamil
-                    ? 'Embedded systems, sensing மற்றும் நடைமுறை AI மீது கவனம் செலுத்தும் student builder.'
-                    : 'Student builder focused on embedded systems, sensing and practical AI.',
+                    ? 'Raw sensor physics முதல் embedded intelligence மற்றும் user-facing software வரை end-to-end systems உருவாக்கும் student builder.'
+                    : 'Student builder creating end-to-end systems from raw sensor physics to embedded intelligence and user-facing software.',
                 style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
+            ),
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(13),
+              decoration: BoxDecoration(
+                color: scheme.primaryContainer.withValues(alpha: 0.32),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Text(
+                tamil
+                    ? 'Hardware • Firmware • Signal processing • AI logic • App — ஒரே build pipeline.'
+                    : 'Hardware • Firmware • Signal processing • AI logic • App — one build pipeline.',
+                style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
             const SizedBox(height: 16),
@@ -232,6 +247,13 @@ class _CreatorCard extends StatelessWidget {
               description: tamil
                   ? 'ESP32 + Flutter plant-intelligence system — bioelectric sensing, environmental fusion மற்றும் farmer-first guidance.'
                   : 'ESP32 + Flutter plant-intelligence system combining bioelectric sensing, environmental fusion and farmer-first guidance.',
+            ),
+            const SizedBox(height: 11),
+            _CreatorBuild(
+              title: 'EchoSkin AI',
+              description: tamil
+                  ? 'Piezo vibration sensing, ESP8266 signal analysis, Wi-Fi dashboard மற்றும் actuator response பயன்படுத்தும் structural-health monitoring prototype.'
+                  : 'Structural-health monitoring prototype using piezo vibration sensing, ESP8266 signal analysis, a Wi-Fi dashboard and actuator response.',
             ),
             const SizedBox(height: 11),
             _CreatorBuild(
