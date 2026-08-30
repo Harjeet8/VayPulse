@@ -1,1 +1,2 @@
 Run the additive-only final competition integration on phytosense-v8-ultra-final.
+Execute after simplified workflow activation.
