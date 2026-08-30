@@ -1,0 +1,218 @@
+name: Final Max Potential Patch
+
+on:
+  pull_request:
+    branches:
+      - phytosense-v8-ultra-final
+    paths:
+      - '.github/final-max-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-final:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout competition branch
+        uses: actions/checkout@v4
+        with:
+          ref: phytosense-v8-ultra-final
+
+      - name: Add max-potential surfaces without removing features
+        shell: python
+        run: |
+          from pathlib import Path
+
+          def replace_once(text, old, new, label):
+              if old not in text:
+                  raise SystemExit(f'Missing expected block: {label}')
+              return text.replace(old, new, 1)
+
+          # HOME: additive import + new intelligence panels + animated hero text.
+          path = Path('lib/screens/live_node_home_screen.dart')
+          text = path.read_text(encoding='utf-8')
+          if "../widgets/competition_intelligence_panels.dart" not in text:
+              text = replace_once(
+                  text,
+                  "import '../widgets/biotic_stress_card.dart';\n",
+                  "import '../widgets/biotic_stress_card.dart';\nimport '../widgets/competition_intelligence_panels.dart';\n",
+                  'home competition import',
+              )
+
+          panels = """              const SizedBox(height: 12),
+              CompetitionIntelligencePanels(
+                current: reading,
+                history: sensors.historyFor(reading.nodeId),
+                edge: edge,
+                telemetry: telemetry,
+                live: live,
+                connectionStatus: sensors.connectionStatus,
+              ),
+"""
+          if 'CompetitionIntelligencePanels(' not in text:
+              text = replace_once(
+                  text,
+                  "              _WhatChangedCard(edge: edge),\n              if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[\n",
+                  "              _WhatChangedCard(edge: edge),\n" + panels + "              if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[\n",
+                  'home additive panels',
+              )
+
+          old_title = """          Text(
+            title,
+            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: accent,
+                  height: 1.12,
+                ),
+          ),
+"""
+          new_title = """          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 360),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.08),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: Text(
+              title,
+              key: ValueKey(title),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: accent,
+                    height: 1.12,
+                  ),
+            ),
+          ),
+"""
+          if 'key: ValueKey(title)' not in text:
+              text = replace_once(text, old_title, new_title, 'animated home finding')
+
+          old_summary = """          Text(
+            summary,
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  height: 1.38,
+                ),
+          ),
+"""
+          new_summary = """          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 320),
+            child: Text(
+              summary,
+              key: ValueKey(summary),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.38,
+                  ),
+            ),
+          ),
+"""
+          if 'key: ValueKey(summary)' not in text:
+              text = replace_once(text, old_summary, new_summary, 'animated farmer summary')
+          path.write_text(text, encoding='utf-8')
+
+          # JUDGE VIEW: retain every existing card and add a one-screen evidence matrix.
+          path = Path('lib/screens/judge_view_screen.dart')
+          text = path.read_text(encoding='utf-8')
+          if "../widgets/competition_intelligence_panels.dart" not in text:
+              text = replace_once(
+                  text,
+                  "import '../services/sensor_data_provider.dart';\n",
+                  "import '../services/sensor_data_provider.dart';\nimport '../widgets/competition_intelligence_panels.dart';\n",
+                  'judge competition import',
+              )
+          if 'JudgeEvidenceMatrix(' not in text:
+              text = replace_once(
+                  text,
+                  """              _SensorEvidenceCard(
+                telemetry: telemetry,
+                edge: edge,
+                packetAge: age,
+              ),
+              if (live) ...[
+""",
+                  """              _SensorEvidenceCard(
+                telemetry: telemetry,
+                edge: edge,
+                packetAge: age,
+              ),
+              const SizedBox(height: 12),
+              JudgeEvidenceMatrix(
+                edge: edge,
+                telemetry: telemetry,
+                history: reading == null
+                    ? const []
+                    : sensors.historyFor(reading.nodeId),
+                current: reading,
+                live: live,
+                connectionStatus: sensors.connectionStatus,
+              ),
+              if (live) ...[
+""",
+                  'judge evidence matrix',
+              )
+          path.write_text(text, encoding='utf-8')
+
+          # SPLASH: layer a technical sensor/fusion sequence behind the existing animation.
+          path = Path('lib/screens/splash_screen.dart')
+          text = path.read_text(encoding='utf-8')
+          if "../widgets/boot_intelligence_overlay.dart" not in text:
+              text = replace_once(
+                  text,
+                  "import '../l10n/app_strings.dart';\n",
+                  "import '../l10n/app_strings.dart';\nimport '../widgets/boot_intelligence_overlay.dart';\n",
+                  'splash overlay import',
+              )
+          text = text.replace(
+              'duration: const Duration(milliseconds: 3600),',
+              'duration: const Duration(milliseconds: 4100),',
+              1,
+          )
+          text = text.replace(
+              '_timer = Timer(const Duration(milliseconds: 4250), _openApp);',
+              '_timer = Timer(const Duration(milliseconds: 4750), _openApp);',
+              1,
+          )
+          if 'BootIntelligenceOverlay(' not in text:
+              text = replace_once(
+                  text,
+                  """              IgnorePointer(
+                child: CustomPaint(
+                  painter: _SignalFieldPainter(phase: ambient),
+                ),
+              ),
+              SafeArea(
+""",
+                  """              IgnorePointer(
+                child: CustomPaint(
+                  painter: _SignalFieldPainter(phase: ambient),
+                ),
+              ),
+              IgnorePointer(
+                child: BootIntelligenceOverlay(
+                  progress: timeline,
+                  phase: ambient,
+                ),
+              ),
+              SafeArea(
+""",
+                  'advanced boot overlay',
+              )
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit final additive pass
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add lib/screens/live_node_home_screen.dart lib/screens/judge_view_screen.dart lib/screens/splash_screen.dart
+          git diff --cached --quiet && exit 0
+          git commit -m "Integrate max-potential competition experience"
+          git push origin HEAD:phytosense-v8-ultra-final
