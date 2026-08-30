@@ -1,0 +1,44 @@
+name: Final Max Lint Fix
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/final-max-lint-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  fix-lints:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout competition branch
+        uses: actions/checkout@v4
+        with:
+          ref: phytosense-v8-ultra-final
+
+      - name: Fix analyzer warnings in additive panel
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('lib/widgets/competition_intelligence_panels.dart')
+          text = path.read_text(encoding='utf-8')
+          fixes = [
+              ("if (info?.baselineTarget != null && info!.baselineTarget! > 0)", "if (info.baselineTarget != null && info.baselineTarget! > 0)"),
+              ("(info!.baselineSamples! / info.baselineTarget!)", "(info.baselineSamples! / info.baselineTarget!)"),
+              ("items.add(_JourneyItem(timestamp: null, label: 'RECOVERING', type: 'RECOVERY'));", "items.add(const _JourneyItem(timestamp: null, label: 'RECOVERING', type: 'RECOVERY'));")
+          ]
+          for old, new in fixes:
+              if old not in text:
+                  raise SystemExit(f'Missing expected lint target: {old}')
+              text = text.replace(old, new, 1)
+          path.write_text(text, encoding='utf-8')
+
+      - name: Commit lint fixes
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add lib/widgets/competition_intelligence_panels.dart
+          git commit -m "Clean final competition analyzer warnings"
+          git push origin HEAD:phytosense-v8-ultra-final
