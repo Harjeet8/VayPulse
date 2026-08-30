@@ -1,11 +1,11 @@
 name: Final Max Potential Patch
 
 on:
-  pull_request_target:
+  push:
     branches:
-      - phytosense-v8-ultra-final
+      - main
     paths:
-      - '.github/final-max-trigger.txt'
+      - '.github/final-max-trigger-main.txt'
 
 permissions:
   contents: write
