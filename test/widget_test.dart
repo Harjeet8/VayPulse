@@ -15,6 +15,7 @@ import 'package:phytosense_ai/services/location_name_resolver.dart';
 import 'package:phytosense_ai/services/multimodal_disease_service.dart';
 import 'package:phytosense_ai/services/sensor_data_provider.dart';
 import 'package:phytosense_ai/services/sensor_provider_manager.dart';
+import 'package:phytosense_ai/simulation/simulated_sensor_provider.dart';
 
 void main() {
   test('new installs use safe source and accessibility defaults', () {
@@ -207,6 +208,22 @@ void main() {
     manager.setScenario('drought');
     expect(manager.current, isNull);
     manager.dispose();
+  });
+
+  test('simulation supplies environment and bioelectric intelligence', () {
+    final provider = SimulationSensorProvider()..start();
+    final edge = provider.edgeIntelligence;
+
+    expect(provider.current, isNotNull);
+    expect(edge, isNotNull);
+    expect(edge!.derivedEnvironment.vpdKpa, isNotNull);
+    expect(edge.derivedEnvironment.dryingDemandState, isNotNull);
+    expect(edge.bioelectric.available, isTrue);
+    expect(edge.bioelectric.stressState, isNotNull);
+    expect(edge.bioelectric.signalQualityState, 'GOOD');
+    expect(edge.bioelectric.includedInFusion, isTrue);
+
+    provider.dispose();
   });
 
   test('Trichy GPS coordinates resolve to a readable place name', () {

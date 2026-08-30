@@ -216,7 +216,8 @@ class AppStrings {
       'about': 'About PhytoSense AI',
       'about_body':
           'A farmer-first plant monitoring platform built for clear, early field decisions.',
-      'version': 'PhytoSense AI Version 9.0.0 • Brand Launch Edition',
+      'version': 'PhytoSense AI • Plant intelligence platform',
+      'splash_quote': 'Listen to the plant before stress becomes visible.',
       'devices_title': 'Sensor nodes',
       'devices_demo_note':
           'Simulation is active. Switch to ESP32 Live at any time when the physical node is ready.',
@@ -1509,7 +1510,8 @@ class AppStrings {
       'about': 'PhytoSense AI பற்றி',
       'about_body':
           'தெளிவான ஆரம்பகட்ட வயல் முடிவுகளுக்கான விவசாயி மைய செடி கண்காணிப்பு தளம்.',
-      'version': 'PhytoSense AI Version 9.0.0 • Brand Launch Edition',
+      'version': 'PhytoSense AI • செடி நுண்ணறிவு தளம்',
+      'splash_quote': 'அழுத்தம் கண்ணுக்குத் தெரிவதற்கு முன் செடியைக் கேளுங்கள்.',
       'devices_title': 'சென்சார் முனைகள்',
       'devices_demo_note':
           'இப்போது simulation செயலில் உள்ளது. Physical node தயார் ஆனதும் ESP32 Live-க்கு மாறலாம்.',

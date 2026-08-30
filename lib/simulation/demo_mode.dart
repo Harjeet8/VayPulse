@@ -95,10 +95,10 @@ class DemoModeTargets {
       light: 64,
     ),
     DemoMode.sensorFault: DemoModeTargets(
-      soilMoisture: 0,
-      temperature: 0,
-      humidity: 0,
-      light: 0,
+      soilMoisture: 54,
+      temperature: 26,
+      humidity: 58,
+      light: 62,
     ),
   };
 }

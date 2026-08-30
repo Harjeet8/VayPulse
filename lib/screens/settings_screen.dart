@@ -298,9 +298,7 @@ class _ThemePicker extends StatelessWidget {
               ),
               const SizedBox(height: 15),
               LayoutBuilder(
-                builder: (context, constraints) {
-                  final vertical = constraints.maxWidth < 400 ||
-                      MediaQuery.textScalerOf(context).scale(1.0) > 1.35;
+                builder: (context, _) {
                   final options = [
                     _ThemeOption(
                       mode: ThemeMode.system,
@@ -324,16 +322,6 @@ class _ThemePicker extends StatelessWidget {
                       onTap: onChanged,
                     ),
                   ];
-                  if (vertical) {
-                    return Column(
-                      children: [
-                        for (var i = 0; i < options.length; i++) ...[
-                          options[i],
-                          if (i < options.length - 1) const SizedBox(height: 8),
-                        ],
-                      ],
-                    );
-                  }
                   return Row(
                     children: [
                       for (var i = 0; i < options.length; i++) ...[
@@ -431,6 +419,8 @@ class _ThemeOption extends StatelessWidget {
             Text(
               label,
               textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
               style: TextStyle(
                 color: selected ? scheme.onPrimaryContainer : scheme.onSurface,
                 fontSize: 12,

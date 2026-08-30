@@ -1,5 +1,5 @@
 name: phytosense_ai
-description: PhytoSense AI v8.7.1 MEGA FINAL - farmer-first ESP32 edge-intelligence companion, powered by VayPulse.
+description: Farmer-first plant intelligence powered by ESP32 edge sensing.
 publish_to: "none"
 version: 8.7.1+871
 
@@ -28,6 +28,8 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/branding/phytosense_icon.png
   fonts:
     - family: NotoSansTamil
       fonts:

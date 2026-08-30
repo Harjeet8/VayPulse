@@ -157,7 +157,7 @@ class AboutVayPulseScreen extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 title: const Text(
-                  'PhytoSense AI v8.7.1 MEGA FINAL · DEAD FINAL',
+                  'PhytoSense AI',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
                 subtitle: Text(FarmerLanguage.isTamil(context)

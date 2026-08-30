@@ -149,51 +149,54 @@ class _StartupLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 78,
-                    height: 78,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0F5A40), Color(0xFF38A77A)],
+        backgroundColor: const Color(0xFF06130E),
+        body: DecoratedBox(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Color(0xFF06130E), Color(0xFF0D3325)],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 360),
+              child: Padding(
+                padding: const EdgeInsets.all(28),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(25),
+                      child: Image.asset(
+                        'assets/branding/phytosense_icon.png',
+                        width: 84,
+                        height: 84,
                       ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              const Color(0xFF0F5A40).withValues(alpha: 0.25),
-                          blurRadius: 28,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
                     ),
-                    child: const Icon(Icons.eco_rounded,
-                        color: Colors.white, size: 40),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'PhytoSense AI',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.6,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Preparing your farm intelligence dashboard…',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 22),
-                  const LinearProgressIndicator(
-                      borderRadius: BorderRadius.all(Radius.circular(99))),
-                ],
+                    const SizedBox(height: 20),
+                    const Text(
+                      'PhytoSense AI',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    SizedBox(
+                      width: 150,
+                      child: LinearProgressIndicator(
+                        minHeight: 3,
+                        color: const Color(0xFFB9E7D4),
+                        backgroundColor: Colors.white.withValues(alpha: 0.12),
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(99)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

@@ -171,6 +171,41 @@ class SimulationSensorProvider extends SensorDataProvider {
             : reading.healthScore >= 42
                 ? 'STRESSED'
                 : 'CRITICAL';
+    final sensorFault = _mode == DemoMode.sensorFault;
+    final vpd = _calculateVpd(reading.temperature, reading.humidity);
+    final dryingDemandState = vpd < 0.4
+        ? 'LOW'
+        : vpd < 1.5
+            ? 'OPTIMAL'
+            : vpd < 2.2
+                ? 'HIGH'
+                : 'HIGH_ATMOSPHERIC_DRYING_DEMAND';
+    final bioStressScore =
+        (100 - (reading.bioelectricStability ?? reading.plantSignal))
+            .clamp(0.0, 100.0)
+            .toDouble();
+    final bioState = sensorFault
+        ? 'SIGNAL_NOISY'
+        : bioStressScore >= 75
+            ? 'STRONG_STRESS_SIGNAL'
+            : bioStressScore >= 50
+                ? 'STRESS_SIGNAL'
+                : bioStressScore >= 25
+                    ? 'MILD_RESPONSE'
+                    : 'NORMAL';
+    final waterState = reading.soilMoisture < 20
+        ? 'VERY_DRY'
+        : reading.soilMoisture < 35
+            ? 'DRY'
+            : reading.soilMoisture > 86
+                ? 'VERY_WET'
+                : reading.soilMoisture > 75
+                    ? 'WET'
+                    : 'OPTIMAL';
+    final waterBalanceScore =
+        (100 - (reading.soilMoisture - 62).abs() * 1.65)
+            .clamp(0.0, 100.0)
+            .toDouble();
 
     return EdgeIntelligence(
       firmwareVersion: 'simulation-model',
@@ -197,8 +232,84 @@ class SimulationSensorProvider extends SensorDataProvider {
       degradedReason: _mode == DemoMode.sensorFault
           ? 'Simulation scenario includes unavailable sensors.'
           : null,
+      analysisQuality: sensorFault ? 'LOW_CONFIDENCE' : 'GOOD',
       rootCause: cause,
       recovery: const RecoveryInfo(active: false),
+      bioelectric: BioelectricIntelligence(
+        available: !sensorFault,
+        voltageMv: reading.plantVoltageMv,
+        baselineMv: reading.bioBaselineMv,
+        signedChangeMv: reading.bioDeviationMv,
+        deviationMv: reading.bioDeviationMv?.abs(),
+        normalizedDeviation: reading.bioBaselineMv == null ||
+                reading.bioBaselineMv == 0 ||
+                reading.bioDeviationMv == null
+            ? null
+            : reading.bioDeviationMv! / reading.bioBaselineMv! * 100,
+        noiseMv: reading.bioNoiseMv,
+        signalQuality: reading.bioSignalQuality,
+        signalQualityState: sensorFault ? 'SIGNAL_NOISY' : 'GOOD',
+        confidence: sensorFault ? 20 : 92,
+        trend: bioStressScore >= 25 ? 'RISING' : 'STABLE',
+        stressScore: bioStressScore,
+        stressState: bioState,
+        persistenceSeconds: bioStressScore >= 25 ? 36 : 0,
+        stressLoad: bioStressScore * 0.74,
+        stressLoadState: bioStressScore >= 50
+            ? 'PERSISTENT'
+            : bioStressScore >= 25
+                ? 'BUILDING'
+                : 'LOW',
+        baselineReady: !sensorFault,
+        baselineSamples: sensorFault ? 0 : 60,
+        baselineTarget: 60,
+        includedInFusion: !sensorFault,
+        interpretation: bioState,
+        corroborated: !sensorFault && bioStressScore >= 25,
+        corroboratedBy: !sensorFault && bioStressScore >= 25
+            ? <String>[
+                if (reading.soilMoisture < 35) 'soilMoisture',
+                if (vpd >= 1.5) 'vpd',
+                if (reading.soilTemperature != null &&
+                    reading.soilTemperature! >= 31)
+                  'rootTemperature',
+              ]
+            : const <String>[],
+        farmerResult: bioState,
+      ),
+      baseline: PlantBaselineInfo(
+        status: sensorFault ? 'UNAVAILABLE' : 'BASELINE_STABLE',
+        ready: !sensorFault,
+        learnedNormal: reading.bioBaselineMv,
+        deviation: reading.bioDeviationMv,
+      ),
+      stressEvidence: StressEvidence(
+        water: reading.soilMoisture < 35
+            ? (35 - reading.soilMoisture) * 2.4
+            : 0,
+        heat: reading.temperature > 30
+            ? (reading.temperature - 30) * 9
+            : 0,
+        rootZone: reading.soilTemperature != null &&
+                reading.soilTemperature! > 30
+            ? (reading.soilTemperature! - 30) * 10
+            : 0,
+        diseaseEnvironment: reading.diseaseRisk,
+        sensorFault: sensorFault ? 80 : 0,
+      ),
+      derivedEnvironment: DerivedEnvironmentInfo(
+        vpdKpa: vpd,
+        airDryingDemand: vpd,
+        vpdState: dryingDemandState,
+        dryingDemandState: dryingDemandState,
+      ),
+      waterBalance: sensorFault
+          ? const WaterBalanceInfo()
+          : WaterBalanceInfo(
+              state: waterState,
+              score: waterBalanceScore,
+              explanation: waterState,
+            ),
       sensorConfidence: [
         SensorConfidence(
             channel: 'airTemperature',
@@ -267,6 +378,15 @@ class SimulationSensorProvider extends SensorDataProvider {
               : reading.diseaseRisk! >= 40
                   ? 'MODERATE'
                   : 'LOW',
+      activeSensorChannels: <String>[
+        'airTemperature',
+        'humidity',
+        'light',
+        if (reading.soilMoistureAvailable) 'soilMoisture',
+        if (reading.soilTemperatureAvailable) 'rootTemperature',
+        if (reading.leafWetnessAvailable) 'leafWetness',
+        if (reading.plantSignalAvailable) 'bioelectric',
+      ],
     );
   }
 
@@ -424,6 +544,14 @@ class SimulationSensorProvider extends SensorDataProvider {
   }
 
   double _max(double a, double b) => a > b ? a : b;
+
+  double _calculateVpd(double temperature, double humidity) {
+    final saturation =
+        0.6108 * exp((17.27 * temperature) / (temperature + 237.3));
+    return (saturation * (1 - humidity / 100))
+        .clamp(0.0, 8.0)
+        .toDouble();
+  }
 
   @override
   void selectNode(String nodeId) {
