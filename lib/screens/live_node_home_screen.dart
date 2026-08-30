@@ -519,6 +519,7 @@ class _CameraHandoffCard extends StatelessWidget {
           ),
         ),
       );
+}
 
 class _WhatChangedCard extends StatelessWidget {
   final EdgeIntelligence? edge;
