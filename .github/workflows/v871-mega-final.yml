@@ -1,0 +1,125 @@
+name: PhytoSense AI V8.7.1 MEGA FINAL
+
+on:
+  push:
+    branches:
+      - phytosense-v871-mega-final
+    paths:
+      - '.v871final/**'
+      - '.github/workflows/v871-mega-final.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize-validate-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout v8.7.1 branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Reconstruct exact final patch
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .v871final/part*.b64 > /tmp/v871.patch.gz.b64
+          echo '50cd5137f0cd982678d97559e8a64720e4121aea509cfe16e36427abf4fa573f  /tmp/v871.patch.gz.b64' | sha256sum -c -
+          base64 -d /tmp/v871.patch.gz.b64 > /tmp/v871.patch.gz
+          echo '5651363a8f21ba8ee334c88099e8496d6ccb6f942fea3c7aa64c8f136da78309  /tmp/v871.patch.gz' | sha256sum -c -
+          gzip -t /tmp/v871.patch.gz
+          gunzip -c /tmp/v871.patch.gz > /tmp/v871.patch
+          echo '3783c9e3ee59dda8290e1dec10fb53319d23025e3ba85835682d3cb36c01b8be  /tmp/v871.patch' | sha256sum -c -
+
+      - name: Apply ESP32 v8.7.1 MEGA FINAL synchronization
+        shell: bash
+        run: |
+          set -euo pipefail
+          git apply --check /tmp/v871.patch
+          git apply /tmp/v871.patch
+          rm -rf .v871final
+          rm -f .github/workflows/v871-mega-final.yml
+
+      - name: Firmware contract audit
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '^version: 8.7.1+871$' pubspec.yaml
+          grep -q 'SIGNAL_NOISY' lib/models/edge_intelligence.dart
+          grep -q 'CHECK_CONTACT' lib/models/edge_intelligence.dart
+          grep -q 'AMP_HIGH_RAIL' lib/models/edge_intelligence.dart
+          grep -q 'AMP_LOW_RAIL' lib/models/edge_intelligence.dart
+          grep -q 'humidityValid' lib/services/esp32_client.dart
+          grep -q 'vpdValid' lib/models/edge_intelligence.dart
+          grep -q 'bioSignalQualityPct' lib/models/edge_intelligence.dart
+          grep -q 'bioSignedDelta' lib/models/edge_intelligence.dart
+          grep -q 'bioPersistenceSeconds' lib/models/edge_intelligence.dart
+          grep -q 'sensorStatus' lib/models/edge_intelligence.dart
+          grep -q 'sensorStatus' lib/models/hardware_telemetry.dart
+          grep -q 'vpdKpa' lib/models/sensor_reading.dart
+          grep -q 'bioticState' lib/models/sensor_reading.dart
+          grep -q 'recoveryState' lib/models/sensor_reading.dart
+          test -f lib/screens/sensor_health_screen.dart
+          test -f lib/screens/technical_edge_view_screen.dart
+          test ! -e lib/screens/onboarding_screen.dart
+          test ! -e lib/screens/competition_center_screen.dart
+          test ! -e lib/screens/presentation_mode_screen.dart
+          grep -q 'SIGNAL NOISY' test/firmware_v8_schema_sync_test.dart
+          grep -q 'humidityValid' test/firmware_v8_schema_sync_test.dart
+
+      - name: Commit exact final source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'PhytoSense AI v8.7.1 MEGA FINAL firmware sync [skip ci]'
+          git push origin HEAD:phytosense-v871-mega-final
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Flutter version
+        run: flutter --version
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Strict Flutter analyze
+        run: flutter analyze
+
+      - name: Flutter tests
+        run: flutter test
+
+      - name: Chrome web release build
+        run: flutter build web --release
+
+      - name: Android release APK
+        run: flutter build apk --release
+
+      - name: Package exact v8.7.1 final
+        shell: bash
+        run: |
+          set -euo pipefail
+          zip -r 'PhytoSense-AI-V8.7.1-MEGA-FINAL.zip' . \
+            -x '.git/*' '.dart_tool/*' 'build/*' '*.zip' '*.apk' '.v871final/*'
+          cp build/app/outputs/flutter-apk/app-release.apk 'PhytoSense-AI-V8.7.1-MEGA-FINAL.apk'
+          sha256sum PhytoSense-AI-V8.7.1-MEGA-FINAL.zip PhytoSense-AI-V8.7.1-MEGA-FINAL.apk > V8.7.1-MEGA-FINAL-SHA256.txt
+
+      - name: Upload exact v8.7.1 final
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-V8.7.1-MEGA-FINAL
+          path: |
+            PhytoSense-AI-V8.7.1-MEGA-FINAL.zip
+            PhytoSense-AI-V8.7.1-MEGA-FINAL.apk
+            V8.7.1-MEGA-FINAL-SHA256.txt
+          if-no-files-found: error
+          retention-days: 30
