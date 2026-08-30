@@ -1,4 +1,4 @@
-name: PhytoSense AI v8.7.1 MEGA FINAL CI
+name: PhytoSense AI Competition CI
 
 on:
   push:
@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout V8
+      - name: Checkout PhytoSense AI
         uses: actions/checkout@v4
 
       - name: Verify release structure
@@ -62,22 +62,22 @@ jobs:
       - name: Android release APK
         run: flutter build apk --release
 
-      - name: Package v8.7.1 MEGA FINAL
+      - name: Package PhytoSense AI Competition
         shell: bash
         run: |
           set -euo pipefail
-          zip -r "PhytoSense-AI-v8.7.1-MEGA-FINAL.zip" . \
+          zip -r "PhytoSense-AI-Competition-Source.zip" . \
             -x ".git/*" ".dart_tool/*" "build/*" "android/.gradle/*" \
                ".flutter-plugins" ".flutter-plugins-dependencies" "*.zip" \
                ".github/v8-validation-trigger.txt"
-          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-v8.7.1-MEGA-FINAL.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-Competition.apk"
 
-      - name: Upload v8.7.1 MEGA FINAL artifact
+      - name: Upload competition artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-v8.7.1-MEGA-FINAL
+          name: PhytoSense-AI-Competition
           path: |
-            PhytoSense-AI-v8.7.1-MEGA-FINAL.zip
-            PhytoSense-AI-v8.7.1-MEGA-FINAL.apk
+            PhytoSense-AI-Competition-Source.zip
+            PhytoSense-AI-Competition.apk
           if-no-files-found: error
           retention-days: 30
