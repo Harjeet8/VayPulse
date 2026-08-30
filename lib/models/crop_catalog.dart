@@ -17,6 +17,11 @@ class CropProfile {
 /// are ranked.
 class CropCatalog {
   static const supported = <CropProfile>[
+    CropProfile(
+      id: 'universal',
+      name: 'Universal',
+      localizationKey: 'crop_universal',
+    ),
     CropProfile(id: 'rice', name: 'Rice', localizationKey: 'crop_rice'),
     CropProfile(id: 'maize', name: 'Maize', localizationKey: 'crop_maize'),
     CropProfile(
@@ -38,11 +43,17 @@ class CropCatalog {
     ),
     CropProfile(id: 'tomato', name: 'Tomato', localizationKey: 'crop_tomato'),
     CropProfile(
+      id: 'hibiscus',
+      name: 'Hibiscus',
+      localizationKey: 'crop_hibiscus',
+    ),
+    CropProfile(
       id: 'brinjal',
       name: 'Brinjal',
       localizationKey: 'crop_brinjal',
     ),
     CropProfile(id: 'chilli', name: 'Chilli', localizationKey: 'crop_chilli'),
+    CropProfile(id: 'okra', name: 'Okra', localizationKey: 'crop_okra'),
   ];
 
   static bool supports(String crop) =>
@@ -52,12 +63,22 @@ class CropCatalog {
     final normalized = normalize(crop);
     return supported.firstWhere(
       (profile) => profile.name == normalized,
-      orElse: () => supported.first,
+      // Unknown firmware profiles are intentionally neutral. Never silently
+      // turn an unknown crop into Rice or Tomato.
+      orElse: () => supported.firstWhere(
+        (profile) => profile.id == 'universal',
+      ),
     );
   }
 
   static String normalize(String crop) {
     final value = crop.trim().toLowerCase();
+    if (value.isEmpty ||
+        value.contains('universal') ||
+        value.contains('neutral') ||
+        value == 'default') {
+      return 'Universal';
+    }
     if (value.contains('paddy') || value.contains('rice')) return 'Rice';
     if (value.contains('corn') || value.contains('maize')) return 'Maize';
     if (value.contains('peanut') || value.contains('groundnut')) {
@@ -70,6 +91,13 @@ class CropCatalog {
     if (value.contains('banana') || value.contains('plantain')) return 'Banana';
     if (value.contains('coconut')) return 'Coconut';
     if (value.contains('tomato')) return 'Tomato';
+    if (value.contains('hibiscus') ||
+        value.contains('rose mallow') ||
+        value.contains('shoe flower') ||
+        value.contains('chembaruthi') ||
+        value.contains('செம்பருத்தி')) {
+      return 'Hibiscus';
+    }
     if (value.contains('brinjal') || value.contains('eggplant')) {
       return 'Brinjal';
     }
@@ -78,6 +106,14 @@ class CropCatalog {
         value.contains('pepper')) {
       return 'Chilli';
     }
-    return crop.trim();
+    if (value.contains('okra') ||
+        value.contains('lady finger') ||
+        value.contains('ladyfinger') ||
+        value.contains('bhindi') ||
+        value.contains('vendakkai') ||
+        value.contains('வெண்டைக்காய்')) {
+      return 'Okra';
+    }
+    return 'Universal';
   }
 }

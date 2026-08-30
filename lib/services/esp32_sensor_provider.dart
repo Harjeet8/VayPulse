@@ -142,10 +142,14 @@ class Esp32SensorProvider extends HardwareSensorProvider {
         final confidence = edge.overallConfidence ??
             raw.esp32HealthConfidence ??
             0.0;
-        final stress = edge.bioelectric.stressScore ??
-            (firmwareHealth == null
+        final stress = edge.bioelectric.excludedByFirmware
+            ? (firmwareHealth == null
                 ? 50.0
-                : (100.0 - health).clamp(0.0, 100.0).toDouble());
+                : (100.0 - health).clamp(0.0, 100.0).toDouble())
+            : edge.bioelectric.stressScore ??
+                (firmwareHealth == null
+                    ? 50.0
+                    : (100.0 - health).clamp(0.0, 100.0).toDouble());
 
         // ESP32 WINS in hardware mode. Flutter only normalizes explicit
         // firmware intelligence into the existing SensorReading contract.
@@ -157,6 +161,16 @@ class Esp32SensorProvider extends HardwareSensorProvider {
           stressScore: stress,
           healthStatus: edge.plantState ?? raw.healthStatus,
           analysisConfidence: confidence,
+          analysisOrigin: 'esp32',
+          primaryRootCause: edge.rootCause.primary,
+          secondaryRootCause: edge.rootCause.secondary,
+          degradedAnalysis: edge.degradedAnalysis,
+          healthTrend: _trendFor(edge, const ['health', 'healthScore', 'plantHealth']),
+          diseaseRiskTrend: _trendFor(
+            edge,
+            const ['diseaseRisk', 'environmentalDiseaseRisk'],
+          ),
+          recoveryActive: edge.recovery.active,
           esp32HealthScore: firmwareHealth,
           esp32HealthConfidence: edge.overallConfidence ?? raw.esp32HealthConfidence,
           diseaseRisk: edge.diseaseRiskScore ?? raw.diseaseRisk,
@@ -169,7 +183,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
           _history,
           crop: edge.cropProfile.profile ?? 'Universal',
           growthStage: edge.cropProfile.growthStage ?? 'vegetative',
-        );
+        ).copyWith(analysisOrigin: 'flutterFallback');
       }
 
       _edgeIntelligence = edge;
@@ -233,6 +247,19 @@ class Esp32SensorProvider extends HardwareSensorProvider {
                 between(reading.plantVoltageMv!, 0, 5000))) &&
         between(reading.bioSignalQuality, 0, 100);
     if (!valid) throw const FormatException('Out-of-range sensor data');
+  }
+
+  String? _trendFor(EdgeIntelligence edge, List<String> aliases) {
+    final normalized = aliases
+        .map((value) => value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ''))
+        .toSet();
+    for (final trend in edge.trends) {
+      final channel = trend.channel
+          .toLowerCase()
+          .replaceAll(RegExp(r'[^a-z0-9]'), '');
+      if (normalized.contains(channel)) return trend.state;
+    }
+    return null;
   }
 
   @override

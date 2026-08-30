@@ -99,6 +99,21 @@ class LiveNodeHomeScreen extends StatelessWidget {
                   ),
                 ),
               ],
+              if (edge?.cameraInspectionRecommended == true &&
+                  edge?.bioticStress.suspected != true) ...[
+                const SizedBox(height: 12),
+                _CameraHandoffCard(
+                  edge: edge!,
+                  onScan: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const LeafScreeningScreen(
+                        sensorPrompt: true,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
               const SizedBox(height: 12),
               _WhatChangedCard(edge: edge),
               if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
@@ -166,6 +181,8 @@ class _ConditionCard extends StatelessWidget {
     final accent = recovering
         ? Theme.of(context).colorScheme.primary
         : _stateColor(context, rawState);
+    final crop = telemetry?.cropProfile ?? edge?.cropProfile.profile;
+    final stage = telemetry?.growthStage ?? edge?.cropProfile.growthStage;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -239,6 +256,18 @@ class _ConditionCard extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
+              if (crop != null && crop.trim().isNotEmpty)
+                _Pill(
+                  Icons.grass_rounded,
+                  '${FarmerLanguage.label(context, 'crop_profile')}: ${FarmerLanguage.firmware(context, crop)}',
+                  accent,
+                ),
+              if (stage != null && stage.trim().isNotEmpty)
+                _Pill(
+                  Icons.eco_outlined,
+                  '${FarmerLanguage.label(context, 'growth_stage')}: ${FarmerLanguage.firmware(context, stage)}',
+                  accent,
+                ),
               _Pill(Icons.priority_high_rounded,
                   '${FarmerLanguage.label(context, 'severity')}: $severity', accent),
               _Pill(Icons.verified_outlined,
@@ -314,11 +343,21 @@ class _PlantResponseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final state = _plantResponse(context, bio);
+    final excluded = bio.excludedByFirmware;
+    final learning = !excluded && bio.learningBaseline;
+    final state = excluded
+        ? FarmerLanguage.label(context, 'signal_unavailable')
+        : learning
+            ? FarmerLanguage.label(context, 'learning_baseline')
+            : _plantResponse(context, bio);
     final result = FarmerLanguage.firmware(
       context,
-      bio.farmerResult,
-      fallback: FarmerLanguage.label(context, 'plant_response_no_result'),
+      excluded ? bio.interpretation : bio.farmerResult ?? bio.interpretation,
+      fallback: excluded
+          ? FarmerLanguage.label(context, 'bio_signal_check_electrodes')
+          : learning
+              ? FarmerLanguage.label(context, 'bio_learning_body')
+              : FarmerLanguage.label(context, 'plant_response_no_result'),
     );
     return Card(
       child: Padding(
@@ -359,8 +398,30 @@ class _PlantResponseCard extends StatelessWidget {
                         Text('${FarmerLanguage.label(context, 'trend')}: ${FarmerLanguage.firmware(context, bio.trend)}'),
                       if (bio.persistenceSeconds != null)
                         Text('${FarmerLanguage.label(context, 'persistent_for')}: ${_duration(bio.persistenceSeconds!)}'),
+                      if (bio.includedInFusion != null)
+                        Text(
+                          bio.includedInFusion!
+                              ? FarmerLanguage.label(context, 'included_in_analysis')
+                              : FarmerLanguage.label(context, 'excluded_from_analysis'),
+                        ),
                     ],
                   ),
+                  if (learning && bio.baselineSamples != null) ...[
+                    const SizedBox(height: 9),
+                    Text(
+                      bio.baselineTarget == null
+                          ? '${FarmerLanguage.label(context, 'baseline_samples')}: ${bio.baselineSamples}'
+                          : '${FarmerLanguage.label(context, 'baseline_progress')}: ${bio.baselineSamples}/${bio.baselineTarget}',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    if (bio.baselineTarget != null && bio.baselineTarget! > 0) ...[
+                      const SizedBox(height: 6),
+                      LinearProgressIndicator(
+                        value: (bio.baselineSamples! / bio.baselineTarget!)
+                            .clamp(0.0, 1.0),
+                      ),
+                    ],
+                  ],
                 ],
               ),
             ),
@@ -370,6 +431,51 @@ class _PlantResponseCard extends StatelessWidget {
     );
   }
 }
+
+class _CameraHandoffCard extends StatelessWidget {
+  final EdgeIntelligence edge;
+  final VoidCallback onScan;
+
+  const _CameraHandoffCard({required this.edge, required this.onScan});
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                FarmerLanguage.label(context, 'visual_inspection_recommended'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                FarmerLanguage.firmware(
+                  context,
+                  edge.cameraHandoff.reason ??
+                      edge.cameraHandoff.recommendation,
+                  fallback: FarmerLanguage.label(
+                    context,
+                    'visual_inspection_body',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onScan,
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: Text(
+                    FarmerLanguage.label(context, 'scan_plant_camera'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 
 class _WhatChangedCard extends StatelessWidget {
   final EdgeIntelligence? edge;

@@ -1,6 +1,7 @@
 import 'package:flutter/widgets.dart';
 
 import 'app_scope.dart';
+import 'firmware_text_adapter.dart';
 
 class FarmerLanguage {
   const FarmerLanguage._();
@@ -24,7 +25,7 @@ class FarmerLanguage {
         .replaceAll(RegExp(r'[^A-Z0-9]+'), '_')
         .replaceAll(RegExp(r'^_+|_+$'), '');
     final map = _ta(context) ? _taFirmware : _enFirmware;
-    return map[key] ?? clean;
+    return map[key] ?? FirmwareTextAdapter.text(context, clean);
   }
 
   static String confidence(BuildContext context, double? value) {
@@ -89,6 +90,7 @@ class FarmerLanguage {
     'no_trend': 'Trend not provided',
     'no_confidence': 'Confidence not provided',
     'crop_profile': 'Crop Profile',
+    'growth_stage': 'Growth Stage',
     'main_finding': 'Main finding',
     'secondary_finding': 'Secondary finding',
     'analysis_quality': 'Analysis quality',
@@ -131,6 +133,15 @@ class FarmerLanguage {
     'stressed': 'Stressed',
     'strongly_stressed': 'Strongly stressed',
     'signal_unavailable': 'Signal unavailable',
+    'learning_baseline': 'Learning this plant’s normal signal',
+    'bio_learning_body': 'PhytoSense is learning the plant’s normal electrical pattern. Environmental monitoring continues.',
+    'bio_signal_check_electrodes': 'The plant signal is not reliable right now. Check the electrode contact; environmental sensors are still being used.',
+    'baseline_samples': 'Baseline samples',
+    'baseline_progress': 'Baseline learning',
+    'included_in_analysis': 'Included in ESP32 analysis',
+    'excluded_from_analysis': 'Excluded from ESP32 analysis',
+    'visual_inspection_recommended': 'Visual inspection recommended',
+    'visual_inspection_body': 'The ESP32 recommends checking the plant with the camera and inspecting visible symptoms.',
     'possible_biotic_title': 'Possible pest or disease stress',
     'possible_biotic_body': 'The plant is showing an electrical stress response that is not fully explained by water, heat, humidity, root-zone temperature, or other environmental sensors.',
     'inspect_plant': 'Inspect Plant',
@@ -250,6 +261,7 @@ class FarmerLanguage {
     'no_trend': 'போக்கு தகவல் இல்லை',
     'no_confidence': 'நம்பிக்கை தகவல் இல்லை',
     'crop_profile': 'பயிர் Profile',
+    'growth_stage': 'வளர்ச்சி நிலை',
     'main_finding': 'முக்கிய கண்டுபிடிப்பு',
     'secondary_finding': 'இரண்டாம் கண்டுபிடிப்பு',
     'analysis_quality': 'பகுப்பாய்வு தரம்',
@@ -292,6 +304,15 @@ class FarmerLanguage {
     'stressed': 'அழுத்தத்தில் உள்ளது',
     'strongly_stressed': 'அதிக அழுத்தத்தில் உள்ளது',
     'signal_unavailable': 'சிக்னல் கிடைக்கவில்லை',
+    'learning_baseline': 'இந்தச் செடியின் இயல்பான சிக்னல் கற்றுக்கொள்ளப்படுகிறது',
+    'bio_learning_body': 'செடியின் இயல்பான மின்சார முறையை PhytoSense கற்றுக்கொள்கிறது. சுற்றுச்சூழல் கண்காணிப்பு தொடர்கிறது.',
+    'bio_signal_check_electrodes': 'இப்போது செடியின் சிக்னல் நம்பகமாக இல்லை. மின்முனை இணைப்பைச் சரிபார்க்கவும்; சுற்றுச்சூழல் சென்சார்கள் தொடர்ந்து பயன்படுத்தப்படுகின்றன.',
+    'baseline_samples': 'அடிப்படை மாதிரிகள்',
+    'baseline_progress': 'அடிப்படை கற்றல்',
+    'included_in_analysis': 'ESP32 பகுப்பாய்வில் சேர்க்கப்பட்டுள்ளது',
+    'excluded_from_analysis': 'ESP32 பகுப்பாய்வில் இருந்து விலக்கப்பட்டுள்ளது',
+    'visual_inspection_recommended': 'கேமரா ஆய்வு பரிந்துரைக்கப்படுகிறது',
+    'visual_inspection_body': 'கேமராவால் செடியைப் பார்த்து, தெரியும் அறிகுறிகளை ஆய்வு செய்ய ESP32 பரிந்துரைக்கிறது.',
     'possible_biotic_title': 'பூச்சி அல்லது நோய் அழுத்தம் இருக்கலாம்',
     'possible_biotic_body': 'செடியின் மின்சாரப் பதிலில் அழுத்தம் தெரிகிறது. நீர், வெப்பம், ஈரப்பதம், வேர் பகுதி வெப்பநிலை மற்றும் பிற சுற்றுச்சூழல் சென்சார்கள் இதை முழுமையாக விளக்கவில்லை.',
     'inspect_plant': 'செடியை பாருங்கள்',

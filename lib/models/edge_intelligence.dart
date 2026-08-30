@@ -190,6 +190,13 @@ class BioelectricIntelligence {
   final double? persistenceSeconds;
   final double? stressLoad;
   final String? stressLoadState;
+  final bool? baselineReady;
+  final int? baselineSamples;
+  final int? baselineTarget;
+  final double? zScore;
+  final double? spanMv;
+  final bool? includedInFusion;
+  final String? interpretation;
   final bool? baselineLearningPaused;
   final double? rawAdc;
   final bool? corroborated;
@@ -213,6 +220,13 @@ class BioelectricIntelligence {
     this.persistenceSeconds,
     this.stressLoad,
     this.stressLoadState,
+    this.baselineReady,
+    this.baselineSamples,
+    this.baselineTarget,
+    this.zScore,
+    this.spanMv,
+    this.includedInFusion,
+    this.interpretation,
     this.baselineLearningPaused,
     this.rawAdc,
     this.corroborated,
@@ -228,7 +242,36 @@ class BioelectricIntelligence {
       stressState != null ||
       stressLoad != null ||
       stressLoadState != null ||
+      baselineReady != null ||
+      baselineSamples != null ||
+      includedInFusion != null ||
+      interpretation != null ||
       farmerResult != null;
+
+  bool get learningBaseline =>
+      baselineReady == false ||
+      (baselineTarget != null &&
+          baselineSamples != null &&
+          baselineSamples! < baselineTarget!);
+
+  /// True only when the firmware says the plant channel is unusable or its
+  /// explicit state identifies a contact/noise/rail problem. A bad plant
+  /// signal must never be converted into plant stress by Flutter.
+  bool get excludedByFirmware {
+    if (includedInFusion == false || available == false) return true;
+    final value = '${signalQualityState ?? stressState ?? ''}'
+        .trim()
+        .toUpperCase()
+        .replaceAll(' ', '_');
+    return value == 'NOISY' ||
+        value == 'BAD_CONTACT' ||
+        value == 'CONTACT_FAULT' ||
+        value == 'SATURATED' ||
+        value == 'HIGH_RAIL' ||
+        value == 'LOW_RAIL' ||
+        value == 'INVALID' ||
+        value == 'UNAVAILABLE';
+  }
 }
 
 class BioticStressInfo {
@@ -443,10 +486,48 @@ class SensorFaultInfo {
 class DerivedEnvironmentInfo {
   final double? vpdKpa;
   final double? airDryingDemand;
+  final String? vpdState;
+  final String? dryingDemandState;
 
-  const DerivedEnvironmentInfo({this.vpdKpa, this.airDryingDemand});
+  const DerivedEnvironmentInfo({
+    this.vpdKpa,
+    this.airDryingDemand,
+    this.vpdState,
+    this.dryingDemandState,
+  });
 
-  bool get hasData => vpdKpa != null || airDryingDemand != null;
+  bool get hasData =>
+      vpdKpa != null ||
+      airDryingDemand != null ||
+      vpdState != null ||
+      dryingDemandState != null;
+}
+
+class WaterBalanceInfo {
+  final String? state;
+  final double? score;
+  final String? explanation;
+
+  const WaterBalanceInfo({this.state, this.score, this.explanation});
+
+  bool get hasData => state != null || score != null || explanation != null;
+}
+
+class CameraHandoffInfo {
+  final bool? recommended;
+  final String? reason;
+  final String? recommendation;
+  final String? crop;
+
+  const CameraHandoffInfo({
+    this.recommended,
+    this.reason,
+    this.recommendation,
+    this.crop,
+  });
+
+  bool get hasData =>
+      recommended != null || reason != null || recommendation != null || crop != null;
 }
 
 class PhytoEvent {
@@ -482,6 +563,7 @@ class IrrigationEvent {
 class CropProfileInfo {
   final String? profile;
   final String? growthStage;
+  final String? regionProfile;
   final List<String> supportedProfiles;
   final List<String> supportedStages;
   final bool switchable;
@@ -489,12 +571,18 @@ class CropProfileInfo {
   const CropProfileInfo({
     this.profile,
     this.growthStage,
+    this.regionProfile,
     this.supportedProfiles = const [],
     this.supportedStages = const [],
     this.switchable = false,
   });
 
-  bool get hasData => profile != null || growthStage != null || supportedProfiles.isNotEmpty || supportedStages.isNotEmpty;
+  bool get hasData =>
+      profile != null ||
+      growthStage != null ||
+      regionProfile != null ||
+      supportedProfiles.isNotEmpty ||
+      supportedStages.isNotEmpty;
 }
 
 class TinyMlInfo {
@@ -527,6 +615,8 @@ class EdgeIntelligence {
   final bool generatedOnDevice;
   final bool degradedAnalysis;
   final String? degradedReason;
+  final List<String> degradedReasons;
+  final String? analysisQuality;
   final RootCauseAnalysis rootCause;
   final RecoveryInfo recovery;
   final BioelectricIntelligence bioelectric;
@@ -538,6 +628,8 @@ class EdgeIntelligence {
   final PlantBaselineInfo baseline;
   final StressEvidence stressEvidence;
   final DerivedEnvironmentInfo derivedEnvironment;
+  final WaterBalanceInfo waterBalance;
+  final CameraHandoffInfo cameraHandoff;
   final List<SensorConfidence> sensorConfidence;
   final List<SensorTrend> trends;
   final List<SensorFaultInfo> sensorFaults;
@@ -565,6 +657,8 @@ class EdgeIntelligence {
     this.generatedOnDevice = false,
     this.degradedAnalysis = false,
     this.degradedReason,
+    this.degradedReasons = const [],
+    this.analysisQuality,
     this.rootCause = const RootCauseAnalysis(),
     this.recovery = const RecoveryInfo(),
     this.bioelectric = const BioelectricIntelligence(),
@@ -576,6 +670,8 @@ class EdgeIntelligence {
     this.baseline = const PlantBaselineInfo(),
     this.stressEvidence = const StressEvidence(),
     this.derivedEnvironment = const DerivedEnvironmentInfo(),
+    this.waterBalance = const WaterBalanceInfo(),
+    this.cameraHandoff = const CameraHandoffInfo(),
     this.sensorConfidence = const [],
     this.trends = const [],
     this.sensorFaults = const [],
@@ -593,12 +689,20 @@ class EdgeIntelligence {
   bool get hasAuthoritativeAnalysis =>
       capabilities.edgeDecision ||
       generatedOnDevice ||
+      healthScore != null ||
+      overallConfidence != null ||
       recommendation != null ||
       decisionExplanation != null ||
       plantState != null ||
       rootCause.hasAny ||
       bioelectric.farmerResult != null ||
-      bioticStress.hasData;
+      bioticStress.hasData ||
+      cameraHandoff.hasData;
+
+  /// Camera inspection is shown only when the ESP32 explicitly recommends it
+  /// or reports its own POSSIBLE_BIOTIC_STRESS state.
+  bool get cameraInspectionRecommended =>
+      cameraHandoff.recommended == true || bioticStress.suspected;
 
   factory EdgeIntelligence.fromPayload({
     required Map<String, dynamic> root,
@@ -631,6 +735,8 @@ class EdgeIntelligence {
     final bioelectricMap = _firstMap([
       edge['bioelectric'],
       data['bioelectric'],
+      edge['bio'],
+      data['bio'],
       plantHealth['bioelectric'],
       _map(data['readings'])['bioelectric'],
     ]);
@@ -683,6 +789,16 @@ class EdgeIntelligence {
       data['derivedEnvironment'],
       data['derived'],
     ]);
+    final waterBalanceMap = _firstMap([
+      edge['waterBalance'],
+      data['waterBalance'],
+      plantHealth['waterBalance'],
+    ]);
+    final cameraHandoffMap = _firstMap([
+      edge['cameraHandoff'],
+      data['cameraHandoff'],
+      plantHealth['cameraHandoff'],
+    ]);
     final irrigationMap = _firstMap([
       edge['irrigation'],
       edge['irrigationEvent'],
@@ -714,8 +830,10 @@ class EdgeIntelligence {
 
     final healthScore = _num(_first([
       edge['healthScore'],
+      edge['healthIndex'],
       edge['health'],
       data['healthScore'],
+      data['healthIndex'],
       data['health'],
       plantHealth['score'],
       plantHealth['index'],
@@ -747,14 +865,18 @@ class EdgeIntelligence {
     ]));
     final recommendation = _text(_first([
       edge['recommendation'],
+      edge['farmerAction'],
       edge['primaryAction'],
       data['recommendation'],
+      data['farmerAction'],
       data['primaryAction'],
       decision['action'],
     ]));
     final explanation = _text(_first([
       edge['decisionExplanation'],
+      edge['because'],
       data['decisionExplanation'],
+      data['because'],
       data['explanation'],
       decision['because'],
     ]));
@@ -763,6 +885,8 @@ class EdgeIntelligence {
       data['farmerSummary'],
       decision['farmerFriendly'],
       decision['finding'],
+      edge['mainFinding'],
+      data['mainFinding'],
       data['primaryFinding'],
       bioelectricMap['farmerResult'],
       bioticStressMap['farmerResult'],
@@ -817,13 +941,19 @@ class EdgeIntelligence {
     final secondaryCandidate = _rootCauseCandidate(
       _first([rootCauseMap['secondary'], rootCauseMap['secondaryCause']]),
     );
-    final rankedCandidates = _parseRootCauseCandidates(rootCauseMap['ranked']);
+    final rankedCandidates = _parseRootCauseCandidates(_first([
+      rootCauseMap['ranked'],
+      rootCauseMap['causes'],
+      edge['rootCauses'],
+      data['rootCauses'],
+    ]));
     final rootCause = RootCauseAnalysis(
       primary: primaryCandidate?.name ?? _text(_first([
         rootCauseMap['primary'],
         rootCauseMap['primaryCause'],
         edge['primaryCause'],
         data['primaryCause'],
+        data['rootCausePrimary'],
         data['primaryFinding'],
       ])),
       secondary: secondaryCandidate?.name ?? _text(_first([
@@ -831,12 +961,15 @@ class EdgeIntelligence {
         rootCauseMap['secondaryCause'],
         edge['secondaryCause'],
         data['secondaryCause'],
+        data['secondaryCause1'],
+        data['rootCauseSecondary'],
       ])),
       additionalContributor: _text(_first([
         rootCauseMap['additionalContributor'],
         rootCauseMap['contributor'],
         edge['additionalContributor'],
         data['additionalContributor'],
+        data['secondaryCause2'],
       ])),
       primaryCandidate: primaryCandidate,
       secondaryCandidate: secondaryCandidate,
@@ -903,41 +1036,133 @@ class EdgeIntelligence {
 
 
     final bioelectric = BioelectricIntelligence(
-      available: _bool(bioelectricMap['available']),
-      voltageMv: _num(bioelectricMap['voltageMv']),
-      baselineMv: _num(bioelectricMap['baselineMv']),
+      available: _bool(_first([
+        bioelectricMap['available'],
+        edge['bioAvailable'],
+        data['bioAvailable'],
+      ])),
+      voltageMv: _num(_first([
+        bioelectricMap['voltageMv'],
+        bioelectricMap['plantVoltageMv'],
+        edge['bioVoltageMv'],
+        data['bioVoltageMv'],
+        data['plantVoltageMv'],
+      ])),
+      baselineMv: _num(_first([
+        bioelectricMap['baselineMv'],
+        edge['bioBaselineMv'],
+        data['bioBaselineMv'],
+      ])),
       signedChangeMv: _num(_first([
         bioelectricMap['signedChangeMv'],
         bioelectricMap['signedChange'],
       ])),
-      deviationMv: _num(bioelectricMap['deviationMv']),
+      deviationMv: _num(_first([
+        bioelectricMap['deviationMv'],
+        edge['bioDeviationMv'],
+        data['bioDeviationMv'],
+      ])),
       normalizedDeviation: _num(_first([
         bioelectricMap['normalizedDeviation'],
         bioelectricMap['deviationPercent'],
         bioelectricMap['normalizedDeviationPercent'],
+        edge['bioDeviationPercent'],
+        data['bioDeviationPercent'],
+        data['bioelectricDeviationPercent'],
       ])),
       noiseMv: _num(_first([
         bioelectricMap['noiseMv'],
         bioelectricMap['noise'],
+        edge['bioNoiseMv'],
+        data['bioNoiseMv'],
       ])),
       signalQuality: _percent(_first([
         bioelectricMap['signalQuality'],
         bioelectricMap['signalQualityPercent'],
+        edge['bioSignalQuality'],
+        data['bioSignalQuality'],
       ])),
       signalQualityState: _text(_first([
         bioelectricMap['signalQualityState'],
         bioelectricMap['qualityState'],
+        edge['bioSignalQualityState'],
+        data['bioSignalQualityState'],
       ])),
-      confidence: _percent(bioelectricMap['confidence']),
-      trend: _text(bioelectricMap['trend']),
-      stressScore: _percent(bioelectricMap['stressScore']),
-      stressState: _text(bioelectricMap['stressState']),
+      confidence: _percent(_first([
+        bioelectricMap['confidence'],
+        edge['bioConfidence'],
+        data['bioConfidence'],
+      ])),
+      trend: _text(_first([
+        bioelectricMap['trend'],
+        edge['bioTrend'],
+        data['bioTrend'],
+      ])),
+      stressScore: _percent(_first([
+        bioelectricMap['stressScore'],
+        edge['bioStressScore'],
+        data['bioStressScore'],
+      ])),
+      stressState: _text(_first([
+        bioelectricMap['stressState'],
+        bioelectricMap['state'],
+        edge['bioState'],
+        data['bioState'],
+      ])),
       persistenceSeconds: _num(_first([
         bioelectricMap['persistenceSeconds'],
         bioelectricMap['persistentSeconds'],
       ])),
-      stressLoad: _num(bioelectricMap['stressLoad']),
-      stressLoadState: _text(bioelectricMap['stressLoadState']),
+      stressLoad: _num(_first([
+        bioelectricMap['stressLoad'],
+        edge['bioStressLoad'],
+        data['bioStressLoad'],
+      ])),
+      stressLoadState: _text(_first([
+        bioelectricMap['stressLoadState'],
+        edge['bioStressLoadState'],
+        data['bioStressLoadState'],
+      ])),
+      baselineReady: _bool(_first([
+        bioelectricMap['baselineReady'],
+        edge['bioBaselineReady'],
+        data['bioBaselineReady'],
+        data['baselineReady'],
+      ])),
+      baselineSamples: _int(_first([
+        bioelectricMap['baselineSamples'],
+        bioelectricMap['samples'],
+        edge['bioBaselineSamples'],
+        data['bioBaselineSamples'],
+      ])),
+      baselineTarget: _int(_first([
+        bioelectricMap['baselineTarget'],
+        bioelectricMap['targetSamples'],
+        edge['bioBaselineTarget'],
+        data['bioBaselineTarget'],
+      ])),
+      zScore: _num(_first([
+        bioelectricMap['zScore'],
+        bioelectricMap['zscore'],
+        edge['bioZScore'],
+        data['bioZScore'],
+      ])),
+      spanMv: _num(_first([
+        bioelectricMap['spanMv'],
+        edge['bioSpanMv'],
+        data['bioSpanMv'],
+      ])),
+      includedInFusion: _bool(_first([
+        bioelectricMap['includedInFusion'],
+        bioelectricMap['usedInFusion'],
+        edge['bioIncludedInFusion'],
+        data['bioIncludedInFusion'],
+      ])),
+      interpretation: _text(_first([
+        bioelectricMap['interpretation'],
+        edge['bioInterpretation'],
+        data['bioInterpretation'],
+      ])),
       baselineLearningPaused: _bool(_first([
         bioelectricMap['baselineLearningPaused'],
         bioelectricMap['learningPaused'],
@@ -950,7 +1175,11 @@ class EdgeIntelligence {
       ])),
       corroborated: _bool(bioelectricMap['corroborated']),
       corroboratedBy: _strings(bioelectricMap['corroboratedBy']),
-      farmerResult: _text(bioelectricMap['farmerResult']),
+      farmerResult: _text(_first([
+        bioelectricMap['farmerResult'],
+        edge['bioFarmerResult'],
+        data['bioFarmerResult'],
+      ])),
     );
 
     final bioticStress = BioticStressInfo(
@@ -1161,6 +1390,64 @@ class EdgeIntelligence {
         edge['airDryingDemand'],
         data['airDryingDemand'],
       ])),
+      vpdState: _text(_first([
+        derivedMap['vpdState'],
+        edge['vpdState'],
+        data['vpdState'],
+      ])),
+      dryingDemandState: _text(_first([
+        derivedMap['airDryingDemandState'],
+        derivedMap['dryingDemandState'],
+        edge['airDryingDemandState'],
+        data['airDryingDemandState'],
+      ])),
+    );
+
+    final waterBalance = WaterBalanceInfo(
+      state: _text(_first([
+        waterBalanceMap['state'],
+        waterBalanceMap['status'],
+        edge['waterBalanceState'],
+        data['waterBalanceState'],
+      ])),
+      score: _percent(_first([
+        waterBalanceMap['score'],
+        waterBalanceMap['index'],
+        edge['waterBalanceScore'],
+        data['waterBalanceScore'],
+      ])),
+      explanation: _text(_first([
+        waterBalanceMap['explanation'],
+        waterBalanceMap['farmerResult'],
+        edge['waterBalanceExplanation'],
+        data['waterBalanceExplanation'],
+      ])),
+    );
+
+    final cameraHandoff = CameraHandoffInfo(
+      recommended: _bool(_first([
+        cameraHandoffMap['recommended'],
+        cameraHandoffMap['cameraScanRecommended'],
+        edge['cameraScanRecommended'],
+        data['cameraScanRecommended'],
+        plantHealth['cameraScanRecommended'],
+      ])),
+      reason: _text(_first([
+        cameraHandoffMap['reason'],
+        edge['cameraScanReason'],
+        data['cameraScanReason'],
+      ])),
+      recommendation: _text(_first([
+        cameraHandoffMap['recommendation'],
+        cameraHandoffMap['action'],
+        edge['cameraRecommendation'],
+        data['cameraRecommendation'],
+      ])),
+      crop: _text(_first([
+        cameraHandoffMap['crop'],
+        edge['cameraCrop'],
+        data['cameraCrop'],
+      ])),
     );
 
     final irrigation = IrrigationEvent(
@@ -1201,6 +1488,13 @@ class EdgeIntelligence {
         cropMap['growthStage'],
         edge['growthStage'],
         data['growthStage'],
+      ])),
+      regionProfile: _text(_first([
+        cropMap['regionProfile'],
+        cropMap['region'],
+        edge['regionProfile'],
+        data['regionProfile'],
+        data['region'],
       ])),
       supportedProfiles: _strings(_first([
         cropMap['supportedProfiles'],
@@ -1276,6 +1570,20 @@ class EdgeIntelligence {
       qualityMap['reason'],
       qualityMap['degradedReason'],
     ]));
+    final degradedReasons = _strings(_first([
+      qualityMap['degradedReasons'],
+      qualityMap['reasons'],
+      edge['degradedReasons'],
+      data['degradedReasons'],
+      degradedReason,
+    ]));
+    final analysisQuality = _text(_first([
+      qualityMap['label'],
+      qualityMap['level'],
+      qualityMap['state'],
+      if (data['analysisQuality'] is! Map) data['analysisQuality'],
+      if (edge['analysisQuality'] is! Map) edge['analysisQuality'],
+    ]));
     final generatedOnDevice = _bool(_first([
           decision['generatedOnDevice'],
           edge['generatedOnDevice'],
@@ -1324,6 +1632,8 @@ class EdgeIntelligence {
       generatedOnDevice: generatedOnDevice,
       degradedAnalysis: degraded,
       degradedReason: degradedReason,
+      degradedReasons: degradedReasons,
+      analysisQuality: analysisQuality,
       rootCause: rootCause,
       recovery: recovery,
       bioelectric: bioelectric,
@@ -1335,6 +1645,8 @@ class EdgeIntelligence {
       baseline: baseline,
       stressEvidence: stressEvidence,
       derivedEnvironment: derived,
+      waterBalance: waterBalance,
+      cameraHandoff: cameraHandoff,
       sensorConfidence: sensorConfidence,
       trends: trends,
       sensorFaults: faults,

@@ -61,6 +61,21 @@ class FarmerAnalysisScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 10),
                   ],
+                  if (edge?.cameraInspectionRecommended == true &&
+                      edge?.bioticStress.suspected != true) ...[
+                    _CameraRecommendationCard(
+                      edge: edge!,
+                      onScan: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const LeafScreeningScreen(
+                            sensorPrompt: true,
+                          ),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                  ],
                   _AnswerCard(
                     icon: Icons.eco_rounded,
                     title: FarmerLanguage.label(context, 'plant_condition'),
@@ -181,6 +196,52 @@ class FarmerAnalysisScreen extends StatelessWidget {
         ? FarmerLanguage.label(context, 'why_unavailable')
         : reasons.join('. ');
   }
+}
+
+class _CameraRecommendationCard extends StatelessWidget {
+  final EdgeIntelligence edge;
+  final VoidCallback onScan;
+
+  const _CameraRecommendationCard({required this.edge, required this.onScan});
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                FarmerLanguage.label(context, 'visual_inspection_recommended'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                FarmerLanguage.firmware(
+                  context,
+                  edge.cameraHandoff.reason ??
+                      edge.cameraHandoff.recommendation,
+                  fallback: FarmerLanguage.label(
+                    context,
+                    'visual_inspection_body',
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: onScan,
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: Text(
+                    FarmerLanguage.label(context, 'scan_plant_camera'),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
 }
 
 class _AnswerCard extends StatelessWidget {
@@ -354,6 +415,10 @@ class _AdvancedDetails extends StatelessWidget {
             _Row('Crop profile', edge!.cropProfile.profile!),
           if (edge?.cropProfile.growthStage != null)
             _Row('Growth stage', edge!.cropProfile.growthStage!),
+          if (edge?.cropProfile.regionProfile != null)
+            _Row('Region profile', edge!.cropProfile.regionProfile!),
+          if (edge?.analysisQuality != null)
+            _Row('Analysis quality', edge!.analysisQuality!),
           if (edge?.rootCause.primary != null)
             _Row('Primary cause', edge!.rootCause.primary!),
           if (edge?.rootCause.primaryCandidate?.confidence != null)
@@ -384,6 +449,8 @@ class _AdvancedDetails extends StatelessWidget {
             ),
           if (edge?.degradedReason != null)
             _Row('Reduced-confidence reason', edge!.degradedReason!),
+          if (edge?.degradedReasons.isNotEmpty == true)
+            _Row('Reduced-confidence reasons', edge!.degradedReasons.join(' • ')),
           if (edge?.derivedEnvironment.vpdKpa != null)
             _Row(
               'VPD',
@@ -409,6 +476,48 @@ class _AdvancedDetails extends StatelessWidget {
             _Row('Stress load', bio!.stressLoad!.toStringAsFixed(1)),
           if (bio?.signalQualityState != null)
             _Row('Signal quality state', bio!.signalQualityState!),
+          if (bio?.baselineReady != null)
+            _Row('Baseline ready', bio!.baselineReady! ? 'Yes' : 'No'),
+          if (bio?.baselineSamples != null)
+            _Row(
+              'Baseline samples',
+              bio!.baselineTarget == null
+                  ? '${bio.baselineSamples}'
+                  : '${bio.baselineSamples}/${bio.baselineTarget}',
+            ),
+          if (bio?.zScore != null)
+            _Row('Bio z-score', bio!.zScore!.toStringAsFixed(2)),
+          if (bio?.spanMv != null)
+            _Row('Bio span', '${bio!.spanMv!.toStringAsFixed(1)} mV'),
+          if (bio?.includedInFusion != null)
+            _Row(
+              'Included in firmware fusion',
+              bio!.includedInFusion! ? 'Yes' : 'No',
+            ),
+          if (edge?.waterBalance.hasData == true) ...[
+            const Divider(height: 24),
+            if (edge!.waterBalance.state != null)
+              _Row('Water balance state', edge!.waterBalance.state!),
+            if (edge!.waterBalance.score != null)
+              _Row(
+                'Water balance score',
+                '${edge!.waterBalance.score!.round()} / 100',
+              ),
+            if (edge!.waterBalance.explanation != null)
+              _Row(
+                'Water balance explanation',
+                edge!.waterBalance.explanation!,
+              ),
+          ],
+          if (edge?.cameraHandoff.hasData == true) ...[
+            const Divider(height: 24),
+            _Row(
+              'Camera scan recommended',
+              edge!.cameraHandoff.recommended == true ? 'Yes' : 'No',
+            ),
+            if (edge!.cameraHandoff.reason != null)
+              _Row('Camera handoff reason', edge!.cameraHandoff.reason!),
+          ],
           if (edge?.bioticStress.hasData == true) ...[
             const Divider(height: 24),
             _Row(

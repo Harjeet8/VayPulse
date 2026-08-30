@@ -199,4 +199,101 @@ void main() {
     expect(vpd?.result, 'HIGH DRYING DEMAND');
     expect(vpd?.contribution, 'Increasing atmospheric water demand');
   });
+
+  test('ESP32 v8.7.1 structured intelligence remains authoritative', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'schemaVersion': 8,
+        'healthIndex': 91,
+        'plantState': 'HEALTHY',
+        'priority': 'WATCH',
+        'mainFinding': 'No major stress detected',
+        'farmerAction': 'Continue monitoring',
+        'because': 'The active sensors remain within the crop profile.',
+        'crop': <String, dynamic>{
+          'name': 'Hibiscus',
+          'stage': 'Flowering',
+          'regionProfile': 'Tamil Nadu warm season',
+        },
+        'analysisQuality': <String, dynamic>{
+          'level': 'REDUCED',
+          'degraded': true,
+          'reasons': <String>['Humidity sensor unavailable'],
+        },
+        'bio': <String, dynamic>{
+          'available': true,
+          'state': 'LEARNING_BASELINE',
+          'baselineReady': false,
+          'baselineSamples': 32,
+          'baselineTarget': 120,
+          'zScore': 0.4,
+          'spanMv': 19.2,
+          'signalQuality': 93,
+          'includedInFusion': true,
+        },
+        'waterBalance': <String, dynamic>{
+          'state': 'BALANCED',
+          'score': 88,
+        },
+        'cameraHandoff': <String, dynamic>{
+          'recommended': false,
+          'reason': 'No visual inspection required',
+        },
+      },
+      firmwareVersion: '8.7.1-MEGA-FINAL',
+    );
+
+    expect(edge.hasAuthoritativeAnalysis, isTrue);
+    expect(edge.healthScore, 91);
+    expect(edge.plantState, 'HEALTHY');
+    expect(edge.urgency, 'WATCH');
+    expect(edge.farmerSummary, 'No major stress detected');
+    expect(edge.recommendation, 'Continue monitoring');
+    expect(edge.cropProfile.profile, 'Hibiscus');
+    expect(edge.cropProfile.regionProfile, 'Tamil Nadu warm season');
+    expect(edge.degradedAnalysis, isTrue);
+    expect(edge.degradedReasons, contains('Humidity sensor unavailable'));
+    expect(edge.bioelectric.learningBaseline, isTrue);
+    expect(edge.bioelectric.baselineSamples, 32);
+    expect(edge.bioelectric.baselineTarget, 120);
+    expect(edge.bioelectric.includedInFusion, isTrue);
+    expect(edge.waterBalance.state, 'BALANCED');
+    expect(edge.cameraInspectionRecommended, isFalse);
+  });
+
+  test('flat v8.7.1 aliases and bad-signal fail-safe parse safely', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'plantState': 'WATCH',
+        'bioState': 'BAD_CONTACT',
+        'bioStressScore': 94,
+        'bioSignalQuality': 12,
+        'bioIncludedInFusion': false,
+        'cameraScanRecommended': true,
+        'cameraScanReason': 'Inspect visible symptoms',
+      },
+      firmwareVersion: '8.7.1-MEGA-FINAL',
+    );
+
+    expect(edge.bioelectric.stressState, 'BAD_CONTACT');
+    expect(edge.bioelectric.stressScore, 94);
+    expect(edge.bioelectric.excludedByFirmware, isTrue);
+    expect(edge.cameraInspectionRecommended, isTrue);
+    expect(edge.cameraHandoff.reason, 'Inspect visible symptoms');
+  });
+
+  test('older firmware may omit all v8.7.1 additions without crashing', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{'temperature': 28},
+      firmwareVersion: '5.4',
+    );
+
+    expect(edge.healthScore, isNull);
+    expect(edge.cameraInspectionRecommended, isFalse);
+    expect(edge.waterBalance.hasData, isFalse);
+    expect(edge.bioelectric.excludedByFirmware, isFalse);
+  });
 }

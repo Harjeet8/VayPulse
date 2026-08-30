@@ -67,7 +67,7 @@ class Esp32Client {
     final originalData = root['data'] is Map
         ? Map<String, dynamic>.from(root['data'] as Map)
         : Map<String, dynamic>.from(root);
-    final data = _normalizeV62(originalData);
+    final data = _normalizeFirmwarePayload(originalData);
 
     final readings = _map(data['readings']);
     final air = _map(readings['air']);
@@ -332,17 +332,26 @@ class Esp32Client {
     );
   }
 
-  static Map<String, dynamic> _normalizeV62(Map<String, dynamic> input) {
+  /// Normalizes both nested ESP32 v8.7.1 payloads and older flat payloads.
+  /// This does not infer plant intelligence; it only preserves firmware data
+  /// under stable keys used by the Flutter models.
+  static Map<String, dynamic> _normalizeFirmwarePayload(
+      Map<String, dynamic> input) {
     final data = Map<String, dynamic>.from(input);
     final environment = _map(data['environment']);
     final rootZone = _map(data['rootZone']);
     final leafTop = _map(data['leaf']);
-    final bioTop = _map(data['bioelectric']);
+    final bioTop = _firstNonEmptyMap([data['bioelectric'], data['bio']]);
     final cropTop = _map(data['crop']);
     final qualityTop = _map(data['analysisQuality']);
     final diseaseTop = _map(data['diseaseRisk']);
     final recoveryTop = _map(data['recovery']);
     final predictionTop = _map(data['prediction']);
+
+    data['healthScore'] ??= data['healthIndex'];
+    data['primaryFinding'] ??= data['mainFinding'];
+    data['primaryAction'] ??= data['farmerAction'];
+    data['decisionExplanation'] ??= data['because'];
 
     if (environment.isNotEmpty) {
       data['airTemperatureC'] ??=
@@ -387,7 +396,17 @@ class Esp32Client {
       data['plantVoltageMv'] ??= bioTop['voltageMv'];
       data['bioBaselineMv'] ??= bioTop['baselineMv'];
       data['bioelectricDeviationPercent'] ??= bioTop['deviationPercent'];
-      data['bioSignalQuality'] ??= bioTop['confidence'];
+      data['bioSignalQuality'] ??=
+          _first([bioTop['signalQuality'], bioTop['confidence']]);
+      data['bioBaselineSamples'] ??=
+          _first([bioTop['baselineSamples'], bioTop['samples']]);
+      data['bioBaselineTarget'] ??=
+          _first([bioTop['baselineTarget'], bioTop['targetSamples']]);
+      data['bioBaselineReady'] ??= bioTop['baselineReady'];
+      data['bioState'] ??= _first([bioTop['state'], bioTop['stressState']]);
+      data['bioStressScore'] ??= bioTop['stressScore'];
+      data['bioIncludedInFusion'] ??=
+          _first([bioTop['includedInFusion'], bioTop['usedInFusion']]);
       data['adaptiveBaselineStatus'] ??= bioTop['baselineStatus'];
       if (!data.containsKey('baselineReady')) {
         data['baselineReady'] = '${bioTop['baselineStatus'] ?? ''}'.toUpperCase() == 'READY';
@@ -403,6 +422,8 @@ class Esp32Client {
       data['cropProfile'] ??= cropProfile;
       data['cropProfileName'] ??= _first([cropTop['name'], cropTop['id']]);
       data['growthStage'] ??= _first([cropTop['stage'], cropTop['growthStage']]);
+      data['regionProfile'] ??=
+          _first([cropTop['regionProfile'], cropTop['region']]);
     }
 
     if (qualityTop.isNotEmpty) {
@@ -412,6 +433,8 @@ class Esp32Client {
       data['analysisQuality'] = quality;
       data['degradedMode'] ??= qualityTop['degraded'];
       data['degradedReason'] ??= qualityTop['reason'];
+      data['degradedReasons'] ??=
+          _first([qualityTop['degradedReasons'], qualityTop['reasons']]);
     }
 
     if (diseaseTop.isNotEmpty) {
@@ -422,6 +445,17 @@ class Esp32Client {
 
     if (data['explanation'] != null) {
       data['decisionExplanation'] ??= data['explanation'];
+    }
+
+    final cameraHandoff = _map(data['cameraHandoff']);
+    if (cameraHandoff.isNotEmpty) {
+      data['cameraScanRecommended'] ??= _first([
+        cameraHandoff['recommended'],
+        cameraHandoff['cameraScanRecommended'],
+      ]);
+      data['cameraScanReason'] ??= cameraHandoff['reason'];
+      data['cameraRecommendation'] ??=
+          _first([cameraHandoff['recommendation'], cameraHandoff['action']]);
     }
 
     if (recoveryTop.isNotEmpty && recoveryTop['durationMinutes'] != null) {
@@ -523,9 +557,15 @@ class Esp32Client {
       ]),
       'signalQuality': _first([
         bio['signalQuality'],
+        bioTop['signalQuality'],
         bioTop['confidence'],
       ]),
-      'baselineReady': data['baselineReady'],
+      'baselineReady': _first([
+        bio['baselineReady'],
+        bioTop['baselineReady'],
+        data['bioBaselineReady'],
+        data['baselineReady'],
+      ]),
     };
 
     data['readings'] = <String, dynamic>{

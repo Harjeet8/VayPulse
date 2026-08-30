@@ -212,11 +212,38 @@ class LiveSensorsScreen extends StatelessWidget {
                       ),
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'analysis_quality'),
-                        value: telemetry?.analysisQuality,
+                        value: edge?.analysisQuality ?? telemetry?.analysisQuality,
                         result: edge?.degradedAnalysis == true
                             ? 'DEGRADED'
-                            : telemetry?.analysisQuality,
+                            : edge?.analysisQuality ?? telemetry?.analysisQuality,
+                        note: edge?.degradedReasons.isNotEmpty == true
+                            ? edge!.degradedReasons.join(' • ')
+                            : edge?.degradedReason,
                       ),
+                      if (edge?.cropProfile.regionProfile != null)
+                        _DerivedCard(
+                          title: 'Region profile',
+                          value: edge!.cropProfile.regionProfile,
+                          result: edge.cropProfile.regionProfile,
+                        ),
+                      if (edge?.waterBalance.hasData == true)
+                        _DerivedCard(
+                          title: 'Water balance',
+                          value: edge!.waterBalance.score == null
+                              ? edge.waterBalance.state
+                              : '${edge.waterBalance.score!.round()} / 100',
+                          result: edge.waterBalance.state,
+                          note: edge.waterBalance.explanation,
+                        ),
+                      if (edge?.cameraHandoff.hasData == true)
+                        _DerivedCard(
+                          title: 'Camera handoff',
+                          value: edge!.cameraHandoff.recommended == true
+                              ? 'RECOMMENDED'
+                              : 'NOT RECOMMENDED',
+                          result: edge.cameraHandoff.reason,
+                          note: edge.cameraHandoff.recommendation,
+                        ),
                       if (edge?.compoundStress.hasData == true)
                         _DerivedCard(
                           title: 'Compound stress',
@@ -483,8 +510,9 @@ class _BioelectricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bio = edge?.bioelectric;
     final detail = telemetry?.sensor('plantSignal');
-    final available = bio?.available ??
-        (reading.plantSignalAvailable && reading.plantVoltageMv != null);
+    final available = !(bio?.excludedByFirmware ?? false) &&
+        (bio?.available ??
+            (reading.plantSignalAvailable && reading.plantVoltageMv != null));
     final result = available
         ? FarmerLanguage.firmware(
             context,
@@ -607,6 +635,29 @@ class _BioelectricCard extends StatelessWidget {
                   _Technical('Stress load state', bio!.stressLoadState!),
                 if (bio?.stressLoad != null)
                   _Technical('Stress load', bio!.stressLoad!.toStringAsFixed(1)),
+                if (bio?.baselineReady != null)
+                  _Technical(
+                    'Baseline ready',
+                    bio!.baselineReady! ? 'Yes' : 'No',
+                  ),
+                if (bio?.baselineSamples != null)
+                  _Technical(
+                    'Baseline samples',
+                    bio!.baselineTarget == null
+                        ? '${bio.baselineSamples}'
+                        : '${bio.baselineSamples}/${bio.baselineTarget}',
+                  ),
+                if (bio?.zScore != null)
+                  _Technical('Z-score', bio!.zScore!.toStringAsFixed(2)),
+                if (bio?.spanMv != null)
+                  _Technical('Signal span', '${bio!.spanMv!.toStringAsFixed(1)} mV'),
+                if (bio?.includedInFusion != null)
+                  _Technical(
+                    'Included in fusion',
+                    bio!.includedInFusion! ? 'Yes' : 'No',
+                  ),
+                if (bio?.interpretation != null)
+                  _Technical('Firmware interpretation', bio!.interpretation!),
                 if (bio?.baselineLearningPaused != null)
                   _Technical(
                     'Baseline learning',
@@ -631,8 +682,11 @@ class _BioelectricCard extends StatelessWidget {
 }
 
 String _bioState(BuildContext context, BioelectricIntelligence? bio) {
-  if (bio == null || bio.available == false) {
+  if (bio == null || bio.excludedByFirmware) {
     return FarmerLanguage.label(context, 'signal_unavailable');
+  }
+  if (bio.learningBaseline) {
+    return FarmerLanguage.label(context, 'learning_baseline');
   }
   final state = bio.stressState?.toUpperCase() ?? '';
   if (state.contains('RECOVER')) return FarmerLanguage.label(context, 'recovering');

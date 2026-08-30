@@ -74,7 +74,8 @@ class MultimodalDiseaseService {
     final visiblyBalanced = visual.riskKey == 'leaf_result_low_risk' &&
         brown < 0.07 &&
         yellow < 0.14 &&
-        green >= 0.2;
+        green >= 0.2 &&
+        !symptoms.hasPositiveObservation;
     if (visiblyBalanced) {
       return DiseaseAssessment(
         crop: crop,
@@ -103,7 +104,8 @@ class MultimodalDiseaseService {
     )..sort((a, b) => b.matchScore.compareTo(a.matchScore));
 
     final evidence = <String>['disease_evidence_camera'];
-    if (cropName.contains('tomato') && symptoms.hasAnswers) {
+    if ((cropName.contains('tomato') || cropName.contains('hibiscus')) &&
+        symptoms.hasAnswers) {
       evidence.add('disease_evidence_farmer_observations');
     }
 
@@ -197,6 +199,44 @@ class MultimodalDiseaseService {
           reason: 'disease_tomato_leaf_curl_reason',
           inspect: 'disease_tomato_leaf_curl_inspect',
           score: 10 + yellow * 70 + (curling ? 40 : 0) + (whiteflies ? 34 : 0),
+        ),
+      ];
+    }
+
+    if (crop.contains('hibiscus')) {
+      final whiteflies = symptoms.whitefliesPresent == FieldObservation.yes;
+      final mealybugs = symptoms.mealybugsPresent == FieldObservation.yes;
+      final aphids = symptoms.aphidsPresent == FieldObservation.yes;
+      final spots = symptoms.visibleSpotting == FieldObservation.yes;
+      final damage = symptoms.surfaceDamage == FieldObservation.yes;
+      return [
+        _candidate(
+          name: 'disease_hibiscus_whitefly',
+          category: 'disease_category_pest',
+          reason: 'disease_hibiscus_whitefly_reason',
+          inspect: 'disease_hibiscus_whitefly_inspect',
+          score: 8 + yellow * 42 + (whiteflies ? 58 : 0),
+        ),
+        _candidate(
+          name: 'disease_hibiscus_mealybug',
+          category: 'disease_category_pest',
+          reason: 'disease_hibiscus_mealybug_reason',
+          inspect: 'disease_hibiscus_mealybug_inspect',
+          score: 8 + (1 - green) * 24 + (mealybugs ? 62 : 0),
+        ),
+        _candidate(
+          name: 'disease_hibiscus_aphid',
+          category: 'disease_category_pest',
+          reason: 'disease_hibiscus_aphid_reason',
+          inspect: 'disease_hibiscus_aphid_inspect',
+          score: 8 + yellow * 35 + (aphids ? 60 : 0),
+        ),
+        _candidate(
+          name: 'disease_hibiscus_visible_symptom',
+          category: 'disease_category_fungal',
+          reason: 'disease_hibiscus_visible_symptom_reason',
+          inspect: 'disease_hibiscus_visible_symptom_inspect',
+          score: 8 + brown * 56 + (spots ? 38 : 0) + (damage ? 26 : 0),
         ),
       ];
     }

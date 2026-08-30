@@ -93,8 +93,10 @@ class AppStrings {
       'area_acres': '{value} acres',
       'crop': 'Crop',
       'crop_stage': 'Crop stage',
+      'crop_universal': 'Universal',
       'crop_rice': 'Rice',
       'crop_tomato': 'Tomato',
+      'crop_hibiscus': 'Hibiscus',
       'crop_maize': 'Maize',
       'crop_groundnut': 'Groundnut',
       'crop_cotton': 'Cotton',
@@ -103,6 +105,7 @@ class AppStrings {
       'crop_coconut': 'Coconut',
       'crop_brinjal': 'Brinjal',
       'crop_chilli': 'Chilli',
+      'crop_okra': 'Okra',
       'stage_tillering': 'Tillering',
       'stage_flowering': 'Flowering',
       'stage_fruit_set': 'Fruit set',
@@ -688,6 +691,40 @@ class AppStrings {
           'Are young leaves curling, twisting or becoming unusually small?',
       'tomato_question_whiteflies':
           'Are tiny whiteflies visible under the leaves?',
+      'hibiscus_symptoms_title': 'Hibiscus visual symptom check',
+      'hibiscus_symptoms_body':
+          'Answer only from signs you can see. These observations guide a possible visual match; they do not confirm a pest or disease.',
+      'hibiscus_question_whiteflies':
+          'Are tiny white insects visible under the leaves?',
+      'hibiscus_question_mealybugs':
+          'Are white cotton-like clusters visible on stems or leaf joints?',
+      'hibiscus_question_aphids':
+          'Are small clustered insects visible on new growth or buds?',
+      'hibiscus_question_spots':
+          'Are repeated spots or unusual discoloured patches visible?',
+      'hibiscus_question_damage':
+          'Is there visible surface damage, curling or sticky residue?',
+      'disease_hibiscus_whitefly': 'Possible whitefly-like insects',
+      'disease_hibiscus_whitefly_reason':
+          'The visible yellowing and your observation of tiny white insects are consistent with possible whitefly activity.',
+      'disease_hibiscus_whitefly_inspect':
+          'Inspect several leaf undersides and confirm live insects before treatment.',
+      'disease_hibiscus_mealybug': 'Possible mealybug-like insects',
+      'disease_hibiscus_mealybug_reason':
+          'Your observation of white cotton-like clusters is consistent with possible mealybug activity.',
+      'disease_hibiscus_mealybug_inspect':
+          'Check stems, buds and leaf joints for clustered insects and confirm before treatment.',
+      'disease_hibiscus_aphid': 'Possible aphid-like insects',
+      'disease_hibiscus_aphid_reason':
+          'Your observation of clustered insects on tender growth is consistent with possible aphid activity.',
+      'disease_hibiscus_aphid_inspect':
+          'Check new shoots and buds closely and compare several parts of the plant.',
+      'disease_hibiscus_visible_symptom':
+          'Possible visible leaf symptom',
+      'disease_hibiscus_visible_symptom_reason':
+          'Visible spots or surface damage may be consistent with a pest or disease symptom, but the cause is uncertain.',
+      'disease_hibiscus_visible_symptom_inspect':
+          'Inspect both sides of several leaves and seek expert confirmation if the damage spreads.',
       'observation_yes': 'Yes',
       'observation_no': 'No',
       'observation_uncertain': 'Not sure',
@@ -1352,8 +1389,10 @@ class AppStrings {
       'area_acres': '{value} ஏக்கர்',
       'crop': 'பயிர்',
       'crop_stage': 'பயிர் நிலை',
+      'crop_universal': 'பொதுவான பயிர்',
       'crop_rice': 'நெல்',
       'crop_tomato': 'தக்காளி',
+      'crop_hibiscus': 'செம்பருத்தி',
       'crop_maize': 'மக்காச்சோளம்',
       'crop_groundnut': 'நிலக்கடலை',
       'crop_cotton': 'பருத்தி',
@@ -1362,6 +1401,7 @@ class AppStrings {
       'crop_coconut': 'தென்னை',
       'crop_brinjal': 'கத்திரிக்காய்',
       'crop_chilli': 'மிளகாய்',
+      'crop_okra': 'வெண்டைக்காய்',
       'stage_tillering': 'தூர் கட்டும் நிலை',
       'stage_flowering': 'பூக்கும் நிலை',
       'stage_fruit_set': 'காய் பிடிக்கும் நிலை',
@@ -1946,6 +1986,40 @@ class AppStrings {
       'tomato_question_leaf_curl':
           'இளம் இலைகள் curl, twist அல்லது மிகவும் சிறியதாக உள்ளதா?',
       'tomato_question_whiteflies': 'இலை கீழ்புறத்தில் tiny whiteflies உள்ளதா?',
+      'hibiscus_symptoms_title': 'செம்பருத்தி காட்சி அறிகுறி ஆய்வு',
+      'hibiscus_symptoms_body':
+          'நீங்கள் நேரில் காணும் அறிகுறிகளுக்கு மட்டும் பதில் அளிக்கவும். இது சாத்தியமான காட்சி பொருத்தத்தை மட்டும் காட்டும்; பூச்சி அல்லது நோயை உறுதி செய்யாது.',
+      'hibiscus_question_whiteflies':
+          'இலைகளின் கீழ்புறத்தில் சிறிய வெள்ளை பூச்சிகள் தெரிகிறதா?',
+      'hibiscus_question_mealybugs':
+          'தண்டு அல்லது இலைச் சந்திப்பில் வெள்ளைப் பஞ்சு போன்ற கூட்டங்கள் தெரிகிறதா?',
+      'hibiscus_question_aphids':
+          'புதிய தளிர்கள் அல்லது மொட்டுகளில் சிறிய பூச்சிக் கூட்டங்கள் தெரிகிறதா?',
+      'hibiscus_question_spots':
+          'மீண்டும் மீண்டும் வரும் புள்ளிகள் அல்லது நிறம் மாறிய பகுதிகள் தெரிகிறதா?',
+      'hibiscus_question_damage':
+          'இலைச் சேதம், சுருண்ட இலை அல்லது ஒட்டும் படலம் தெரிகிறதா?',
+      'disease_hibiscus_whitefly': 'வெள்ளை ஈ போன்ற பூச்சிகள் இருக்கலாம்',
+      'disease_hibiscus_whitefly_reason':
+          'தெரியும் மஞ்சள் நிற மாற்றமும், சிறிய வெள்ளைப் பூச்சிகள் உள்ளதாக நீங்கள் குறிப்பிட்டதும் வெள்ளை ஈ செயல்பாட்டுடன் பொருந்தலாம்.',
+      'disease_hibiscus_whitefly_inspect':
+          'பல இலைகளின் கீழ்புறத்தைப் பார்த்து, சிகிச்சைக்கு முன் உயிருள்ள பூச்சிகளை உறுதி செய்யவும்.',
+      'disease_hibiscus_mealybug': 'மாவுப்பூச்சி போன்ற பூச்சிகள் இருக்கலாம்',
+      'disease_hibiscus_mealybug_reason':
+          'வெள்ளைப் பஞ்சு போன்ற கூட்டங்கள் உள்ளதாக நீங்கள் குறிப்பிட்டது மாவுப்பூச்சி செயல்பாட்டுடன் பொருந்தலாம்.',
+      'disease_hibiscus_mealybug_inspect':
+          'தண்டு, மொட்டு மற்றும் இலைச் சந்திப்புகளைப் பார்த்து, சிகிச்சைக்கு முன் உறுதி செய்யவும்.',
+      'disease_hibiscus_aphid': 'அசுவினி போன்ற பூச்சிகள் இருக்கலாம்',
+      'disease_hibiscus_aphid_reason':
+          'மென்மையான புதிய வளர்ச்சியில் பூச்சிக் கூட்டங்கள் உள்ளதாக நீங்கள் குறிப்பிட்டது அசுவினி செயல்பாட்டுடன் பொருந்தலாம்.',
+      'disease_hibiscus_aphid_inspect':
+          'புதிய தளிர்கள் மற்றும் மொட்டுகளை அருகில் பார்த்து, செடியின் பல பகுதிகளுடன் ஒப்பிடவும்.',
+      'disease_hibiscus_visible_symptom':
+          'இலையில் காணக்கூடிய அறிகுறி இருக்கலாம்',
+      'disease_hibiscus_visible_symptom_reason':
+          'தெரியும் புள்ளிகள் அல்லது மேற்பரப்பு சேதம் பூச்சி அல்லது நோய் அறிகுறியுடன் பொருந்தலாம்; காரணம் இன்னும் உறுதியில்லை.',
+      'disease_hibiscus_visible_symptom_inspect':
+          'பல இலைகளின் இருபுறமும் ஆய்வு செய்யவும்; சேதம் பரவினால் வேளாண் நிபுணரிடம் உறுதி செய்யவும்.',
       'observation_yes': 'ஆம்',
       'observation_no': 'இல்லை',
       'observation_uncertain': 'தெரியவில்லை',

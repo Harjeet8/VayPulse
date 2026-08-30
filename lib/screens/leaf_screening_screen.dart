@@ -46,20 +46,25 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     return crop.contains('tomato');
   }
 
+  bool get _isHibiscus {
+    final crop = selectedCrop?.toLowerCase() ?? '';
+    return crop.contains('hibiscus');
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     if (cropInitialized) return;
     final scope = AppScope.of(context);
     final fieldCrop = scope.farms.selectedField.crop;
-    final hardwareCrop = scope.sensors.hardwareTelemetry?.cropProfile ??
+    final hardwareCrop = scope
+            .sensors.edgeIntelligence?.cameraHandoff.crop ??
+        scope.sensors.hardwareTelemetry?.cropProfile ??
         scope.sensors.edgeIntelligence?.cropProfile.profile;
     final preferredCrop = scope.sensors.source == SensorDataSource.esp32
         ? hardwareCrop ?? fieldCrop
         : fieldCrop;
-    selectedCrop = CropCatalog.supports(preferredCrop)
-        ? CropCatalog.normalize(preferredCrop)
-        : CropCatalog.supported.first.name;
+    selectedCrop = CropCatalog.profileFor(preferredCrop).name;
     cropInitialized = true;
   }
 
@@ -89,17 +94,17 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
         symptomAnswers = const DiseaseSymptomAnswers();
       });
       final scope = AppScope.of(context);
-      final bioticPrompt = widget.sensorPrompt &&
+      final cameraPrompt = widget.sensorPrompt &&
           scope.sensors.source == SensorDataSource.esp32 &&
-          scope.sensors.edgeIntelligence?.bioticStress.suspected == true;
+          scope.sensors.edgeIntelligence?.cameraInspectionRecommended == true;
       final nodeId = scope.sensors.selectedNodeId;
-      if (bioticPrompt) {
+      if (cameraPrompt) {
         await scope.inspectionHistory.recordStarted(nodeId);
         if (!mounted) return;
       }
       final screening = await LeafScreeningService.analyze(bytes);
       if (!mounted) return;
-      final diseaseAssessment = _isTomato
+      final diseaseAssessment = _isTomato || _isHibiscus
           ? null
           : MultimodalDiseaseService.assess(
               visual: screening,
@@ -110,7 +115,7 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
         assessment = diseaseAssessment;
         analyzing = false;
       });
-      if (bioticPrompt && diseaseAssessment != null) {
+      if (cameraPrompt && diseaseAssessment != null) {
         final top = diseaseAssessment.candidates.isEmpty
             ? null
             : diseaseAssessment.candidates.first;
@@ -142,7 +147,10 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
   void _completeSymptomScreening() {
     final screening = result;
     final crop = selectedCrop;
-    if (screening == null || crop == null || !symptomAnswers.isComplete) {
+    final answersComplete = _isHibiscus
+        ? symptomAnswers.isHibiscusComplete
+        : symptomAnswers.isTomatoComplete;
+    if (screening == null || crop == null || !answersComplete) {
       return;
     }
     final completed = MultimodalDiseaseService.assess(
@@ -154,7 +162,7 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     final scope = AppScope.of(context);
     if (widget.sensorPrompt &&
         scope.sensors.source == SensorDataSource.esp32 &&
-        scope.sensors.edgeIntelligence?.bioticStress.suspected == true) {
+        scope.sensors.edgeIntelligence?.cameraInspectionRecommended == true) {
       final top = completed.candidates.isEmpty ? null : completed.candidates.first;
       unawaited(scope.inspectionHistory.recordCompleted(
         scope.sensors.selectedNodeId,
@@ -404,6 +412,19 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
           if (result != null && _isTomato) ...[
             const SizedBox(height: 14),
             _TomatoSymptomCard(
+              answers: symptomAnswers,
+              onChanged: (answers) {
+                setState(() {
+                  symptomAnswers = answers;
+                  assessment = null;
+                });
+              },
+              onSubmit: _completeSymptomScreening,
+            ),
+          ],
+          if (result != null && _isHibiscus) ...[
+            const SizedBox(height: 14),
+            _HibiscusSymptomCard(
               answers: symptomAnswers,
               onChanged: (answers) {
                 setState(() {
@@ -668,6 +689,96 @@ class _TomatoSymptomCard extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: answers.isComplete ? onSubmit : null,
+                  icon: const Icon(Icons.manage_search_rounded),
+                  label: Text(context.tr('rank_potential_issues')),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+}
+
+class _HibiscusSymptomCard extends StatelessWidget {
+  final DiseaseSymptomAnswers answers;
+  final ValueChanged<DiseaseSymptomAnswers> onChanged;
+  final VoidCallback onSubmit;
+
+  const _HibiscusSymptomCard({
+    required this.answers,
+    required this.onChanged,
+    required this.onSubmit,
+  });
+
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Icon(
+                    Icons.fact_check_outlined,
+                    color: Theme.of(context).colorScheme.primary,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      context.tr('hibiscus_symptoms_title'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(context.tr('hibiscus_symptoms_body')),
+              const SizedBox(height: 14),
+              _ObservationField(
+                questionKey: 'hibiscus_question_whiteflies',
+                value: answers.whitefliesPresent,
+                onChanged: (value) => onChanged(
+                  answers.copyWith(whitefliesPresent: value),
+                ),
+              ),
+              _ObservationField(
+                questionKey: 'hibiscus_question_mealybugs',
+                value: answers.mealybugsPresent,
+                onChanged: (value) => onChanged(
+                  answers.copyWith(mealybugsPresent: value),
+                ),
+              ),
+              _ObservationField(
+                questionKey: 'hibiscus_question_aphids',
+                value: answers.aphidsPresent,
+                onChanged: (value) => onChanged(
+                  answers.copyWith(aphidsPresent: value),
+                ),
+              ),
+              _ObservationField(
+                questionKey: 'hibiscus_question_spots',
+                value: answers.visibleSpotting,
+                onChanged: (value) => onChanged(
+                  answers.copyWith(visibleSpotting: value),
+                ),
+              ),
+              _ObservationField(
+                questionKey: 'hibiscus_question_damage',
+                value: answers.surfaceDamage,
+                onChanged: (value) => onChanged(
+                  answers.copyWith(surfaceDamage: value),
+                ),
+              ),
+              const SizedBox(height: 5),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed:
+                      answers.isHibiscusComplete ? onSubmit : null,
                   icon: const Icon(Icons.manage_search_rounded),
                   label: Text(context.tr('rank_potential_issues')),
                 ),

@@ -450,7 +450,7 @@ void main() {
     );
   });
 
-  test('all ten Tamil Nadu crop contexts produce crop-specific candidates', () {
+  test('all supported crop contexts produce safe visual candidates', () {
     final visual = LeafScreeningResult(
       riskKey: 'leaf_result_spot_risk',
       explanationKey: 'leaf_result_spot_risk_body',
@@ -461,21 +461,56 @@ void main() {
       brownPercent: 22,
       screenedAt: DateTime.now(),
     );
-    expect(CropCatalog.supported, hasLength(10));
+    expect(CropCatalog.supported, hasLength(13));
     for (final crop in CropCatalog.supported) {
       final assessment = MultimodalDiseaseService.assess(
         visual: visual,
         crop: crop.name,
       );
       expect(assessment.candidates, isNotEmpty, reason: crop.name);
-      expect(
-        assessment.candidates.every(
-          (candidate) => candidate.nameKey.contains(crop.id),
-        ),
-        isTrue,
-        reason: crop.name,
-      );
+      if (crop.id != 'universal' && crop.id != 'okra') {
+        expect(
+          assessment.candidates.every(
+            (candidate) => candidate.nameKey.contains(crop.id),
+          ),
+          isTrue,
+          reason: crop.name,
+        );
+      }
     }
+  });
+
+  test('unknown firmware crops fall back to Universal, never Rice or Tomato', () {
+    expect(CropCatalog.profileFor('New experimental crop').name, 'Universal');
+    expect(CropCatalog.profileFor('').name, 'Universal');
+    expect(CropCatalog.normalize('செம்பருத்தி'), 'Hibiscus');
+    expect(CropCatalog.normalize('Lady finger'), 'Okra');
+  });
+
+  test('hibiscus visible whitefly observation stays a possible camera match', () {
+    final assessment = MultimodalDiseaseService.assess(
+      visual: LeafScreeningResult(
+        riskKey: 'leaf_result_low_risk',
+        explanationKey: 'leaf_result_low_risk_body',
+        actionKey: 'leaf_action_monitor',
+        confidence: 74,
+        greenPercent: 70,
+        yellowPercent: 7,
+        brownPercent: 3,
+        screenedAt: DateTime.now(),
+      ),
+      crop: 'Hibiscus',
+      symptoms: const DiseaseSymptomAnswers(
+        whitefliesPresent: FieldObservation.yes,
+        mealybugsPresent: FieldObservation.no,
+        aphidsPresent: FieldObservation.no,
+        visibleSpotting: FieldObservation.no,
+        surfaceDamage: FieldObservation.no,
+      ),
+    );
+
+    expect(assessment.candidates.first.nameKey, 'disease_hibiscus_whitefly');
+    expect(assessment.usedSensorEvidence, isFalse);
   });
 
   test('expected paddy flooding is not treated as generic overwatering', () {

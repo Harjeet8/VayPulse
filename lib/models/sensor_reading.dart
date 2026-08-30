@@ -24,6 +24,17 @@ class SensorReading {
   final String healthStatus;
   final double analysisConfidence;
 
+  /// Internal provenance marker: esp32, flutterFallback, simulation, or
+  /// persisted. It prevents legacy fallback analysis being mistaken for an
+  /// authoritative firmware decision.
+  final String analysisOrigin;
+  final String? primaryRootCause;
+  final String? secondaryRootCause;
+  final bool degradedAnalysis;
+  final String? healthTrend;
+  final String? diseaseRiskTrend;
+  final bool recoveryActive;
+
   /// Embedded firmware result retained only for diagnostics/comparison.
   final double? esp32HealthScore;
   final double? esp32HealthConfidence;
@@ -74,6 +85,13 @@ class SensorReading {
     required this.stressScore,
     required this.healthStatus,
     this.analysisConfidence = 0,
+    this.analysisOrigin = 'persisted',
+    this.primaryRootCause,
+    this.secondaryRootCause,
+    this.degradedAnalysis = false,
+    this.healthTrend,
+    this.diseaseRiskTrend,
+    this.recoveryActive = false,
     this.esp32HealthScore,
     this.esp32HealthConfidence,
     this.waterScore,
@@ -137,6 +155,13 @@ class SensorReading {
         'stressScore': stressScore,
         'healthStatus': healthStatus,
         'analysisConfidence': analysisConfidence,
+        'analysisOrigin': analysisOrigin,
+        'primaryRootCause': primaryRootCause,
+        'secondaryRootCause': secondaryRootCause,
+        'degradedAnalysis': degradedAnalysis,
+        'healthTrend': healthTrend,
+        'diseaseRiskTrend': diseaseRiskTrend,
+        'recoveryActive': recoveryActive,
         'esp32HealthScore': esp32HealthScore,
         'esp32HealthConfidence': esp32HealthConfidence,
         'waterScore': waterScore,
@@ -216,6 +241,13 @@ class SensorReading {
       healthStatus: '${json['healthStatus'] ?? statusForHealth(health)}',
       analysisConfidence:
           _bounded(_nullableNum(json['analysisConfidence']) ?? 0),
+      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',
+      primaryRootCause: json['primaryRootCause']?.toString(),
+      secondaryRootCause: json['secondaryRootCause']?.toString(),
+      degradedAnalysis: json['degradedAnalysis'] == true,
+      healthTrend: json['healthTrend']?.toString(),
+      diseaseRiskTrend: json['diseaseRiskTrend']?.toString(),
+      recoveryActive: json['recoveryActive'] == true,
       esp32HealthScore: _nullableNum(json['esp32HealthScore']),
       esp32HealthConfidence: _nullableNum(json['esp32HealthConfidence']),
       waterScore: _nullableNum(json['waterScore']),
@@ -332,6 +364,13 @@ class SensorReading {
     double? stressScore,
     String? healthStatus,
     double? analysisConfidence,
+    String? analysisOrigin,
+    String? primaryRootCause,
+    String? secondaryRootCause,
+    bool? degradedAnalysis,
+    String? healthTrend,
+    String? diseaseRiskTrend,
+    bool? recoveryActive,
     double? esp32HealthScore,
     double? esp32HealthConfidence,
     double? waterScore,
@@ -378,6 +417,13 @@ class SensorReading {
       stressScore: stressScore ?? this.stressScore,
       healthStatus: healthStatus ?? this.healthStatus,
       analysisConfidence: analysisConfidence ?? this.analysisConfidence,
+      analysisOrigin: analysisOrigin ?? this.analysisOrigin,
+      primaryRootCause: primaryRootCause ?? this.primaryRootCause,
+      secondaryRootCause: secondaryRootCause ?? this.secondaryRootCause,
+      degradedAnalysis: degradedAnalysis ?? this.degradedAnalysis,
+      healthTrend: healthTrend ?? this.healthTrend,
+      diseaseRiskTrend: diseaseRiskTrend ?? this.diseaseRiskTrend,
+      recoveryActive: recoveryActive ?? this.recoveryActive,
       esp32HealthScore: esp32HealthScore ?? this.esp32HealthScore,
       esp32HealthConfidence:
           esp32HealthConfidence ?? this.esp32HealthConfidence,

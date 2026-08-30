@@ -22,6 +22,10 @@ class DiseaseSymptomAnswers {
   final FieldObservation? yellowHalos;
   final FieldObservation? leafCurling;
   final FieldObservation? whitefliesPresent;
+  final FieldObservation? mealybugsPresent;
+  final FieldObservation? aphidsPresent;
+  final FieldObservation? visibleSpotting;
+  final FieldObservation? surfaceDamage;
 
   const DiseaseSymptomAnswers({
     this.concentricRings,
@@ -29,21 +33,50 @@ class DiseaseSymptomAnswers {
     this.yellowHalos,
     this.leafCurling,
     this.whitefliesPresent,
+    this.mealybugsPresent,
+    this.aphidsPresent,
+    this.visibleSpotting,
+    this.surfaceDamage,
   });
 
-  bool get isComplete =>
+  bool get isComplete => isTomatoComplete;
+
+  bool get isTomatoComplete =>
       concentricRings != null &&
       waterSoakedLesions != null &&
       yellowHalos != null &&
       leafCurling != null &&
       whitefliesPresent != null;
 
+  bool get isHibiscusComplete =>
+      whitefliesPresent != null &&
+      mealybugsPresent != null &&
+      aphidsPresent != null &&
+      visibleSpotting != null &&
+      surfaceDamage != null;
+
   bool get hasAnswers =>
       concentricRings != null ||
       waterSoakedLesions != null ||
       yellowHalos != null ||
       leafCurling != null ||
-      whitefliesPresent != null;
+      whitefliesPresent != null ||
+      mealybugsPresent != null ||
+      aphidsPresent != null ||
+      visibleSpotting != null ||
+      surfaceDamage != null;
+
+  bool get hasPositiveObservation => <FieldObservation?>[
+        concentricRings,
+        waterSoakedLesions,
+        yellowHalos,
+        leafCurling,
+        whitefliesPresent,
+        mealybugsPresent,
+        aphidsPresent,
+        visibleSpotting,
+        surfaceDamage,
+      ].contains(FieldObservation.yes);
 
   DiseaseSymptomAnswers copyWith({
     FieldObservation? concentricRings,
@@ -51,6 +84,10 @@ class DiseaseSymptomAnswers {
     FieldObservation? yellowHalos,
     FieldObservation? leafCurling,
     FieldObservation? whitefliesPresent,
+    FieldObservation? mealybugsPresent,
+    FieldObservation? aphidsPresent,
+    FieldObservation? visibleSpotting,
+    FieldObservation? surfaceDamage,
   }) =>
       DiseaseSymptomAnswers(
         concentricRings: concentricRings ?? this.concentricRings,
@@ -58,6 +95,10 @@ class DiseaseSymptomAnswers {
         yellowHalos: yellowHalos ?? this.yellowHalos,
         leafCurling: leafCurling ?? this.leafCurling,
         whitefliesPresent: whitefliesPresent ?? this.whitefliesPresent,
+        mealybugsPresent: mealybugsPresent ?? this.mealybugsPresent,
+        aphidsPresent: aphidsPresent ?? this.aphidsPresent,
+        visibleSpotting: visibleSpotting ?? this.visibleSpotting,
+        surfaceDamage: surfaceDamage ?? this.surfaceDamage,
       );
 }
 
