@@ -4,10 +4,13 @@ on:
   push:
     branches:
       - phytosense-v8-ultra-final
+  pull_request:
+    branches:
+      - phytosense-v8-ultra-final
   workflow_dispatch:
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
   validate-build-package:
@@ -16,157 +19,6 @@ jobs:
     steps:
       - name: Checkout V8
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Apply final analyzer and evidence-separation cleanup
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-
-          # Analyzer cleanup: About screen.
-          p = Path('lib/screens/about_screen.dart')
-          s = p.read_text()
-          if "import '../services/farmer_language.dart';" not in s:
-              s = s.replace("import '../services/app_scope.dart';\n", "import '../services/app_scope.dart';\nimport '../services/farmer_language.dart';\n")
-          s = s.replace("                title: Text(\n                  'PhytoSense AI V8 ULTRA FINAL',\n                  style: const TextStyle(fontWeight: FontWeight.w900),\n                ),", "                title: const Text(\n                  'PhytoSense AI V8 ULTRA FINAL',\n                  style: TextStyle(fontWeight: FontWeight.w900),\n                ),")
-          p.write_text(s)
-
-          # Analyzer cleanup: unused scope on the camera page.
-          p = Path('lib/screens/leaf_screening_screen.dart')
-          s = p.read_text().replace("  Widget build(BuildContext context) {\n    final scope = AppScope.of(context);\n    return Scaffold(", "  Widget build(BuildContext context) {\n    return Scaffold(")
-          p.write_text(s)
-
-          # Analyzer cleanup: unused SensorCard note parameter.
-          p = Path('lib/screens/live_sensors_screen.dart')
-          s = p.read_text()
-          s = s.replace("  final String? extra;\n  final String? note;\n\n  const _SensorCard({", "  final String? extra;\n\n  const _SensorCard({")
-          s = s.replace("    required this.timestamp,\n    this.extra,\n    this.note,\n  });", "    required this.timestamp,\n    this.extra,\n  });")
-          s = s.replace("            if (note != null) ...[\n              const SizedBox(height: 8),\n              Text(note!, style: Theme.of(context).textTheme.bodySmall),\n            ],\n", "")
-          p.write_text(s)
-
-          # Analyzer cleanup: immutable line-touch config.
-          p = Path('lib/screens/observation_timeline_screen.dart')
-          s = p.read_text().replace("lineTouchData: LineTouchData(enabled: false),", "lineTouchData: const LineTouchData(enabled: false),")
-          p.write_text(s)
-
-          # Camera wording must describe visual evidence only. Sensor evidence may
-          # recommend an inspection, but it is not silently merged into the visual result.
-          p = Path('lib/l10n/app_strings.dart')
-          s = p.read_text()
-          replacements = {
-            'Combine the leaf photo with plant-electrode, sensor and weather evidence without uploading the photo.':
-              'Analyse visible leaf symptoms from the photo without uploading it. ESP32 sensor evidence remains separate.',
-            'Analysing the photo and cross-checking crop, electrode, sensor and weather evidence…':
-              'Analysing the photo and the visible symptoms you confirmed…',
-            'PhytoSense AI will rank crop-specific possibilities using every fresh evidence source available.':
-              'PhytoSense AI ranks crop-specific visual possibilities from the photo and your visible-symptom observations.',
-            'These are transparent match scores from leaf colour proportions, farmer observations and available field evidence. A higher score means “inspect this first,” not “confirmed disease.”':
-              'These are transparent visual match scores from leaf colour proportions and farmer-confirmed visible symptoms. A higher score means “inspect this first,” not “confirmed disease.”',
-            'The photographed leaf is mostly green and the available field signals are within their preferred bands.':
-              'The photographed leaf is mostly green and does not show a strong visible pattern in this screening.',
-            'Brown lesion coverage combined with warm, humid or rainy conditions can resemble rice blast.':
-              'Brown lesion coverage in the photo can resemble a rice-blast pattern.',
-            'Brown spotting with yellowing or plant stress can resemble rice brown spot.':
-              'Brown spotting with visible yellowing can resemble a rice brown-spot pattern.',
-            'Yellow-brown damage together with wet, humid or rainy conditions can resemble bacterial leaf blight.':
-              'Yellow-brown visible damage can resemble a bacterial leaf-blight pattern.',
-            'Yellowing plus an unusual plant-electrode response may indicate pest-related stress, including stem damage.':
-              'Visible yellowing or stem-damage symptoms can resemble a stem-borer or pest-damage pattern.',
-            'Farmer-confirmed water-soaked dark lesions together with humid or wet conditions are more consistent with late blight.':
-              'Farmer-confirmed water-soaked dark lesions are more consistent with a late-blight visual pattern.',
-            'Farmer-confirmed curling plus whiteflies, yellowing or unusual plant response is more consistent with leaf-curl or sap-feeding pest stress.':
-              'Farmer-confirmed curling, whiteflies or visible yellowing are more consistent with a leaf-curl or sap-feeding pest pattern.',
-            'Tomato is the competition reference crop. Confirm all five visible observations so the photo, sensors, electrode response and weather can be ranked together.':
-              'Confirm the five visible observations so the camera result is based only on the photo and symptoms you can actually see.',
-            'Lengthening brown areas in warm, humid conditions can resemble maize leaf blight.':
-              'Brown leaf damage in the photo can resemble a maize leaf-blight pattern.',
-            'Yellow striping with persistent humidity can resemble downy-mildew stress.':
-              'Visible yellow striping can resemble a downy-mildew pattern.',
-            'Irregular brown damage and plant stress can match chewing-pest activity.':
-              'Irregular visible brown damage can resemble chewing-pest activity.',
-            'Warm weather and brown-orange spotting can resemble groundnut rust.':
-              'Visible brown-orange spotting can resemble a groundnut-rust pattern.',
-            'Angular brown areas after humid or rainy weather can resemble bacterial blight.':
-              'Visible angular brown areas can resemble a bacterial-blight pattern.',
-            'Increasing brown streaks and yellow areas under humid conditions can resemble Sigatoka.':
-              'Visible brown streaks and yellow areas can resemble a Sigatoka pattern.',
-            'Brown damaged areas during humid weather can resemble coconut leaf rot.':
-              'Visible brown damaged areas can resemble a coconut leaf-rot pattern.',
-            'Yellow-brown crown damage with wet weather can indicate a serious bud-rot risk.':
-              'Visible yellow-brown crown damage can resemble a serious bud-rot pattern.',
-            'Circular brown lesions during humid conditions can resemble fungal leaf spot.':
-              'Visible circular brown lesions can resemble a fungal leaf-spot pattern.',
-            'Brown lesions under warm, humid conditions can resemble anthracnose.':
-              'Visible brown lesions can resemble an anthracnose pattern.',
-            'Yellowing, curling and dry-weather stress can match thrips feeding.':
-              'Visible yellowing and curling can resemble thrips feeding damage.',
-            'Brown lesion coverage with humid weather can match a general fungal leaf-spot pattern.':
-              'Visible brown lesion coverage can resemble a general fungal leaf-spot pattern.',
-            'தக்காளி competition reference crop. Photo, sensors, electrode response மற்றும் weather evidence ஒன்றாக rank செய்ய ஐந்து visible observations-க்கும் பதில் அளிக்கவும்.':
-              'கேமரா முடிவு புகைப்படம் மற்றும் நீங்கள் நேரில் காணும் அறிகுறிகளை மட்டும் அடிப்படையாகக் கொள்ள ஐந்து visible observations-க்கும் பதில் அளிக்கவும்.',
-            'Photo, sensor மற்றும் weather evidence-ஐ photo upload இல்லாமல் ஒன்றாக பார்க்கும் explainable screening.':
-              'இலைப் புகைப்படத்தில் தெரியும் அறிகுறிகளை மட்டும் ஆய்வு செய்கிறது. ESP32 sensor evidence தனியாகவே காட்டப்படும்.',
-            'Photo, crop, electrode, sensor மற்றும் weather evidence cross-check செய்யப்படுகிறது…':
-              'புகைப்படம் மற்றும் நீங்கள் உறுதி செய்த காணக்கூடிய அறிகுறிகள் ஆய்வு செய்யப்படுகின்றன…',
-            'PhytoSense AI கிடைக்கும் fresh evidence அனைத்தையும் கொண்டு crop-specific possibilities-ஐ rank செய்யும்.':
-              'PhytoSense AI புகைப்படம் மற்றும் நீங்கள் உறுதி செய்த காணக்கூடிய அறிகுறிகளை வைத்து visual possibilities-ஐ rank செய்யும்.',
-            'Leaf colour proportion, farmer observation மற்றும் கிடைக்கும் field evidence அடிப்படையிலான transparent match score. அதிக score என்பது “இதைக் முதலில் inspect செய்யவும்”; confirmed disease அல்ல.':
-              'Leaf colour proportion மற்றும் farmer உறுதி செய்த visible symptoms அடிப்படையிலான visual match score. அதிக score என்பது “இதைக் முதலில் பார்க்கவும்”; confirmed disease அல்ல.',
-            'Photo பெரும்பாலும் green ஆகவும் available field signals preferred band-ல் உள்ளன.':
-              'புகைப்படத்தில் இலை பெரும்பாலும் green ஆக உள்ளது; இந்த screening-ல் வலுவான visible pattern தெரியவில்லை.',
-            'Brown lesion coverage மற்றும் warm, humid அல்லது rainy condition இணைந்தால் rice blast போல இருக்கலாம்.':
-              'புகைப்படத்தில் தெரியும் brown lesion coverage rice-blast pattern போல இருக்கலாம்.',
-            'Brown spots, yellowing அல்லது plant stress இணைந்தால் rice brown spot போல இருக்கலாம்.':
-              'புகைப்படத்தில் தெரியும் brown spots மற்றும் yellowing rice brown-spot pattern போல இருக்கலாம்.',
-            'Yellow-brown damage மற்றும் wet, humid அல்லது rainy condition இணைந்தால் bacterial leaf blight போல இருக்கலாம்.':
-              'புகைப்படத்தில் தெரியும் yellow-brown damage bacterial leaf-blight pattern போல இருக்கலாம்.',
-            'Yellowing மற்றும் unusual plant-electrode response stem damage உட்பட pest-related stress-ஐ காட்டலாம்.':
-              'காணக்கூடிய yellowing அல்லது stem damage stem-borer / pest-damage pattern போல இருக்கலாம்.',
-            'Farmer உறுதி செய்த water-soaked dark lesions மற்றும் humid அல்லது wet condition late blight-க்கு அதிகம் பொருந்தும்.':
-              'Farmer உறுதி செய்த water-soaked dark lesions late-blight visual pattern-க்கு அதிகம் பொருந்தும்.',
-            'Warm, humid நிலையில் நீளமாகும் brown பகுதிகள் maize leaf blight போல இருக்கலாம்.':
-              'புகைப்படத்தில் தெரியும் brown leaf damage maize leaf-blight pattern போல இருக்கலாம்.',
-            'Yellow stripes மற்றும் தொடர்ந்து அதிக humidity downy-mildew stress போல இருக்கலாம்.':
-              'காணக்கூடிய yellow stripes downy-mildew pattern போல இருக்கலாம்.',
-            'ஒழுங்கற்ற brown damage மற்றும் plant stress chewing-pest activity-க்கு பொருந்தலாம்.':
-              'காணக்கூடிய ஒழுங்கற்ற brown damage chewing-pest activity போல இருக்கலாம்.',
-            'Warm weather மற்றும் brown-orange spotting groundnut rust போல இருக்கலாம்.':
-              'காணக்கூடிய brown-orange spotting groundnut-rust pattern போல இருக்கலாம்.',
-            'Humid அல்லது rainy weather பிறகு angular brown பகுதிகள் bacterial blight போல இருக்கலாம்.':
-              'காணக்கூடிய angular brown பகுதிகள் bacterial-blight pattern போல இருக்கலாம்.',
-            'Humid நிலையில் அதிகரிக்கும் brown streaks மற்றும் yellow பகுதிகள் Sigatoka போல இருக்கலாம்.':
-              'காணக்கூடிய brown streaks மற்றும் yellow பகுதிகள் Sigatoka pattern போல இருக்கலாம்.',
-            'Humid weather-ல் brown damaged பகுதிகள் coconut leaf rot போல இருக்கலாம்.':
-              'காணக்கூடிய brown damaged பகுதிகள் coconut leaf-rot pattern போல இருக்கலாம்.',
-            'Wet weather உடன் yellow-brown crown damage serious bud-rot risk ஆக இருக்கலாம்.':
-              'காணக்கூடிய yellow-brown crown damage serious bud-rot pattern போல இருக்கலாம்.',
-            'Humid நிலையில் வட்ட brown lesions fungal leaf spot போல இருக்கலாம்.':
-              'காணக்கூடிய வட்ட brown lesions fungal leaf-spot pattern போல இருக்கலாம்.',
-            'Warm, humid நிலையில் brown lesions anthracnose போல இருக்கலாம்.':
-              'காணக்கூடிய brown lesions anthracnose pattern போல இருக்கலாம்.',
-            'Yellowing, curling மற்றும் dry-weather stress thrips feeding-க்கு பொருந்தலாம்.':
-              'காணக்கூடிய yellowing மற்றும் curling thrips feeding damage போல இருக்கலாம்.',
-            'Humid weather உடன் brown lesion coverage பொதுவான fungal leaf-spot pattern-க்கு பொருந்தலாம்.':
-              'காணக்கூடிய brown lesion coverage பொதுவான fungal leaf-spot pattern போல இருக்கலாம்.',
-          }
-          for old, new in replacements.items():
-              s = s.replace(old, new)
-          p.write_text(s)
-          PY
-
-      - name: Commit cleanup if needed
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add lib
-          if ! git diff --cached --quiet; then
-            git commit -m "Fix V8 analyzer issues and visual evidence separation"
-            git push origin HEAD:phytosense-v8-ultra-final
-          fi
 
       - name: Verify release structure
         shell: bash
