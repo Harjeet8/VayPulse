@@ -106,7 +106,7 @@ class _SplashScreenState extends State<SplashScreen> {
                         border: Border.all(color: Colors.white24),
                       ),
                       child: const Text(
-                        'V8 ULTRA FINAL',
+                        'v8.7.1 MEGA FINAL',
                         style: TextStyle(
                           color: Colors.white,
                           fontSize: 11,

@@ -34,6 +34,8 @@ class SensorReading {
   final String? healthTrend;
   final String? diseaseRiskTrend;
   final bool recoveryActive;
+  final double? vpdKpa;
+  final String? bioticState;
 
   /// Embedded firmware result retained only for diagnostics/comparison.
   final double? esp32HealthScore;
@@ -92,6 +94,8 @@ class SensorReading {
     this.healthTrend,
     this.diseaseRiskTrend,
     this.recoveryActive = false,
+    this.vpdKpa,
+    this.bioticState,
     this.esp32HealthScore,
     this.esp32HealthConfidence,
     this.waterScore,
@@ -162,6 +166,8 @@ class SensorReading {
         'healthTrend': healthTrend,
         'diseaseRiskTrend': diseaseRiskTrend,
         'recoveryActive': recoveryActive,
+        'vpdKpa': vpdKpa,
+        'bioticState': bioticState,
         'esp32HealthScore': esp32HealthScore,
         'esp32HealthConfidence': esp32HealthConfidence,
         'waterScore': waterScore,
@@ -248,6 +254,8 @@ class SensorReading {
       healthTrend: json['healthTrend']?.toString(),
       diseaseRiskTrend: json['diseaseRiskTrend']?.toString(),
       recoveryActive: json['recoveryActive'] == true,
+      vpdKpa: _nullableNum(json['vpdKpa']),
+      bioticState: json['bioticState']?.toString(),
       esp32HealthScore: _nullableNum(json['esp32HealthScore']),
       esp32HealthConfidence: _nullableNum(json['esp32HealthConfidence']),
       waterScore: _nullableNum(json['waterScore']),
@@ -371,6 +379,8 @@ class SensorReading {
     String? healthTrend,
     String? diseaseRiskTrend,
     bool? recoveryActive,
+    double? vpdKpa,
+    String? bioticState,
     double? esp32HealthScore,
     double? esp32HealthConfidence,
     double? waterScore,
@@ -424,6 +434,8 @@ class SensorReading {
       healthTrend: healthTrend ?? this.healthTrend,
       diseaseRiskTrend: diseaseRiskTrend ?? this.diseaseRiskTrend,
       recoveryActive: recoveryActive ?? this.recoveryActive,
+      vpdKpa: vpdKpa ?? this.vpdKpa,
+      bioticState: bioticState ?? this.bioticState,
       esp32HealthScore: esp32HealthScore ?? this.esp32HealthScore,
       esp32HealthConfidence:
           esp32HealthConfidence ?? this.esp32HealthConfidence,

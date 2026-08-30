@@ -264,11 +264,15 @@ class BioelectricIntelligence {
         .toUpperCase()
         .replaceAll(' ', '_');
     return value == 'NOISY' ||
+        value == 'SIGNAL_NOISY' ||
         value == 'BAD_CONTACT' ||
+        value == 'CHECK_CONTACT' ||
         value == 'CONTACT_FAULT' ||
         value == 'SATURATED' ||
         value == 'HIGH_RAIL' ||
+        value == 'AMP_HIGH_RAIL' ||
         value == 'LOW_RAIL' ||
+        value == 'AMP_LOW_RAIL' ||
         value == 'INVALID' ||
         value == 'UNAVAILABLE';
   }

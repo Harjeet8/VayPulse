@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:phytosense_ai/models/edge_intelligence.dart';
 import 'package:phytosense_ai/models/hardware_telemetry.dart';
+import 'package:phytosense_ai/models/sensor_reading.dart';
 
 void main() {
   const payload = <String, dynamic>{
@@ -315,5 +316,65 @@ void main() {
     expect(edge.apiVersion, '99-preview');
     expect(edge.firmwareCompatible, isFalse);
     expect(edge.compatibilityIssue, 'Firmware compatibility issue');
+  });
+
+  test('all v8.7.1 bad bio states activate the firmware fail-safe', () {
+    for (final state in const <String>[
+      'SIGNAL NOISY',
+      'CHECK CONTACT',
+      'SATURATED',
+      'AMP HIGH RAIL',
+      'AMP LOW RAIL',
+    ]) {
+      final edge = EdgeIntelligence.fromPayload(
+        root: const <String, dynamic>{},
+        data: <String, dynamic>{
+          'plantState': 'WATCH',
+          'bioState': state,
+          'bioStressScore': 99,
+          'bioSignalQuality': 5,
+        },
+        firmwareVersion: '8.7.1-MEGA-FINAL',
+      );
+
+      expect(
+        edge.bioelectric.excludedByFirmware,
+        isTrue,
+        reason: '$state must never be interpreted as plant stress',
+      );
+    }
+  });
+
+  test('compact hardware history preserves v8.7.1 intelligence fields', () {
+    final reading = SensorReading(
+      nodeId: 'phytosense-live-01',
+      timestamp: DateTime.utc(2026, 8, 30, 7, 30),
+      soilMoisture: 41,
+      temperature: 29,
+      humidity: 0,
+      humidityAvailable: false,
+      light: 72,
+      healthScore: 67,
+      stressScore: 33,
+      healthStatus: 'RECOVERING',
+      analysisConfidence: 84,
+      analysisOrigin: 'esp32',
+      vpdKpa: 1.72,
+      bioticState: 'POSSIBLE_BIOTIC_STRESS',
+      recoveryActive: true,
+      bioBaselineReady: true,
+      bioBaselineSamples: 120,
+      bioBaselineMv: 451.2,
+      bioDeviationMv: 18.4,
+    );
+
+    final restored = SensorReading.fromJson(reading.toJson());
+    expect(restored.analysisOrigin, 'esp32');
+    expect(restored.humidityAvailable, isFalse);
+    expect(restored.vpdKpa, 1.72);
+    expect(restored.bioticState, 'POSSIBLE_BIOTIC_STRESS');
+    expect(restored.recoveryActive, isTrue);
+    expect(restored.bioBaselineMv, 451.2);
+    expect(restored.bioDeviationMv, 18.4);
   });
 }

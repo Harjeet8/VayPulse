@@ -545,7 +545,9 @@ class _BioelectricCard extends StatelessWidget {
                   .headlineSmall
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
-            if (bio?.stressScore != null) ...[
+            if (available &&
+                !(bio?.learningBaseline ?? false) &&
+                bio?.stressScore != null) ...[
               const SizedBox(height: 4),
               Text(
                 '${FarmerLanguage.label(context, 'stress_score')}: ${bio!.stressScore!.round()} / 100',

@@ -179,6 +179,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
             const ['diseaseRisk', 'environmentalDiseaseRisk'],
           ),
           recoveryActive: edge.recovery.active,
+          vpdKpa: edge.derivedEnvironment.vpdKpa,
+          bioticState: edge.bioticStress.state,
           esp32HealthScore: firmwareHealth,
           esp32HealthConfidence: edge.overallConfidence ?? raw.esp32HealthConfidence,
           diseaseRisk: edge.diseaseRiskScore ?? raw.diseaseRisk,

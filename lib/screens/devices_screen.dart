@@ -298,23 +298,33 @@ class _NodeCard extends StatelessWidget {
                 if (reading != null) ...[
                   _DetailRow(
                     label: context.tr('soil_moisture'),
-                    value: '${reading.soilMoisture.toStringAsFixed(0)}%',
+                    value: reading.soilMoistureAvailable
+                        ? '${reading.soilMoisture.toStringAsFixed(0)}%'
+                        : FarmerLanguage.label(context, 'not_available'),
                   ),
                   _DetailRow(
                     label: context.tr('temperature'),
-                    value: '${reading.temperature.toStringAsFixed(1)}°C',
+                    value: reading.temperatureAvailable
+                        ? '${reading.temperature.toStringAsFixed(1)}°C'
+                        : FarmerLanguage.label(context, 'not_available'),
                   ),
                   _DetailRow(
                     label: context.tr('humidity'),
-                    value: '${reading.humidity.toStringAsFixed(0)}%',
+                    value: reading.humidityAvailable
+                        ? '${reading.humidity.toStringAsFixed(0)}%'
+                        : FarmerLanguage.label(context, 'not_available'),
                   ),
                   _DetailRow(
                     label: context.tr('light'),
-                    value: '${reading.light.toStringAsFixed(0)}%',
+                    value: reading.lightAvailable
+                        ? '${reading.light.toStringAsFixed(0)}%'
+                        : FarmerLanguage.label(context, 'not_available'),
                   ),
                   _DetailRow(
                     label: context.tr('plant_signal'),
-                    value: '${reading.plantSignal.toStringAsFixed(0)}%',
+                    value: reading.plantSignalAvailable
+                        ? '${reading.plantSignal.toStringAsFixed(0)}%'
+                        : FarmerLanguage.label(context, 'not_available'),
                   ),
                 ],
               ],

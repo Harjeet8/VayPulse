@@ -99,8 +99,8 @@ class _VayPulseAppState extends State<VayPulseApp> {
         builder: (_, __) => MaterialApp(
           debugShowCheckedModeBanner: false,
           title: 'PhytoSense AI',
-          theme: buildTheme(Brightness.light),
-          darkTheme: buildTheme(Brightness.dark),
+          theme: buildTheme(Brightness.light, settings.value.languageCode),
+          darkTheme: buildTheme(Brightness.dark, settings.value.languageCode),
           themeMode: settings.value.themeMode,
           themeAnimationDuration: settings.value.reducedMotion
               ? Duration.zero

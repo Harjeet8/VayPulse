@@ -14,6 +14,7 @@ class AlertService extends ChangeNotifier {
   final FarmRepository farms;
   final List<PlantAlert> alerts = [];
   final Map<String, DateTime> _lastAlertAt = {};
+  final Map<String, bool> _bioticActive = {};
   StreamSubscription<SensorReading>? _subscription;
   SensorDataSource? _lastSource;
 
@@ -79,6 +80,13 @@ class AlertService extends ChangeNotifier {
     final edge = sensors.edgeIntelligence;
     if (edge == null) return;
 
+    final bioticNow = edge.bioticStress.suspected;
+    final bioticBefore = _bioticActive[reading.nodeId] ?? false;
+    _bioticActive[reading.nodeId] = bioticNow;
+    if (!bioticNow && bioticBefore) {
+      _lastAlertAt.remove('${reading.nodeId}:alert_possible_biotic');
+    }
+
     if (edge.sensorFaults.isNotEmpty || edge.degradedAnalysis) {
       _addAlert(
         nodeId: reading.nodeId,
@@ -99,7 +107,7 @@ class AlertService extends ChangeNotifier {
       return;
     }
 
-    if (edge.bioticStress.suspected) {
+    if (bioticNow && !bioticBefore) {
       _addAlert(
         nodeId: reading.nodeId,
         titleKey: 'alert_possible_biotic',
@@ -109,6 +117,7 @@ class AlertService extends ChangeNotifier {
       );
       return;
     }
+    if (bioticNow) return;
 
     final cause = (edge.rootCause.primary ?? edge.farmerSummary ?? '').toUpperCase();
     if (cause.contains('WATER') || cause.contains('DRY') || cause.contains('MOISTURE')) {
@@ -184,6 +193,7 @@ class AlertService extends ChangeNotifier {
       _lastSource = sensors.source;
       alerts.clear();
       _lastAlertAt.clear();
+      _bioticActive.clear();
       notifyListeners();
     }
     if (sensors.connectionStatus == SensorConnectionStatus.error) {
@@ -276,6 +286,7 @@ class AlertService extends ChangeNotifier {
   void clear() {
     alerts.clear();
     _lastAlertAt.clear();
+    _bioticActive.clear();
     notifyListeners();
   }
 

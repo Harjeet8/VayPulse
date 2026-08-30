@@ -1,4 +1,4 @@
-name: PhytoSense AI V8 ULTRA FINAL CI
+name: PhytoSense AI v8.7.1 MEGA FINAL CI
 
 on:
   push:
@@ -28,7 +28,9 @@ jobs:
           test ! -e lib/screens/competition_center_screen.dart
           test ! -e lib/screens/presentation_mode_screen.dart
           test ! -e lib/screens/engineering_center_screen.dart
-          grep -q '^version: 8.0.0+80$' pubspec.yaml
+          grep -q '^version: 8.7.1+871$' pubspec.yaml
+          test -f assets/fonts/NotoSansTamil-Regular.ttf
+          grep -q 'family: NotoSansTamil' pubspec.yaml
           grep -q "const FarmerAnalysisScreen" lib/screens/shell_screen.dart
           grep -q "const LiveSensorsScreen" lib/screens/shell_screen.dart
           grep -q "const ObservationTimelineScreen" lib/screens/shell_screen.dart
@@ -60,20 +62,22 @@ jobs:
       - name: Android release APK
         run: flutter build apk --release
 
-      - name: Package V8 Ultra Final
+      - name: Package v8.7.1 MEGA FINAL
         shell: bash
         run: |
           set -euo pipefail
-          zip -r "PhytoSense-AI-V8-ULTRA-FINAL.zip" . \
-            -x ".git/*" ".dart_tool/*" "build/*" "*.zip"
-          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-V8-ULTRA-FINAL.apk"
+          zip -r "PhytoSense-AI-v8.7.1-MEGA-FINAL.zip" . \
+            -x ".git/*" ".dart_tool/*" "build/*" "android/.gradle/*" \
+               ".flutter-plugins" ".flutter-plugins-dependencies" "*.zip" \
+               ".github/v8-validation-trigger.txt"
+          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-v8.7.1-MEGA-FINAL.apk"
 
-      - name: Upload V8 Ultra Final artifact
+      - name: Upload v8.7.1 MEGA FINAL artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-V8-ULTRA-FINAL
+          name: PhytoSense-AI-v8.7.1-MEGA-FINAL
           path: |
-            PhytoSense-AI-V8-ULTRA-FINAL.zip
-            PhytoSense-AI-V8-ULTRA-FINAL.apk
+            PhytoSense-AI-v8.7.1-MEGA-FINAL.zip
+            PhytoSense-AI-v8.7.1-MEGA-FINAL.apk
           if-no-files-found: error
           retention-days: 30

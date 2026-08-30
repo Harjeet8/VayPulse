@@ -84,7 +84,7 @@ class AppCommandSearch extends SearchDelegate<void> {
       _Command(
         Icons.info_outline_rounded,
         context.tr('about'),
-        'PhytoSense AI V8 ULTRA FINAL',
+        'PhytoSense AI v8.7.1 MEGA FINAL',
         const AboutVayPulseScreen(),
       ),
     ];

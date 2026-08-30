@@ -1,7 +1,7 @@
 name: phytosense_ai
-description: PhytoSense AI V8 ULTRA FINAL - farmer-first ESP32 edge-intelligence companion, powered by VayPulse.
+description: PhytoSense AI v8.7.1 MEGA FINAL - farmer-first ESP32 edge-intelligence companion, powered by VayPulse.
 publish_to: "none"
-version: 8.0.0+80
+version: 8.7.1+871
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
@@ -28,3 +28,14 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  fonts:
+    - family: NotoSansTamil
+      fonts:
+        - asset: assets/fonts/NotoSansTamil-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/NotoSansTamil-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/NotoSansTamil-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/NotoSansTamil-ExtraBold.ttf
+          weight: 800

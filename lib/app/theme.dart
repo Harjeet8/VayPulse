@@ -8,7 +8,7 @@ const phytoAmber = Color(0xFFF3A83B);
 const phytoTerracotta = Color(0xFFD9684B);
 const phytoInk = Color(0xFF14251E);
 
-ThemeData buildTheme(Brightness brightness) {
+ThemeData buildTheme(Brightness brightness, String languageCode) {
   final dark = brightness == Brightness.dark;
   final seeded = ColorScheme.fromSeed(
     seedColor: phytoGreen,
@@ -57,6 +57,7 @@ ThemeData buildTheme(Brightness brightness) {
     useMaterial3: true,
     brightness: brightness,
     colorScheme: scheme,
+    fontFamily: languageCode == 'ta' ? 'NotoSansTamil' : null,
   );
   final cardColor = dark ? const Color(0xFF14271D) : const Color(0xFFFFFFFF);
   final subtleBorder = dark ? const Color(0xFF294537) : const Color(0xFFE0ECE5);
