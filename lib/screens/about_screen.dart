@@ -236,8 +236,8 @@ class _CreatorCard extends StatelessWidget {
               ),
               child: Text(
                 tamil
-                    ? 'Hardware • Firmware • Signal processing • AI logic • App — ஒரே build pipeline.'
-                    : 'Hardware • Firmware • Signal processing • AI logic • App — one build pipeline.',
+                    ? 'தேர்ந்தெடுக்கப்பட்ட builds-ல்: Hardware • Firmware • Signal processing • AI logic • App.'
+                    : 'Across selected builds: Hardware • Firmware • Signal processing • AI logic • App.',
                 style: const TextStyle(fontWeight: FontWeight.w800),
               ),
             ),
@@ -259,8 +259,8 @@ class _CreatorCard extends StatelessWidget {
             _CreatorBuild(
               title: 'AURA',
               description: tamil
-                  ? 'Camera-driven elder-care emergency-response prototype with safety-first interaction design.'
-                  : 'Camera-driven elder-care emergency-response prototype with safety-first interaction design.',
+                  ? 'Software-only elder-care emergency-response app — camera-driven workflows மற்றும் safety-first interaction design.'
+                  : 'Software-only elder-care emergency-response app with camera-driven workflows and safety-first interaction design.',
             ),
           ],
         ),
