@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
@@ -11,6 +13,7 @@ import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/biotic_stress_card.dart';
 import '../widgets/page_frame.dart';
+import 'judge_view_screen.dart';
 import 'leaf_screening_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
 
@@ -28,14 +31,30 @@ class LiveNodeHomeScreen extends StatelessWidget {
     final telemetry = sensors.hardwareTelemetry;
     final live = sensors.source == SensorDataSource.esp32;
 
+    Future<void> useSimulation() async {
+      await scope.settings.setDataSource('simulation');
+      scope.alerts.clear();
+      scope.sensorManager.configure(
+        source: SensorDataSource.simulation,
+        endpoint: scope.settings.value.esp32Endpoint,
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
-        title: const Row(
-          children: [
-            Icon(Icons.eco_rounded, color: phytoGreen),
-            SizedBox(width: 9),
-            Flexible(child: Text('PhytoSense AI')),
-          ],
+        title: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onLongPress: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const JudgeViewScreen()),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.eco_rounded, color: phytoGreen),
+              SizedBox(width: 9),
+              Flexible(child: Text('PhytoSense AI')),
+            ],
+          ),
         ),
         actions: [
           if (live)
@@ -76,11 +95,24 @@ class LiveNodeHomeScreen extends StatelessWidget {
               onRetry: sensors.retry,
               live: live,
             ),
+            if (live &&
+                sensors.connectionStatus != SensorConnectionStatus.ready) ...[
+              const SizedBox(height: 10),
+              _HardwareUnavailableBanner(
+                hasValidatedReading: reading != null,
+                onRetry: sensors.retry,
+                onUseSimulation: useSimulation,
+              ),
+            ],
             const SizedBox(height: 14),
             if (edge?.firmwareCompatible == false)
               const _FirmwareCompatibilityCard()
             else if (reading == null)
-              _WaitingCard(onRetry: sensors.retry, live: live)
+              _WaitingCard(
+                onRetry: sensors.retry,
+                onUseSimulation: useSimulation,
+                live: live,
+              )
             else ...[
               _ConditionCard(reading: reading, edge: edge, telemetry: telemetry),
               if (edge?.bioelectric.hasData == true) ...[
@@ -185,16 +217,20 @@ class _ConditionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rawState = edge?.plantState ?? reading.healthStatus;
-    final recovering = edge?.recovery.active == true || rawState.toUpperCase() == 'RECOVERING';
+    final recovering =
+        edge?.recovery.active == true || rawState.toUpperCase() == 'RECOVERING';
     final possibleBiotic = edge?.bioticStress.suspected == true;
-    final title = recovering
-        ? FarmerLanguage.label(context, 'recovering_title')
-        : FarmerLanguage.firmware(context, rawState).toUpperCase();
+    final stateLabel = FarmerLanguage.firmware(context, rawState).toUpperCase();
     final main = possibleBiotic
         ? FarmerLanguage.label(context, 'possible_biotic_title')
         : edge?.rootCause.primary ??
             edge?.farmerSummary ??
             edge?.bioelectric.farmerResult;
+    final title = recovering
+        ? FarmerLanguage.label(context, 'recovering_title')
+        : main != null && main.trim().isNotEmpty
+            ? FarmerLanguage.firmware(context, main)
+            : stateLabel;
     final secondary = possibleBiotic ? null : edge?.rootCause.secondary;
     final action = recovering
         ? FarmerLanguage.label(context, 'recovery_action')
@@ -241,29 +277,36 @@ class _ConditionCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _Pill(Icons.eco_rounded, stateLabel, accent),
+              if (edge?.analysisQuality != null)
+                _Pill(
+                  Icons.verified_user_outlined,
+                  FarmerLanguage.firmware(context, edge!.analysisQuality),
+                  accent,
+                ),
+            ],
+          ),
+          const SizedBox(height: 13),
           Text(
             title,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                   color: accent,
-                  height: 1.1,
+                  height: 1.12,
                 ),
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 9),
           Text(
             summary,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  height: 1.35,
+                  fontWeight: FontWeight.w700,
+                  height: 1.38,
                 ),
           ),
-          if (main != null && main.trim().isNotEmpty) ...[
-            const SizedBox(height: 14),
-            _RankedCause(
-              label: FarmerLanguage.label(context, 'main_problem'),
-              value: FarmerLanguage.firmware(context, main),
-            ),
-          ],
           if (secondary != null && secondary.trim().isNotEmpty) ...[
             const SizedBox(height: 8),
             _RankedCause(
@@ -342,6 +385,13 @@ class _ConditionCard extends StatelessWidget {
 
   void _showWhy(BuildContext context, EdgeIntelligence? edge) {
     final evidence = _evidence(context, edge);
+    final confidence = FarmerLanguage.confidence(context, edge?.overallConfidence);
+    final bio = edge?.bioelectric;
+    final conclusion = FarmerLanguage.firmware(
+      context,
+      edge?.farmerSummary ?? edge?.rootCause.primary,
+      fallback: FarmerLanguage.label(context, 'why_unavailable'),
+    );
     showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
@@ -354,13 +404,39 @@ class _ConditionCard extends StatelessWidget {
             children: [
               Text(
                 FarmerLanguage.label(context, 'why_title'),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  _Pill(
+                    Icons.verified_outlined,
+                    '${FarmerLanguage.label(context, 'analysis_confidence')}: $confidence',
+                    Theme.of(context).colorScheme.primary,
+                  ),
+                  if (edge?.derivedEnvironment.vpdKpa != null)
+                    _Pill(
+                      Icons.air_rounded,
+                      '${FarmerLanguage.label(context, 'vpd')}: ${edge!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa',
+                      Theme.of(context).colorScheme.primary,
+                    ),
+                ],
+              ),
+              const SizedBox(height: 18),
+              Text(
+                _competitionText(context, 'Evidence', 'ஆதாரம்'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 9),
               if (evidence.isEmpty)
                 Text(FarmerLanguage.label(context, 'why_unavailable'))
               else
-                for (final item in evidence.take(4))
+                for (final item in evidence.take(5))
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Row(
@@ -372,12 +448,67 @@ class _ConditionCard extends StatelessWidget {
                       ],
                     ),
                   ),
+              if (bio?.hasData == true) ...[
+                const SizedBox(height: 4),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(13),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .surfaceContainerHighest
+                        .withValues(alpha: 0.48),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        bio!.excludedByFirmware
+                            ? Icons.shield_outlined
+                            : Icons.electric_bolt_rounded,
+                        size: 19,
+                      ),
+                      const SizedBox(width: 9),
+                      Expanded(
+                        child: Text(
+                          bio.excludedByFirmware
+                              ? _competitionText(
+                                  context,
+                                  'Bioelectric signal excluded because its quality is not reliable enough.',
+                                  'Bioelectric signal தரம் போதுமானதாக இல்லாததால் பகுப்பாய்வில் சேர்க்கப்படவில்லை.',
+                                )
+                              : _competitionText(
+                                  context,
+                                  'Bioelectric evidence is included in the ESP32 analysis.',
+                                  'Bioelectric ஆதாரம் ESP32 பகுப்பாய்வில் சேர்க்கப்பட்டுள்ளது.',
+                                ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+              const SizedBox(height: 18),
+              Text(
+                _competitionText(context, 'Conclusion', 'முடிவு'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                conclusion,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w800, height: 1.35),
+              ),
             ],
           ),
         ),
       ),
     );
   }
+
 }
 
 class _PlantResponseCard extends StatelessWidget {
@@ -621,7 +752,7 @@ class _RankedCause extends StatelessWidget {
       );
 }
 
-class _ConnectionStrip extends StatelessWidget {
+class _ConnectionStrip extends StatefulWidget {
   final SensorConnectionStatus status;
   final DateTime? timestamp;
   final VoidCallback onRetry;
@@ -635,31 +766,171 @@ class _ConnectionStrip extends StatelessWidget {
   });
 
   @override
+  State<_ConnectionStrip> createState() => _ConnectionStripState();
+}
+
+class _ConnectionStripState extends State<_ConnectionStrip> {
+  Timer? _clock;
+  Timer? _stageTimer;
+  int _connectionStage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _clock = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (mounted) setState(() {});
+    });
+    if (widget.live && widget.status == SensorConnectionStatus.ready) {
+      _connectionStage = 3;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant _ConnectionStrip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget.live) {
+      _stageTimer?.cancel();
+      _connectionStage = 0;
+      return;
+    }
+    final becameReady = oldWidget.status != SensorConnectionStatus.ready &&
+        widget.status == SensorConnectionStatus.ready;
+    if (becameReady) {
+      _runConnectionSequence();
+    } else if (widget.status != SensorConnectionStatus.ready) {
+      _stageTimer?.cancel();
+      _connectionStage = 0;
+    }
+  }
+
+  void _runConnectionSequence() {
+    _stageTimer?.cancel();
+    _connectionStage = 1;
+    var ticks = 0;
+    _stageTimer = Timer.periodic(const Duration(milliseconds: 360), (timer) {
+      ticks++;
+      if (!mounted || widget.status != SensorConnectionStatus.ready) {
+        timer.cancel();
+        return;
+      }
+      setState(() => _connectionStage = (1 + ticks).clamp(1, 3).toInt());
+      if (_connectionStage >= 3) timer.cancel();
+    });
+  }
+
+  Duration? get _age {
+    final timestamp = widget.timestamp;
+    if (timestamp == null) return null;
+    final difference = DateTime.now().difference(timestamp);
+    return difference.isNegative ? Duration.zero : difference;
+  }
+
+  bool get _stale {
+    final age = _age;
+    return widget.live &&
+        widget.status == SensorConnectionStatus.ready &&
+        age != null &&
+        age > const Duration(seconds: 6);
+  }
+
+  @override
+  void dispose() {
+    _clock?.cancel();
+    _stageTimer?.cancel();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final ready = status == SensorConnectionStatus.ready;
-    return Card(
+    final colors = Theme.of(context).colorScheme;
+    final ready = widget.status == SensorConnectionStatus.ready;
+    final stale = _stale;
+    final disconnected = widget.live && !ready;
+    final accent = disconnected || stale ? colors.error : colors.primary;
+
+    final sourceLabel = !widget.live
+        ? _competitionText(context, 'SIMULATION', 'SIMULATION')
+        : disconnected
+            ? _competitionText(context, 'DISCONNECTED', 'இணைப்பு இல்லை')
+            : stale
+                ? _competitionText(context, 'STALE', 'தாமதம்')
+                : _competitionText(context, 'LIVE', 'LIVE');
+
+    String title;
+    if (!widget.live) {
+      title = FarmerLanguage.label(context, 'simulation_active');
+    } else if (disconnected) {
+      title = _competitionText(context, 'Searching for PhytoSense node…', 'PhytoSense node தேடப்படுகிறது…');
+    } else if (stale) {
+      title = _competitionText(context, 'Latest packet is delayed', 'புதிய packet தாமதமாகிறது');
+    } else {
+      title = switch (_connectionStage) {
+        1 => _competitionText(context, 'Node detected', 'Node கண்டறியப்பட்டது'),
+        2 => _competitionText(context, 'Sensors verified', 'சென்சார்கள் சரிபார்க்கப்பட்டன'),
+        _ => _competitionText(context, 'Plant intelligence online', 'செடி நுண்ணறிவு இயங்குகிறது'),
+      };
+    }
+
+    final age = _age;
+    final subtitle = age == null
+        ? null
+        : '${_competitionText(context, 'Updated', 'புதுப்பிக்கப்பட்டது')} ${_relativeAge(age)}';
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 320),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        color: accent.withValues(alpha: 0.055),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(color: accent.withValues(alpha: 0.18)),
+      ),
       child: ListTile(
         dense: true,
-        leading: Icon(
-          ready ? Icons.wifi_tethering_rounded : Icons.portable_wifi_off_rounded,
-          color: ready ? Theme.of(context).colorScheme.primary : Theme.of(context).colorScheme.error,
+        leading: AnimatedSwitcher(
+          duration: const Duration(milliseconds: 260),
+          child: Icon(
+            !widget.live
+                ? Icons.science_outlined
+                : disconnected
+                    ? Icons.portable_wifi_off_rounded
+                    : stale
+                        ? Icons.schedule_rounded
+                        : Icons.wifi_tethering_rounded,
+            key: ValueKey('$sourceLabel-$stale'),
+            color: accent,
+          ),
         ),
-        title: Text(
-          ready
-              ? (live
-                  ? FarmerLanguage.label(context, 'esp32_connected')
-                  : FarmerLanguage.label(context, 'simulation_active'))
-              : (live
-                  ? FarmerLanguage.label(context, 'disconnected')
-                  : FarmerLanguage.label(context, 'simulation_waiting')),
-          style: const TextStyle(fontWeight: FontWeight.w800),
+        title: Row(
+          children: [
+            Flexible(
+              child: Text(
+                title,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Text(
+                sourceLabel,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.35,
+                ),
+              ),
+            ),
+          ],
         ),
-        subtitle: timestamp == null
-            ? null
-            : Text('${FarmerLanguage.label(context, 'last_reading')}: ${_time(timestamp!)}'),
+        subtitle: subtitle == null ? null : Text(subtitle),
         trailing: IconButton(
           tooltip: context.tr('reconnect'),
-          onPressed: onRetry,
+          onPressed: widget.onRetry,
           icon: const Icon(Icons.refresh_rounded),
         ),
       ),
@@ -667,10 +938,89 @@ class _ConnectionStrip extends StatelessWidget {
   }
 }
 
+class _HardwareUnavailableBanner extends StatelessWidget {
+  final bool hasValidatedReading;
+  final VoidCallback onRetry;
+  final Future<void> Function() onUseSimulation;
+
+  const _HardwareUnavailableBanner({
+    required this.hasValidatedReading,
+    required this.onRetry,
+    required this.onUseSimulation,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: colors.errorContainer.withValues(alpha: 0.58),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: colors.error.withValues(alpha: 0.16)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.sensors_off_rounded, color: colors.error),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      FarmerLanguage.label(context, 'disconnected'),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      hasValidatedReading
+                          ? _competitionText(context, 'Showing the last validated reading while PhytoSense reconnects.', 'PhytoSense மீண்டும் இணையும் வரை கடைசியாக சரிபார்க்கப்பட்ட reading காட்டப்படுகிறது.')
+                          : FarmerLanguage.label(context, 'waiting_esp32'),
+                      style: const TextStyle(height: 1.35),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 9,
+            runSpacing: 8,
+            children: [
+              FilledButton.tonalIcon(
+                onPressed: onRetry,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(context.tr('reconnect')),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => onUseSimulation(),
+                icon: const Icon(Icons.science_outlined),
+                label: Text(context.tr('switch_to_demo')),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _WaitingCard extends StatelessWidget {
   final VoidCallback onRetry;
+  final Future<void> Function() onUseSimulation;
   final bool live;
-  const _WaitingCard({required this.onRetry, required this.live});
+
+  const _WaitingCard({
+    required this.onRetry,
+    required this.onUseSimulation,
+    required this.live,
+  });
 
   @override
   Widget build(BuildContext context) => Card(
@@ -688,10 +1038,23 @@ class _WaitingCard extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              OutlinedButton.icon(
-                onPressed: onRetry,
-                icon: const Icon(Icons.refresh_rounded),
-                label: Text(context.tr('reconnect')),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 9,
+                runSpacing: 8,
+                children: [
+                  OutlinedButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: Text(context.tr('reconnect')),
+                  ),
+                  if (live)
+                    FilledButton.tonalIcon(
+                      onPressed: () => onUseSimulation(),
+                      icon: const Icon(Icons.science_outlined),
+                      label: Text(context.tr('switch_to_demo')),
+                    ),
+                ],
               ),
             ],
           ),
@@ -845,6 +1208,16 @@ Color _stateColor(BuildContext context, String raw) {
     return Theme.of(context).colorScheme.tertiary;
   }
   return Theme.of(context).colorScheme.primary;
+}
+
+String _competitionText(BuildContext context, String english, String tamil) =>
+    FarmerLanguage.isTamil(context) ? tamil : english;
+
+String _relativeAge(Duration age) {
+  if (age.inSeconds < 2) return 'now';
+  if (age.inSeconds < 60) return '${age.inSeconds}s ago';
+  if (age.inMinutes < 60) return '${age.inMinutes}m ago';
+  return '${age.inHours}h ago';
 }
 
 String _duration(double seconds) {
