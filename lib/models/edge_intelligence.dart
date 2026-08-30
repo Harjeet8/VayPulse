@@ -259,7 +259,7 @@ class BioelectricIntelligence {
   /// signal must never be converted into plant stress by Flutter.
   bool get excludedByFirmware {
     if (includedInFusion == false || available == false) return true;
-    final value = '${signalQualityState ?? stressState ?? ''}'
+    final value = (signalQualityState ?? stressState ?? '')
         .trim()
         .toUpperCase()
         .replaceAll(' ', '_');
