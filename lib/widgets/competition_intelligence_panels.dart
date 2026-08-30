@@ -321,14 +321,14 @@ class BioelectricPulseCard extends StatelessWidget {
                   : '${tamil ? 'Baseline learning' : 'Baseline learning'}: ${info!.baselineSamples}/${info.baselineTarget}',
               style: const TextStyle(fontWeight: FontWeight.w800),
             ),
-            if (info?.baselineTarget != null && info!.baselineTarget! > 0) ...[
+            if (info.baselineTarget != null && info.baselineTarget! > 0) ...[
               const SizedBox(height: 7),
               TweenAnimationBuilder<double>(
                 duration: const Duration(milliseconds: 650),
                 curve: Curves.easeOutCubic,
                 tween: Tween(
                   begin: 0,
-                  end: (info!.baselineSamples! / info.baselineTarget!)
+                  end: (info.baselineSamples! / info.baselineTarget!)
                       .clamp(0.0, 1.0)
                       .toDouble(),
                 ),
@@ -1187,7 +1187,7 @@ List<_JourneyItem> _buildJourney(List<SensorReading> history, EdgeIntelligence e
     items.add(_JourneyItem(timestamp: event.timestamp, label: label, type: event.type));
   }
   if (edge.recovery.active && !items.any((i) => _normalized(i.label).contains('RECOVER'))) {
-    items.add(_JourneyItem(timestamp: null, label: 'RECOVERING', type: 'RECOVERY'));
+    items.add(const _JourneyItem(timestamp: null, label: 'RECOVERING', type: 'RECOVERY'));
   }
   items.sort((a, b) {
     if (a.timestamp == null && b.timestamp == null) return 0;
