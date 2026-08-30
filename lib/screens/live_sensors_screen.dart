@@ -8,6 +8,8 @@ import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import 'esp32_diagnostics_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
+import 'sensor_health_screen.dart';
+import 'technical_edge_view_screen.dart';
 
 class LiveSensorsScreen extends StatelessWidget {
   const LiveSensorsScreen({super.key});
@@ -45,6 +47,22 @@ class LiveSensorsScreen extends StatelessWidget {
                     MaterialPageRoute(
                       builder: (_) => const Esp32DiagnosticsScreen(),
                     ),
+                  ),
+                ),
+                IconButton(
+                  tooltip: FarmerLanguage.label(context, 'sensor_health'),
+                  icon: const Icon(Icons.health_and_safety_outlined),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const SensorHealthScreen()),
+                  ),
+                ),
+                IconButton(
+                  tooltip: FarmerLanguage.label(context, 'technical_judge_view'),
+                  icon: const Icon(Icons.science_outlined),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (_) => const TechnicalEdgeViewScreen()),
                   ),
                 ),
               ],
@@ -95,9 +113,11 @@ class LiveSensorsScreen extends StatelessWidget {
                       ),
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'vpd'),
-                        value: (telemetry?.vpdKpa ?? edge?.derivedEnvironment.vpdKpa) == null
+                        value: edge?.derivedEnvironment.vpdValid == false
                             ? null
-                            : '${(telemetry?.vpdKpa ?? edge!.derivedEnvironment.vpdKpa)!.toStringAsFixed(2)} kPa',
+                            : (telemetry?.vpdKpa ?? edge?.derivedEnvironment.vpdKpa) == null
+                                ? null
+                                : '${(telemetry?.vpdKpa ?? edge!.derivedEnvironment.vpdKpa)!.toStringAsFixed(2)} kPa',
                         result: telemetry?.sensor('vpd')?.result ?? telemetry?.sensor('airDryingDemand')?.result,
                         note: FarmerLanguage.label(context, 'vpd_note'),
                       ),
@@ -519,7 +539,7 @@ class _BioelectricCard extends StatelessWidget {
             bio?.farmerResult ?? detail?.result,
             fallback: FarmerLanguage.label(context, 'no_interpretation'),
           )
-        : FarmerLanguage.label(context, 'unavailable');
+        : FarmerLanguage.label(context, 'bio_signal_check_electrodes');
     final state = available
         ? _bioState(context, bio)
         : FarmerLanguage.label(context, 'signal_unavailable');
@@ -545,7 +565,7 @@ class _BioelectricCard extends StatelessWidget {
                   .headlineSmall
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
-            if (bio?.stressScore != null) ...[
+            if (available && bio?.stressScore != null) ...[
               const SizedBox(height: 4),
               Text(
                 '${FarmerLanguage.label(context, 'stress_score')}: ${bio!.stressScore!.round()} / 100',

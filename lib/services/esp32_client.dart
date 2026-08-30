@@ -143,6 +143,7 @@ class Esp32Client {
       bio['stability'],
     ]);
     final bioQuality = first([
+      data['bioSignalQualityPct'],
       data['bioSignalQuality'],
       bio['signalQualityPercent'],
       bio['signalQuality'],
@@ -150,6 +151,14 @@ class Esp32Client {
     ]);
 
     final airValid = air['valid'] != false;
+    final temperatureValid = airValid &&
+        air['temperatureValid'] != false &&
+        data['temperatureValid'] != false &&
+        data['airTemperatureValid'] != false;
+    final humidityValid = airValid &&
+        air['humidityValid'] != false &&
+        data['humidityValid'] != false &&
+        data['relativeHumidityValid'] != false;
     final soilValid = soil['moistureValid'] != false && soil['valid'] != false;
     final rootValid = soil['temperatureValid'] != false && soil['valid'] != false;
     final lightValid = light['valid'] != false;
@@ -157,8 +166,8 @@ class Esp32Client {
     final bioAvailable = bio['available'] != false;
     final bioValid = bio['valid'] != false && bioAvailable;
 
-    final tempValue = airValid ? _asDouble(temperature) : null;
-    final humidityValue = airValid ? _asDouble(humidity) : null;
+    final tempValue = temperatureValid ? _asDouble(temperature) : null;
+    final humidityValue = humidityValid ? _asDouble(humidity) : null;
     final soilValue = soilValid ? _asDouble(soilMoisture) : null;
     final rootValue = rootValid ? _asDouble(soilTemperature) : null;
     final luxValue = lightValid ? _asDouble(lux) : null;
@@ -288,6 +297,10 @@ class Esp32Client {
       'bioDeviationMv': _asDouble(first([bio['deviationMv'], data['bioDeviationMv']])),
       'bioNoiseMv': _asDouble(first([bio['noiseMv'], bio['noise'], bio['batchNoiseMv']])),
       'bioSignalQuality': qualityValue ?? 0,
+      'vpdKpa': _asDouble(first([data['vpdKpa'], data['vpd']])),
+      'bioticState': first([data['bioticState'], _map(data['bioticStress'])['state']])?.toString(),
+      'recoveryState': first([data['recoveryState'], _map(data['recovery'])['state']])?.toString(),
+      'cropProfile': first([data['cropProfileName'], data['crop'] is String ? data['crop'] : null])?.toString(),
     };
 
     final firmwareVersion = '${first([
@@ -397,7 +410,8 @@ class Esp32Client {
       data['bioBaselineMv'] ??= bioTop['baselineMv'];
       data['bioelectricDeviationPercent'] ??= bioTop['deviationPercent'];
       data['bioSignalQuality'] ??=
-          _first([bioTop['signalQuality'], bioTop['confidence']]);
+          _first([bioTop['signalQuality'], bioTop['signalQualityPercent'], bioTop['confidence']]);
+      data['bioSignalQualityPct'] ??= data['bioSignalQuality'];
       data['bioBaselineSamples'] ??=
           _first([bioTop['baselineSamples'], bioTop['samples']]);
       data['bioBaselineTarget'] ??=
@@ -405,6 +419,9 @@ class Esp32Client {
       data['bioBaselineReady'] ??= bioTop['baselineReady'];
       data['bioState'] ??= _first([bioTop['state'], bioTop['stressState']]);
       data['bioStressScore'] ??= bioTop['stressScore'];
+      data['bioStressLabel'] ??= _first([bioTop['stressState'], bioTop['state']]);
+      data['bioSignedDelta'] ??= _first([bioTop['signedChangeMv'], bioTop['signedChange']]);
+      data['bioPersistenceSeconds'] ??= _first([bioTop['persistenceSeconds'], bioTop['persistentSeconds']]);
       data['bioIncludedInFusion'] ??=
           _first([bioTop['includedInFusion'], bioTop['usedInFusion']]);
       data['adaptiveBaselineStatus'] ??= bioTop['baselineStatus'];
@@ -510,6 +527,8 @@ class Esp32Client {
           environment['humidity'],
           environment['relativeHumidity'],
         ]),
+        'temperatureValid': _first([air['temperatureValid'], environment['temperatureValid'], data['temperatureValid']]),
+        'humidityValid': _first([air['humidityValid'], environment['humidityValid'], data['humidityValid']]),
       },
     };
     final mergedSoil = <String, dynamic>{

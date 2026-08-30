@@ -12,6 +12,8 @@ import '../widgets/data_source_card.dart';
 import '../widgets/biotic_stress_card.dart';
 import '../widgets/page_frame.dart';
 import 'leaf_screening_screen.dart';
+import 'farmer_analysis_screen.dart';
+import 'sensor_health_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
 
 class LiveNodeHomeScreen extends StatelessWidget {
@@ -38,6 +40,12 @@ class LiveNodeHomeScreen extends StatelessWidget {
           ],
         ),
         actions: [
+          if (reading != null && edge != null)
+            IconButton(
+              tooltip: FarmerLanguage.label(context, 'speak_summary'),
+              onPressed: () => _speakFarmerSummary(context, scope, reading, edge),
+              icon: const Icon(Icons.volume_up_outlined),
+            ),
           if (live)
             IconButton(
               tooltip: 'Plant Intelligence',
@@ -116,6 +124,14 @@ class LiveNodeHomeScreen extends StatelessWidget {
                   ),
                 ),
               ],
+              const SizedBox(height: 12),
+              _EnvironmentRiskCard(reading: reading, edge: edge, telemetry: telemetry),
+              const SizedBox(height: 12),
+              _RootWaterCard(reading: reading, edge: edge, telemetry: telemetry),
+              const SizedBox(height: 12),
+              _SensorReliabilityCard(edge: edge),
+              const SizedBox(height: 12),
+              _HomeActionsCard(),
               const SizedBox(height: 12),
               _WhatChangedCard(edge: edge),
               if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
@@ -226,6 +242,7 @@ class _ConditionCard extends StatelessWidget {
         : _stateColor(context, rawState);
     final crop = telemetry?.cropProfile ?? edge?.cropProfile.profile;
     final stage = telemetry?.growthStage ?? edge?.cropProfile.growthStage;
+    final region = edge?.cropProfile.regionProfile;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -311,6 +328,15 @@ class _ConditionCard extends StatelessWidget {
                   '${FarmerLanguage.label(context, 'growth_stage')}: ${FarmerLanguage.firmware(context, stage)}',
                   accent,
                 ),
+              if (region != null && region.trim().isNotEmpty)
+                _Pill(
+                  Icons.location_on_outlined,
+                  region,
+                  accent,
+                ),
+              if (edge?.urgency != null)
+                _Pill(Icons.visibility_outlined,
+                    'Priority: ${FarmerLanguage.firmware(context, edge!.urgency)}', accent),
               _Pill(Icons.priority_high_rounded,
                   '${FarmerLanguage.label(context, 'severity')}: $severity', accent),
               _Pill(Icons.verified_outlined,
@@ -519,6 +545,192 @@ class _CameraHandoffCard extends StatelessWidget {
           ),
         ),
       );
+}
+
+
+class _EnvironmentRiskCard extends StatelessWidget {
+  final SensorReading reading;
+  final EdgeIntelligence? edge;
+  final HardwareTelemetry? telemetry;
+  const _EnvironmentRiskCard({required this.reading, required this.edge, required this.telemetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final state = edge?.derivedEnvironment.dryingDemandState ??
+        edge?.derivedEnvironment.vpdState ??
+        telemetry?.sensor('vpd')?.result;
+    final vpd = edge?.derivedEnvironment.vpdValid == false
+        ? null
+        : edge?.derivedEnvironment.vpdKpa ?? telemetry?.vpdKpa;
+    final humidityUnavailable = !reading.humidityAvailable;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(17),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(FarmerLanguage.label(context, 'environmental_risk'),
+              style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 7),
+          Text(
+            '${FarmerLanguage.label(context, 'atmospheric_drying')}: ${state == null ? FarmerLanguage.label(context, 'not_available') : FarmerLanguage.firmware(context, state)}',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 5),
+          Text(humidityUnavailable
+              ? FarmerLanguage.label(context, 'humidity_unavailable')
+              : 'Hot, dry air can pull water from the plant quickly. This is environmental risk, not proof of plant stress.'),
+          if (vpd != null) ...[
+            const SizedBox(height: 6),
+            Text('Technical: VPD ${vpd.toStringAsFixed(2)} kPa', style: Theme.of(context).textTheme.bodySmall),
+          ],
+        ]),
+      ),
+    );
+  }
+}
+
+class _RootWaterCard extends StatelessWidget {
+  final SensorReading reading;
+  final EdgeIntelligence? edge;
+  final HardwareTelemetry? telemetry;
+  const _RootWaterCard({required this.reading, required this.edge, required this.telemetry});
+
+  @override
+  Widget build(BuildContext context) {
+    final detail = telemetry?.sensor('soilMoisture');
+    final water = edge?.waterBalance;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(17),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(FarmerLanguage.label(context, 'root_zone_water'),
+              style: const TextStyle(fontWeight: FontWeight.w900)),
+          const SizedBox(height: 7),
+          Text(
+            reading.soilMoistureAvailable
+                ? '${reading.soilMoisture.toStringAsFixed(0)}%${detail?.result == null ? '' : ' • ${FarmerLanguage.firmware(context, detail!.result)}'}'
+                : FarmerLanguage.label(context, 'not_available'),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          if (detail?.contribution != null) ...[
+            const SizedBox(height: 5),
+            Text(FarmerLanguage.firmware(context, detail!.contribution)),
+          ],
+          if (water?.hasData == true) ...[
+            const SizedBox(height: 8),
+            Text(
+              '${FarmerLanguage.label(context, 'water_balance')}: ${water!.score == null ? '' : '${water.score!.round()} / 100 '}${FarmerLanguage.firmware(context, water.state)}',
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+            if (water.explanation != null) Text(FarmerLanguage.firmware(context, water.explanation)),
+          ],
+        ]),
+      ),
+    );
+  }
+}
+
+class _SensorReliabilityCard extends StatelessWidget {
+  final EdgeIntelligence? edge;
+  const _SensorReliabilityCard({required this.edge});
+
+  @override
+  Widget build(BuildContext context) {
+    final attention = edge?.degradedAnalysis == true ||
+        edge?.sensorFaults.isNotEmpty == true ||
+        edge?.bioelectric.excludedByFirmware == true ||
+        edge?.sensorStatus.values.any((v) {
+          final x = v.toUpperCase();
+          return x.contains('CHECK') || x.contains('UNAVAILABLE') || x.contains('NOISY') || x.contains('SATURATED') || x.contains('RAIL');
+        }) == true;
+    final lowest = edge?.sensorConfidence
+        .where((e) => e.percent != null)
+        .map((e) => e.percent!)
+        .fold<double?>(null, (min, v) => min == null || v < min ? v : min);
+    return Card(
+      child: ListTile(
+        leading: Icon(attention ? Icons.warning_amber_rounded : Icons.verified_outlined),
+        title: Text(FarmerLanguage.label(context, 'sensor_reliability'),
+            style: const TextStyle(fontWeight: FontWeight.w900)),
+        subtitle: Text(attention
+            ? FarmerLanguage.label(context, 'some_sensors_attention')
+            : FarmerLanguage.label(context, 'all_sensors_good')),
+        trailing: lowest == null ? null : Text('${lowest.round()}%+', style: const TextStyle(fontWeight: FontWeight.w900)),
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SensorHealthScreen()),
+        ),
+      ),
+    );
+  }
+}
+
+class _HomeActionsCard extends StatelessWidget {
+  const _HomeActionsCard();
+  @override
+  Widget build(BuildContext context) => Card(
+        child: Padding(
+          padding: const EdgeInsets.all(14),
+          child: Row(children: [
+            Expanded(
+              child: FilledButton.icon(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const FarmerAnalysisScreen()),
+                ),
+                icon: const Icon(Icons.psychology_alt_rounded),
+                label: Text(FarmerLanguage.label(context, 'full_analysis')),
+              ),
+            ),
+            const SizedBox(width: 10),
+            IconButton.filledTonal(
+              tooltip: FarmerLanguage.label(context, 'sensor_health'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SensorHealthScreen()),
+              ),
+              icon: const Icon(Icons.health_and_safety_outlined),
+            ),
+          ]),
+        ),
+      );
+}
+
+Future<void> _speakFarmerSummary(
+  BuildContext context,
+  AppScope scope,
+  SensorReading reading,
+  EdgeIntelligence edge,
+) async {
+  final state = FarmerLanguage.firmware(context, edge.plantState ?? reading.healthStatus);
+  final crop = edge.cropProfile.profile ?? reading.cropProfile ?? 'plant';
+  final finding = FarmerLanguage.firmware(
+    context,
+    edge.farmerSummary ?? edge.rootCause.primary,
+    fallback: FarmerLanguage.label(context, 'no_problem'),
+  );
+  final action = FarmerLanguage.firmware(
+    context,
+    edge.bioticStress.suspected
+        ? edge.bioticStress.recommendation
+        : edge.recommendation,
+    fallback: edge.bioticStress.suspected
+        ? FarmerLanguage.label(context, 'biotic_inspect_action')
+        : FarmerLanguage.label(context, 'keep_monitoring'),
+  );
+  final bio = edge.bioelectric.excludedByFirmware
+      ? FarmerLanguage.label(context, 'signal_unavailable')
+      : FarmerLanguage.firmware(
+          context,
+          edge.bioelectric.stressState,
+          fallback: FarmerLanguage.label(context, 'plant_response_no_result'),
+        );
+  final text = FarmerLanguage.isTamil(context)
+      ? '$crop செடியின் தற்போதைய நிலை $state. $finding. Bioelectric பதில் $bio. $action'
+      : 'Your $crop currently appears $state. $finding. The plant electrical response is $bio. $action';
+  await scope.voice.speak(
+    text: text,
+    languageCode: scope.settings.value.languageCode,
+  );
 }
 
 class _WhatChangedCard extends StatelessWidget {

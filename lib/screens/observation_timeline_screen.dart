@@ -333,7 +333,9 @@ class _HistoryCharts extends StatelessWidget {
 
     final health = <double?>[
       for (final reading in history)
-        reading.esp32HealthScore ?? reading.healthScore,
+        reading.analysisOrigin == 'esp32'
+            ? reading.esp32HealthScore
+            : reading.healthScore,
     ];
     final soil = <double?>[
       for (final reading in history)
@@ -341,7 +343,9 @@ class _HistoryCharts extends StatelessWidget {
     ];
     final stress = <double?>[
       for (final reading in history)
-        reading.plantSignalAvailable ? reading.stressScore : null,
+        reading.analysisOrigin == 'esp32'
+            ? reading.bioStressScore
+            : (reading.plantSignalAvailable ? reading.stressScore : null),
     ];
 
     return Column(

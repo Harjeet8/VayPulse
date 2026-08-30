@@ -248,11 +248,14 @@ class BioelectricIntelligence {
       interpretation != null ||
       farmerResult != null;
 
-  bool get learningBaseline =>
-      baselineReady == false ||
-      (baselineTarget != null &&
-          baselineSamples != null &&
-          baselineSamples! < baselineTarget!);
+  bool get learningBaseline {
+    final state = (stressState ?? '').trim().toUpperCase().replaceAll(' ', '_');
+    return state == 'LEARNING_BASELINE' ||
+        baselineReady == false ||
+        (baselineTarget != null &&
+            baselineSamples != null &&
+            baselineSamples! < baselineTarget!);
+  }
 
   /// True only when the firmware says the plant channel is unusable or its
   /// explicit state identifies a contact/noise/rail problem. A bad plant
@@ -264,11 +267,17 @@ class BioelectricIntelligence {
         .toUpperCase()
         .replaceAll(' ', '_');
     return value == 'NOISY' ||
+        value == 'SIGNAL_NOISY' ||
         value == 'BAD_CONTACT' ||
+        value == 'CHECK_CONTACT' ||
+        value == 'CHECK_ELECTRODE_CONTACT' ||
         value == 'CONTACT_FAULT' ||
         value == 'SATURATED' ||
+        value == 'SIGNAL_SATURATED' ||
         value == 'HIGH_RAIL' ||
+        value == 'AMP_HIGH_RAIL' ||
         value == 'LOW_RAIL' ||
+        value == 'AMP_LOW_RAIL' ||
         value == 'INVALID' ||
         value == 'UNAVAILABLE';
   }
@@ -485,12 +494,14 @@ class SensorFaultInfo {
 
 class DerivedEnvironmentInfo {
   final double? vpdKpa;
+  final bool? vpdValid;
   final double? airDryingDemand;
   final String? vpdState;
   final String? dryingDemandState;
 
   const DerivedEnvironmentInfo({
     this.vpdKpa,
+    this.vpdValid,
     this.airDryingDemand,
     this.vpdState,
     this.dryingDemandState,
@@ -498,6 +509,7 @@ class DerivedEnvironmentInfo {
 
   bool get hasData =>
       vpdKpa != null ||
+      vpdValid != null ||
       airDryingDemand != null ||
       vpdState != null ||
       dryingDemandState != null;
@@ -632,6 +644,7 @@ class EdgeIntelligence {
   final WaterBalanceInfo waterBalance;
   final CameraHandoffInfo cameraHandoff;
   final List<SensorConfidence> sensorConfidence;
+  final Map<String, String> sensorStatus;
   final List<SensorTrend> trends;
   final List<SensorFaultInfo> sensorFaults;
   final List<PhytoEvent> recentEvents;
@@ -675,6 +688,7 @@ class EdgeIntelligence {
     this.waterBalance = const WaterBalanceInfo(),
     this.cameraHandoff = const CameraHandoffInfo(),
     this.sensorConfidence = const [],
+    this.sensorStatus = const {},
     this.trends = const [],
     this.sensorFaults = const [],
     this.recentEvents = const [],
@@ -907,6 +921,11 @@ class EdgeIntelligence {
       data['sensorConfidence'],
       qualityMap['sensorConfidence'],
     ]));
+    final sensorStatus = _parseSensorStatus(_first([
+      edge['sensorStatus'],
+      data['sensorStatus'],
+      qualityMap['sensorStatus'],
+    ]));
     final trends = _parseTrends(_first([
       edge['trends'],
       data['trends'],
@@ -1066,6 +1085,8 @@ class EdgeIntelligence {
       signedChangeMv: _num(_first([
         bioelectricMap['signedChangeMv'],
         bioelectricMap['signedChange'],
+        edge['bioSignedDelta'],
+        data['bioSignedDelta'],
       ])),
       deviationMv: _num(_first([
         bioelectricMap['deviationMv'],
@@ -1091,6 +1112,8 @@ class EdgeIntelligence {
         bioelectricMap['signalQualityPercent'],
         edge['bioSignalQuality'],
         data['bioSignalQuality'],
+        edge['bioSignalQualityPct'],
+        data['bioSignalQualityPct'],
       ])),
       signalQualityState: _text(_first([
         bioelectricMap['signalQualityState'],
@@ -1118,10 +1141,14 @@ class EdgeIntelligence {
         bioelectricMap['state'],
         edge['bioState'],
         data['bioState'],
+        edge['bioStressLabel'],
+        data['bioStressLabel'],
       ])),
       persistenceSeconds: _num(_first([
         bioelectricMap['persistenceSeconds'],
         bioelectricMap['persistentSeconds'],
+        edge['bioPersistenceSeconds'],
+        data['bioPersistenceSeconds'],
       ])),
       stressLoad: _num(_first([
         bioelectricMap['stressLoad'],
@@ -1386,6 +1413,19 @@ class EdgeIntelligence {
       ])),
     );
 
+    final readingsForValidity = _map(data['readings']);
+    final airForValidity = _map(readingsForValidity['air']);
+    final explicitVpdValid = _bool(_first([
+      derivedMap['vpdValid'],
+      edge['vpdValid'],
+      data['vpdValid'],
+    ]));
+    final humidityExplicitlyInvalid = _first([
+          airForValidity['humidityValid'],
+          data['humidityValid'],
+          data['relativeHumidityValid'],
+        ]) == false;
+
     final derived = DerivedEnvironmentInfo(
       vpdKpa: _num(_first([
         derivedMap['vpd'],
@@ -1395,6 +1435,7 @@ class EdgeIntelligence {
         data['vpd'],
         data['vpdKpa'],
       ])),
+      vpdValid: explicitVpdValid ?? (humidityExplicitlyInvalid ? false : null),
       airDryingDemand: _num(_first([
         derivedMap['airDryingDemand'],
         edge['airDryingDemand'],
@@ -1609,7 +1650,7 @@ class EdgeIntelligence {
           bioelectric.farmerResult != null ||
           bioticStress.hasData,
       plantState: plantState != null,
-      sensorConfidence: sensorConfidence.isNotEmpty,
+      sensorConfidence: sensorConfidence.isNotEmpty || sensorStatus.isNotEmpty,
       trends: trends.isNotEmpty,
       rootCause: rootCause.hasAny,
       recovery: recovery.hasData,
@@ -1669,6 +1710,7 @@ class EdgeIntelligence {
       waterBalance: waterBalance,
       cameraHandoff: cameraHandoff,
       sensorConfidence: sensorConfidence,
+      sensorStatus: sensorStatus,
       trends: trends,
       sensorFaults: faults,
       recentEvents: events,
@@ -1753,6 +1795,30 @@ List<SensorConfidence> _parseConfidences(dynamic raw) {
         state: _text(_first([details['state'], details['quality']])),
         valid: _bool(details['valid']),
       ));
+    }
+  }
+  return result;
+}
+
+Map<String, String> _parseSensorStatus(dynamic raw) {
+  final result = <String, String>{};
+  if (raw is Map) {
+    for (final entry in raw.entries) {
+      final valueMap = _map(entry.value);
+      final text = _text(_first([
+        valueMap['status'],
+        valueMap['state'],
+        valueMap['quality'],
+        entry.value is String ? entry.value : null,
+      ]));
+      if (text != null) result['${entry.key}'] = text;
+    }
+  } else if (raw is List) {
+    for (final item in raw) {
+      final map = _map(item);
+      final channel = _text(_first([map['channel'], map['sensor'], map['name']]));
+      final status = _text(_first([map['status'], map['state'], map['quality']]));
+      if (channel != null && status != null) result[channel] = status;
     }
   }
   return result;

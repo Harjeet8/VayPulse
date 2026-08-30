@@ -34,6 +34,11 @@ class SensorReading {
   final String? healthTrend;
   final String? diseaseRiskTrend;
   final bool recoveryActive;
+  final double? vpdKpa;
+  final String? bioticState;
+  final String? recoveryState;
+  final String? cropProfile;
+  final double? bioStressScore;
 
   /// Embedded firmware result retained only for diagnostics/comparison.
   final double? esp32HealthScore;
@@ -92,6 +97,11 @@ class SensorReading {
     this.healthTrend,
     this.diseaseRiskTrend,
     this.recoveryActive = false,
+    this.vpdKpa,
+    this.bioticState,
+    this.recoveryState,
+    this.cropProfile,
+    this.bioStressScore,
     this.esp32HealthScore,
     this.esp32HealthConfidence,
     this.waterScore,
@@ -162,6 +172,11 @@ class SensorReading {
         'healthTrend': healthTrend,
         'diseaseRiskTrend': diseaseRiskTrend,
         'recoveryActive': recoveryActive,
+        'vpdKpa': vpdKpa,
+        'bioticState': bioticState,
+        'recoveryState': recoveryState,
+        'cropProfile': cropProfile,
+        'bioStressScore': bioStressScore,
         'esp32HealthScore': esp32HealthScore,
         'esp32HealthConfidence': esp32HealthConfidence,
         'waterScore': waterScore,
@@ -248,6 +263,11 @@ class SensorReading {
       healthTrend: json['healthTrend']?.toString(),
       diseaseRiskTrend: json['diseaseRiskTrend']?.toString(),
       recoveryActive: json['recoveryActive'] == true,
+      vpdKpa: _nullableNum(json['vpdKpa']),
+      bioticState: json['bioticState']?.toString(),
+      recoveryState: json['recoveryState']?.toString(),
+      cropProfile: json['cropProfile']?.toString(),
+      bioStressScore: _nullableNum(json['bioStressScore']),
       esp32HealthScore: _nullableNum(json['esp32HealthScore']),
       esp32HealthConfidence: _nullableNum(json['esp32HealthConfidence']),
       waterScore: _nullableNum(json['waterScore']),
@@ -371,6 +391,11 @@ class SensorReading {
     String? healthTrend,
     String? diseaseRiskTrend,
     bool? recoveryActive,
+    double? vpdKpa,
+    String? bioticState,
+    String? recoveryState,
+    String? cropProfile,
+    double? bioStressScore,
     double? esp32HealthScore,
     double? esp32HealthConfidence,
     double? waterScore,
@@ -424,6 +449,11 @@ class SensorReading {
       healthTrend: healthTrend ?? this.healthTrend,
       diseaseRiskTrend: diseaseRiskTrend ?? this.diseaseRiskTrend,
       recoveryActive: recoveryActive ?? this.recoveryActive,
+      vpdKpa: vpdKpa ?? this.vpdKpa,
+      bioticState: bioticState ?? this.bioticState,
+      recoveryState: recoveryState ?? this.recoveryState,
+      cropProfile: cropProfile ?? this.cropProfile,
+      bioStressScore: bioStressScore ?? this.bioStressScore,
       esp32HealthScore: esp32HealthScore ?? this.esp32HealthScore,
       esp32HealthConfidence:
           esp32HealthConfidence ?? this.esp32HealthConfidence,

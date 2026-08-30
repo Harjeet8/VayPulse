@@ -7,6 +7,8 @@ import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/biotic_stress_card.dart';
 import 'leaf_screening_screen.dart';
+import 'sensor_health_screen.dart';
+import 'technical_edge_view_screen.dart';
 
 class FarmerAnalysisScreen extends StatelessWidget {
   const FarmerAnalysisScreen({super.key});
@@ -22,6 +24,24 @@ class FarmerAnalysisScreen extends StatelessWidget {
         return Scaffold(
           appBar: AppBar(
             title: Text(FarmerLanguage.label(context, 'analysis')),
+            actions: [
+              IconButton(
+                tooltip: FarmerLanguage.label(context, 'sensor_health'),
+                icon: const Icon(Icons.sensors_rounded),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SensorHealthScreen()),
+                ),
+              ),
+              IconButton(
+                tooltip: FarmerLanguage.label(context, 'technical_judge_view'),
+                icon: const Icon(Icons.science_outlined),
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TechnicalEdgeViewScreen()),
+                ),
+              ),
+            ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -92,6 +112,14 @@ class FarmerAnalysisScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 10),
+                  if (edge?.bioelectric.hasData == true) ...[
+                    _BioelectricHeroCard(bio: edge!.bioelectric),
+                    const SizedBox(height: 10),
+                  ],
+                  if (edge?.rootCause.hasAny == true) ...[
+                    _RankedCausesCard(rootCause: edge!.rootCause),
+                    const SizedBox(height: 10),
+                  ],
                   _AnswerCard(
                     icon: Icons.report_problem_outlined,
                     title: FarmerLanguage.label(context, 'main_problem'),
@@ -157,6 +185,7 @@ class FarmerAnalysisScreen extends StatelessWidget {
                             : null),
                     degraded: edge?.degradedAnalysis == true,
                     degradedReason: edge?.degradedReason,
+                    quality: edge?.analysisQuality,
                   ),
                   const SizedBox(height: 10),
                   _AdvancedDetails(reading: reading, edge: edge),
@@ -348,11 +377,13 @@ class _ConfidenceCard extends StatelessWidget {
   final double? value;
   final bool degraded;
   final String? degradedReason;
+  final String? quality;
 
   const _ConfidenceCard({
     required this.value,
     required this.degraded,
     required this.degradedReason,
+    this.quality,
   });
 
   @override
@@ -392,6 +423,8 @@ class _ConfidenceCard extends StatelessWidget {
                           color: color,
                         ),
                   ),
+                  const SizedBox(height: 5),
+                  Text(_qualityMessage(context, quality, value)),
                   if (degraded) ...[
                     const SizedBox(height: 5),
                     Text(
@@ -410,6 +443,160 @@ class _ConfidenceCard extends StatelessWidget {
       ),
     );
   }
+}
+
+
+class _BioelectricHeroCard extends StatelessWidget {
+  final BioelectricIntelligence bio;
+  const _BioelectricHeroCard({required this.bio});
+
+  @override
+  Widget build(BuildContext context) {
+    final excluded = bio.excludedByFirmware;
+    final learning = !excluded && bio.learningBaseline;
+    final state = excluded
+        ? FarmerLanguage.label(context, 'signal_unavailable')
+        : learning
+            ? FarmerLanguage.label(context, 'learning_baseline')
+            : FarmerLanguage.firmware(
+                context,
+                bio.stressState,
+                fallback: FarmerLanguage.label(context, 'plant_response_no_result'),
+              );
+    final quality = bio.signalQualityState ??
+        (bio.signalQuality == null
+            ? null
+            : bio.signalQuality! >= 80
+                ? 'GOOD'
+                : bio.signalQuality! >= 55
+                    ? 'MODERATE'
+                    : 'CHECK CONTACT');
+    final baseline = learning
+        ? (bio.baselineTarget == null
+            ? '${bio.baselineSamples ?? 0}'
+            : '${bio.baselineSamples ?? 0}/${bio.baselineTarget}')
+        : bio.baselineReady == true
+            ? FarmerLanguage.label(context, 'baseline_stable')
+            : '—';
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(children: [
+              Icon(Icons.electric_bolt_rounded,
+                  color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  FarmerLanguage.label(context, 'bioelectric_response').toUpperCase(),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
+                ),
+              ),
+            ]),
+            const SizedBox(height: 10),
+            Text(state,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w900)),
+            const SizedBox(height: 7),
+            Text(
+              excluded
+                  ? FarmerLanguage.label(context, 'bio_signal_check_electrodes')
+                  : learning
+                      ? FarmerLanguage.label(context, 'bio_learning_body')
+                      : FarmerLanguage.firmware(
+                          context,
+                          bio.farmerResult ?? bio.interpretation,
+                          fallback: FarmerLanguage.label(context, 'plant_response_no_result'),
+                        ),
+            ),
+            const SizedBox(height: 12),
+            Wrap(spacing: 14, runSpacing: 8, children: [
+              if (!excluded && bio.stressScore != null)
+                Text('Stress Score: ${bio.stressScore!.round()} / 100',
+                    style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text('${FarmerLanguage.label(context, 'signal_quality')}: ${quality == null ? '—' : FarmerLanguage.firmware(context, quality)}'),
+              if (bio.confidence != null)
+                Text('${FarmerLanguage.label(context, 'confidence')}: ${bio.confidence!.round()}%'),
+              Text('Baseline: $baseline'),
+            ]),
+            if (learning && bio.baselineTarget != null && bio.baselineTarget! > 0) ...[
+              const SizedBox(height: 10),
+              LinearProgressIndicator(
+                value: ((bio.baselineSamples ?? 0) / bio.baselineTarget!).clamp(0.0, 1.0),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RankedCausesCard extends StatelessWidget {
+  final RootCauseAnalysis rootCause;
+  const _RankedCausesCard({required this.rootCause});
+
+  @override
+  Widget build(BuildContext context) {
+    final ranked = rootCause.ranked.isNotEmpty
+        ? rootCause.ranked
+        : <RootCauseCandidate>[
+            if (rootCause.primaryCandidate != null) rootCause.primaryCandidate!,
+            if (rootCause.secondaryCandidate != null) rootCause.secondaryCandidate!,
+          ];
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(17),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(FarmerLanguage.label(context, 'possible_causes'),
+                style: const TextStyle(fontWeight: FontWeight.w900)),
+            const SizedBox(height: 9),
+            if (ranked.isEmpty)
+              Text(FarmerLanguage.firmware(
+                context,
+                rootCause.primary,
+                fallback: FarmerLanguage.label(context, 'why_unavailable'),
+              ))
+            else
+              for (var i = 0; i < ranked.length && i < 3; i++)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('${i + 1}. ', style: const TextStyle(fontWeight: FontWeight.w900)),
+                      Expanded(
+                        child: Text(
+                          '${FarmerLanguage.firmware(context, ranked[i].name)}${ranked[i].confidence == null ? '' : ' — ${ranked[i].confidence!.round()}%'}',
+                          style: const TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+String _qualityMessage(BuildContext context, String? raw, double? confidence) {
+  final q = (raw ?? '').toUpperCase();
+  if (q.contains('LOW') || (confidence != null && confidence < 55)) {
+    return FarmerLanguage.label(context, 'analysis_quality_low');
+  }
+  if (q.contains('MODERATE') || q.contains('REDUCED') ||
+      (confidence != null && confidence < 80)) {
+    return FarmerLanguage.label(context, 'analysis_quality_moderate');
+  }
+  return FarmerLanguage.label(context, 'analysis_quality_high');
 }
 
 class _AdvancedDetails extends StatelessWidget {

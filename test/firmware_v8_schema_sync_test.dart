@@ -316,4 +316,90 @@ void main() {
     expect(edge.firmwareCompatible, isFalse);
     expect(edge.compatibilityIssue, 'Firmware compatibility issue');
   });
+
+  test('all v8.7.1 bio fault states are excluded from fusion UI', () {
+    for (final state in const <String>[
+      'SIGNAL NOISY',
+      'CHECK CONTACT',
+      'SATURATED',
+      'AMP HIGH RAIL',
+      'AMP LOW RAIL',
+    ]) {
+      final edge = EdgeIntelligence.fromPayload(
+        root: const <String, dynamic>{},
+        data: <String, dynamic>{
+          'plantState': 'WATCH',
+          'bioState': state,
+          'bioStressScore': 99,
+        },
+        firmwareVersion: '8.7.1-MEGA-FINAL',
+      );
+      expect(edge.bioelectric.excludedByFirmware, isTrue, reason: state);
+    }
+  });
+
+  test('v8.7.1 flat bio aliases and sensorStatus remain available', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'plantState': 'HEALTHY',
+        'bioState': 'BASELINE STABLE',
+        'bioStressScore': 5,
+        'bioStressLabel': 'NORMAL',
+        'bioSignalQualityPct': 92,
+        'bioSignedDelta': 3.5,
+        'bioPersistenceSeconds': 14,
+        'sensorStatus': <String, dynamic>{
+          'humidity': 'UNAVAILABLE',
+          'bioelectric': 'GOOD',
+        },
+      },
+      firmwareVersion: '8.7.1-MEGA-FINAL',
+    );
+
+    expect(edge.bioelectric.signalQuality, 92);
+    expect(edge.bioelectric.signedChangeMv, 3.5);
+    expect(edge.bioelectric.persistenceSeconds, 14);
+    expect(edge.sensorStatus['humidity'], 'UNAVAILABLE');
+    expect(edge.sensorStatus['bioelectric'], 'GOOD');
+  });
+
+  test('sensorStatus is reflected in hardware telemetry', () {
+    final telemetry = HardwareTelemetry.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'sensorStatus': <String, dynamic>{
+          'humidity': 'UNAVAILABLE',
+          'bioelectric': 'CHECK CONTACT',
+        },
+        'sensorConfidence': <String, dynamic>{
+          'humidity': 0,
+          'bioelectric': 42,
+        },
+      },
+      firmwareVersion: '8.7.1-MEGA-FINAL',
+    );
+    expect(telemetry.sensor('humidity')?.status, 'UNAVAILABLE');
+    expect(telemetry.sensor('plantSignal')?.status, 'CHECK CONTACT');
+  });
+
+
+  test('invalid humidity suppresses VPD in hardware telemetry', () {
+    final telemetry = HardwareTelemetry.fromPayload(
+      root: const <String, dynamic>{},
+      data: const <String, dynamic>{
+        'readings': <String, dynamic>{
+          'air': <String, dynamic>{
+            'humidityPercent': 0,
+            'humidityValid': false,
+          },
+        },
+        'vpdKpa': 4.8,
+        'vpdValid': false,
+      },
+      firmwareVersion: '8.7.1-MEGA-FINAL',
+    );
+    expect(telemetry.vpdKpa, isNull);
+  });
+
 }

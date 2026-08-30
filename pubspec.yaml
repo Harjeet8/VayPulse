@@ -1,7 +1,7 @@
 name: phytosense_ai
 description: PhytoSense AI V8 ULTRA FINAL - farmer-first ESP32 edge-intelligence companion, powered by VayPulse.
 publish_to: "none"
-version: 8.0.0+80
+version: 8.7.1+871
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

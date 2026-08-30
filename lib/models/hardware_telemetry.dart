@@ -102,6 +102,11 @@ class HardwareTelemetry {
       data['sensorConfidence'],
       quality['sensorConfidence'],
     ]);
+    final statusSource = _first([
+      edge['sensorStatus'],
+      data['sensorStatus'],
+      quality['sensorStatus'],
+    ]);
     final trendSource = _first([
       edge['trends'],
       data['trends'],
@@ -142,6 +147,8 @@ class HardwareTelemetry {
     }) {
       final names = aliases[channel] ?? <String>[channel];
       final confidenceValue = _lookupChannel(confidenceSource, names);
+      final statusValue = _lookupChannel(statusSource, names);
+      final statusMap = _map(statusValue);
       final trendValue = _lookupChannel(trendSource, names);
       final resultValue = _lookupChannel(resultSource, names);
       final contributionValue = _lookupChannel(contributionSource, names);
@@ -211,6 +218,9 @@ class HardwareTelemetry {
           readingMap['confidence'],
         ])),
         status: _text(_first([
+          statusMap['status'],
+          statusMap['state'],
+          statusValue is String ? statusValue : null,
           resultMap['status'],
           confidenceMap['state'],
           readingMap['status'],
@@ -327,6 +337,18 @@ class HardwareTelemetry {
       soil['temperatureC'],
     ]));
 
+    final vpdValid = _first([
+      derived['vpdValid'],
+      edge['vpdValid'],
+      data['vpdValid'],
+    ]);
+    final humidityValid = _first([
+      air['humidityValid'],
+      data['humidityValid'],
+      data['relativeHumidityValid'],
+    ]);
+    final allowVpd = vpdValid == true || (vpdValid != false && humidityValid != false);
+
     return HardwareTelemetry(
       firmwareVersion: firmwareVersion,
       cropProfile: _text(_first([
@@ -354,14 +376,16 @@ class HardwareTelemetry {
         data['dayPhase'],
         light['phase'],
       ])),
-      vpdKpa: _num(_first([
-        derived['vpdKpa'],
-        derived['vpd'],
-        edge['vpdKpa'],
-        edge['vpd'],
-        data['vpdKpa'],
-        data['vpd'],
-      ])),
+      vpdKpa: allowVpd
+          ? _num(_first([
+              derived['vpdKpa'],
+              derived['vpd'],
+              edge['vpdKpa'],
+              edge['vpd'],
+              data['vpdKpa'],
+              data['vpd'],
+            ]))
+          : null,
       airRootDeltaC: _num(_first([
             derived['airRootTemperatureDifferenceC'],
             derived['airRootDeltaC'],
