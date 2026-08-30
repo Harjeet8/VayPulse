@@ -165,8 +165,118 @@ class AboutVayPulseScreen extends StatelessWidget {
                     : 'ESP32-authoritative intelligence • Farmer-first UI • English/Tamil • Sensor and visual evidence kept separate'),
               ),
             ),
+            const SizedBox(height: 12),
+            const _CreatorCard(),
           ],
         ),
+      );
+}
+
+class _CreatorCard extends StatelessWidget {
+  const _CreatorCard();
+
+  @override
+  Widget build(BuildContext context) {
+    final tamil = FarmerLanguage.isTamil(context);
+    final scheme = Theme.of(context).colorScheme;
+
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          initiallyExpanded: false,
+          maintainState: true,
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(Icons.person_outline_rounded, color: scheme.primary),
+          ),
+          title: Text(
+            tamil ? 'உருவாக்குநர்' : 'Creator',
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(
+            tamil
+                ? 'திட்ட ஆசிரியர் மற்றும் தேர்ந்தெடுக்கப்பட்ட உருவாக்கங்கள்'
+                : 'Project authorship & selected builds',
+          ),
+          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+          children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Harjeet D.',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 4),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                tamil
+                    ? 'Embedded systems, sensing மற்றும் நடைமுறை AI மீது கவனம் செலுத்தும் student builder.'
+                    : 'Student builder focused on embedded systems, sensing and practical AI.',
+                style: TextStyle(color: scheme.onSurfaceVariant),
+              ),
+            ),
+            const SizedBox(height: 16),
+            _CreatorBuild(
+              title: 'PhytoSense AI',
+              description: tamil
+                  ? 'ESP32 + Flutter plant-intelligence system — bioelectric sensing, environmental fusion மற்றும் farmer-first guidance.'
+                  : 'ESP32 + Flutter plant-intelligence system combining bioelectric sensing, environmental fusion and farmer-first guidance.',
+            ),
+            const SizedBox(height: 11),
+            _CreatorBuild(
+              title: 'AURA',
+              description: tamil
+                  ? 'Camera-driven elder-care emergency-response prototype with safety-first interaction design.'
+                  : 'Camera-driven elder-care emergency-response prototype with safety-first interaction design.',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CreatorBuild extends StatelessWidget {
+  final String title;
+  final String description;
+
+  const _CreatorBuild({required this.title, required this.description});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Icon(
+              Icons.arrow_outward_rounded,
+              size: 17,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+                const SizedBox(height: 2),
+                Text(description),
+              ],
+            ),
+          ),
+        ],
       );
 }
 
