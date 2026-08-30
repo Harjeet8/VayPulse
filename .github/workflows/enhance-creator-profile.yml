@@ -39,44 +39,14 @@ jobs:
               raise SystemExit('Creator intro text not found')
           text = text.replace(old_en, new_en, 1).replace(old_ta, new_ta, 1)
 
-          project_marker = """            const SizedBox(height: 16),
-            _CreatorBuild(
-              title: 'PhytoSense AI',"""
-          pipeline_block = """            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer.withValues(alpha: 0.32),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                tamil
-                    ? 'Hardware • Firmware • Signal processing • AI logic • App — ஒரே build pipeline.'
-                    : 'Hardware • Firmware • Signal processing • AI logic • App — one build pipeline.',
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CreatorBuild(
-              title: 'PhytoSense AI',"""
+          project_marker = "            const SizedBox(height: 16),\n            _CreatorBuild(\n              title: 'PhytoSense AI',"
+          pipeline_block = "            const SizedBox(height: 14),\n            Container(\n              width: double.infinity,\n              padding: const EdgeInsets.all(13),\n              decoration: BoxDecoration(\n                color: scheme.primaryContainer.withValues(alpha: 0.32),\n                borderRadius: BorderRadius.circular(16),\n              ),\n              child: Text(\n                tamil\n                    ? 'Hardware • Firmware • Signal processing • AI logic • App — ஒரே build pipeline.'\n                    : 'Hardware • Firmware • Signal processing • AI logic • App — one build pipeline.',\n                style: const TextStyle(fontWeight: FontWeight.w800),\n              ),\n            ),\n            const SizedBox(height: 16),\n            _CreatorBuild(\n              title: 'PhytoSense AI',"
           if project_marker not in text:
               raise SystemExit('PhytoSense project marker not found')
           text = text.replace(project_marker, pipeline_block, 1)
 
-          aura_marker = """            const SizedBox(height: 11),
-            _CreatorBuild(
-              title: 'AURA',"""
-          echo_block = """            const SizedBox(height: 11),
-            _CreatorBuild(
-              title: 'EchoSkin AI',
-              description: tamil
-                  ? 'Piezo vibration sensing, ESP8266 signal analysis, Wi-Fi dashboard மற்றும் actuator response பயன்படுத்தும் structural-health monitoring prototype.'
-                  : 'Structural-health monitoring prototype using piezo vibration sensing, ESP8266 signal analysis, a Wi-Fi dashboard and actuator response.',
-            ),
-            const SizedBox(height: 11),
-            _CreatorBuild(
-              title: 'AURA',"""
+          aura_marker = "            const SizedBox(height: 11),\n            _CreatorBuild(\n              title: 'AURA',"
+          echo_block = "            const SizedBox(height: 11),\n            _CreatorBuild(\n              title: 'EchoSkin AI',\n              description: tamil\n                  ? 'Piezo vibration sensing, ESP8266 signal analysis, Wi-Fi dashboard மற்றும் actuator response பயன்படுத்தும் structural-health monitoring prototype.'\n                  : 'Structural-health monitoring prototype using piezo vibration sensing, ESP8266 signal analysis, a Wi-Fi dashboard and actuator response.',\n            ),\n            const SizedBox(height: 11),\n            _CreatorBuild(\n              title: 'AURA',"
           if aura_marker not in text:
               raise SystemExit('AURA insertion marker not found')
           text = text.replace(aura_marker, echo_block, 1)
