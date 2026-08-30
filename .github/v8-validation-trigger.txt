@@ -1,2 +1,2 @@
-PhytoSense competition validation trigger — 2026-08-30 21:38 IST.
-Validate competition reliability, engineering view, live/stale handling, and formed-icon launch sequence.
+PhytoSense competition validation trigger — analyzer cleanup applied.
+Validate full competition source: launch formation animation, judge engineering view, live/stale/disconnected integrity, farmer explanation, tests, web and Android release.
