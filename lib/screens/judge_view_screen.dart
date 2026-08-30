@@ -4,6 +4,7 @@ import '../models/edge_intelligence.dart';
 import '../models/hardware_telemetry.dart';
 import '../services/app_scope.dart';
 import '../services/sensor_data_provider.dart';
+import '../widgets/competition_intelligence_panels.dart';
 import 'esp32_diagnostics_screen.dart';
 
 /// Hidden technical surface for jury questions and engineering verification.
@@ -73,6 +74,17 @@ class JudgeViewScreen extends StatelessWidget {
                 telemetry: telemetry,
                 edge: edge,
                 packetAge: age,
+              ),
+              const SizedBox(height: 12),
+              JudgeEvidenceMatrix(
+                edge: edge,
+                telemetry: telemetry,
+                history: reading == null
+                    ? const []
+                    : sensors.historyFor(reading.nodeId),
+                current: reading,
+                live: live,
+                connectionStatus: sensors.connectionStatus,
               ),
               if (live) ...[
                 const SizedBox(height: 12),

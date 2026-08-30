@@ -12,6 +12,7 @@ import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/biotic_stress_card.dart';
+import '../widgets/competition_intelligence_panels.dart';
 import '../widgets/page_frame.dart';
 import 'judge_view_screen.dart';
 import 'leaf_screening_screen.dart';
@@ -150,6 +151,15 @@ class LiveNodeHomeScreen extends StatelessWidget {
               ],
               const SizedBox(height: 12),
               _WhatChangedCard(edge: edge),
+              const SizedBox(height: 12),
+              CompetitionIntelligencePanels(
+                current: reading,
+                history: sensors.historyFor(reading.nodeId),
+                edge: edge,
+                telemetry: telemetry,
+                live: live,
+                connectionStatus: sensors.connectionStatus,
+              ),
               if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
                 const SizedBox(height: 12),
                 _CoverageCard(edge: edge!),
@@ -291,21 +301,41 @@ class _ConditionCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 13),
-          Text(
-            title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  color: accent,
-                  height: 1.12,
-                ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 360),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.08),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            child: Text(
+              title,
+              key: ValueKey(title),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: accent,
+                    height: 1.12,
+                  ),
+            ),
           ),
           const SizedBox(height: 9),
-          Text(
-            summary,
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.w700,
-                  height: 1.38,
-                ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 320),
+            child: Text(
+              summary,
+              key: ValueKey(summary),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                    height: 1.38,
+                  ),
+            ),
           ),
           if (secondary != null && secondary.trim().isNotEmpty) ...[
             const SizedBox(height: 8),

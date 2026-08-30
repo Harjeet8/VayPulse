@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../widgets/boot_intelligence_overlay.dart';
 import 'shell_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -24,13 +25,13 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _sequence = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3600),
+      duration: const Duration(milliseconds: 4100),
     )..forward();
     _ambient = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
     )..repeat();
-    _timer = Timer(const Duration(milliseconds: 4250), _openApp);
+    _timer = Timer(const Duration(milliseconds: 4750), _openApp);
   }
 
   void _openApp() {
@@ -148,6 +149,12 @@ class _SplashScreenState extends State<SplashScreen>
               IgnorePointer(
                 child: CustomPaint(
                   painter: _SignalFieldPainter(phase: ambient),
+                ),
+              ),
+              IgnorePointer(
+                child: BootIntelligenceOverlay(
+                  progress: timeline,
+                  phase: ambient,
                 ),
               ),
               SafeArea(
