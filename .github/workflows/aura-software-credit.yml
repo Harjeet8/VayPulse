@@ -1,0 +1,60 @@
+name: Fix AURA Software Credit
+
+on:
+  pull_request:
+    branches:
+      - phytosense-v8-ultra-final
+    paths:
+      - '.github/aura-credit-trigger.txt'
+
+permissions:
+  contents: write
+
+jobs:
+  patch-about:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout competition branch
+        uses: actions/checkout@v4
+        with:
+          ref: phytosense-v8-ultra-final
+      - name: Make AURA software-only explicit
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('lib/screens/about_screen.dart')
+          text = path.read_text(encoding='utf-8')
+          replacements = {
+            "Hardware • Firmware • Signal processing • AI logic • App — one build pipeline.":
+              "Across selected builds: Hardware • Firmware • Signal processing • AI logic • App.",
+            "Hardware • Firmware • Signal processing • AI logic • App — ஒரே build pipeline.":
+              "தேர்ந்தெடுக்கப்பட்ட builds-ல்: Hardware • Firmware • Signal processing • AI logic • App.",
+            "Camera-driven elder-care emergency-response prototype with safety-first interaction design.":
+              "Software-only elder-care emergency-response app with camera-driven workflows and safety-first interaction design.",
+            "Camera-driven elder-care emergency-response prototype with safety-first interaction design.":
+              "Software-only elder-care emergency-response app with camera-driven workflows and safety-first interaction design.",
+          }
+          # Apply the English AURA text and the shared pipeline wording.
+          for old, new in list(replacements.items())[:2]:
+              if old not in text:
+                  raise SystemExit(f'Missing expected text: {old}')
+              text = text.replace(old, new, 1)
+          old_en = "Camera-driven elder-care emergency-response prototype with safety-first interaction design."
+          new_en = "Software-only elder-care emergency-response app with camera-driven workflows and safety-first interaction design."
+          if old_en not in text:
+              raise SystemExit('Missing AURA English description')
+          text = text.replace(old_en, new_en, 1)
+          old_ta = "Camera-driven elder-care emergency-response prototype with safety-first interaction design."
+          new_ta = "Software-only elder-care emergency-response app — camera-driven workflows மற்றும் safety-first interaction design."
+          if old_ta not in text:
+              raise SystemExit('Missing AURA Tamil description')
+          text = text.replace(old_ta, new_ta, 1)
+          path.write_text(text, encoding='utf-8')
+      - name: Commit credit fix
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add lib/screens/about_screen.dart
+          git diff --cached --quiet && exit 0
+          git commit -m "Clarify AURA as software-only work"
+          git push origin HEAD:phytosense-v8-ultra-final
