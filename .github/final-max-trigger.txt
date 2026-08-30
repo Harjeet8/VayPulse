@@ -1,1 +1,2 @@
 Trigger additive final competition integration: timeline, bio pulse, evidence fusion, recovery journey, stronger hero, judge evidence matrix, reliability guards, micro-animations, and enhanced boot. No existing feature removals.
+Retrigger after default-branch workflow activation.
