@@ -137,7 +137,6 @@ class DigitalPlantTwinCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     final stress = (100 - (edge?.healthScore ?? current.healthScore))
         .clamp(0.0, 100.0)
         .toDouble();

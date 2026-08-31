@@ -142,7 +142,6 @@ class SimulationIntelligenceV2 {
               name: analysis.secondary,
               confidence: analysis.secondaryConfidence,
               evidenceFor: analysis.secondaryEvidence,
-              evidenceAgainst: analysis.secondaryCounterEvidence,
             ),
       ranked: analysis.ranked,
     );
@@ -649,7 +648,7 @@ class SimulationIntelligenceV2 {
           action: 'Check root-zone moisture first. If the soil is drying, irrigate during the cooler part of the day; otherwise reduce avoidable heat, wind or direct exposure where practical.',
           explanation: 'Atmospheric demand is high, but the root zone is not currently dry.',
           whatIf: 'If soil moisture also fell below the preferred range, water stress would gain much stronger support.',
-          ranked: [
+          ranked: const [
             RootCauseCandidate(name: 'High atmospheric drying demand', confidence: 91, evidenceFor: 'High VPD', evidenceAgainst: 'Soil moisture remains adequate'),
             RootCauseCandidate(name: 'Root-zone water stress', confidence: 24, evidenceFor: 'High water demand', evidenceAgainst: 'Soil moisture is not low'),
           ],
@@ -666,7 +665,7 @@ class SimulationIntelligenceV2 {
           action: 'Confirm the root zone is actually dry, then irrigate appropriately for the plant and pot.',
           explanation: 'Low root-zone moisture is the strongest simulated cause.',
           whatIf: 'If soil moisture recovered while bioelectric stress stayed high, another cause would become more important.',
-          ranked: [
+          ranked: const [
             RootCauseCandidate(name: 'Root-zone moisture is low', confidence: 94, evidenceFor: 'Low soil moisture'),
             RootCauseCandidate(name: 'Atmospheric drying demand', confidence: 68, evidenceFor: 'Elevated VPD'),
           ],
@@ -747,7 +746,7 @@ class SimulationIntelligenceV2 {
           whatIf: 'If low light is temporary or it is night, it should not be treated as plant stress.',
         );
       case DemoMode.critical:
-        return _ScenarioAnalysis(
+        return const _ScenarioAnalysis(
           primary: 'Compound heat and water stress',
           secondary: 'Plant electrical response is strongly elevated',
           additional: 'Atmospheric drying demand is extreme',
@@ -903,7 +902,6 @@ class _ScenarioAnalysis {
   final String? evidenceFor;
   final String? evidenceAgainst;
   final String? secondaryEvidence;
-  final String? secondaryCounterEvidence;
   final String action;
   final String explanation;
   final String whatIf;
@@ -918,7 +916,6 @@ class _ScenarioAnalysis {
     this.evidenceFor,
     this.evidenceAgainst,
     this.secondaryEvidence,
-    this.secondaryCounterEvidence,
     required this.action,
     required this.explanation,
     required this.whatIf,
