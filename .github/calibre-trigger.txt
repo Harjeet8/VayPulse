@@ -1,1 +1,1 @@
-Run the final simulator cleanup before strict competition CI.
+Run strict-lint cleanup and polished simulation labels on the final competition branch.
