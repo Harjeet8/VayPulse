@@ -26,20 +26,18 @@ jobs:
           ref: phytosense-v8-ultra-final
           path: competition
 
-      - name: Apply final lint and strings cleanup
-        run: python patch-source/tools/final_calibre_lint_and_strings.py
+      - name: Remove final analyzer lint
+        run: python patch-source/tools/remove_last_calibre_lint.py
 
       - name: Commit final cleanup
         working-directory: competition
         run: |
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add lib/simulation/simulation_intelligence_v2.dart \
-                  lib/widgets/calibre_upgrade_panels.dart \
-                  lib/l10n/app_strings.dart
+          git add lib/simulation/simulation_intelligence_v2.dart
           if git diff --cached --quiet; then
             echo "No cleanup changes needed."
           else
-            git commit -m "Polish final calibre and simulation labels"
+            git commit -m "Clean final simulation analyzer lint"
             git push origin HEAD:phytosense-v8-ultra-final
           fi
