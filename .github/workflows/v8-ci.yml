@@ -1,5 +1,5 @@
 name: PhytoSense AI Competition CI
-# Final competition validation gate for the additive max-potential build.
+# Final competition validation gate for the additive calibre + modern simulation build.
 
 on:
   push:
