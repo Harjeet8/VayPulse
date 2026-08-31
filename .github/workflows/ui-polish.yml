@@ -27,7 +27,7 @@ jobs:
           path: competition
 
       - name: Apply UI and animation polish
-        run: python patch-source/tools/ui_polish_patch.py
+        run: python patch-source/tools/ui_polish_patch_v2.py
 
       - name: Commit polished competition app
         working-directory: competition
