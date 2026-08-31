@@ -758,7 +758,7 @@ class SimulationIntelligenceV2 {
           action: 'Inspect the root zone immediately and reduce heat exposure where practical.',
           explanation: 'Multiple independent channels agree on a high-stress condition.',
           whatIf: 'If root-zone moisture improves, the system should verify whether heat or plant-response stress remains.',
-          ranked: const [
+          ranked: [
             RootCauseCandidate(name: 'Compound heat and water stress', confidence: 97, evidenceFor: 'Water + heat + VPD agreement'),
             RootCauseCandidate(name: 'Bioelectric plant response', confidence: 91, evidenceFor: 'Strong persistent plant signal'),
           ],
