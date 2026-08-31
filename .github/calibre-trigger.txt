@@ -1,1 +1,1 @@
-Run strict-lint cleanup and polished simulation labels on the final competition branch.
+Remove the final analyzer lint from the competition simulation intelligence file.
