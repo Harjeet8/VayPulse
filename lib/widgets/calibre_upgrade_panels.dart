@@ -168,7 +168,6 @@ class DigitalPlantTwinCard extends StatelessWidget {
                     painter: _TwinFieldPainter(
                       stress: stress,
                       accent: accent,
-                      surface: colors.surfaceContainerHighest,
                     ),
                   ),
                 ),
@@ -647,7 +646,7 @@ class ConfidenceDecompositionCard extends StatelessWidget {
         ? 0.0
         : edge?.bioelectric.confidence ?? current.bioSignalQuality;
     final persistenceSeconds = edge?.bioelectric.persistenceSeconds ?? 0;
-    final persistenceSupport = math.min(100.0, persistenceSeconds / 90 * 100);
+    final persistenceSupport = math.min(100.0, persistenceSeconds / 90 * 100).toDouble();
     final finalConfidence = edge?.overallConfidence ?? current.analysisConfidence;
 
     return Column(
@@ -717,7 +716,7 @@ class _DecisionReplayCardState extends State<DecisionReplayCard> {
   @override
   Widget build(BuildContext context) {
     final snapshots = _snapshots;
-    final index = (snapshots.length - 1 - _offset).clamp(0, snapshots.length - 1);
+    final index = (snapshots.length - 1 - _offset).clamp(0, snapshots.length - 1).toInt();
     final reading = snapshots[index];
     final maxOffset = math.max(0, snapshots.length - 1);
     final finding = reading.primaryRootCause ?? 'Historical root-cause text was not stored in this snapshot.';
@@ -1252,12 +1251,10 @@ class _TwinBadge extends StatelessWidget {
 class _TwinFieldPainter extends CustomPainter {
   final double stress;
   final Color accent;
-  final Color surface;
 
   const _TwinFieldPainter({
     required this.stress,
     required this.accent,
-    required this.surface,
   });
 
   @override
@@ -1360,7 +1357,7 @@ class _ReasoningBlock extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(body, style: const TextStyle(height: 1.4, fontWeight: FontWeight.w650)),
+          Text(body, style: const TextStyle(height: 1.4, fontWeight: FontWeight.w700)),
           const SizedBox(height: 9),
           Text(footnote, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
         ],

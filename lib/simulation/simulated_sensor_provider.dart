@@ -2,11 +2,13 @@ import 'dart:async';
 import 'dart:math';
 
 import '../models/edge_intelligence.dart';
+import '../models/hardware_telemetry.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import '../services/health_analysis_engine.dart';
 import '../services/sensor_data_provider.dart';
 import 'demo_mode.dart';
+import 'simulation_intelligence_v2.dart';
 
 class SimulationSensorProvider extends SensorDataProvider {
   final _controller = StreamController<SensorReading>.broadcast();
@@ -119,274 +121,28 @@ class SimulationSensorProvider extends SensorDataProvider {
     final history = _history[_selectedNodeId] ?? const <SensorReading>[];
     final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
     final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
-    final soilTrend = _trend(
-      history.length >= 2 ? history[history.length - 2].soilMoisture : reading.soilMoisture,
-      reading.soilMoisture,
+    return SimulationIntelligenceV2.build(
+      reading: reading,
+      history: history,
+      mode: _mode,
+      crop: crop,
+      growthStage: stage,
     );
-    final rootTrend = reading.soilTemperatureAvailable &&
-            reading.soilTemperature != null &&
-            history.length >= 2 &&
-            history[history.length - 2].soilTemperature != null
-        ? _trend(history[history.length - 2].soilTemperature!, reading.soilTemperature!)
-        : 'STABLE';
+  }
 
-    final cause = switch (_mode) {
-      DemoMode.dry => const RootCauseAnalysis(
-          primary: 'Root-zone moisture is low',
-          secondary: 'Soil moisture is falling',
-        ),
-      DemoMode.overwatered => const RootCauseAnalysis(
-          primary: 'Root-zone moisture is very high',
-          secondary: 'Leaves have remained wet',
-        ),
-      DemoMode.heatStress => const RootCauseAnalysis(
-          primary: 'Air temperature is high',
-          secondary: 'Water demand is increasing',
-        ),
-      DemoMode.critical => const RootCauseAnalysis(
-          primary: 'Heat and low soil moisture are occurring together',
-          secondary: 'Plant signal has moved away from its baseline',
-        ),
-      DemoMode.lowLight => const RootCauseAnalysis(primary: 'Light is low'),
-      DemoMode.sensorFault => const RootCauseAnalysis(
-          primary: 'Some sensor information is unavailable',
-        ),
-      _ => const RootCauseAnalysis(),
-    };
-
-    final recommendation = switch (_mode) {
-      DemoMode.dry => 'Check root-zone moisture and consider irrigation.',
-      DemoMode.overwatered => 'Avoid watering now and check drainage.',
-      DemoMode.heatStress => 'Reduce avoidable heat exposure and keep monitoring root-zone moisture.',
-      DemoMode.critical => 'Inspect the root zone now and reduce heat stress where practical.',
-      DemoMode.lowLight => 'Check shade or covering before changing field practice.',
-      DemoMode.sensorFault => 'Check the unavailable sensor while environmental monitoring continues.',
-      _ => 'Conditions are currently acceptable. Continue monitoring.',
-    };
-
-    final state = reading.healthScore >= 82
-        ? 'HEALTHY'
-        : reading.healthScore >= 65
-            ? 'WATCH'
-            : reading.healthScore >= 42
-                ? 'STRESSED'
-                : 'CRITICAL';
-    final sensorFault = _mode == DemoMode.sensorFault;
-    final vpd = _calculateVpd(reading.temperature, reading.humidity);
-    final dryingDemandState = vpd < 0.4
-        ? 'LOW'
-        : vpd < 1.5
-            ? 'OPTIMAL'
-            : vpd < 2.2
-                ? 'HIGH'
-                : 'HIGH_ATMOSPHERIC_DRYING_DEMAND';
-    final bioStressScore =
-        (100 - (reading.bioelectricStability ?? reading.plantSignal))
-            .clamp(0.0, 100.0)
-            .toDouble();
-    final bioState = sensorFault
-        ? 'SIGNAL_NOISY'
-        : bioStressScore >= 75
-            ? 'STRONG_STRESS_SIGNAL'
-            : bioStressScore >= 50
-                ? 'STRESS_SIGNAL'
-                : bioStressScore >= 25
-                    ? 'MILD_RESPONSE'
-                    : 'NORMAL';
-    final waterState = reading.soilMoisture < 20
-        ? 'VERY_DRY'
-        : reading.soilMoisture < 35
-            ? 'DRY'
-            : reading.soilMoisture > 86
-                ? 'VERY_WET'
-                : reading.soilMoisture > 75
-                    ? 'WET'
-                    : 'OPTIMAL';
-    final waterBalanceScore =
-        (100 - (reading.soilMoisture - 62).abs() * 1.65)
-            .clamp(0.0, 100.0)
-            .toDouble();
-
-    return EdgeIntelligence(
-      firmwareVersion: 'simulation-model',
-      capabilities: const FirmwareCapabilities(
-        edgeDecision: true,
-        plantState: true,
-        sensorConfidence: true,
-        trends: true,
-        rootCause: true,
-        recovery: true,
-        cropProfile: true,
-        growthStage: true,
-      ),
-      healthScore: reading.healthScore,
-      overallConfidence: _mode == DemoMode.sensorFault ? 62 : 90,
-      plantState: state,
-      farmerSummary: cause.primary,
-      recommendation: recommendation,
-      decisionExplanation: cause.primary == null
-          ? 'The simulated readings remain within the current crop profile.'
-          : '${cause.primary}. ${cause.secondary ?? ''}'.trim(),
-      generatedOnDevice: false,
-      degradedAnalysis: _mode == DemoMode.sensorFault,
-      degradedReason: _mode == DemoMode.sensorFault
-          ? 'Simulation scenario includes unavailable sensors.'
-          : null,
-      analysisQuality: sensorFault ? 'LOW_CONFIDENCE' : 'GOOD',
-      rootCause: cause,
-      recovery: const RecoveryInfo(active: false),
-      bioelectric: BioelectricIntelligence(
-        available: !sensorFault,
-        voltageMv: reading.plantVoltageMv,
-        baselineMv: reading.bioBaselineMv,
-        signedChangeMv: reading.bioDeviationMv,
-        deviationMv: reading.bioDeviationMv?.abs(),
-        normalizedDeviation: reading.bioBaselineMv == null ||
-                reading.bioBaselineMv == 0 ||
-                reading.bioDeviationMv == null
-            ? null
-            : reading.bioDeviationMv! / reading.bioBaselineMv! * 100,
-        noiseMv: reading.bioNoiseMv,
-        signalQuality: reading.bioSignalQuality,
-        signalQualityState: sensorFault ? 'SIGNAL_NOISY' : 'GOOD',
-        confidence: sensorFault ? 20 : 92,
-        trend: bioStressScore >= 25 ? 'RISING' : 'STABLE',
-        stressScore: bioStressScore,
-        stressState: bioState,
-        persistenceSeconds: bioStressScore >= 25 ? 36 : 0,
-        stressLoad: bioStressScore * 0.74,
-        stressLoadState: bioStressScore >= 50
-            ? 'PERSISTENT'
-            : bioStressScore >= 25
-                ? 'BUILDING'
-                : 'LOW',
-        baselineReady: !sensorFault,
-        baselineSamples: sensorFault ? 0 : 60,
-        baselineTarget: 60,
-        includedInFusion: !sensorFault,
-        interpretation: bioState,
-        corroborated: !sensorFault && bioStressScore >= 25,
-        corroboratedBy: !sensorFault && bioStressScore >= 25
-            ? <String>[
-                if (reading.soilMoisture < 35) 'soilMoisture',
-                if (vpd >= 1.5) 'vpd',
-                if (reading.soilTemperature != null &&
-                    reading.soilTemperature! >= 31)
-                  'rootTemperature',
-              ]
-            : const <String>[],
-        farmerResult: bioState,
-      ),
-      baseline: PlantBaselineInfo(
-        status: sensorFault ? 'UNAVAILABLE' : 'BASELINE_STABLE',
-        ready: !sensorFault,
-        learnedNormal: reading.bioBaselineMv,
-        deviation: reading.bioDeviationMv,
-      ),
-      stressEvidence: StressEvidence(
-        water: reading.soilMoisture < 35
-            ? (35 - reading.soilMoisture) * 2.4
-            : 0,
-        heat: reading.temperature > 30
-            ? (reading.temperature - 30) * 9
-            : 0,
-        rootZone: reading.soilTemperature != null &&
-                reading.soilTemperature! > 30
-            ? (reading.soilTemperature! - 30) * 10
-            : 0,
-        diseaseEnvironment: reading.diseaseRisk,
-        sensorFault: sensorFault ? 80 : 0,
-      ),
-      derivedEnvironment: DerivedEnvironmentInfo(
-        vpdKpa: vpd,
-        airDryingDemand: vpd,
-        vpdState: dryingDemandState,
-        dryingDemandState: dryingDemandState,
-      ),
-      waterBalance: sensorFault
-          ? const WaterBalanceInfo()
-          : WaterBalanceInfo(
-              state: waterState,
-              score: waterBalanceScore,
-              explanation: waterState,
-            ),
-      sensorConfidence: [
-        SensorConfidence(
-            channel: 'airTemperature',
-            percent: reading.temperatureAvailable ? 98 : 0,
-            valid: reading.temperatureAvailable),
-        SensorConfidence(
-            channel: 'humidity',
-            percent: reading.humidityAvailable ? 98 : 0,
-            valid: reading.humidityAvailable),
-        SensorConfidence(
-            channel: 'light',
-            percent: reading.lightAvailable ? 95 : 0,
-            valid: reading.lightAvailable),
-        SensorConfidence(
-            channel: 'soilMoisture',
-            percent: reading.soilMoistureAvailable ? 93 : 0,
-            valid: reading.soilMoistureAvailable),
-        SensorConfidence(
-            channel: 'rootTemperature',
-            percent: reading.soilTemperatureAvailable ? 97 : 0,
-            valid: reading.soilTemperatureAvailable),
-        SensorConfidence(
-            channel: 'leafWetness',
-            percent: reading.leafWetnessAvailable ? 91 : 0,
-            valid: reading.leafWetnessAvailable),
-        SensorConfidence(
-            channel: 'bioelectric',
-            percent: reading.plantSignalAvailable ? reading.bioSignalQuality : 0,
-            valid: reading.plantSignalAvailable),
-      ],
-      trends: [
-        SensorTrend(channel: 'soilMoisture', state: soilTrend),
-        SensorTrend(channel: 'rootTemperature', state: rootTrend),
-        const SensorTrend(channel: 'bioelectric', state: 'STABLE'),
-      ],
-      cropProfile: CropProfileInfo(
-        profile: crop,
-        growthStage: stage,
-        supportedProfiles: const [
-          'universal',
-          'tomato',
-          'hibiscus',
-          'rice',
-          'sugarcane',
-          'banana',
-          'eggplant',
-          'okra',
-          'maize',
-          'groundnut',
-        ],
-        supportedStages: const [
-          'general',
-          'young',
-          'vegetative',
-          'flowering',
-          'fruiting',
-          'mature',
-        ],
-        switchable: false,
-      ),
-      diseaseRiskScore: reading.diseaseRisk,
-      diseaseRiskLevel: reading.diseaseRisk == null
-          ? null
-          : reading.diseaseRisk! >= 70
-              ? 'HIGH'
-              : reading.diseaseRisk! >= 40
-                  ? 'MODERATE'
-                  : 'LOW',
-      activeSensorChannels: <String>[
-        'airTemperature',
-        'humidity',
-        'light',
-        if (reading.soilMoistureAvailable) 'soilMoisture',
-        if (reading.soilTemperatureAvailable) 'rootTemperature',
-        if (reading.leafWetnessAvailable) 'leafWetness',
-        if (reading.plantSignalAvailable) 'bioelectric',
-      ],
+  @override
+  HardwareTelemetry? get hardwareTelemetry {
+    final reading = current;
+    if (reading == null) return null;
+    final history = _history[_selectedNodeId] ?? const <SensorReading>[];
+    final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
+    final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
+    return SimulationIntelligenceV2.buildTelemetry(
+      reading: reading,
+      history: history,
+      mode: _mode,
+      crop: crop,
+      growthStage: stage,
     );
   }
 
@@ -465,8 +221,12 @@ class SimulationSensorProvider extends SensorDataProvider {
 
     final leafWetness = switch (_mode) {
       DemoMode.overwatered => (82 + noise(5)).clamp(0, 100).toDouble(),
+      DemoMode.bioticRisk => (90 + noise(4)).clamp(0, 100).toDouble(),
+      DemoMode.recovery => (30 + noise(5)).clamp(0, 100).toDouble(),
       DemoMode.lowLight => (52 + noise(7)).clamp(0, 100).toDouble(),
       DemoMode.critical => (68 + noise(8)).clamp(0, 100).toDouble(),
+      DemoMode.atmosphericDrying => (8 + noise(4)).clamp(0, 100).toDouble(),
+      DemoMode.bioResponse => (18 + noise(5)).clamp(0, 100).toDouble(),
       _ => (14 + _max(0, humidity - 70) * 0.7 + noise(5))
           .clamp(0, 100)
           .toDouble(),
@@ -474,14 +234,22 @@ class SimulationSensorProvider extends SensorDataProvider {
     final wetSeconds = leafWetness >= 60
         ? switch (_mode) {
             DemoMode.overwatered => 5.5 * 3600,
+            DemoMode.bioticRisk => 9.0 * 3600,
             DemoMode.critical => 8.0 * 3600,
+            DemoMode.recovery => 1.0 * 3600,
             _ => 1.2 * 3600,
           }
         : 0.0;
 
     final bioStability = switch (_mode) {
-      DemoMode.critical => (42 + noise(8)).clamp(0, 100).toDouble(),
-      DemoMode.dry => (68 + noise(6)).clamp(0, 100).toDouble(),
+      DemoMode.baselineLearning => (96 + noise(2)).clamp(0, 100).toDouble(),
+      DemoMode.atmosphericDrying => (63 + noise(5)).clamp(0, 100).toDouble(),
+      DemoMode.heatStress => (57 + noise(6)).clamp(0, 100).toDouble(),
+      DemoMode.bioResponse => (43 + noise(6)).clamp(0, 100).toDouble(),
+      DemoMode.recovery => (80 + noise(4)).clamp(0, 100).toDouble(),
+      DemoMode.bioticRisk => (56 + noise(6)).clamp(0, 100).toDouble(),
+      DemoMode.critical => (38 + noise(8)).clamp(0, 100).toDouble(),
+      DemoMode.dry => (64 + noise(6)).clamp(0, 100).toDouble(),
       _ => (90 + noise(5)).clamp(0, 100).toDouble(),
     };
     const baselineMv = 1500.0;
@@ -503,6 +271,12 @@ class SimulationSensorProvider extends SensorDataProvider {
       healthScore: 75,
       stressScore: 25,
       healthStatus: 'starting',
+      analysisOrigin: 'simulation',
+      recoveryActive: _mode == DemoMode.recovery,
+      vpdKpa: _calculateVpd(temperature, humidity),
+      bioticState: _mode == DemoMode.bioticRisk
+          ? 'POSSIBLE_BIOTIC_STRESS'
+          : 'NONE',
       soilRaw: (3200 - soil * 18.5).round().clamp(0, 4095).toInt(),
       leafRaw: (3900 - leafWetness * 27).round().clamp(0, 4095).toInt(),
       soilCalibrated: true,
@@ -510,12 +284,18 @@ class SimulationSensorProvider extends SensorDataProvider {
       daytime: daytime,
       leafWetDurationSeconds: wetSeconds,
       recentWetExposureSeconds: wetSeconds,
-      bioBaselineReady: true,
-      bioBaselineSamples: 60,
+      bioBaselineReady:
+          !sensorFault && _mode != DemoMode.baselineLearning,
+      bioBaselineSamples:
+          _mode == DemoMode.baselineLearning ? 28 : 60,
       bioBaselineMv: baselineMv,
       bioDeviationMv: plantVoltageMv - baselineMv,
       bioNoiseMv: 2.2,
-      bioSignalQuality: sensorFault ? 20 : 93,
+      bioSignalQuality: sensorFault
+          ? 20
+          : _mode == DemoMode.baselineLearning
+              ? 88
+              : 93,
       bioelectricStability: bioStability,
       soilMoistureAvailable: !sensorFault,
       temperatureAvailable: true,

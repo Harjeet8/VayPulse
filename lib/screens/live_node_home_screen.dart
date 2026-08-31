@@ -12,6 +12,7 @@ import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/biotic_stress_card.dart';
+import '../widgets/calibre_upgrade_panels.dart';
 import '../widgets/competition_intelligence_panels.dart';
 import '../widgets/page_frame.dart';
 import 'judge_view_screen.dart';
@@ -153,6 +154,15 @@ class LiveNodeHomeScreen extends StatelessWidget {
               _WhatChangedCard(edge: edge),
               const SizedBox(height: 12),
               CompetitionIntelligencePanels(
+                current: reading,
+                history: sensors.historyFor(reading.nodeId),
+                edge: edge,
+                telemetry: telemetry,
+                live: live,
+                connectionStatus: sensors.connectionStatus,
+              ),
+              const SizedBox(height: 12),
+              CalibreUpgradePanels(
                 current: reading,
                 history: sensors.historyFor(reading.nodeId),
                 edge: edge,
