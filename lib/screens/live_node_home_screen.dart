@@ -11,6 +11,7 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
+import '../widgets/simulation_command_deck.dart';
 import '../widgets/biotic_stress_card.dart';
 import '../widgets/calibre_upgrade_panels.dart';
 import '../widgets/competition_intelligence_panels.dart';
@@ -90,6 +91,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
         child: PageFrame(
           children: [
             const DataSourceCard(),
+            if (!live) ...[
+              const SizedBox(height: 12),
+              const SimulationCommandDeck(),
+            ],
             const SizedBox(height: 10),
             _ConnectionStrip(
               status: sensors.connectionStatus,

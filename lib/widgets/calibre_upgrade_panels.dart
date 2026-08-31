@@ -170,30 +170,7 @@ class DigitalPlantTwinCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                Container(
-                  width: 104,
-                  height: 104,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: accent.withValues(alpha: 0.12),
-                    border: Border.all(
-                      color: accent.withValues(alpha: 0.38),
-                      width: 1.5,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: accent.withValues(alpha: 0.12),
-                        blurRadius: 30,
-                        spreadRadius: 4,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.eco_rounded,
-                    size: 54,
-                    color: accent,
-                  ),
-                ),
+                _BreathingTwinCore(accent: accent, stress: stress),
                 Positioned(
                   top: 6,
                   child: _TwinBadge(
@@ -1163,42 +1140,165 @@ class _PremiumCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(17),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 44,
-                  height: 44,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context).colorScheme.primaryContainer,
-                    borderRadius: BorderRadius.circular(14),
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return TweenAnimationBuilder<double>(
+      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 460),
+      curve: Curves.easeOutCubic,
+      tween: Tween(begin: 0.975, end: 1),
+      builder: (context, value, content) => Opacity(
+        opacity: value.clamp(0.0, 1.0),
+        child: Transform.translate(
+          offset: Offset(0, (1 - value) * 14),
+          child: Transform.scale(scale: value, child: content),
+        ),
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(26),
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              colors.primaryContainer.withValues(alpha: 0.22),
+              colors.surfaceContainerHighest.withValues(alpha: 0.32),
+              colors.surface,
+            ],
+          ),
+          border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.46)),
+          boxShadow: [
+            BoxShadow(
+              color: colors.primary.withValues(alpha: 0.045),
+              blurRadius: 24,
+              offset: const Offset(0, 9),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 46,
+                    height: 46,
+                    decoration: BoxDecoration(
+                      color: colors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(15),
+                      border: Border.all(color: colors.primary.withValues(alpha: 0.14)),
+                    ),
+                    child: Icon(icon, color: colors.primary),
                   ),
-                  child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                        const SizedBox(height: 3),
+                        Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(height: 1.35)),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              child,
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BreathingTwinCore extends StatefulWidget {
+  final Color accent;
+  final double stress;
+
+  const _BreathingTwinCore({required this.accent, required this.stress});
+
+  @override
+  State<_BreathingTwinCore> createState() => _BreathingTwinCoreState();
+}
+
+class _BreathingTwinCoreState extends State<_BreathingTwinCore>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 2100),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.disableAnimationsOf(context);
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final phase = reduceMotion ? 0.35 : Curves.easeInOut.transform(_controller.value);
+        final severity = (widget.stress / 100).clamp(0.0, 1.0).toDouble();
+        final scale = 1 + phase * (0.018 + severity * 0.018);
+        return Transform.scale(
+          scale: scale,
+          child: Container(
+            width: 104,
+            height: 104,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  widget.accent.withValues(alpha: 0.18 + phase * 0.04),
+                  widget.accent.withValues(alpha: 0.07),
+                ],
+              ),
+              border: Border.all(
+                color: widget.accent.withValues(alpha: 0.34 + phase * 0.12),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: widget.accent.withValues(alpha: 0.09 + phase * 0.07),
+                  blurRadius: 28 + phase * 12,
+                  spreadRadius: 2 + phase * 2,
                 ),
-                const SizedBox(width: 11),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-                      const SizedBox(height: 3),
-                      Text(subtitle, style: Theme.of(context).textTheme.bodySmall?.copyWith(height: 1.35)),
-                    ],
+              ],
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(Icons.eco_rounded, size: 54, color: widget.accent),
+                Positioned(
+                  bottom: 15,
+                  child: Container(
+                    width: 30 + severity * 18,
+                    height: 2,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(99),
+                      color: widget.accent.withValues(alpha: 0.55),
+                    ),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            child,
-          ],
-        ),
-      ),
+          ),
+        );
+      },
     );
   }
 }

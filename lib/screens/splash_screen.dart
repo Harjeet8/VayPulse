@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../widgets/boot_intelligence_overlay.dart';
+import '../widgets/boot_motion_polish.dart';
 import 'shell_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -153,6 +154,12 @@ class _SplashScreenState extends State<SplashScreen>
               ),
               IgnorePointer(
                 child: BootIntelligenceOverlay(
+                  progress: timeline,
+                  phase: ambient,
+                ),
+              ),
+              IgnorePointer(
+                child: BootMotionPolish(
                   progress: timeline,
                   phase: ambient,
                 ),

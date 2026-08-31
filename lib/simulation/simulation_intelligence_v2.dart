@@ -645,6 +645,7 @@ class SimulationIntelligenceV2 {
           evidenceFor: 'VPD is ${vpd.toStringAsFixed(2)} kPa while root-zone moisture remains adequate.',
           evidenceAgainst: 'Soil moisture does not currently support root-zone drought as the dominant cause.',
           secondaryEvidence: 'Air temperature is ${reading.temperature.toStringAsFixed(1)} °C.',
+          secondaryCounterEvidence: 'Root-zone moisture remains adequate, so air demand is a contributor rather than a complete water-deficit diagnosis.',
           action: 'Check root-zone moisture first. If the soil is drying, irrigate during the cooler part of the day; otherwise reduce avoidable heat, wind or direct exposure where practical.',
           explanation: 'Atmospheric demand is high, but the root zone is not currently dry.',
           whatIf: 'If soil moisture also fell below the preferred range, water stress would gain much stronger support.',
