@@ -142,6 +142,7 @@ class SimulationIntelligenceV2 {
               name: analysis.secondary,
               confidence: analysis.secondaryConfidence,
               evidenceFor: analysis.secondaryEvidence,
+              evidenceAgainst: analysis.secondaryCounterEvidence,
             ),
       ranked: analysis.ranked,
     );
@@ -903,6 +904,7 @@ class _ScenarioAnalysis {
   final String? evidenceFor;
   final String? evidenceAgainst;
   final String? secondaryEvidence;
+  final String? secondaryCounterEvidence;
   final String action;
   final String explanation;
   final String whatIf;
@@ -917,6 +919,7 @@ class _ScenarioAnalysis {
     this.evidenceFor,
     this.evidenceAgainst,
     this.secondaryEvidence,
+    this.secondaryCounterEvidence,
     required this.action,
     required this.explanation,
     required this.whatIf,
