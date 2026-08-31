@@ -1,5 +1,6 @@
 name: PhytoSense AI Competition CI
 # Final lock validation gate for the calibre + modern simulation competition build.
+# Validates the polished UI, motion system and Simulation Lab release.
 
 on:
   push:
