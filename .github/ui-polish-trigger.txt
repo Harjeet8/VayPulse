@@ -1,1 +1,1 @@
-Apply final UI and animation polish to phytosense-v8-ultra-final.
+Apply final UI and animation polish v2 to phytosense-v8-ultra-final.
