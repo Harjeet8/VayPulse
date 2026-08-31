@@ -1,1 +1,1 @@
-Apply the final additive calibre layer and modern Simulation Mode to phytosense-v8-ultra-final.
+Run the final simulator cleanup before strict competition CI.
