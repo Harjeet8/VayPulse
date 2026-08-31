@@ -15,79 +15,172 @@ class DataSourceCard extends StatelessWidget {
     return AnimatedBuilder(
       animation: Listenable.merge([scope.settings, scope.sensorManager]),
       builder: (context, _) {
+        final theme = Theme.of(context);
+        final colors = theme.colorScheme;
         final live = scope.sensorManager.source == SensorDataSource.esp32;
         final connected = scope.sensorManager.connected;
-        final accent = live
-            ? const Color(0xFF4E9DDB)
-            : Theme.of(context).colorScheme.primary;
-        return Card(
-          child: InkWell(
-            borderRadius: BorderRadius.circular(24),
-            onTap: () => _showSourcePicker(context),
-            child: Padding(
-              padding: const EdgeInsets.all(15),
-              child: Row(
-                children: [
-                  Container(
-                    width: 44,
-                    height: 44,
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      live ? Icons.memory_rounded : Icons.science_outlined,
-                      color: accent,
-                    ),
+        final accent = live ? const Color(0xFF4E9DDB) : colors.primary;
+        final scenario = context.tr(
+          'scenario_${scope.sensorManager.scenarioId}',
+        );
+        final statusText = live
+            ? (connected
+                ? context.tr('live_data_connected')
+                : context.tr('live_data_waiting'))
+            : context.tr('simulation_active_scenario', {'value': scenario});
+
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0.97, end: 1),
+          duration: const Duration(milliseconds: 420),
+          curve: Curves.easeOutCubic,
+          builder: (context, value, child) => Transform.scale(
+            scale: value,
+            child: Opacity(opacity: value, child: child),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              borderRadius: BorderRadius.circular(27),
+              onTap: () => _showSourcePicker(context),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 360),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(27),
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      accent.withValues(alpha: 0.12),
+                      colors.surfaceContainerHighest.withValues(alpha: 0.5),
+                      colors.surface,
+                    ],
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          live
-                              ? context.tr('esp32_live')
-                              : FarmerLanguage.label(context, 'simulation'),
-                          style: const TextStyle(fontWeight: FontWeight.w900),
+                  border: Border.all(
+                    color: accent.withValues(alpha: live && connected ? 0.3 : 0.18),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: accent.withValues(alpha: 0.07),
+                      blurRadius: 24,
+                      offset: const Offset(0, 9),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 340),
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: accent.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(17),
+                        border: Border.all(
+                          color: accent.withValues(alpha: 0.16),
                         ),
-                        const SizedBox(height: 2),
-                        Text(
-                          live
-                              ? (connected
-                                  ? context.tr('live_data_connected')
-                                  : context.tr('live_data_waiting'))
-                              : context.tr('simulation_active_scenario', {
-                                  'value': context.tr(
-                                    'scenario_${scope.sensorManager.scenarioId}',
+                      ),
+                      child: AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 260),
+                        child: Icon(
+                          live ? Icons.memory_rounded : Icons.science_outlined,
+                          key: ValueKey(live),
+                          color: accent,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 13),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: AnimatedSwitcher(
+                                  duration: const Duration(milliseconds: 260),
+                                  child: Text(
+                                    live
+                                        ? context.tr('esp32_live')
+                                        : FarmerLanguage.label(context, 'simulation'),
+                                    key: ValueKey(live),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 15,
+                                    ),
                                   ),
-                                }),
-                          style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              _StatusDot(
+                                color: accent,
+                                active: live ? connected : true,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 3),
+                          AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 300),
+                            transitionBuilder: (child, animation) => FadeTransition(
+                              opacity: animation,
+                              child: SlideTransition(
+                                position: Tween<Offset>(
+                                  begin: const Offset(0, 0.12),
+                                  end: Offset.zero,
+                                ).animate(animation),
+                                child: child,
+                              ),
+                            ),
+                            child: Text(
+                              statusText,
+                              key: ValueKey(statusText),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                height: 1.28,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 320),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: accent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                          child: Text(
+                            live
+                                ? context.tr('source_live_badge')
+                                : FarmerLanguage.label(context, 'simulated'),
+                            style: TextStyle(
+                              color: accent,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Icon(
+                          Icons.tune_rounded,
+                          size: 18,
+                          color: colors.onSurfaceVariant,
                         ),
                       ],
                     ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: accent.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(99),
-                    ),
-                    child: Text(
-                      live
-                          ? context.tr('source_live_badge')
-                          : FarmerLanguage.label(context, 'simulated'),
-                      style: TextStyle(
-                        color: accent,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(Icons.expand_more_rounded),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -103,6 +196,7 @@ class DataSourceCard extends StatelessWidget {
       showDragHandle: true,
       isScrollControlled: true,
       useSafeArea: true,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       builder: (sheetContext) => FractionallySizedBox(
         heightFactor: 0.86,
         child: Scrollbar(
@@ -110,42 +204,94 @@ class DataSourceCard extends StatelessWidget {
             primary: true,
             padding: const EdgeInsets.fromLTRB(18, 4, 18, 32),
             children: [
-              Text(
-                context.tr('choose_data_source'),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w900),
+              Row(
+                children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primaryContainer
+                          .withValues(alpha: 0.65),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: const Icon(Icons.swap_horiz_rounded),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr('choose_data_source'),
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          FarmerLanguage.label(context, 'source_separation'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 6),
-              Text(
-                FarmerLanguage.label(context, 'source_separation'),
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 14),
+              const SizedBox(height: 18),
               _SourceOption(
                 icon: Icons.science_outlined,
                 title: FarmerLanguage.label(context, 'simulation'),
                 body: FarmerLanguage.label(context, 'simulation_description'),
                 selected:
                     scope.sensorManager.source == SensorDataSource.simulation,
+                badge: 'SAFE DEMO',
                 onTap: () => Navigator.pop(
                   sheetContext,
                   SensorDataSource.simulation,
                 ),
               ),
-              const SizedBox(height: 10),
+              const SizedBox(height: 11),
               _SourceOption(
                 icon: Icons.memory_rounded,
                 title: context.tr('esp32_live'),
                 body: context.tr('esp32_description'),
                 selected: scope.sensorManager.source == SensorDataSource.esp32,
+                badge: 'PHYSICAL NODE',
                 onTap: () => Navigator.pop(
                   sheetContext,
                   SensorDataSource.esp32,
                 ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 14),
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Theme.of(context)
+                      .colorScheme
+                      .surfaceContainerHighest
+                      .withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Icon(Icons.verified_user_outlined, size: 20),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Simulation and ESP32 data stay isolated. Switching the source changes the provider for the whole app instead of blending readings.',
+                        style: Theme.of(context)
+                            .textTheme
+                            .bodySmall
+                            ?.copyWith(height: 1.4),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ],
           ),
         ),
@@ -165,6 +311,7 @@ class DataSourceCard extends StatelessWidget {
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        behavior: SnackBarBehavior.floating,
         content: Text(
           selected == SensorDataSource.esp32
               ? context.tr('live_workspace_enabled')
@@ -175,10 +322,38 @@ class DataSourceCard extends StatelessWidget {
   }
 }
 
+class _StatusDot extends StatelessWidget {
+  final Color color;
+  final bool active;
+
+  const _StatusDot({required this.color, required this.active});
+
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+        duration: const Duration(milliseconds: 320),
+        width: 8,
+        height: 8,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: active ? color : Theme.of(context).colorScheme.outline,
+          boxShadow: active
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.28),
+                    blurRadius: 8,
+                    spreadRadius: 1,
+                  ),
+                ]
+              : null,
+        ),
+      );
+}
+
 class _SourceOption extends StatelessWidget {
   final IconData icon;
   final String title;
   final String body;
+  final String badge;
   final bool selected;
   final VoidCallback onTap;
 
@@ -186,63 +361,109 @@ class _SourceOption extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.body,
+    required this.badge,
     required this.selected,
     required this.onTap,
   });
 
   @override
-  Widget build(BuildContext context) => Card(
-        color: selected
-            ? Theme.of(context)
-                .colorScheme
-                .primaryContainer
-                .withValues(alpha: 0.4)
-            : null,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: Icon(icon),
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(24),
+            color: selected
+                ? colors.primaryContainer.withValues(alpha: 0.42)
+                : colors.surfaceContainerHighest.withValues(alpha: 0.38),
+            border: Border.all(
+              color: selected
+                  ? colors.primary.withValues(alpha: 0.34)
+                  : colors.outlineVariant.withValues(alpha: 0.46),
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: colors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(body),
-                    ],
-                  ),
+                child: Icon(icon, color: colors.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: colors.primary.withValues(alpha: 0.08),
+                            borderRadius: BorderRadius.circular(99),
+                          ),
+                          child: Text(
+                            badge,
+                            style: TextStyle(
+                              color: colors.primary,
+                              fontSize: 8.5,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 5),
+                    Text(
+                      body,
+                      style: Theme.of(context)
+                          .textTheme
+                          .bodySmall
+                          ?.copyWith(height: 1.4),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 8),
-                Icon(
+              ),
+              const SizedBox(width: 8),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 220),
+                child: Icon(
                   selected
                       ? Icons.check_circle_rounded
                       : Icons.radio_button_unchecked_rounded,
-                  color:
-                      selected ? Theme.of(context).colorScheme.primary : null,
+                  key: ValueKey(selected),
+                  color: selected ? colors.primary : colors.onSurfaceVariant,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    );
+  }
 }
