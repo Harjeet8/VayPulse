@@ -68,7 +68,7 @@ void main() {
       'plantSignal': 70,
     });
     expect(result.healthScore, greaterThan(95));
-    expect(result.nodeId, 'node-rice-a1');
+    expect(result.nodeId, 'phytosense-live-01');
   });
 
   test('falling moisture is detected before the dry threshold', () {

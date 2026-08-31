@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../models/esp32_configuration.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import '../simulation/simulated_sensor_provider.dart';
@@ -118,6 +119,31 @@ class SensorProviderManager extends SensorDataProvider {
 
   @override
   List<String> get scenarioIds => _active.scenarioIds;
+
+  @override
+  get edgeIntelligence => _active.edgeIntelligence;
+
+  @override
+  get hardwareTelemetry => _active.hardwareTelemetry;
+
+  @override
+  Future<Esp32Config?> fetchHardwareConfig() => _active.fetchHardwareConfig();
+
+  @override
+  Future<Esp32Config?> setCropProfile(String cropId) =>
+      _active.setCropProfile(cropId);
+
+  @override
+  Future<Esp32Config?> setGrowthStage(String stageId) =>
+      _active.setGrowthStage(stageId);
+
+  @override
+  Future<Esp32Config?> resetAdaptiveBaseline() =>
+      _active.resetAdaptiveBaseline();
+
+  @override
+  Future<Esp32Diagnostics?> fetchHardwareDiagnostics() =>
+      _active.fetchHardwareDiagnostics();
 
   @override
   void start() {

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+
 import '../l10n/app_strings.dart';
+import '../services/farmer_language.dart';
 
 class BottomNav extends StatelessWidget {
   final int index;
@@ -51,16 +53,22 @@ class BottomNav extends StatelessWidget {
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
-              icon:
-                  Icon(live ? Icons.memory_outlined : Icons.grid_view_outlined),
-              selectedIcon:
-                  Icon(live ? Icons.memory_rounded : Icons.grid_view_rounded),
-              label: context.tr(live ? 'nav_device' : 'nav_fields'),
+              icon: Icon(live ? Icons.sensors_outlined : Icons.grid_view_outlined),
+              selectedIcon: Icon(live ? Icons.sensors_rounded : Icons.grid_view_rounded),
+              label: live
+                  ? FarmerLanguage.label(context, 'live_sensors')
+                  : context.tr('nav_fields'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.insights_outlined),
-              selectedIcon: const Icon(Icons.insights_rounded),
-              label: context.tr('nav_insights'),
+              icon: Icon(live
+                  ? Icons.psychology_alt_outlined
+                  : Icons.insights_outlined),
+              selectedIcon: Icon(live
+                  ? Icons.psychology_alt_rounded
+                  : Icons.insights_rounded),
+              label: live
+                  ? FarmerLanguage.label(context, 'analysis')
+                  : context.tr('nav_insights'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.notifications_none_rounded),

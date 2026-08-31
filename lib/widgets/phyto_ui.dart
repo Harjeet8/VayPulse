@@ -384,47 +384,14 @@ class ExperienceModeSelector extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final cards = [
-            _ExperienceOption(
-              icon: Icons.agriculture_rounded,
-              title: farmerTitle,
-              body: farmerBody,
-              selected: selected == 'farmer',
-              onTap: () async {
-                await HapticFeedback.selectionClick();
-                onChanged('farmer');
-              },
-            ),
-            _ExperienceOption(
-              icon: Icons.science_rounded,
-              title: judgeTitle,
-              body: judgeBody,
-              selected: selected == 'judge',
-              onTap: () async {
-                await HapticFeedback.selectionClick();
-                onChanged('judge');
-              },
-            ),
-          ];
-          if (constraints.maxWidth >= 640) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: cards.first),
-                const SizedBox(width: 10),
-                Expanded(child: cards.last),
-              ],
-            );
-          }
-          return Column(
-            children: [
-              cards.first,
-              const SizedBox(height: 10),
-              cards.last,
-            ],
-          );
+  Widget build(BuildContext context) => _ExperienceOption(
+        icon: Icons.agriculture_rounded,
+        title: farmerTitle,
+        body: farmerBody,
+        selected: true,
+        onTap: () async {
+          await HapticFeedback.selectionClick();
+          onChanged('farmer');
         },
       );
 }
@@ -488,10 +455,8 @@ class _ExperienceOption extends StatelessWidget {
                 ),
               ),
               Icon(
-                selected
-                    ? Icons.check_circle_rounded
-                    : Icons.radio_button_unchecked_rounded,
-                color: selected ? scheme.primary : scheme.outline,
+                Icons.check_circle_rounded,
+                color: scheme.primary,
               ),
             ],
           ),
