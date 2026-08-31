@@ -314,15 +314,6 @@ class SimulationSensorProvider extends SensorDataProvider {
     );
   }
 
-  String _trend(double previous, double current) {
-    final delta = current - previous;
-    if (delta > 4) return 'RISING_FAST';
-    if (delta > 0.6) return 'RISING';
-    if (delta < -4) return 'FALLING_FAST';
-    if (delta < -0.6) return 'FALLING';
-    return 'STABLE';
-  }
-
   double _max(double a, double b) => a > b ? a : b;
 
   double _calculateVpd(double temperature, double humidity) {
