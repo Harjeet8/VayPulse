@@ -1,2 +1,2 @@
-PhytoSense competition validation trigger — analyzer cleanup applied.
-Validate full competition source: launch formation animation, judge engineering view, live/stale/disconnected integrity, farmer explanation, tests, web and Android release.
+PhytoSense NOVA validation trigger — exact submitted icon, theme-aware premium boot, calm phone notifications.
+Validate full competition source: analyzer, tests, web build, Android release, notification bridge, launch artwork, Simulation and ESP32 integrity.
