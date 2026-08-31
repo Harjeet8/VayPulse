@@ -9,6 +9,7 @@ import '../services/farm_repository.dart';
 import '../services/engineering_evidence_service.dart';
 import '../services/inspection_history_service.dart';
 import '../services/offline_sync_service.dart';
+import '../services/phone_notification_service.dart';
 import '../services/settings_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../services/sensor_provider_manager.dart';
@@ -31,6 +32,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
   late final VoiceGuidanceService voice;
   late final OfflineSyncService offlineSync;
   late final EngineeringEvidenceService engineeringEvidence;
+  late final PhoneNotificationService phoneNotifications;
   late final InspectionHistoryService inspectionHistory;
   late final Future<void> initialization;
 
@@ -46,6 +48,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
     engineeringEvidence = EngineeringEvidenceService(sensors);
     inspectionHistory = InspectionHistoryService();
     alerts = AlertService(sensors, settings, weather, farms);
+    phoneNotifications = PhoneNotificationService(alerts, settings);
     initialization = _initialize();
   }
 
@@ -68,11 +71,13 @@ class _VayPulseAppState extends State<VayPulseApp> {
     offlineSync.start();
     engineeringEvidence.start();
     alerts.start();
+    phoneNotifications.start();
     unawaited(weather.load());
   }
 
   @override
   void dispose() {
+    phoneNotifications.dispose();
     alerts.dispose();
     offlineSync.dispose();
     engineeringEvidence.dispose();
@@ -148,60 +153,89 @@ class _StartupLoading extends StatelessWidget {
   const _StartupLoading();
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        backgroundColor: const Color(0xFF06130E),
-        body: DecoratedBox(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Color(0xFF06130E), Color(0xFF0D3325)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final background =
+        dark ? const Color(0xFF08131B) : const Color(0xFFF9FBFF);
+    final backgroundEnd =
+        dark ? const Color(0xFF102A25) : const Color(0xFFEAF8F0);
+    final foreground = dark ? Colors.white : const Color(0xFF18342B);
+    final signal = dark ? const Color(0xFF38C98B) : const Color(0xFF08A85C);
+
+    return Scaffold(
+      backgroundColor: background,
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [background, backgroundEnd],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 360),
-              child: Padding(
-                padding: const EdgeInsets.all(28),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(25),
+        ),
+        child: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 360),
+            child: Padding(
+              padding: const EdgeInsets.all(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 92,
+                    height: 92,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(26),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF1187E8)
+                              .withValues(alpha: dark ? 0.14 : 0.09),
+                          blurRadius: 28,
+                        ),
+                        BoxShadow(
+                          color: const Color(0xFF14BC6A)
+                              .withValues(alpha: dark ? 0.12 : 0.08),
+                          blurRadius: 34,
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
                       child: Image.asset(
                         'assets/branding/phytosense_icon.png',
-                        width: 84,
-                        height: 84,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      'PhytoSense AI',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.6,
-                      ),
+                  ),
+                  const SizedBox(height: 21),
+                  Text(
+                    'PhytoSense AI',
+                    style: TextStyle(
+                      color: foreground,
+                      fontSize: 24,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.7,
                     ),
-                    const SizedBox(height: 18),
-                    SizedBox(
-                      width: 150,
-                      child: LinearProgressIndicator(
-                        minHeight: 3,
-                        color: const Color(0xFFB9E7D4),
-                        backgroundColor: Colors.white.withValues(alpha: 0.12),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(99)),
-                      ),
+                  ),
+                  const SizedBox(height: 17),
+                  SizedBox(
+                    width: 148,
+                    child: LinearProgressIndicator(
+                      minHeight: 3,
+                      color: signal,
+                      backgroundColor: foreground.withValues(alpha: 0.08),
+                      borderRadius: const BorderRadius.all(Radius.circular(99)),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _StartupError extends StatelessWidget {
