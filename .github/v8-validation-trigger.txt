@@ -1,2 +1,2 @@
-PhytoSense NOVA validation trigger — exact submitted icon, theme-aware premium boot, calm phone notifications.
-Validate full competition source: analyzer, tests, web build, Android release, notification bridge, launch artwork, Simulation and ESP32 integrity.
+PhytoSense cinematic validation trigger — premium boot, human notification copy, rich Android tray styling.
+Validate analyzer, tests, web build, Android release, light/dark startup, Simulation notifications and ESP32 Live value notifications.
