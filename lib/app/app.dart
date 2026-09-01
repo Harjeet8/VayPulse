@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -149,93 +150,230 @@ class _VayPulseAppState extends State<VayPulseApp> {
   }
 }
 
-class _StartupLoading extends StatelessWidget {
+class _StartupLoading extends StatefulWidget {
   const _StartupLoading();
+
+  @override
+  State<_StartupLoading> createState() => _StartupLoadingState();
+}
+
+class _StartupLoadingState extends State<_StartupLoading>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1900),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final dark = Theme.of(context).brightness == Brightness.dark;
-    final background =
-        dark ? const Color(0xFF08131B) : const Color(0xFFF9FBFF);
-    final backgroundEnd =
-        dark ? const Color(0xFF102A25) : const Color(0xFFEAF8F0);
-    final foreground = dark ? Colors.white : const Color(0xFF18342B);
-    final signal = dark ? const Color(0xFF38C98B) : const Color(0xFF08A85C);
+    final background = dark ? const Color(0xFF061017) : const Color(0xFFFFFFFF);
+    final end = dark ? const Color(0xFF0B251E) : const Color(0xFFF0FAF5);
+    final foreground = dark ? const Color(0xFFF6FCFF) : const Color(0xFF14323B);
+    final muted = dark ? const Color(0xFF8298A1) : const Color(0xFF6E858E);
 
     return Scaffold(
       backgroundColor: background,
-      body: DecoratedBox(
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [background, backgroundEnd],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-        ),
-        child: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 92,
-                    height: 92,
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(26),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF1187E8)
-                              .withValues(alpha: dark ? 0.14 : 0.09),
-                          blurRadius: 28,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final phase = _controller.value;
+          final pulse = (math.sin(phase * math.pi * 2) + 1) / 2;
+          return DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [background, end],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                IgnorePointer(
+                  child: CustomPaint(
+                    painter: _StartupPreludePainter(
+                      phase: phase,
+                      dark: dark,
+                    ),
+                  ),
+                ),
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(28),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        SizedBox(
+                          width: 148,
+                          height: 148,
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Container(
+                                width: 134 + pulse * 8,
+                                height: 134 + pulse * 8,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(
+                                    color: const Color(0xFF2196F3)
+                                        .withValues(alpha: 0.10 + pulse * 0.08),
+                                  ),
+                                ),
+                              ),
+                              Container(
+                                width: 98,
+                                height: 98,
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(28),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF2196F3)
+                                          .withValues(alpha: 0.08 + pulse * 0.05),
+                                      blurRadius: 28 + pulse * 10,
+                                    ),
+                                    BoxShadow(
+                                      color: const Color(0xFF16C96B)
+                                          .withValues(alpha: 0.10 + pulse * 0.06),
+                                      blurRadius: 34 + pulse * 12,
+                                    ),
+                                  ],
+                                ),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(24),
+                                  child: Image.asset(
+                                    'assets/branding/phytosense_icon.png',
+                                    fit: BoxFit.cover,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
-                        BoxShadow(
-                          color: const Color(0xFF14BC6A)
-                              .withValues(alpha: dark ? 0.12 : 0.08),
-                          blurRadius: 34,
+                        const SizedBox(height: 22),
+                        Text(
+                          'PhytoSense AI',
+                          style: TextStyle(
+                            color: foreground,
+                            fontSize: 27,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: -0.9,
+                          ),
+                        ),
+                        const SizedBox(height: 9),
+                        Text(
+                          'INITIALIZING PLANT INTELLIGENCE',
+                          style: TextStyle(
+                            color: muted,
+                            fontSize: 9.2,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1.65,
+                          ),
+                        ),
+                        const SizedBox(height: 22),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            _PreludeDot(
+                              color: const Color(0xFF2196F3),
+                              active: phase < 0.34,
+                            ),
+                            const SizedBox(width: 9),
+                            _PreludeDot(
+                              color: const Color(0xFF16C96B),
+                              active: phase >= 0.34 && phase < 0.67,
+                            ),
+                            const SizedBox(width: 9),
+                            _PreludeDot(
+                              color: const Color(0xFFFFC107),
+                              active: phase >= 0.67,
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: Image.asset(
-                        'assets/branding/phytosense_icon.png',
-                        fit: BoxFit.cover,
-                      ),
-                    ),
                   ),
-                  const SizedBox(height: 21),
-                  Text(
-                    'PhytoSense AI',
-                    style: TextStyle(
-                      color: foreground,
-                      fontSize: 24,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: -0.7,
-                    ),
-                  ),
-                  const SizedBox(height: 17),
-                  SizedBox(
-                    width: 148,
-                    child: LinearProgressIndicator(
-                      minHeight: 3,
-                      color: signal,
-                      backgroundColor: foreground.withValues(alpha: 0.08),
-                      borderRadius: const BorderRadius.all(Radius.circular(99)),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
-          ),
-        ),
+          );
+        },
       ),
     );
   }
+}
+
+class _PreludeDot extends StatelessWidget {
+  final Color color;
+  final bool active;
+
+  const _PreludeDot({required this.color, required this.active});
+
+  @override
+  Widget build(BuildContext context) => AnimatedContainer(
+        duration: const Duration(milliseconds: 220),
+        width: active ? 22 : 7,
+        height: 7,
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: active ? 0.95 : 0.28),
+          borderRadius: BorderRadius.circular(999),
+          boxShadow: active
+              ? [BoxShadow(color: color.withValues(alpha: 0.26), blurRadius: 7)]
+              : const [],
+        ),
+      );
+}
+
+class _StartupPreludePainter extends CustomPainter {
+  final double phase;
+  final bool dark;
+
+  const _StartupPreludePainter({required this.phase, required this.dark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final grid = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7
+      ..color = (dark ? Colors.white : const Color(0xFF173C47))
+          .withValues(alpha: dark ? 0.035 : 0.028);
+    const gap = 42.0;
+    for (double x = 0; x < size.width; x += gap) {
+      canvas.drawLine(Offset(x, 0), Offset(x, size.height), grid);
+    }
+    for (double y = 0; y < size.height; y += gap) {
+      canvas.drawLine(Offset(0, y), Offset(size.width, y), grid);
+    }
+
+    final scanX = size.width * phase;
+    final scanPaint = Paint()
+      ..shader = LinearGradient(
+        colors: [
+          Colors.transparent,
+          const Color(0xFF16C96B).withValues(alpha: dark ? 0.16 : 0.10),
+          Colors.transparent,
+        ],
+      ).createShader(Rect.fromLTWH(scanX - 35, 0, 70, size.height));
+    canvas.drawRect(Rect.fromLTWH(scanX - 35, 0, 70, size.height), scanPaint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _StartupPreludePainter oldDelegate) =>
+      oldDelegate.phase != phase || oldDelegate.dark != dark;
 }
 
 class _StartupError extends StatelessWidget {
