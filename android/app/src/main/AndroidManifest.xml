@@ -11,7 +11,7 @@
     <application
         android:label="PhytoSense AI"
         android:name="${applicationName}"
-        android:icon="@drawable/phytosense_launcher"
+        android:icon="@drawable/ic_launcher_nova"
         android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
