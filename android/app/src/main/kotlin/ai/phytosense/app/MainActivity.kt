@@ -30,11 +30,12 @@ class MainActivity : FlutterActivity() {
                     "requestPermission" -> requestNotificationPermission(result)
                     "showNotification" -> {
                         showNotification(
-                            title = call.argument<String>("title") ?: "Plant update",
-                            body = call.argument<String>("body") ?: "PhytoSense detected a change.",
+                            title = call.argument<String>("title") ?: "🌿 Plant update",
+                            body = call.argument<String>("body") ?: "PhytoSense detected a meaningful change.",
                             mode = call.argument<String>("mode") ?: "simulation",
                             severity = call.argument<String>("severity") ?: "warning",
                             slot = call.argument<Int>("slot") ?: 1,
+                            summary = call.argument<String>("summary") ?: "PhytoSense AI",
                         )
                         result.success(null)
                     }
@@ -81,6 +82,7 @@ class MainActivity : FlutterActivity() {
         mode: String,
         severity: String,
         slot: Int,
+        summary: String,
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -101,12 +103,13 @@ class MainActivity : FlutterActivity() {
                     NotificationManager.IMPORTANCE_HIGH,
                 ).apply {
                     description = if (live) {
-                        "Important plant and sensor messages from the connected ESP32 node"
+                        "Important plant intelligence from live ESP32 values"
                     } else {
-                        "Important plant intelligence messages from Simulation mode"
+                        "Important plant intelligence from Simulation mode"
                     }
                     enableVibration(true)
                     setShowBadge(true)
+                    lockscreenVisibility = Notification.VISIBILITY_PRIVATE
                 },
             )
         }
@@ -130,24 +133,39 @@ class MainActivity : FlutterActivity() {
 
         val accent = when (severity) {
             "critical" -> Color.rgb(244, 67, 54)
-            "info" -> Color.rgb(20, 188, 106)
-            else -> Color.rgb(255, 179, 0)
+            "info" -> Color.rgb(22, 201, 107)
+            else -> Color.rgb(25, 118, 210)
         }
-        val modeLabel = if (live) "ESP32 LIVE" else "SIMULATION"
+        val safeTitle = title.replace("_", " ").trim()
+        val safeBody = body.replace("_", " ").trim()
+        val modeLabel = if (live) "Live value" else "Simulation"
+        val richStyle = Notification.BigTextStyle()
+            .setBigContentTitle(safeTitle)
+            .bigText(safeBody)
+            .setSummaryText("PhytoSense AI • $summary")
 
         builder
             .setSmallIcon(R.drawable.ic_stat_phytosense)
             .setColor(accent)
-            .setContentTitle("PhytoSense • $title")
-            .setContentText(body)
-            .setSubText(modeLabel)
-            .setStyle(Notification.BigTextStyle().bigText(body))
+            .setContentTitle(safeTitle)
+            .setContentText(safeBody)
+            .setSubText("PhytoSense AI • $modeLabel")
+            .setStyle(richStyle)
             .setCategory(Notification.CATEGORY_MESSAGE)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setGroup("phytosense.$mode")
+            .setWhen(System.currentTimeMillis())
+            .setShowWhen(true)
+            .setTicker("$safeTitle — $safeBody")
+            .setNumber(slot.coerceIn(1, 2))
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            builder.setBadgeIconType(Notification.BADGE_ICON_SMALL)
+            builder.setColorized(false)
+        }
 
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
             @Suppress("DEPRECATION")
