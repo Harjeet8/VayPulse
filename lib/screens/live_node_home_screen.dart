@@ -1614,7 +1614,7 @@ String _simpleConditionTitle(
       'செடி ஆரோக்கியமாக உள்ளது',
     );
   }
-  final value = '${main ?? rawState}'.toUpperCase();
+  final value = (main ?? rawState).toUpperCase();
   if (value.contains('ATMOSPHERIC') || value.contains('DRYING_DEMAND')) {
     return _competitionText(
       context,
