@@ -23,6 +23,7 @@ class ShellScreen extends StatefulWidget {
 
 class _ShellScreenState extends State<ShellScreen> {
   int index = 0;
+  final PageStorageBucket _pageStorageBucket = PageStorageBucket();
 
   void _openAlerts() {
     Navigator.of(context).push(
@@ -37,7 +38,10 @@ class _ShellScreenState extends State<ShellScreen> {
         onOpenAlerts: _openAlerts,
         onOpenFields: () => setState(() => index = 2),
       ),
-      const FarmerAnalysisScreen(),
+      const KeyedSubtree(
+        key: PageStorageKey<String>('farmer-analysis-page'),
+        child: FarmerAnalysisScreen(),
+      ),
       const LiveSensorsScreen(),
       const ObservationTimelineScreen(),
       const LeafScreeningScreen(),
@@ -76,6 +80,11 @@ class _ShellScreenState extends State<ShellScreen> {
         label: Text(FarmerLanguage.label(context, 'settings')),
       ),
     ];
+
+    final pageStack = PageStorage(
+      bucket: _pageStorageBucket,
+      child: IndexedStack(index: index, children: pages),
+    );
 
     return CallbackShortcuts(
       bindings: {
@@ -148,15 +157,13 @@ class _ShellScreenState extends State<ShellScreen> {
                         ),
                       ),
                     ),
-                    Expanded(
-                      child: IndexedStack(index: index, children: pages),
-                    ),
+                    Expanded(child: pageStack),
                   ],
                 ),
               );
             }
             return Scaffold(
-              body: IndexedStack(index: index, children: pages),
+              body: pageStack,
               bottomNavigationBar: BottomNav(
                 index: index,
                 onChanged: (value) => setState(() => index = value),
