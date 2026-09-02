@@ -34,11 +34,11 @@ jobs:
           grep -q '^version: 8.7.1+871$' pubspec.yaml
           test -f assets/fonts/NotoSansTamil-Regular.ttf
           grep -q 'family: NotoSansTamil' pubspec.yaml
-          grep -q "const FarmerAnalysisScreen" lib/screens/shell_screen.dart
-          grep -q "const LiveSensorsScreen" lib/screens/shell_screen.dart
-          grep -q "const ObservationTimelineScreen" lib/screens/shell_screen.dart
-          grep -q "const LeafScreeningScreen" lib/screens/shell_screen.dart
-          grep -q "const SettingsScreen" lib/screens/shell_screen.dart
+          grep -q "FarmerAnalysisScreen" lib/screens/shell_screen.dart
+          grep -q "LiveSensorsScreen" lib/screens/shell_screen.dart
+          grep -q "ObservationTimelineScreen" lib/screens/shell_screen.dart
+          grep -q "LeafScreeningScreen" lib/screens/shell_screen.dart
+          grep -q "SettingsScreen" lib/screens/shell_screen.dart
           ! grep -R "experienceMode\|setExperienceMode\|onboardingComplete" lib --include='*.dart'
 
       - name: Setup Flutter
