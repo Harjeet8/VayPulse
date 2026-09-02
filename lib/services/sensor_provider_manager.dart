@@ -29,6 +29,10 @@ class SensorProviderManager extends SensorDataProvider {
 
   String get hardwareEndpoint => _hardware.endpoint;
 
+  bool get _hardwareUnavailable =>
+      _active.source == SensorDataSource.esp32 &&
+      _active.connectionStatus != SensorConnectionStatus.ready;
+
   @override
   SensorDataSource get source => _active.source;
 
@@ -84,11 +88,18 @@ class SensorProviderManager extends SensorDataProvider {
 
   void _forwardChange() => notifyListeners();
 
+  // A validated ESP32 sample can remain in the hardware provider for history,
+  // but it must never masquerade as a live reading after the node is offline.
+  // One transient packet miss is already tolerated inside Esp32SensorProvider;
+  // once the provider reports non-ready, live-facing getters intentionally
+  // expose no current intelligence until a fresh ESP32 sample is received.
   @override
-  SensorReading? get current => _active.current;
+  SensorReading? get current => _hardwareUnavailable ? null : _active.current;
 
   @override
-  Map<String, SensorReading> get latestReadings => _active.latestReadings;
+  Map<String, SensorReading> get latestReadings => _hardwareUnavailable
+      ? const <String, SensorReading>{}
+      : _active.latestReadings;
 
   @override
   List<SensorNode> get nodes => _active.nodes;
@@ -121,10 +132,12 @@ class SensorProviderManager extends SensorDataProvider {
   List<String> get scenarioIds => _active.scenarioIds;
 
   @override
-  get edgeIntelligence => _active.edgeIntelligence;
+  get edgeIntelligence =>
+      _hardwareUnavailable ? null : _active.edgeIntelligence;
 
   @override
-  get hardwareTelemetry => _active.hardwareTelemetry;
+  get hardwareTelemetry =>
+      _hardwareUnavailable ? null : _active.hardwareTelemetry;
 
   @override
   Future<Esp32Config?> fetchHardwareConfig() => _active.fetchHardwareConfig();
