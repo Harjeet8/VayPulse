@@ -24,13 +24,13 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _timeline = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 5000),
+      duration: const Duration(milliseconds: 4100),
     )..forward();
     _ambient = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2800),
     )..repeat();
-    _timer = Timer(const Duration(milliseconds: 5350), _openApp);
+    _timer = Timer(const Duration(milliseconds: 4450), _openApp);
   }
 
   void _openApp() {
@@ -38,7 +38,7 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.pushReplacement(
       context,
       PageRouteBuilder<void>(
-        transitionDuration: const Duration(milliseconds: 760),
+        transitionDuration: const Duration(milliseconds: 620),
         pageBuilder: (_, __, ___) => const ShellScreen(),
         transitionsBuilder: (_, animation, __, child) {
           final eased = CurvedAnimation(
@@ -85,13 +85,13 @@ class _SplashScreenState extends State<SplashScreen>
           final t = reducedMotion ? 1.0 : _timeline.value;
           final phase = reducedMotion ? 0.22 : _ambient.value;
 
-          final field = _segment(t, 0.00, 0.28);
-          final scan = _segment(t, 0.04, 0.42);
-          final core = _segment(t, 0.13, 0.50);
-          final brand = _segment(t, 0.39, 0.70);
-          final intelligence = _segment(t, 0.58, 0.84);
-          final quote = _segment(t, 0.68, 0.92);
-          final ready = _segment(t, 0.84, 1.00);
+          final field = _segment(t, 0.00, 0.22);
+          final scan = _segment(t, 0.03, 0.34);
+          final core = _segment(t, 0.10, 0.43);
+          final brand = _segment(t, 0.29, 0.57);
+          final intelligence = _segment(t, 0.46, 0.70);
+          final quote = _segment(t, 0.58, 0.82);
+          final ready = _segment(t, 0.76, 0.96);
 
           return Stack(
             fit: StackFit.expand,
@@ -122,27 +122,27 @@ class _SplashScreenState extends State<SplashScreen>
                     children: [
                       const SizedBox(height: 18),
                       _TopSignalStrip(progress: scan, palette: palette),
-                      const Spacer(flex: 2),
+                      const Spacer(),
                       _FusionCore(
                         progress: core,
                         phase: phase,
                         palette: palette,
                       ),
-                      const SizedBox(height: 26),
-                      _BrandReveal(progress: brand, palette: palette),
                       const SizedBox(height: 22),
+                      _BrandReveal(progress: brand, palette: palette),
+                      const SizedBox(height: 18),
                       _IntelligenceRail(
                         progress: intelligence,
                         phase: phase,
                         palette: palette,
                       ),
-                      const SizedBox(height: 22),
+                      const SizedBox(height: 18),
                       _Quote(
                         progress: quote,
                         text: context.tr('splash_quote'),
                         palette: palette,
                       ),
-                      const Spacer(flex: 2),
+                      const Spacer(),
                       _ReadyFooter(
                         progress: ready,
                         phase: phase,
@@ -245,7 +245,7 @@ class _TopSignalStrip extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'PHYTOSENSE // BIOINTELLIGENCE',
+              'PHYTOSENSE // PLANT INTELLIGENCE',
               style: TextStyle(
                 color: palette.secondary,
                 fontSize: 9,
@@ -271,7 +271,7 @@ class _TopSignalStrip extends StatelessWidget {
                 ),
                 const SizedBox(width: 7),
                 Text(
-                  'SIGNAL ONLINE',
+                  'CORE STARTING',
                   style: TextStyle(
                     color: palette.faint,
                     fontSize: 8.4,
@@ -325,11 +325,23 @@ class _FusionCore extends StatelessWidget {
               child: Container(
                 width: 144,
                 height: 144,
-                padding: const EdgeInsets.all(4),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      palette.blue,
+                      palette.green,
+                      palette.lime,
+                    ],
+                    stops: const [0, 0.58, 1],
+                  ),
                   borderRadius: BorderRadius.circular(39),
-                  border: Border.all(color: palette.border),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.42),
+                    width: 1.2,
+                  ),
                   boxShadow: [
                     BoxShadow(
                       color: palette.blue.withValues(alpha: 0.10 + pulse * 0.04),
@@ -343,11 +355,10 @@ class _FusionCore extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(35),
-                  child: Image.asset(
-                    'assets/branding/phytosense_icon.png',
-                    fit: BoxFit.cover,
+                child: CustomPaint(
+                  painter: _PhytoSenseMarkPainter(
+                    progress: progress,
+                    phase: phase,
                   ),
                 ),
               ),
@@ -583,7 +594,7 @@ class _ReadyFooter extends StatelessWidget {
               ),
               const SizedBox(width: 9),
               Text(
-                'FUSION ENGINE READY',
+                'PLANT INTELLIGENCE READY',
                 style: TextStyle(
                   color: palette.faint,
                   fontSize: 9,
@@ -597,6 +608,96 @@ class _ReadyFooter extends StatelessWidget {
       ),
     );
   }
+}
+
+class _PhytoSenseMarkPainter extends CustomPainter {
+  final double progress;
+  final double phase;
+
+  const _PhytoSenseMarkPainter({
+    required this.progress,
+    required this.phase,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final p = Curves.easeOutCubic.transform(
+      progress.clamp(0.0, 1.0).toDouble(),
+    );
+    final pulse = (math.sin(phase * math.pi * 2) + 1) / 2;
+
+    final leaf = Path()
+      ..moveTo(size.width * 0.49, size.height * 0.82)
+      ..cubicTo(
+        size.width * 0.20,
+        size.height * 0.68,
+        size.width * 0.20,
+        size.height * 0.29,
+        size.width * 0.52,
+        size.height * 0.15,
+      )
+      ..cubicTo(
+        size.width * 0.78,
+        size.height * 0.25,
+        size.width * 0.86,
+        size.height * 0.55,
+        size.width * 0.49,
+        size.height * 0.82,
+      )
+      ..close();
+
+    final leafPaint = Paint()
+      ..color = Colors.white.withValues(alpha: 0.92 * p)
+      ..style = PaintingStyle.fill;
+    canvas.drawPath(leaf, leafPaint);
+
+    final vein = Path()
+      ..moveTo(size.width * 0.43, size.height * 0.78)
+      ..quadraticBezierTo(
+        size.width * 0.52,
+        size.height * 0.53,
+        size.width * 0.67,
+        size.height * 0.31,
+      );
+    canvas.drawPath(
+      vein,
+      Paint()
+        ..color = const Color(0xFF0A7D58).withValues(alpha: 0.72 * p)
+        ..strokeWidth = 4
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke,
+    );
+
+    final signal = Path()
+      ..moveTo(size.width * 0.10, size.height * 0.57)
+      ..lineTo(size.width * 0.29, size.height * 0.57)
+      ..lineTo(size.width * 0.37, size.height * 0.43)
+      ..lineTo(size.width * 0.46, size.height * 0.70)
+      ..lineTo(size.width * 0.56, size.height * 0.37)
+      ..lineTo(size.width * 0.65, size.height * 0.57)
+      ..lineTo(size.width * 0.90, size.height * 0.57);
+    canvas.drawPath(
+      signal,
+      Paint()
+        ..color = Colors.white.withValues(alpha: (0.78 + pulse * 0.22) * p)
+        ..strokeWidth = 5
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..style = PaintingStyle.stroke,
+    );
+
+    final nodePaint = Paint()
+      ..color = Colors.white.withValues(alpha: (0.70 + pulse * 0.30) * p);
+    canvas.drawCircle(
+      Offset(size.width * 0.90, size.height * 0.57),
+      4 + pulse * 1.5,
+      nodePaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _PhytoSenseMarkPainter oldDelegate) =>
+      oldDelegate.progress != progress || oldDelegate.phase != phase;
 }
 
 class _FusionOrbitPainter extends CustomPainter {
