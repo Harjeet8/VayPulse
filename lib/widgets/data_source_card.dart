@@ -19,15 +19,29 @@ class DataSourceCard extends StatelessWidget {
         final colors = theme.colorScheme;
         final live = scope.sensorManager.source == SensorDataSource.esp32;
         final connected = scope.sensorManager.connected;
-        final accent = live ? const Color(0xFF4E9DDB) : colors.primary;
+        final accent = live
+            ? const Color(0xFF2879B9)
+            : const Color(0xFFE18A28);
         final scenario = context.tr(
           'scenario_${scope.sensorManager.scenarioId}',
         );
         final statusText = live
             ? (connected
-                ? context.tr('live_data_connected')
-                : context.tr('live_data_waiting'))
-            : context.tr('simulation_active_scenario', {'value': scenario});
+                ? _sourceText(
+                    context,
+                    'Real readings are coming from the ESP32 node.',
+                    'ESP32 node-இலிருந்து நேரடி மதிப்புகள் வருகின்றன.',
+                  )
+                : _sourceText(
+                    context,
+                    'Waiting for ESP32 — no live plant values are shown.',
+                    'ESP32-க்காக காத்திருக்கிறது — நேரடி செடி மதிப்புகள் காட்டப்படவில்லை.',
+                  ))
+            : _sourceText(
+                context,
+                'Practice farm: $scenario. These are demo values.',
+                'பயிற்சி பண்ணை: $scenario. இவை demo மதிப்புகள்.',
+              );
 
         return TweenAnimationBuilder<double>(
           tween: Tween(begin: 0.97, end: 1),
@@ -102,8 +116,16 @@ class DataSourceCard extends StatelessWidget {
                                   duration: const Duration(milliseconds: 260),
                                   child: Text(
                                     live
-                                        ? context.tr('esp32_live')
-                                        : FarmerLanguage.label(context, 'simulation'),
+                                        ? _sourceText(
+                                            context,
+                                            'ESP32 real sensors',
+                                            'ESP32 நேரடி சென்சார்கள்',
+                                          )
+                                        : _sourceText(
+                                            context,
+                                            'Farm simulation',
+                                            'பண்ணை simulation',
+                                          ),
                                     key: ValueKey(live),
                                     style: const TextStyle(
                                       fontWeight: FontWeight.w900,
@@ -161,8 +183,16 @@ class DataSourceCard extends StatelessWidget {
                           ),
                           child: Text(
                             live
-                                ? context.tr('source_live_badge')
-                                : FarmerLanguage.label(context, 'simulated'),
+                                ? _sourceText(
+                                    context,
+                                    'REAL DATA',
+                                    'நேரடி DATA',
+                                  )
+                                : _sourceText(
+                                    context,
+                                    'DEMO DATA',
+                                    'DEMO DATA',
+                                  ),
                             style: TextStyle(
                               color: accent,
                               fontSize: 10,
@@ -242,12 +272,20 @@ class DataSourceCard extends StatelessWidget {
               ),
               const SizedBox(height: 18),
               _SourceOption(
-                icon: Icons.science_outlined,
-                title: FarmerLanguage.label(context, 'simulation'),
-                body: FarmerLanguage.label(context, 'simulation_description'),
+                icon: Icons.agriculture_outlined,
+                title: _sourceText(
+                  context,
+                  'Farm simulation',
+                  'பண்ணை simulation',
+                ),
+                body: _sourceText(
+                  context,
+                  'Practice common farm conditions without an ESP32. Every value is clearly marked as demo data.',
+                  'ESP32 இல்லாமல் பண்ணை நிலைகளை பயிற்சி செய்யலாம். எல்லா மதிப்புகளும் demo data என்று தெளிவாக காட்டப்படும்.',
+                ),
                 selected:
                     scope.sensorManager.source == SensorDataSource.simulation,
-                badge: 'SAFE DEMO',
+                badge: 'PRACTICE FARM',
                 onTap: () => Navigator.pop(
                   sheetContext,
                   SensorDataSource.simulation,
@@ -256,10 +294,18 @@ class DataSourceCard extends StatelessWidget {
               const SizedBox(height: 11),
               _SourceOption(
                 icon: Icons.memory_rounded,
-                title: context.tr('esp32_live'),
-                body: context.tr('esp32_description'),
+                title: _sourceText(
+                  context,
+                  'ESP32 real sensors',
+                  'ESP32 நேரடி சென்சார்கள்',
+                ),
+                body: _sourceText(
+                  context,
+                  'Shows only fresh readings measured by the physical plant node. If it disconnects, live analysis stops.',
+                  'Plant node அளக்கும் புதிய மதிப்புகளை மட்டும் காட்டும். இணைப்பு துண்டித்தால் நேரடி பகுப்பாய்வு நிற்கும்.',
+                ),
                 selected: scope.sensorManager.source == SensorDataSource.esp32,
-                badge: 'PHYSICAL NODE',
+                badge: 'REAL SENSORS',
                 onTap: () => Navigator.pop(
                   sheetContext,
                   SensorDataSource.esp32,
@@ -282,7 +328,11 @@ class DataSourceCard extends StatelessWidget {
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        'Simulation and ESP32 data stay isolated. Switching the source changes the provider for the whole app instead of blending readings.',
+                        _sourceText(
+                          context,
+                          'Demo and ESP32 readings always stay separate. They are never mixed.',
+                          'Demo மற்றும் ESP32 மதிப்புகள் எப்போதும் தனித்தனியாக இருக்கும். அவை கலக்கப்படாது.',
+                        ),
                         style: Theme.of(context)
                             .textTheme
                             .bodySmall
@@ -321,6 +371,9 @@ class DataSourceCard extends StatelessWidget {
     );
   }
 }
+
+String _sourceText(BuildContext context, String english, String tamil) =>
+    FarmerLanguage.isTamil(context) ? tamil : english;
 
 class _StatusDot extends StatelessWidget {
   final Color color;

@@ -28,68 +28,68 @@ class _SimulationCommandDeckState extends State<SimulationCommandDeck>
 
   static const _meta = <String, _ScenarioMeta>{
     'healthy': _ScenarioMeta(
-      'Healthy',
-      'Balanced reference state',
+      'Healthy farm',
+      'See normal soil, weather and plant readings',
       Icons.eco_rounded,
     ),
     'baseline_learning': _ScenarioMeta(
-      'Baseline Learning',
-      'Learn this plant’s normal electrical signature',
+      'Plant learning',
+      'See how the app learns the plant’s normal signal',
       Icons.memory_rounded,
     ),
     'atmospheric_drying': _ScenarioMeta(
-      'Atmospheric Drying',
-      'High VPD with root moisture still adequate',
+      'Dry air',
+      'Air pulls water quickly while the soil is still moist',
       Icons.air_rounded,
     ),
     'dry': _ScenarioMeta(
-      'Dry Root Zone',
-      'Low soil moisture becomes the dominant evidence',
+      'Dry soil',
+      'See what happens when root-zone moisture falls',
       Icons.water_drop_outlined,
     ),
     'overwatered': _ScenarioMeta(
-      'Overwatered',
-      'Excess root-zone moisture and wetness pressure',
+      'Soil too wet',
+      'See how excess root-zone water changes the result',
       Icons.water_rounded,
     ),
     'heat_stress': _ScenarioMeta(
-      'Heat Stress',
-      'High temperature with elevated atmospheric demand',
+      'Heat stress',
+      'Hot air raises water loss and plant stress',
       Icons.device_thermostat_rounded,
     ),
     'bio_response': _ScenarioMeta(
-      'Bio Response',
-      'Plant electrical response without a single dominant cause',
+      'Plant signal change',
+      'The plant signal changes before one clear cause is found',
       Icons.electric_bolt_rounded,
     ),
     'recovery': _ScenarioMeta(
       'Recovery',
-      'Stress direction falls while conditions improve',
+      'See the plant result improve after conditions become safer',
       Icons.restore_rounded,
     ),
     'biotic_risk': _ScenarioMeta(
-      'Biotic Risk',
-      'Disease-conducive conditions without claiming diagnosis',
+      'Possible pest or disease',
+      'Practice checking visible signs without claiming a diagnosis',
       Icons.biotech_outlined,
     ),
     'low_light': _ScenarioMeta(
-      'Low Light',
-      'Daylight falls below the expected simulated range',
+      'Low light',
+      'Daylight falls below the expected farm range',
       Icons.wb_twilight_rounded,
     ),
     'critical': _ScenarioMeta(
-      'Compound Stress',
-      'Heat, water deficit and plant response agree',
+      'Several stresses',
+      'Heat, dry soil and plant response all need action',
       Icons.warning_amber_rounded,
     ),
     'sensor_fault': _ScenarioMeta(
-      'Sensor Fault',
-      'Bad channels are excluded instead of creating fake stress',
+      'Sensor problem',
+      'A bad sensor is ignored instead of creating a false warning',
       Icons.sensors_off_rounded,
     ),
     'offline': _ScenarioMeta(
-      'Offline',
-      'No new simulated packet is represented as live',
+      'Farm offline',
+      'No new demo reading is shown as live data',
       Icons.wifi_off_rounded,
     ),
   };
@@ -226,7 +226,7 @@ class _SimulationCommandDeckState extends State<SimulationCommandDeck>
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 const Text(
-                                  'SIMULATION LAB',
+                                  'FARM PRACTICE MODE',
                                   style: TextStyle(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w900,
@@ -235,7 +235,7 @@ class _SimulationCommandDeckState extends State<SimulationCommandDeck>
                                 ),
                                 const SizedBox(height: 2),
                                 Text(
-                                  'Interactive plant-intelligence scenarios',
+                                  'Choose a farm condition to see how PhytoSense responds',
                                   style: theme.textTheme.titleMedium?.copyWith(
                                     fontWeight: FontWeight.w900,
                                   ),
@@ -261,7 +261,7 @@ class _SimulationCommandDeckState extends State<SimulationCommandDeck>
                                 ),
                                 const SizedBox(width: 6),
                                 Text(
-                                  'SIMULATED',
+                                  'DEMO ONLY',
                                   style: TextStyle(
                                     color: colors.primary,
                                     fontSize: 9,
@@ -371,7 +371,7 @@ class _SimulationCommandDeckState extends State<SimulationCommandDeck>
                         children: [
                           Expanded(
                             child: Text(
-                              'Use scenarios to demonstrate sensing, reasoning and recovery without mixing simulated values with ESP32 data.',
+                              'Practice with demo farm values. They never mix with ESP32 readings.',
                               style: theme.textTheme.bodySmall?.copyWith(
                                 height: 1.35,
                               ),
@@ -390,7 +390,7 @@ class _SimulationCommandDeckState extends State<SimulationCommandDeck>
                                   )
                                 : const Icon(Icons.play_arrow_rounded),
                             label: Text(
-                              _storyRunning ? 'RUNNING' : 'AUTO STORY',
+                              _storyRunning ? 'RUNNING' : 'PLAY DEMO',
                             ),
                           ),
                         ],

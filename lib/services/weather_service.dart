@@ -9,14 +9,15 @@ import '../models/weather_snapshot.dart';
 import 'location_name_resolver.dart';
 
 class WeatherService extends ChangeNotifier {
-  double latitude = 11.0168;
-  double longitude = 76.9558;
-  String location = 'Coimbatore, Tamil Nadu';
+  double latitude = 10.7905;
+  double longitude = 78.7047;
+  String location = 'Tiruchirappalli (Trichy), Tamil Nadu';
 
   WeatherSnapshot? snapshot;
   bool loading = false;
   bool usingCachedData = false;
   bool locating = false;
+  bool usingDeviceLocation = false;
   String? errorKey;
   String? locationErrorKey;
 
@@ -29,6 +30,8 @@ class WeatherService extends ChangeNotifier {
     latitude = preferences.getDouble('weatherLatitude') ?? latitude;
     longitude = preferences.getDouble('weatherLongitude') ?? longitude;
     location = preferences.getString('weatherLocation') ?? location;
+    usingDeviceLocation =
+        preferences.getBool('weatherUsingDeviceLocation') ?? false;
     final cached = preferences.getString('weatherCache');
     if (cached != null) {
       try {
@@ -54,9 +57,11 @@ class WeatherService extends ChangeNotifier {
         'latitude': '$latitude',
         'longitude': '$longitude',
         'current':
-            'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
+            'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation',
+        'hourly':
+            'temperature_2m,precipitation_probability,weather_code',
         'daily':
-            'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',
+            'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max',
         'forecast_days': '5',
         'timezone': 'auto',
       });
@@ -75,6 +80,7 @@ class WeatherService extends ChangeNotifier {
         daily['precipitation_probability_max'] as List,
       );
       final rainTotals = List<dynamic>.from(daily['precipitation_sum'] as List);
+      final uvIndexes = List<dynamic>.from(daily['uv_index_max'] as List);
       final days = <WeatherDay>[];
       for (var index = 0; index < dates.length; index++) {
         days.add(WeatherDay(
@@ -84,6 +90,35 @@ class WeatherService extends ChangeNotifier {
           precipitationProbability: _number(rainProbabilities[index]),
           precipitationMillimetres: _number(rainTotals[index]),
           weatherCode: _number(weatherCodes[index]).round(),
+          uvIndex: index < uvIndexes.length ? _number(uvIndexes[index]) : null,
+        ));
+      }
+      final hourlyJson = Map<String, dynamic>.from(json['hourly'] as Map);
+      final hourTimes = List<dynamic>.from(hourlyJson['time'] as List);
+      final hourTemperatures =
+          List<dynamic>.from(hourlyJson['temperature_2m'] as List);
+      final hourRain = List<dynamic>.from(
+        hourlyJson['precipitation_probability'] as List,
+      );
+      final hourCodes = List<dynamic>.from(hourlyJson['weather_code'] as List);
+      final hours = <WeatherHour>[];
+      final now = DateTime.now();
+      for (var index = 0;
+          index < hourTimes.length &&
+              index < hourTemperatures.length &&
+              index < hourRain.length &&
+              index < hourCodes.length &&
+              hours.length < 12;
+          index++) {
+        final time = DateTime.tryParse('${hourTimes[index]}');
+        if (time == null || time.isBefore(now.subtract(const Duration(hours: 1)))) {
+          continue;
+        }
+        hours.add(WeatherHour(
+          time: time,
+          temperature: _number(hourTemperatures[index]),
+          precipitationProbability: _number(hourRain[index]),
+          weatherCode: _number(hourCodes[index]).round(),
         ));
       }
       snapshot = WeatherSnapshot(
@@ -93,7 +128,10 @@ class WeatherService extends ChangeNotifier {
         humidity: _number(current['relative_humidity_2m']),
         windSpeed: _number(current['wind_speed_10m']),
         weatherCode: _number(current['weather_code']).round(),
+        apparentTemperature: _number(current['apparent_temperature']),
+        currentRainMillimetres: _number(current['precipitation']),
         forecast: days,
+        hourly: hours,
       );
       final preferences = await SharedPreferences.getInstance();
       await preferences.setString(
@@ -120,16 +158,22 @@ class WeatherService extends ChangeNotifier {
     required String name,
     required double latitude,
     required double longitude,
+    bool fromDevice = false,
   }) async {
     this.latitude = latitude;
     this.longitude = longitude;
     location = name.trim();
+    usingDeviceLocation = fromDevice;
     snapshot = null;
     usingCachedData = false;
     final preferences = await SharedPreferences.getInstance();
     await preferences.setDouble('weatherLatitude', latitude);
     await preferences.setDouble('weatherLongitude', longitude);
     await preferences.setString('weatherLocation', location);
+    await preferences.setBool(
+      'weatherUsingDeviceLocation',
+      usingDeviceLocation,
+    );
     await preferences.remove('weatherCache');
     notifyListeners();
     await refresh();
@@ -171,6 +215,7 @@ class WeatherService extends ChangeNotifier {
         ),
         latitude: position.latitude,
         longitude: position.longitude,
+        fromDevice: true,
       );
       return true;
     } catch (_) {
