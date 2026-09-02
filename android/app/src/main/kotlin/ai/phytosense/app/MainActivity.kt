@@ -9,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Color
+import android.graphics.drawable.Icon
 import android.os.Build
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -30,12 +31,16 @@ class MainActivity : FlutterActivity() {
                     "requestPermission" -> requestNotificationPermission(result)
                     "showNotification" -> {
                         showNotification(
-                            title = call.argument<String>("title") ?: "🌿 Plant update",
-                            body = call.argument<String>("body") ?: "PhytoSense detected a meaningful change.",
+                            title = call.argument<String>("title") ?: "Plant intelligence update",
+                            body = call.argument<String>("body")
+                                ?: "PhytoSense detected a meaningful plant change.",
                             mode = call.argument<String>("mode") ?: "simulation",
                             severity = call.argument<String>("severity") ?: "warning",
-                            slot = call.argument<Int>("slot") ?: 1,
-                            summary = call.argument<String>("summary") ?: "PhytoSense AI",
+                            sequence = call.argument<Int>("sequence") ?: 1,
+                            summary = call.argument<String>("summary") ?: "Plant intelligence",
+                            notificationTag = call.argument<String>("notificationTag")
+                                ?: "phytosense:update",
+                            actionLabel = call.argument<String>("actionLabel") ?: "Open PhytoSense",
                         )
                         result.success(null)
                     }
@@ -81,8 +86,10 @@ class MainActivity : FlutterActivity() {
         body: String,
         mode: String,
         severity: String,
-        slot: Int,
+        sequence: Int,
         summary: String,
+        notificationTag: String,
+        actionLabel: String,
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
             checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
@@ -92,8 +99,16 @@ class MainActivity : FlutterActivity() {
 
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val live = mode == "esp32"
-        val channelId = if (live) "phytosense_live" else "phytosense_simulation"
-        val channelName = if (live) "PhytoSense Live" else "PhytoSense Simulation"
+        val channelId = if (live) {
+            "phytosense_live_intelligence_v2"
+        } else {
+            "phytosense_simulation_intelligence_v2"
+        }
+        val channelName = if (live) {
+            "PhytoSense Live Plant Intelligence"
+        } else {
+            "PhytoSense Simulation Intelligence"
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             manager.createNotificationChannel(
@@ -103,11 +118,12 @@ class MainActivity : FlutterActivity() {
                     NotificationManager.IMPORTANCE_HIGH,
                 ).apply {
                     description = if (live) {
-                        "Important plant intelligence from live ESP32 values"
+                        "Important plant decisions from live ESP32 sensing"
                     } else {
-                        "Important plant intelligence from Simulation mode"
+                        "Important plant decisions from PhytoSense simulation"
                     }
                     enableVibration(true)
+                    enableLights(true)
                     setShowBadge(true)
                     lockscreenVisibility = Notification.VISIBILITY_PRIVATE
                 },
@@ -117,9 +133,11 @@ class MainActivity : FlutterActivity() {
         val launchIntent = packageManager.getLaunchIntentForPackage(packageName)
             ?: Intent(this, MainActivity::class.java)
         launchIntent.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
+        launchIntent.putExtra("phytosense_destination", "analysis")
+        val requestCode = if (live) 4100 + sequence else 3100 + sequence
         val pendingIntent = PendingIntent.getActivity(
             this,
-            if (live) 4100 + slot else 3100 + slot,
+            requestCode,
             launchIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -132,24 +150,23 @@ class MainActivity : FlutterActivity() {
         }
 
         val accent = when (severity) {
-            "critical" -> Color.rgb(244, 67, 54)
+            "critical" -> Color.rgb(239, 68, 68)
             "info" -> Color.rgb(22, 201, 107)
-            else -> Color.rgb(25, 118, 210)
+            else -> Color.rgb(245, 158, 11)
         }
         val safeTitle = title.replace("_", " ").trim()
         val safeBody = body.replace("_", " ").trim()
-        val modeLabel = if (live) "Live value" else "Simulation"
         val richStyle = Notification.BigTextStyle()
             .setBigContentTitle(safeTitle)
             .bigText(safeBody)
-            .setSummaryText("PhytoSense AI • $summary")
+            .setSummaryText(summary)
 
         builder
             .setSmallIcon(R.drawable.ic_stat_phytosense)
             .setColor(accent)
             .setContentTitle(safeTitle)
             .setContentText(safeBody)
-            .setSubText("PhytoSense AI • $modeLabel")
+            .setSubText(summary)
             .setStyle(richStyle)
             .setCategory(Notification.CATEGORY_MESSAGE)
             .setContentIntent(pendingIntent)
@@ -160,19 +177,30 @@ class MainActivity : FlutterActivity() {
             .setWhen(System.currentTimeMillis())
             .setShowWhen(true)
             .setTicker("$safeTitle — $safeBody")
-            .setNumber(slot.coerceIn(1, 2))
+            .setNumber(sequence)
+            .addAction(0, actionLabel, pendingIntent)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            builder.setLargeIcon(
+                Icon.createWithResource(this, R.drawable.ic_launcher_nova),
+            )
+        }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             builder.setBadgeIconType(Notification.BADGE_ICON_SMALL)
-            builder.setColorized(false)
-        }
-
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            builder.setColorized(severity == "critical")
+        } else {
             @Suppress("DEPRECATION")
             builder.setPriority(Notification.PRIORITY_HIGH)
+            @Suppress("DEPRECATION")
+            builder.setVibrate(longArrayOf(0, 180, 90, 180))
+            @Suppress("DEPRECATION")
+            builder.setLights(accent, 500, 1500)
         }
 
-        val idBase = if (live) 2400 else 1400
-        manager.notify(idBase + slot.coerceIn(1, 2), builder.build())
+        // The tag is stable for each condition type. A later update to the same
+        // condition replaces its older card instead of stacking duplicates.
+        val notificationId = if (live) 2400 else 1400
+        manager.notify(notificationTag, notificationId, builder.build())
     }
 }
