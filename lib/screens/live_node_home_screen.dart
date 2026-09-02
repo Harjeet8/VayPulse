@@ -157,28 +157,19 @@ class LiveNodeHomeScreen extends StatelessWidget {
               ],
               const SizedBox(height: 12),
               _WhatChangedCard(edge: edge),
-              const SizedBox(height: 12),
-              CompetitionIntelligencePanels(
-                current: reading,
-                history: sensors.historyFor(reading.nodeId),
-                edge: edge,
-                telemetry: telemetry,
-                live: live,
-                connectionStatus: sensors.connectionStatus,
-              ),
-              const SizedBox(height: 12),
-              CalibreUpgradePanels(
-                current: reading,
-                history: sensors.historyFor(reading.nodeId),
-                edge: edge,
-                telemetry: telemetry,
-                live: live,
-                connectionStatus: sensors.connectionStatus,
-              ),
               if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
                 const SizedBox(height: 12),
                 _CoverageCard(edge: edge!),
               ],
+              const SizedBox(height: 12),
+              _AdvancedHomeIntelligence(
+                current: reading,
+                history: sensors.historyFor(reading.nodeId),
+                edge: edge,
+                telemetry: telemetry,
+                live: live,
+                connectionStatus: sensors.connectionStatus,
+              ),
             ],
           ],
         ),
@@ -767,6 +758,86 @@ class _CoverageCard extends StatelessWidget {
                   )),
                 ],
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AdvancedHomeIntelligence extends StatelessWidget {
+  final SensorReading current;
+  final List<SensorReading> history;
+  final EdgeIntelligence? edge;
+  final HardwareTelemetry? telemetry;
+  final bool live;
+  final SensorConnectionStatus connectionStatus;
+
+  const _AdvancedHomeIntelligence({
+    required this.current,
+    required this.history,
+    required this.edge,
+    required this.telemetry,
+    required this.live,
+    required this.connectionStatus,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          key: const PageStorageKey<String>('home-full-plant-intelligence'),
+          leading: Container(
+            width: 42,
+            height: 42,
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(
+              Icons.auto_awesome_rounded,
+              color: colors.onPrimaryContainer,
+            ),
+          ),
+          title: Text(
+            _competitionText(
+              context,
+              'Full plant intelligence',
+              'முழு தாவர நுண்ணறிவு',
+            ),
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(
+            _competitionText(
+              context,
+              'Evidence, trends, predictions and engineering detail',
+              'ஆதாரம், போக்குகள், கணிப்புகள் மற்றும் தொழில்நுட்ப விவரம்',
+            ),
+          ),
+          initiallyExpanded: false,
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          children: [
+            CompetitionIntelligencePanels(
+              current: current,
+              history: history,
+              edge: edge,
+              telemetry: telemetry,
+              live: live,
+              connectionStatus: connectionStatus,
+            ),
+            const SizedBox(height: 12),
+            CalibreUpgradePanels(
+              current: current,
+              history: history,
+              edge: edge,
+              telemetry: telemetry,
+              live: live,
+              connectionStatus: connectionStatus,
             ),
           ],
         ),
