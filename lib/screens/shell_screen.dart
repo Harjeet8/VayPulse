@@ -38,9 +38,9 @@ class _ShellScreenState extends State<ShellScreen> {
         onOpenAlerts: _openAlerts,
         onOpenFields: () => setState(() => index = 2),
       ),
-      KeyedSubtree(
-        key: const PageStorageKey<String>('farmer-analysis-page'),
-        child: const FarmerAnalysisScreen(),
+      const KeyedSubtree(
+        key: PageStorageKey<String>('farmer-analysis-page'),
+        child: FarmerAnalysisScreen(),
       ),
       const LiveSensorsScreen(),
       const ObservationTimelineScreen(),
