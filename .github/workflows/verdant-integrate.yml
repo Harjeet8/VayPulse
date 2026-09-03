@@ -1,4 +1,4 @@
-name: Verdant Final Integration
+name: Verdant Finalize Source
 
 on:
   push:
@@ -10,42 +10,651 @@ permissions:
   contents: write
 
 jobs:
-  integrate:
+  finalize:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 50
     steps:
       - uses: actions/checkout@v4
         with:
           ref: phytosense-verdant-final
           fetch-depth: 0
+
       - name: Configure Git
         run: |
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
-          git fetch origin main phytosense-v8-ultra-final
-      - name: Apply additive September 3 edge sync
+          git fetch origin main
+
+      - name: Apply additive compatibility and UI fixes
         shell: bash
         run: |
           set -euo pipefail
-          commits=(
-            1f054e0d3700ba66a33156737a352253c97a063a
-            5280b8f14b51579c2b6de619e3c28ee48bd2b66e
-            3fe3a3e19599ec04299b7b3c058937c3ffccd95d
-            86ff5918600d466ab385429d7cfb9aa281c7a6d8
-            c7bf9d553ee93926cc5949aef05a28b4d79e086e
-            1108ac8d6953fd608240a632d792108ddebc705d
-            4a7bfa973de38b6f84945242b9105b5fbca18be3
-            dfdfcb8b3f78a28d9ee8ebd1d4d8481464a6b054
-            b7c5284ecc3ab078481e144cae373e48784db49b
-            3a666b162023a13ceaf2fd4caec45bc205da43cf
-          )
-          for c in "${commits[@]}"; do
-            echo "Applying $c"
-            if ! git cherry-pick "$c"; then
-              echo "VERDANT_CONFLICT=$c"
-              git status --short
-              exit 1
-            fi
-          done
-      - name: Push integrated baseline
-        run: git push origin HEAD:phytosense-verdant-final
+          python3 <<'PY'
+          from pathlib import Path
+
+          def read(path):
+              return Path(path).read_text(encoding='utf-8')
+
+          def write(path, text):
+              Path(path).write_text(text, encoding='utf-8')
+
+          def rep(path, old, new, count=1):
+              text = read(path)
+              hits = text.count(old)
+              if hits < count:
+                  raise SystemExit(f"Expected at least {count} occurrence(s) in {path}, found {hits}: {old[:90]!r}")
+              text = text.replace(old, new, count)
+              write(path, text)
+
+          # SensorReading remains a compatibility superset. Add only bio-source
+          # presentation metadata; preserve every pre-FieldPulse intelligence field.
+          p = 'lib/models/sensor_reading.dart'
+          rep(p,
+              "  final double? plantVoltageMv;\n\n  /// Main app-side decision-support index.",
+              "  final double? plantVoltageMv;\n  final String bioSource;\n\n  /// Main app-side decision-support index.")
+          rep(p,
+              "    this.plantVoltageMv,\n    required this.healthScore,",
+              "    this.plantVoltageMv,\n    this.bioSource = 'real',\n    required this.healthScore,")
+          rep(p,
+              "        'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,\n        'healthScore': healthScore,",
+              "        'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,\n        'bioSource': bioSource,\n        'healthScore': healthScore,")
+          rep(p,
+              "      plantVoltageMv: _nullableNum(json['plantVoltageMv']),\n      healthScore: health,",
+              "      plantVoltageMv: _nullableNum(json['plantVoltageMv']),\n      bioSource: '${json['bioSource'] ?? 'real'}',\n      healthScore: health,")
+          rep(p,
+              "    double? plantVoltageMv,\n    double? healthScore,",
+              "    double? plantVoltageMv,\n    String? bioSource,\n    double? healthScore,")
+          rep(p,
+              "      plantVoltageMv: plantVoltageMv ?? this.plantVoltageMv,\n      healthScore: healthScore ?? this.healthScore,",
+              "      plantVoltageMv: plantVoltageMv ?? this.plantVoltageMv,\n      bioSource: bioSource ?? this.bioSource,\n      healthScore: healthScore ?? this.healthScore,")
+          rep(p,
+              "  bool get hasFullCoreReading =>\n      soilMoistureAvailable &&\n      temperatureAvailable &&\n      humidityAvailable &&\n      lightAvailable;\n\n  int get availableChannelCount",
+              "  bool get hasFullCoreReading =>\n      soilMoistureAvailable &&\n      temperatureAvailable &&\n      humidityAvailable &&\n      lightAvailable;\n\n  bool get bioIsRealtime => bioSource.trim().toLowerCase() == 'realtime';\n\n  bool get bioIsLiveReading => bioSource.trim().toLowerCase() == 'real';\n\n  bool get bioIsSimulation {\n    final source = bioSource.trim().toLowerCase();\n    return source == 'simulation' || source == 'sim' || source == 'demo';\n  }\n\n  String get bioSourceLabel => bioIsRealtime\n      ? 'Real Time Signal'\n      : bioIsLiveReading\n          ? 'Live Readings'\n          : bioIsSimulation\n              ? 'Simulation Signal'\n              : bioSource;\n\n  int get availableChannelCount")
+
+          # Hardware parser: preserve the robust pre-FieldPulse nested/flat parser,
+          # adding only the firmware presentation-source field.
+          p = 'lib/services/esp32_client.dart'
+          rep(p,
+              "      'plantVoltageMv': voltageValue,\n      'healthScore': espHealth,",
+              "      'plantVoltageMv': voltageValue,\n      'bioSource': '${first([data['bioSource'], data['bioelectricSource'], bio['source'], bio['bioSource'], 'real'])}',\n      'healthScore': espHealth,")
+
+          # Simulation remains independent and explicitly identified.
+          p = 'lib/simulation/simulated_sensor_provider.dart'
+          rep(p,
+              "      plantVoltageMv: plantVoltageMv,\n      healthScore: 75,",
+              "      plantVoltageMv: plantVoltageMv,\n      bioSource: 'simulation',\n      healthScore: 75,")
+
+          # Reliability is firmware metadata on EdgeIntelligence, not a replacement
+          # for the rich legacy SensorReading contract.
+          p = 'lib/models/edge_intelligence.dart'
+          rep(p,
+              "  final String? analysisQuality;\n  final RootCauseAnalysis rootCause;",
+              "  final String? analysisQuality;\n  final String reliabilityMode;\n  final RootCauseAnalysis rootCause;")
+          rep(p,
+              "    this.analysisQuality,\n    this.rootCause = const RootCauseAnalysis(),",
+              "    this.analysisQuality,\n    this.reliabilityMode = 'FULL',\n    this.rootCause = const RootCauseAnalysis(),")
+          rep(p,
+              "  String? get compatibilityIssue =>\n      firmwareCompatible ? null : 'Firmware compatibility issue';\n\n  factory EdgeIntelligence.fromPayload",
+              "  String? get compatibilityIssue =>\n      firmwareCompatible ? null : 'Firmware compatibility issue';\n\n  bool get reliabilityFull => reliabilityMode == 'FULL';\n  bool get reliabilityDegraded => reliabilityMode == 'DEGRADED';\n  bool get reliabilityRecovering => reliabilityMode == 'RECOVERING';\n\n  factory EdgeIntelligence.fromPayload")
+          marker = """    final generatedOnDevice = _bool(_first([\n          decision['generatedOnDevice'],\n          edge['generatedOnDevice'],\n          data['generatedOnDevice'],\n        ])) ==\n        true;\n\n    final capabilities = FirmwareCapabilities("""
+          replacement = """    final generatedOnDevice = _bool(_first([\n          decision['generatedOnDevice'],\n          edge['generatedOnDevice'],\n          data['generatedOnDevice'],\n        ])) ==\n        true;\n\n    final explicitReliability = _text(_first([\n      qualityMap['reliabilityMode'],\n      qualityMap['reliability'],\n      edge['reliabilityMode'],\n      edge['reliability'],\n      data['reliabilityMode'],\n      data['reliability'],\n      plantHealth['reliabilityMode'],\n      plantHealth['reliability'],\n    ]))\n        ?.trim()\n        .toUpperCase()\n        .replaceAll(' ', '_')\n        .replaceAll('-', '_');\n    final reliabilityMode = explicitReliability == 'FULL' ||\n            explicitReliability == 'DEGRADED' ||\n            explicitReliability == 'RECOVERING'\n        ? explicitReliability!\n        : recovery.active\n            ? 'RECOVERING'\n            : degraded\n                ? 'DEGRADED'\n                : 'FULL';\n\n    final capabilities = FirmwareCapabilities("""
+          rep(p, marker, replacement)
+          rep(p,
+              "      analysisQuality: analysisQuality,\n      rootCause: rootCause,",
+              "      analysisQuality: analysisQuality,\n      reliabilityMode: reliabilityMode,\n      rootCause: rootCause,")
+
+          # Full ESP32 crop catalogue + camera catalogue. Papaya was the missing
+          # final firmware profile; camera-only contexts remain preserved.
+          p = 'lib/models/crop_catalog.dart'
+          rep(p,
+              "    CropProfile(id: 'banana', name: 'Banana', localizationKey: 'crop_banana'),",
+              "    CropProfile(id: 'banana', name: 'Banana', localizationKey: 'crop_banana'),\n    CropProfile(id: 'papaya', name: 'Papaya', localizationKey: 'crop_papaya'),")
+          rep(p,
+              "    if (value.contains('banana') || value.contains('plantain')) return 'Banana';\n    if (value.contains('coconut')) return 'Coconut';",
+              "    if (value.contains('banana') || value.contains('plantain')) return 'Banana';\n    if (value.contains('papaya') || value.contains('pawpaw')) return 'Papaya';\n    if (value.contains('coconut')) return 'Coconut';")
+
+          p = 'lib/services/esp32_control_client.dart'
+          rep(p,
+              "      'banana': 'Banana',\n      'eggplant': 'Eggplant',",
+              "      'banana': 'Banana',\n      'papaya': 'Papaya',\n      'eggplant': 'Eggplant',")
+
+          p = 'lib/models/esp32_configuration.dart'
+          rep(p,
+              "    case 'banana': return 'Banana';\n    case 'eggplant': return 'Eggplant';",
+              "    case 'banana': return 'Banana';\n    case 'papaya': return 'Papaya';\n    case 'eggplant': return 'Eggplant';")
+
+          p = 'lib/screens/plant_intelligence_settings_screen.dart'
+          rep(p,
+              "    'banana': 'Banana',\n    'eggplant': 'Eggplant',",
+              "    'banana': 'Banana',\n    'papaya': 'Papaya',\n    'eggplant': 'Eggplant',")
+          text = read(p)
+          text = text.replace("DropdownButtonFormField<String>(\n", "DropdownButtonFormField<String>(\n                      isExpanded: true,\n")
+          write(p, text)
+
+          # Settings: no grey pseudo-disabled cards; brand-neutral white/green
+          # surfaces and overflow-safe scenario dropdown.
+          p = 'lib/screens/settings_screen.dart'
+          text = read(p)
+          text = text.replace("DropdownButtonFormField<String>(\n", "DropdownButtonFormField<String>(\n                    isExpanded: true,\n")
+          text = text.replace(
+              "selected ? scheme.primaryContainer : scheme.surfaceContainerLow",
+              "selected ? scheme.primaryContainer : scheme.surface")
+          text = text.replace(
+              "? scheme.primaryContainer.withValues(alpha: 0.72)\n          : scheme.surfaceContainerLow",
+              "? scheme.primaryContainer.withValues(alpha: 0.52)\n          : scheme.surface")
+          write(p, text)
+
+          # Simulation presentation stays clearly disclosed but uses the normal
+          # PhytoSense palette. Remove fake place/plot names.
+          p = 'lib/widgets/data_source_card.dart'
+          text = read(p)
+          old = """        final accent = live\n            ? const Color(0xFF2879B9)\n            : const Color(0xFFE18A28);"""
+          if old not in text:
+              raise SystemExit('data_source_card accent block not found')
+          text = text.replace(old, "        final accent = colors.primary;", 1)
+          text = text.replace('Practice Farm', 'Simulation')
+          text = text.replace('PRACTICE FARM', 'SIMULATION')
+          text = text.replace('DEMO DATA', 'SIMULATED')
+          text = text.replace('These are demo values.', 'These are simulated values.')
+          text = text.replace('Every value is clearly marked as demo data.', 'Simulated values remain clearly identified and separate from hardware readings.')
+          write(p, text)
+
+          p = 'lib/widgets/simulation_command_deck.dart'
+          text = read(p)
+          text = text.replace('Color(0xFFE17A22)', 'Color(0xFF176B4D)')
+          text = text.replace('Color(0xFFAD5510)', 'Color(0xFF176B4D)')
+          text = text.replace('Practice Farm', 'Simulation')
+          text = text.replace('PRACTICE FARM', 'SIMULATION')
+          text = text.replace('DEMO DATA', 'SIMULATED')
+          text = text.replace('Practice node offline', 'Simulation offline')
+          text = text.replace('Clearly labelled practice values.', 'Clearly labelled simulated values.')
+          old_profile = """    if (nodeId.startsWith('node-rice')) {\n      return const _FarmProfile(\n        'Thanjavur Rice Field',\n        'North zone  •  Clay loam  •  Channel water',\n      );\n    }\n    final zone = nodeId.endsWith('a2')\n        ? 'Centre zone'\n        : nodeId.endsWith('b1')\n            ? 'West zone'\n            : 'East zone';\n    return _FarmProfile(\n      'Trichy Tomato Plot',\n      '$zone  •  Red loam  •  Drip irrigation',\n    );"""
+          new_profile = """    if (nodeId.startsWith('node-rice')) {\n      return const _FarmProfile(\n        'Simulation · Rice',\n        'North zone  •  Clay loam  •  Channel irrigation',\n      );\n    }\n    final zone = nodeId.endsWith('a2')\n        ? 'Centre zone'\n        : nodeId.endsWith('b1')\n            ? 'West zone'\n            : 'East zone';\n    return _FarmProfile(\n      'Simulation · Tomato',\n      '$zone  •  Red loam  •  Drip irrigation',\n    );"""
+          if old_profile not in text:
+              raise SystemExit('simulation profile block not found')
+          text = text.replace(old_profile, new_profile, 1)
+          write(p, text)
+
+          # Any remaining user-facing FieldPulse wording is removed from Dart
+          # strings without renaming the internal simulation classes/enums.
+          for path in Path('lib').rglob('*.dart'):
+              text = path.read_text(encoding='utf-8')
+              text = text.replace('Practice Farm', 'Simulation')
+              text = text.replace('PRACTICE FARM', 'SIMULATION')
+              text = text.replace('பயிற்சி பண்ணை', 'சிமுலேஷன்')
+              path.write_text(text, encoding='utf-8')
+
+          # Live-home simulation badges used hard-coded orange. Keep semantic
+          # warning/error colors, but use brand green for source identity.
+          p = 'lib/screens/live_node_home_screen.dart'
+          text = read(p)
+          text = text.replace('Color(0xFFE18A28)', 'Color(0xFF176B4D)')
+          text = text.replace('Color(0xFFB76412)', 'Color(0xFF176B4D)')
+          write(p, text)
+
+          # Fusion label must scale down instead of overflowing narrow phones.
+          p = 'lib/widgets/calibre_upgrade_panels.dart'
+          old = """            child: Container(\n              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),\n              decoration: BoxDecoration(\n                color: Theme.of(context).colorScheme.primaryContainer,\n                borderRadius: BorderRadius.circular(20),\n              ),\n              child: Row(\n                mainAxisSize: MainAxisSize.min,\n                children: [\n                  Icon(\n                    Icons.memory_rounded,\n                    color: Theme.of(context).colorScheme.primary,\n                  ),\n                  const SizedBox(width: 8),\n                  const Text(\n                    'CONFIDENCE-WEIGHTED FUSION',\n                    style: TextStyle(fontWeight: FontWeight.w900),\n                  ),\n                ],\n              ),\n            ),"""
+          new = """            child: Container(\n              width: double.infinity,\n              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),\n              decoration: BoxDecoration(\n                color: Theme.of(context).colorScheme.primaryContainer,\n                borderRadius: BorderRadius.circular(20),\n              ),\n              child: Row(\n                mainAxisAlignment: MainAxisAlignment.center,\n                children: [\n                  Icon(\n                    Icons.memory_rounded,\n                    color: Theme.of(context).colorScheme.primary,\n                  ),\n                  const SizedBox(width: 8),\n                  const Flexible(\n                    child: FittedBox(\n                      fit: BoxFit.scaleDown,\n                      child: Text(\n                        'CONFIDENCE-WEIGHTED FUSION',\n                        maxLines: 1,\n                        style: TextStyle(fontWeight: FontWeight.w900),\n                      ),\n                    ),\n                  ),\n                ],\n              ),\n            ),"""
+          if old not in read(p):
+              raise SystemExit('fusion overflow block not found')
+          rep(p, old, new)
+
+          # Bottom navigation gets enough vertical room for the selected label.
+          p = 'lib/widgets/bottom_nav.dart'
+          rep(p, '          height: 70,', '          height: 74,')
+
+          # Localisation: use engineering terminology and add Papaya.
+          p = 'lib/l10n/app_strings.dart'
+          text = read(p)
+          text = text.replace("      'crop_banana': 'Banana',", "      'crop_banana': 'Banana',\n      'crop_papaya': 'Papaya',", 1)
+          text = text.replace("      'crop_banana': 'வாழை',", "      'crop_banana': 'வாழை',\n      'crop_papaya': 'பப்பாளி',", 1)
+          text = text.replace("'demo_controls': 'Demo controls'", "'demo_controls': 'Simulation controls'")
+          text = text.replace("'demo_scenario': 'Simulation condition'", "'demo_scenario': 'Simulation scenario'")
+          text = text.replace("'simulation_mode': 'Simulation'", "'simulation_mode': 'Simulation'")
+          text = text.replace('controllable demo sensor values', 'controllable simulated sensor values')
+          text = text.replace("'source_demo_badge': 'DEMO'", "'source_demo_badge': 'SIM'")
+          text = text.replace('demo data', 'simulated data')
+          write(p, text)
+
+          # Surface the bio presentation source in the existing bio card.
+          p = 'lib/widgets/competition_intelligence_panels.dart'
+          rep(p,
+              "            children: [\n              _MetricChip(\n                label: tamil ? 'Signal' : 'Signal',",
+              "            children: [\n              _MetricChip(\n                label: tamil ? 'Source' : 'Source',\n                value: current.bioSourceLabel,\n                accent: accent,\n              ),\n              _MetricChip(\n                label: tamil ? 'Signal' : 'Signal',")
+          PY
+
+      - name: Restore responsive live-home subscription
+        shell: bash
+        run: |
+          cat > lib/screens/home_screen.dart <<'DART'
+          import 'package:flutter/material.dart';
+
+          import '../services/app_scope.dart';
+          import '../services/sensor_data_provider.dart';
+          import 'live_node_home_screen.dart';
+
+          /// The single PhytoSense home experience.
+          ///
+          /// Hardware and simulation remain separate data sources underneath the
+          /// shared SensorDataProvider contract. The screen listens only while its
+          /// tab is active, so live packets update immediately without rebuilding
+          /// the hidden home page in the background.
+          class HomeScreen extends StatefulWidget {
+            final VoidCallback? onOpenAlerts;
+            final VoidCallback? onOpenFields;
+
+            const HomeScreen({
+              super.key,
+              this.onOpenAlerts,
+              this.onOpenFields,
+            });
+
+            @override
+            State<HomeScreen> createState() => _HomeScreenState();
+          }
+
+          class _HomeScreenState extends State<HomeScreen> {
+            SensorDataProvider? _sensors;
+            bool _active = true;
+
+            @override
+            void didChangeDependencies() {
+              super.didChangeDependencies();
+              final next = AppScope.of(context).sensors;
+              if (!identical(next, _sensors)) {
+                _sensors?.removeListener(_onSensorChange);
+                _sensors = next;
+                _sensors!.addListener(_onSensorChange);
+              }
+              _active = TickerMode.of(context);
+            }
+
+            void _onSensorChange() {
+              if (!mounted || !_active) return;
+              setState(() {});
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              _active = TickerMode.of(context);
+              return LiveNodeHomeScreen(onOpenAlerts: widget.onOpenAlerts);
+            }
+
+            @override
+            void dispose() {
+              _sensors?.removeListener(_onSensorChange);
+              super.dispose();
+            }
+          }
+          DART
+
+      - name: Rebuild boot around the animated app icon
+        shell: bash
+        run: |
+          cat > lib/screens/splash_screen.dart <<'DART'
+          import 'dart:async';
+
+          import 'package:flutter/material.dart';
+
+          import 'shell_screen.dart';
+
+          class SplashScreen extends StatefulWidget {
+            const SplashScreen({super.key});
+
+            @override
+            State<SplashScreen> createState() => _SplashScreenState();
+          }
+
+          class _SplashScreenState extends State<SplashScreen>
+              with SingleTickerProviderStateMixin {
+            late final AnimationController _controller;
+            late final Animation<double> _logoScale;
+            late final Animation<double> _logoTurn;
+            late final Animation<double> _logoLift;
+            late final Animation<double> _contentOpacity;
+            Timer? _timer;
+
+            @override
+            void initState() {
+              super.initState();
+              _controller = AnimationController(
+                vsync: this,
+                duration: const Duration(milliseconds: 1100),
+              );
+              _logoScale = TweenSequence<double>([
+                TweenSequenceItem(
+                  tween: Tween(begin: 0.72, end: 1.06)
+                      .chain(CurveTween(curve: Curves.easeOutCubic)),
+                  weight: 72,
+                ),
+                TweenSequenceItem(
+                  tween: Tween(begin: 1.06, end: 1.0)
+                      .chain(CurveTween(curve: Curves.easeOutBack)),
+                  weight: 28,
+                ),
+              ]).animate(_controller);
+              _logoTurn = Tween<double>(begin: -0.055, end: 0).animate(
+                CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+              );
+              _logoLift = Tween<double>(begin: 22, end: 0).animate(
+                CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+              );
+              _contentOpacity = CurvedAnimation(
+                parent: _controller,
+                curve: const Interval(0.12, 0.86, curve: Curves.easeOutCubic),
+              );
+              _controller.forward();
+              _timer = Timer(const Duration(milliseconds: 1650), _openApp);
+            }
+
+            void _openApp() {
+              if (!mounted) return;
+              Navigator.pushReplacement(
+                context,
+                PageRouteBuilder<void>(
+                  transitionDuration: const Duration(milliseconds: 260),
+                  pageBuilder: (_, __, ___) => const ShellScreen(),
+                  transitionsBuilder: (_, animation, __, child) => FadeTransition(
+                    opacity: CurvedAnimation(
+                      parent: animation,
+                      curve: Curves.easeOutCubic,
+                    ),
+                    child: child,
+                  ),
+                ),
+              );
+            }
+
+            @override
+            void dispose() {
+              _timer?.cancel();
+              _controller.dispose();
+              super.dispose();
+            }
+
+            @override
+            Widget build(BuildContext context) {
+              final theme = Theme.of(context);
+              final dark = theme.brightness == Brightness.dark;
+              final reducedMotion = MediaQuery.disableAnimationsOf(context);
+              final background =
+                  dark ? const Color(0xFF071611) : const Color(0xFFF7FBF8);
+              final foreground =
+                  dark ? const Color(0xFFF1FBF5) : const Color(0xFF102D25);
+              final secondary =
+                  dark ? const Color(0xFFAFC8BD) : const Color(0xFF587066);
+
+              return Scaffold(
+                backgroundColor: background,
+                body: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: RadialGradient(
+                      center: const Alignment(0, -0.2),
+                      radius: 0.88,
+                      colors: dark
+                          ? const [Color(0xFF123126), Color(0xFF071611)]
+                          : const [Color(0xFFE7F6EE), Color(0xFFF9FCFA)],
+                    ),
+                  ),
+                  child: SafeArea(
+                    child: Center(
+                      child: FadeTransition(
+                        opacity: reducedMotion
+                            ? const AlwaysStoppedAnimation<double>(1)
+                            : _contentOpacity,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 124,
+                              height: 124,
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: dark
+                                    ? const Color(0xFF10251B)
+                                    : Colors.white,
+                                borderRadius: BorderRadius.circular(30),
+                                border: Border.all(
+                                  color: dark
+                                      ? const Color(0xFF2B4B3D)
+                                      : const Color(0xFFDDEBE3),
+                                ),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black.withValues(
+                                      alpha: dark ? 0.22 : 0.07,
+                                    ),
+                                    blurRadius: 24,
+                                    offset: const Offset(0, 10),
+                                  ),
+                                ],
+                              ),
+                              child: ClipRRect(
+                                borderRadius: BorderRadius.circular(22),
+                                child: AnimatedBuilder(
+                                  animation: _controller,
+                                  child: Image.asset(
+                                    'assets/branding/phytosense_icon.png',
+                                    fit: BoxFit.contain,
+                                    semanticLabel: 'PhytoSense AI logo',
+                                  ),
+                                  builder: (context, child) {
+                                    if (reducedMotion) return child!;
+                                    return Transform.translate(
+                                      offset: Offset(0, _logoLift.value),
+                                      child: Transform.rotate(
+                                        angle: _logoTurn.value,
+                                        child: Transform.scale(
+                                          scale: _logoScale.value,
+                                          child: child,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            Text(
+                              'PhytoSense AI',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.displaySmall?.copyWith(
+                                color: foreground,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -1.1,
+                              ),
+                            ),
+                            const SizedBox(height: 9),
+                            Text(
+                              'See stress before it becomes visible',
+                              textAlign: TextAlign.center,
+                              style: theme.textTheme.titleMedium?.copyWith(
+                                color: secondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 28),
+                            SizedBox(
+                              width: 112,
+                              child: AnimatedBuilder(
+                                animation: _controller,
+                                builder: (context, _) => ClipRRect(
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: LinearProgressIndicator(
+                                    minHeight: 4,
+                                    value: reducedMotion ? 1 : _controller.value,
+                                    color: theme.colorScheme.primary,
+                                    backgroundColor: dark
+                                        ? const Color(0xFF29483C)
+                                        : const Color(0xFFD7E8DF),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }
+          }
+          DART
+
+      - name: Bring permanent Android identity and hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout origin/main -- COPYRIGHT.md android/app/build.gradle.kts android/app/proguard-rules.pro android/app/src/main/AndroidManifest.xml
+          rm -f android/app/src/main/kotlin/ai/phytosense/app/MainActivity.kt
+          mkdir -p android/app/src/main/kotlin/com/harjeet/phytosense
+          git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
+
+      - name: Add focused regression tests
+        shell: bash
+        run: |
+          cat > test/verdant_regression_test.dart <<'DART'
+          import 'package:flutter/material.dart';
+          import 'package:flutter_test/flutter_test.dart';
+          import 'package:vaypulse/models/crop_catalog.dart';
+          import 'package:vaypulse/models/edge_intelligence.dart';
+          import 'package:vaypulse/models/sensor_reading.dart';
+          import 'package:vaypulse/widgets/calibre_upgrade_panels.dart';
+
+          SensorReading reading({String bioSource = 'real'}) => SensorReading(
+                nodeId: 'test',
+                timestamp: DateTime(2026, 9, 3),
+                soilMoisture: 61,
+                temperature: 27,
+                humidity: 58,
+                light: 70,
+                plantSignal: 91,
+                bioSource: bioSource,
+                healthScore: 88,
+                stressScore: 12,
+                healthStatus: 'HEALTHY',
+                soilTemperatureAvailable: true,
+                soilTemperature: 26,
+                leafWetnessAvailable: true,
+                leafWetness: 10,
+              );
+
+          void main() {
+            test('final firmware crop profiles are present', () {
+              final names = CropCatalog.supported.map((crop) => crop.name).toSet();
+              for (final crop in const [
+                'Universal',
+                'Tomato',
+                'Hibiscus',
+                'Rice',
+                'Sugarcane',
+                'Banana',
+                'Papaya',
+                'Maize',
+                'Groundnut',
+                'Okra',
+              ]) {
+                expect(names, contains(crop));
+              }
+            });
+
+            test('bio presentation sources use final labels', () {
+              expect(reading(bioSource: 'real').bioSourceLabel, 'Live Readings');
+              expect(
+                reading(bioSource: 'realtime').bioSourceLabel,
+                'Real Time Signal',
+              );
+              expect(
+                reading(bioSource: 'simulation').bioSourceLabel,
+                'Simulation Signal',
+              );
+            });
+
+            test('reliability parses full degraded and recovering', () {
+              EdgeIntelligence edge(String mode) => EdgeIntelligence.fromPayload(
+                    root: const {},
+                    data: {
+                      'analysisQuality': {'reliabilityMode': mode},
+                    },
+                    firmwareVersion: 'test',
+                  );
+              expect(edge('FULL').reliabilityMode, 'FULL');
+              expect(edge('DEGRADED').reliabilityMode, 'DEGRADED');
+              expect(edge('RECOVERING').reliabilityMode, 'RECOVERING');
+            });
+
+            testWidgets('fusion map does not overflow a narrow phone', (tester) async {
+              final edge = EdgeIntelligence(
+                firmwareVersion: 'test',
+                capabilities: const FirmwareCapabilities(),
+                overallConfidence: 93,
+              );
+              await tester.pumpWidget(
+                MaterialApp(
+                  home: Scaffold(
+                    body: Center(
+                      child: SizedBox(
+                        width: 320,
+                        child: SensorFusionMapCard(
+                          current: reading(),
+                          edge: edge,
+                          telemetry: null,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              );
+              await tester.pumpAndSettle();
+              expect(tester.takeException(), isNull);
+            });
+          }
+          DART
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Format, analyze, and test
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          dart format lib test
+          flutter analyze --no-fatal-infos
+          flutter test
+
+      - name: Android debug compile smoke
+        run: flutter build apk --debug
+
+      - name: Regression guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! rg -n 'Trichy Tomato Plot|Trichy.Thanjavur deployment|FieldPulse' lib
+          ! rg -n 'Color\(0xFFE17A22\)|Color\(0xFFE18A28\)|Color\(0xFFB76412\)' lib/widgets/data_source_card.dart lib/widgets/simulation_command_deck.dart lib/screens/live_node_home_screen.dart
+          rg -q "bioSourceLabel" lib/models/sensor_reading.dart
+          rg -q "Real Time Signal" lib/models/sensor_reading.dart
+          rg -q "Live Readings" lib/models/sensor_reading.dart
+          rg -q "Papaya" lib/models/crop_catalog.dart lib/screens/plant_intelligence_settings_screen.dart
+          rg -q "reliabilityMode" lib/models/edge_intelligence.dart
+          rg -q 'applicationId = "com.harjeet.phytosense"' android/app/build.gradle.kts
+          ! rg -n 'signingConfigs\.getByName\("debug"\)' android/app/build.gradle.kts
+
+      - name: Commit validated Verdant source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m "Build Verdant final from pre-FieldPulse source of truth"
+          git push origin HEAD:phytosense-verdant-final
