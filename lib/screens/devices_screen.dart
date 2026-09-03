@@ -158,8 +158,10 @@ class _NodeCard extends StatelessWidget {
     final statusColor = node.isOnline ? phytoLeaf : phytoTerracotta;
     return Card(
       color: selected
-          ? Theme.of(context).colorScheme.primaryContainer
-                .withValues(alpha: 0.35)
+          ? Theme.of(context)
+              .colorScheme
+              .primaryContainer
+              .withValues(alpha: 0.35)
           : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -282,7 +284,9 @@ class _NodeCard extends StatelessWidget {
               children: [
                 Text(
                   node.name,
-                  style: Theme.of(context).textTheme.titleLarge
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
                       ?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 Text(
@@ -341,20 +345,20 @@ class _DiagnosticRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        Icon(
-          healthy ? Icons.check_circle_rounded : Icons.schedule_rounded,
-          color: healthy ? phytoLeaf : phytoAmber,
-          size: 19,
+        padding: const EdgeInsets.symmetric(vertical: 6),
+        child: Row(
+          children: [
+            Icon(
+              healthy ? Icons.check_circle_rounded : Icons.schedule_rounded,
+              color: healthy ? phytoLeaf : phytoAmber,
+              size: 19,
+            ),
+            const SizedBox(width: 9),
+            Expanded(child: Text(label)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+          ],
         ),
-        const SizedBox(width: 9),
-        Expanded(child: Text(label)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
-      ],
-    ),
-  );
+      );
 }
 
 class _NodeMeta extends StatelessWidget {
@@ -365,13 +369,13 @@ class _NodeMeta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 15),
-      const SizedBox(width: 4),
-      Text(text, style: Theme.of(context).textTheme.labelMedium),
-    ],
-  );
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 15),
+          const SizedBox(width: 4),
+          Text(text, style: Theme.of(context).textTheme.labelMedium),
+        ],
+      );
 }
 
 class _DetailRow extends StatelessWidget {
@@ -382,12 +386,12 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 7),
-    child: Row(
-      children: [
-        Expanded(child: Text(label)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 7),
+        child: Row(
+          children: [
+            Expanded(child: Text(label)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+          ],
+        ),
+      );
 }

@@ -112,7 +112,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           Text(
                             context.tr(data[index].$2),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.headlineMedium
+                            style: Theme.of(context)
+                                .textTheme
+                                .headlineMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.7,
@@ -122,7 +124,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           Text(
                             context.tr(data[index].$3),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodyLarge
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge
                                 ?.copyWith(height: 1.5),
                           ),
                           if (index == data.length - 1) ...[

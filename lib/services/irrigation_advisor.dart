@@ -35,10 +35,7 @@ class IrrigationAdvisor {
         priority: IrrigationPriority.watch,
       );
     }
-    final rainSoon =
-        weather?.forecast
-            .take(2)
-            .any(
+    final rainSoon = weather?.forecast.take(2).any(
               (day) =>
                   day.precipitationProbability >= 70 ||
                   day.precipitationMillimetres >= 8,

@@ -105,9 +105,9 @@ class LiveNodeHomeScreen extends StatelessWidget {
                   accent: reading.healthStatus.toUpperCase() == 'CRITICAL'
                       ? Theme.of(context).colorScheme.error
                       : reading.healthStatus.toUpperCase() == 'STRESS' ||
-                            reading.healthStatus.toUpperCase() == 'WATCH'
-                      ? Theme.of(context).colorScheme.tertiary
-                      : Theme.of(context).colorScheme.primary,
+                              reading.healthStatus.toUpperCase() == 'WATCH'
+                          ? Theme.of(context).colorScheme.tertiary
+                          : Theme.of(context).colorScheme.primary,
                 ),
               if (reading.edgeAnalysisAvailable) ...[
                 const SizedBox(height: 12),
@@ -202,8 +202,7 @@ class _LiveSessionCard extends StatelessWidget {
                     LivePulseDot(
                       color: color,
                       size: 8,
-                      animate:
-                          freshness == _Freshness.fresh &&
+                      animate: freshness == _Freshness.fresh &&
                           !AppScope.of(context).settings.value.reducedMotion,
                     ),
                     const SizedBox(width: 7),
@@ -233,7 +232,9 @@ class _LiveSessionCard extends StatelessWidget {
           const SizedBox(height: 12),
           Text(
             node?.name ?? context.tr('live_node_name'),
-            style: Theme.of(context).textTheme.titleLarge
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
                 ?.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 4),
@@ -308,27 +309,27 @@ class _SessionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.11),
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.white, size: 15),
-        const SizedBox(width: 6),
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w800,
-            fontSize: 12,
-          ),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.11),
+          borderRadius: BorderRadius.circular(99),
         ),
-      ],
-    ),
-  );
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: Colors.white, size: 15),
+            const SizedBox(width: 6),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+              ),
+            ),
+          ],
+        ),
+      );
 }
 
 class _WaitingCard extends StatelessWidget {
@@ -344,39 +345,41 @@ class _WaitingCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(22),
-      child: Column(
-        children: [
-          Icon(
-            status == SensorConnectionStatus.loading
-                ? Icons.sync_rounded
-                : Icons.portable_wifi_off_rounded,
-            size: 42,
-            color: Theme.of(context).colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            children: [
+              Icon(
+                status == SensorConnectionStatus.loading
+                    ? Icons.sync_rounded
+                    : Icons.portable_wifi_off_rounded,
+                size: 42,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(height: 12),
+              Text(
+                context.tr('live_waiting_title'),
+                textAlign: TextAlign.center,
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                context.tr(errorKey ?? 'live_waiting_body'),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 16),
+              FilledButton.icon(
+                onPressed: onReconnect,
+                icon: const Icon(Icons.refresh_rounded),
+                label: Text(context.tr('reconnect')),
+              ),
+            ],
           ),
-          const SizedBox(height: 12),
-          Text(
-            context.tr('live_waiting_title'),
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleMedium
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            context.tr(errorKey ?? 'live_waiting_body'),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          FilledButton.icon(
-            onPressed: onReconnect,
-            icon: const Icon(Icons.refresh_rounded),
-            label: Text(context.tr('reconnect')),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _HealthSummary extends StatelessWidget {
@@ -387,70 +390,73 @@ class _HealthSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(18),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final info = Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'ESP32 CROP PROFILE',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 5),
-              Text(
-                '${reading.crop} • ${reading.growthStage}',
-                style: Theme.of(context).textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 7),
-              Text(context.tr('live_health_body')),
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 12,
-                runSpacing: 8,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final info = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _Meta(
-                    icon: Icons.battery_5_bar_rounded,
-                    value: '${node?.batteryPercent ?? 0}%',
+                  Text(
+                    'ESP32 CROP PROFILE',
+                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                          color: Theme.of(context).colorScheme.primary,
+                          fontWeight: FontWeight.w900,
+                        ),
                   ),
-                  _Meta(
-                    icon: Icons.network_cell_rounded,
-                    value: '${node?.signalPercent ?? 0}%',
+                  const SizedBox(height: 5),
+                  Text(
+                    '${reading.crop} • ${reading.growthStage}',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
-                  _Meta(
-                    icon: Icons.schedule_rounded,
-                    value: context.tr(_Freshness.from(reading.timestamp).key),
+                  const SizedBox(height: 7),
+                  Text(context.tr('live_health_body')),
+                  const SizedBox(height: 12),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 8,
+                    children: [
+                      _Meta(
+                        icon: Icons.battery_5_bar_rounded,
+                        value: '${node?.batteryPercent ?? 0}%',
+                      ),
+                      _Meta(
+                        icon: Icons.network_cell_rounded,
+                        value: '${node?.signalPercent ?? 0}%',
+                      ),
+                      _Meta(
+                        icon: Icons.schedule_rounded,
+                        value:
+                            context.tr(_Freshness.from(reading.timestamp).key),
+                      ),
+                    ],
                   ),
                 ],
-              ),
-            ],
-          );
-          final textScale = MediaQuery.textScalerOf(context).scale(1.0);
-          if (constraints.maxWidth < 430 || textScale > 1.35) {
-            return Column(
-              children: [
-                _EdgeHealthIndicator(reading: reading),
-                const SizedBox(height: 18),
-                Align(alignment: Alignment.centerLeft, child: info),
-              ],
-            );
-          }
-          return Row(
-            children: [
-              _EdgeHealthIndicator(reading: reading),
-              const SizedBox(width: 20),
-              Expanded(child: info),
-            ],
-          );
-        },
-      ),
-    ),
-  );
+              );
+              final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+              if (constraints.maxWidth < 430 || textScale > 1.35) {
+                return Column(
+                  children: [
+                    _EdgeHealthIndicator(reading: reading),
+                    const SizedBox(height: 18),
+                    Align(alignment: Alignment.centerLeft, child: info),
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  _EdgeHealthIndicator(reading: reading),
+                  const SizedBox(width: 20),
+                  Expanded(child: info),
+                ],
+              );
+            },
+          ),
+        ),
+      );
 }
 
 class _Meta extends StatelessWidget {
@@ -461,13 +467,13 @@ class _Meta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [
-      Icon(icon, size: 17, color: Theme.of(context).colorScheme.primary),
-      const SizedBox(width: 5),
-      Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
-    ],
-  );
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 17, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 5),
+          Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+        ],
+      );
 }
 
 class _EdgeHealthIndicator extends StatelessWidget {
@@ -560,27 +566,27 @@ class _PartialAnalysisCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.science_outlined,
-            color: Theme.of(context).colorScheme.primary,
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(
+                Icons.science_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'The ESP32 has not published a health decision yet. '
+                  'Status: ${_edgeText(reading.systemStatus.isEmpty ? reading.reliabilityMode : reading.systemStatus)}. '
+                  'The app will not calculate a replacement hardware diagnosis.',
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              'The ESP32 has not published a health decision yet. '
-              'Status: ${_edgeText(reading.systemStatus.isEmpty ? reading.reliabilityMode : reading.systemStatus)}. '
-              'The app will not calculate a replacement hardware diagnosis.',
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _UnavailableSensorCard extends StatelessWidget {
@@ -596,31 +602,33 @@ class _UnavailableSensorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
-          const SizedBox(height: 12),
-          Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-          const SizedBox(height: 7),
-          Text(
-            '—',
-            style: Theme.of(context).textTheme.headlineSmall
-                ?.copyWith(fontWeight: FontWeight.w900),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: Theme.of(context).colorScheme.onSurfaceVariant),
+              const SizedBox(height: 12),
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 7),
+              Text(
+                '—',
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                message,
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
-          Text(
-            message,
-            style: TextStyle(
-              color: Theme.of(context).colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _LiveSensorGrid extends StatelessWidget {
@@ -630,138 +638,139 @@ class _LiveSensorGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-    builder: (context, constraints) {
-      final textScale = MediaQuery.textScalerOf(context).scale(1.0);
-      final effectiveWidth = constraints.maxWidth / textScale;
-      final columns = effectiveWidth >= 760
-          ? 3
-          : effectiveWidth >= 430
-          ? 2
-          : 1;
-      const spacing = 10.0;
-      final width = (constraints.maxWidth - spacing * (columns - 1)) / columns;
-      final cards = <Widget>[
-        if (reading.soilMoistureAvailable)
-          SensorCard(
-            icon: Icons.water_drop_outlined,
-            title: context.tr('soil_moisture'),
-            value: reading.soilMoisture.toStringAsFixed(0),
-            numericValue: reading.soilMoisture,
-            unit: '%',
-            preferredRange: context.tr('preferred_soil_range'),
-            animate: !AppScope.of(context).settings.value.reducedMotion,
-            status: context.tr('range_validated'),
-            accent: const Color(0xFF2F80C1),
-          )
-        else
-          _UnavailableSensorCard(
-            icon: Icons.water_drop_outlined,
-            title: context.tr('soil_moisture'),
-            message: _sensorState(reading, 'soilMoisture'),
-          ),
-        if (reading.temperatureAvailable)
-          SensorCard(
-            icon: Icons.thermostat_outlined,
-            title: context.tr('temperature'),
-            value: reading.temperature.toStringAsFixed(1),
-            numericValue: reading.temperature,
-            unit: '°C',
-            decimals: 1,
-            preferredRange: context.tr('preferred_temperature_range'),
-            animate: !AppScope.of(context).settings.value.reducedMotion,
-            status: context.tr('range_validated'),
-            accent: phytoTerracotta,
-          )
-        else
-          _UnavailableSensorCard(
-            icon: Icons.thermostat_outlined,
-            title: context.tr('temperature'),
-            message: _sensorState(reading, 'temperature'),
-          ),
-        if (reading.humidityAvailable)
-          SensorCard(
-            icon: Icons.water_outlined,
-            title: context.tr('humidity'),
-            value: reading.humidity.toStringAsFixed(0),
-            numericValue: reading.humidity,
-            unit: '%',
-            preferredRange: context.tr('preferred_humidity_range'),
-            animate: !AppScope.of(context).settings.value.reducedMotion,
-            status: context.tr('range_validated'),
-            accent: const Color(0xFF377B99),
-          )
-        else
-          _UnavailableSensorCard(
-            icon: Icons.water_outlined,
-            title: context.tr('humidity'),
-            message: _sensorState(reading, 'humidity'),
-          ),
-        if (reading.lightAvailable)
-          SensorCard(
-            icon: Icons.light_mode_outlined,
-            title: context.tr('light'),
-            value: reading.light.toStringAsFixed(0),
-            numericValue: reading.light,
-            unit: '%',
-            preferredRange: context.tr('preferred_light_range'),
-            animate: !AppScope.of(context).settings.value.reducedMotion,
-            status: context.tr('range_validated'),
-            accent: phytoAmber,
-          )
-        else
-          _UnavailableSensorCard(
-            icon: Icons.light_mode_outlined,
-            title: context.tr('light'),
-            message: _sensorState(reading, 'light'),
-          ),
-        if (reading.plantSignalAvailable)
-          SensorCard(
-            icon: Icons.monitor_heart_outlined,
-            title: context.tr('plant_signal'),
-            value: reading.plantSignal.toStringAsFixed(0),
-            numericValue: reading.plantSignal,
-            unit: '%',
-            preferredRange: context.tr('preferred_signal_range'),
-            animate: !AppScope.of(context).settings.value.reducedMotion,
-            status: context.tr('electrode_input'),
-            accent: Theme.of(context).colorScheme.primary,
-          )
-        else
-          _UnavailableSensorCard(
-            icon: Icons.monitor_heart_outlined,
-            title: context.tr('plant_signal'),
-            message: _sensorState(reading, 'plantSignal'),
-          ),
-        if (reading.edgeAnalysisAvailable)
-          SensorCard(
-            icon: Icons.warning_amber_rounded,
-            title: context.tr('stress'),
-            value: reading.stressScore.toStringAsFixed(0),
-            numericValue: reading.stressScore,
-            unit: '%',
-            preferredRange: context.tr('preferred_stress_range'),
-            animate: !AppScope.of(context).settings.value.reducedMotion,
-            status: _edgeText(reading.healthStatus),
-            accent: reading.stressScore > 55
-                ? Theme.of(context).colorScheme.error
-                : Theme.of(context).colorScheme.primary,
-          )
-        else
-          _UnavailableSensorCard(
-            icon: Icons.warning_amber_rounded,
-            title: context.tr('stress'),
-            message: 'ESP32 analysis unavailable',
-          ),
-      ];
-      return Wrap(
-        spacing: spacing,
-        runSpacing: spacing,
-        children: [
-          for (final card in cards) SizedBox(width: width, child: card),
-        ],
+        builder: (context, constraints) {
+          final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+          final effectiveWidth = constraints.maxWidth / textScale;
+          final columns = effectiveWidth >= 760
+              ? 3
+              : effectiveWidth >= 430
+                  ? 2
+                  : 1;
+          const spacing = 10.0;
+          final width =
+              (constraints.maxWidth - spacing * (columns - 1)) / columns;
+          final cards = <Widget>[
+            if (reading.soilMoistureAvailable)
+              SensorCard(
+                icon: Icons.water_drop_outlined,
+                title: context.tr('soil_moisture'),
+                value: reading.soilMoisture.toStringAsFixed(0),
+                numericValue: reading.soilMoisture,
+                unit: '%',
+                preferredRange: context.tr('preferred_soil_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: const Color(0xFF2F80C1),
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.water_drop_outlined,
+                title: context.tr('soil_moisture'),
+                message: _sensorState(reading, 'soilMoisture'),
+              ),
+            if (reading.temperatureAvailable)
+              SensorCard(
+                icon: Icons.thermostat_outlined,
+                title: context.tr('temperature'),
+                value: reading.temperature.toStringAsFixed(1),
+                numericValue: reading.temperature,
+                unit: '°C',
+                decimals: 1,
+                preferredRange: context.tr('preferred_temperature_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: phytoTerracotta,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.thermostat_outlined,
+                title: context.tr('temperature'),
+                message: _sensorState(reading, 'temperature'),
+              ),
+            if (reading.humidityAvailable)
+              SensorCard(
+                icon: Icons.water_outlined,
+                title: context.tr('humidity'),
+                value: reading.humidity.toStringAsFixed(0),
+                numericValue: reading.humidity,
+                unit: '%',
+                preferredRange: context.tr('preferred_humidity_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: const Color(0xFF377B99),
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.water_outlined,
+                title: context.tr('humidity'),
+                message: _sensorState(reading, 'humidity'),
+              ),
+            if (reading.lightAvailable)
+              SensorCard(
+                icon: Icons.light_mode_outlined,
+                title: context.tr('light'),
+                value: reading.light.toStringAsFixed(0),
+                numericValue: reading.light,
+                unit: '%',
+                preferredRange: context.tr('preferred_light_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('range_validated'),
+                accent: phytoAmber,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.light_mode_outlined,
+                title: context.tr('light'),
+                message: _sensorState(reading, 'light'),
+              ),
+            if (reading.plantSignalAvailable)
+              SensorCard(
+                icon: Icons.monitor_heart_outlined,
+                title: context.tr('plant_signal'),
+                value: reading.plantSignal.toStringAsFixed(0),
+                numericValue: reading.plantSignal,
+                unit: '%',
+                preferredRange: context.tr('preferred_signal_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: context.tr('electrode_input'),
+                accent: Theme.of(context).colorScheme.primary,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.monitor_heart_outlined,
+                title: context.tr('plant_signal'),
+                message: _sensorState(reading, 'plantSignal'),
+              ),
+            if (reading.edgeAnalysisAvailable)
+              SensorCard(
+                icon: Icons.warning_amber_rounded,
+                title: context.tr('stress'),
+                value: reading.stressScore.toStringAsFixed(0),
+                numericValue: reading.stressScore,
+                unit: '%',
+                preferredRange: context.tr('preferred_stress_range'),
+                animate: !AppScope.of(context).settings.value.reducedMotion,
+                status: _edgeText(reading.healthStatus),
+                accent: reading.stressScore > 55
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.primary,
+              )
+            else
+              _UnavailableSensorCard(
+                icon: Icons.warning_amber_rounded,
+                title: context.tr('stress'),
+                message: 'ESP32 analysis unavailable',
+              ),
+          ];
+          return Wrap(
+            spacing: spacing,
+            runSpacing: spacing,
+            children: [
+              for (final card in cards) SizedBox(width: width, child: card),
+            ],
+          );
+        },
       );
-    },
-  );
 }
 
 class _EvidenceCard extends StatelessWidget {
@@ -777,42 +786,43 @@ class _EvidenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(17),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.rule_rounded),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  context.tr('why_this'),
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.rule_rounded),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.tr('why_this'),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  if (confidence != null)
+                    Text(context
+                        .tr('confidence', {'value': confidence!.round()})),
+                ],
               ),
-              if (confidence != null)
-                Text(context.tr('confidence', {'value': confidence!.round()})),
+              const SizedBox(height: 9),
+              Text(
+                evidence.isEmpty
+                    ? 'No ranked root cause was published by the ESP32.'
+                    : evidence,
+              ),
+              const SizedBox(height: 6),
+              Text('Reliability: $reliabilityMode'),
+              const SizedBox(height: 9),
+              Text(
+                context.tr('decision_support_note'),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
             ],
           ),
-          const SizedBox(height: 9),
-          Text(
-            evidence.isEmpty
-                ? 'No ranked root cause was published by the ESP32.'
-                : evidence,
-          ),
-          const SizedBox(height: 6),
-          Text('Reliability: $reliabilityMode'),
-          const SizedBox(height: 9),
-          Text(
-            context.tr('decision_support_note'),
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _PhotoPrompt extends StatelessWidget {
@@ -823,43 +833,43 @@ class _PhotoPrompt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.tertiaryContainer,
-    child: Padding(
-      padding: const EdgeInsets.all(17),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            context.tr('disease_photo_prompt_title'),
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            reason.isEmpty
-                ? 'The ESP32 recommends a leaf photo for visual screening.'
-                : _edgeText(reason),
-          ),
-          const SizedBox(height: 8),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => LeafScreeningScreen(
-                    sensorPrompt: true,
-                    initialCrop: crop,
+        color: Theme.of(context).colorScheme.tertiaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                context.tr('disease_photo_prompt_title'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 7),
+              Text(
+                reason.isEmpty
+                    ? 'The ESP32 recommends a leaf photo for visual screening.'
+                    : _edgeText(reason),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => LeafScreeningScreen(
+                        sensorPrompt: true,
+                        initialCrop: crop,
+                      ),
+                    ),
                   ),
+                  icon: const Icon(Icons.camera_alt_outlined),
+                  label: Text(context.tr('disease_take_photo_action')),
                 ),
               ),
-              icon: const Icon(Icons.camera_alt_outlined),
-              label: Text(context.tr('disease_take_photo_action')),
-            ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _CropReferenceCard extends StatelessWidget {
@@ -870,51 +880,52 @@ class _CropReferenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(17),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: 46,
-            height: 46,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: const Icon(Icons.verified_outlined),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$crop leaf-screening context',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 46,
+                height: 46,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(15),
                 ),
-                const SizedBox(height: 5),
-                Text(
-                  'Camera screening will use the ESP32-confirmed $crop profile and $growthStage stage.',
-                ),
-                const SizedBox(height: 12),
-                OutlinedButton.icon(
-                  onPressed: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => LeafScreeningScreen(initialCrop: crop),
+                child: const Icon(Icons.verified_outlined),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '$crop leaf-screening context',
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
-                  ),
-                  icon: const Icon(Icons.document_scanner_outlined),
-                  label: Text(context.tr('scan_leaf')),
+                    const SizedBox(height: 5),
+                    Text(
+                      'Camera screening will use the ESP32-confirmed $crop profile and $growthStage stage.',
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              LeafScreeningScreen(initialCrop: crop),
+                        ),
+                      ),
+                      icon: const Icon(Icons.document_scanner_outlined),
+                      label: Text(context.tr('scan_leaf')),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _SectionTitle extends StatelessWidget {
@@ -924,10 +935,12 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    title,
-    style: Theme.of(context).textTheme.titleMedium
-        ?.copyWith(fontWeight: FontWeight.w900),
-  );
+        title,
+        style: Theme.of(context)
+            .textTheme
+            .titleMedium
+            ?.copyWith(fontWeight: FontWeight.w900),
+      );
 }
 
 enum _Freshness {

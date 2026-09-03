@@ -18,23 +18,19 @@ ThemeData buildTheme(Brightness brightness) {
     primary: dark ? const Color(0xFF74DDAA) : phytoGreen,
     onPrimary: dark ? const Color(0xFF003823) : Colors.white,
     primaryContainer: dark ? const Color(0xFF174D37) : const Color(0xFFC9F3DD),
-    onPrimaryContainer: dark
-        ? const Color(0xFFC9F8DE)
-        : const Color(0xFF073C29),
+    onPrimaryContainer:
+        dark ? const Color(0xFFC9F8DE) : const Color(0xFF073C29),
     secondary: dark ? const Color(0xFF8EDBC9) : const Color(0xFF276C60),
     onSecondary: dark ? const Color(0xFF043831) : Colors.white,
-    secondaryContainer: dark
-        ? const Color(0xFF17483F)
-        : const Color(0xFFC0EEE3),
-    onSecondaryContainer: dark
-        ? const Color(0xFFC9F5EA)
-        : const Color(0xFF123D35),
+    secondaryContainer:
+        dark ? const Color(0xFF17483F) : const Color(0xFFC0EEE3),
+    onSecondaryContainer:
+        dark ? const Color(0xFFC9F5EA) : const Color(0xFF123D35),
     tertiary: dark ? const Color(0xFFFFC66D) : const Color(0xFF8B5A08),
     onTertiary: dark ? const Color(0xFF462A00) : Colors.white,
     tertiaryContainer: dark ? const Color(0xFF5B3A08) : const Color(0xFFFFDEA5),
-    onTertiaryContainer: dark
-        ? const Color(0xFFFFE1AC)
-        : const Color(0xFF3A2504),
+    onTertiaryContainer:
+        dark ? const Color(0xFFFFE1AC) : const Color(0xFF3A2504),
     error: dark ? const Color(0xFFFFB4A5) : const Color(0xFFBA4A35),
     onError: dark ? const Color(0xFF5A190E) : Colors.white,
     errorContainer: dark ? const Color(0xFF6D271B) : const Color(0xFFFFDAD2),
@@ -42,16 +38,13 @@ ThemeData buildTheme(Brightness brightness) {
     surface: dark ? const Color(0xFF101F17) : const Color(0xFFF8FCF9),
     onSurface: dark ? const Color(0xFFE7F2EB) : phytoInk,
     surfaceContainerLowest: dark ? const Color(0xFF07110D) : Colors.white,
-    surfaceContainerLow: dark
-        ? const Color(0xFF102018)
-        : const Color(0xFFF4F9F6),
+    surfaceContainerLow:
+        dark ? const Color(0xFF102018) : const Color(0xFFF4F9F6),
     surfaceContainer: dark ? const Color(0xFF15271D) : const Color(0xFFEEF6F1),
-    surfaceContainerHigh: dark
-        ? const Color(0xFF192A21)
-        : const Color(0xFFE8F1EB),
-    surfaceContainerHighest: dark
-        ? const Color(0xFF22362B)
-        : const Color(0xFFDFEBE4),
+    surfaceContainerHigh:
+        dark ? const Color(0xFF192A21) : const Color(0xFFE8F1EB),
+    surfaceContainerHighest:
+        dark ? const Color(0xFF22362B) : const Color(0xFFDFEBE4),
     onSurfaceVariant: dark ? const Color(0xFFBDD0C4) : const Color(0xFF4C6256),
     outline: dark ? const Color(0xFF6F8D7C) : const Color(0xFF71877B),
     outlineVariant: dark ? const Color(0xFF2B4638) : const Color(0xFFD4E2D9),
@@ -69,9 +62,8 @@ ThemeData buildTheme(Brightness brightness) {
   final subtleBorder = dark ? const Color(0xFF294537) : const Color(0xFFE0ECE5);
 
   return base.copyWith(
-    scaffoldBackgroundColor: dark
-        ? const Color(0xFF07120D)
-        : const Color(0xFFF3F8F5),
+    scaffoldBackgroundColor:
+        dark ? const Color(0xFF07120D) : const Color(0xFFF3F8F5),
     visualDensity: VisualDensity.standard,
     focusColor: scheme.primary.withValues(alpha: 0.18),
     hoverColor: scheme.primary.withValues(alpha: dark ? 0.1 : 0.06),
@@ -221,8 +213,8 @@ ThemeData buildTheme(Brightness brightness) {
           (states) => states.contains(WidgetState.selected)
               ? scheme.primaryContainer
               : dark
-              ? const Color(0xFF111F18)
-              : Colors.white,
+                  ? const Color(0xFF111F18)
+                  : Colors.white,
         ),
         side: WidgetStateProperty.resolveWith(
           (states) => BorderSide(

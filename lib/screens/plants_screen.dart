@@ -32,9 +32,8 @@ class PlantsScreen extends StatelessWidget {
                     _FarmCard(
                       farm: farm,
                       readings: scope.sensors.latestReadings,
-                      activeNodeIds: scope.sensors.nodes
-                          .map((node) => node.id)
-                          .toSet(),
+                      activeNodeIds:
+                          scope.sensors.nodes.map((node) => node.id).toSet(),
                     ),
                 ],
               ),
@@ -91,9 +90,9 @@ class _FarmCard extends StatelessWidget {
                     Text(
                       farm.name,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
+                            color: Colors.white,
+                            fontWeight: FontWeight.w900,
+                          ),
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -142,20 +141,20 @@ class _CountChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
-    decoration: BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.13),
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: Text(
-      text,
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.w700,
-      ),
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.13),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Text(
+          text,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
 }
 
 class _FieldCard extends StatelessWidget {
@@ -173,37 +172,39 @@ class _FieldCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    clipBehavior: Clip.antiAlias,
-    child: ExpansionTile(
-      initiallyExpanded: true,
-      leading: CircleAvatar(
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        child: Icon(
-          Icons.grass_rounded,
-          color: Theme.of(context).colorScheme.primary,
-        ),
-      ),
-      title: Text(
-        field.name,
-        style: const TextStyle(fontWeight: FontWeight.w900),
-      ),
-      subtitle: Text(
-        '${_crop(context, field.crop)} • ${context.tr('area_acres', {'value': field.areaAcres})}',
-      ),
-      childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
-      children: [
-        const Divider(),
-        for (final zone in field.zones)
-          _ZoneTile(
-            farm: farm,
-            field: field,
-            zone: zone,
-            readings: readings,
-            activeNodeIds: activeNodeIds,
+        clipBehavior: Clip.antiAlias,
+        child: ExpansionTile(
+          initiallyExpanded: true,
+          leading: CircleAvatar(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            child: Icon(
+              Icons.grass_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
-      ],
-    ),
-  );
+          title: Text(
+            field.name,
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          subtitle: Text(
+            '${_crop(context, field.crop)} • ${context.tr('area_acres', {
+                  'value': field.areaAcres
+                })}',
+          ),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          children: [
+            const Divider(),
+            for (final zone in field.zones)
+              _ZoneTile(
+                farm: farm,
+                field: field,
+                zone: zone,
+                readings: readings,
+                activeNodeIds: activeNodeIds,
+              ),
+          ],
+        ),
+      );
 }
 
 class _ZoneTile extends StatelessWidget {
@@ -232,8 +233,10 @@ class _ZoneTile extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: Material(
         color: selected
-            ? Theme.of(context).colorScheme.primaryContainer
-                  .withValues(alpha: 0.5)
+            ? Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.5)
             : Theme.of(context).colorScheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(18),
         child: InkWell(
@@ -335,7 +338,9 @@ class _ZoneTile extends StatelessWidget {
           children: [
             Text(
               context.tr('zone_details'),
-              style: Theme.of(context).textTheme.titleLarge
+              style: Theme.of(context)
+                  .textTheme
+                  .titleLarge
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 12),
@@ -350,8 +355,8 @@ class _ZoneTile extends StatelessWidget {
                 zone.nodeIds.any(readings.containsKey)
                     ? '${_score.round()}%'
                     : zone.nodeIds.any(activeNodeIds.contains)
-                    ? context.tr('waiting')
-                    : context.tr('not_monitored'),
+                        ? context.tr('waiting')
+                        : context.tr('not_monitored'),
               ),
             ),
             for (final nodeId in zone.nodeIds)
@@ -363,8 +368,8 @@ class _ZoneTile extends StatelessWidget {
                   !activeNodeIds.contains(nodeId)
                       ? context.tr('not_monitored')
                       : readings[nodeId] == null
-                      ? context.tr('waiting')
-                      : '${readings[nodeId]!.healthScore.round()}%',
+                          ? context.tr('waiting')
+                          : '${readings[nodeId]!.healthScore.round()}%',
                 ),
               ),
           ],
@@ -378,11 +383,11 @@ String _crop(BuildContext context, String crop) =>
     context.tr(CropCatalog.profileFor(crop).localizationKey);
 
 String _stage(BuildContext context, String stage) => switch (stage) {
-  'Seedling' => context.tr('stage_seedling'),
-  'Vegetative' => context.tr('stage_vegetative'),
-  'Tillering' => context.tr('stage_tillering'),
-  'Flowering' => context.tr('stage_flowering'),
-  'Fruit set' => context.tr('stage_fruit_set'),
-  'Maturity' => context.tr('stage_maturity'),
-  _ => stage,
-};
+      'Seedling' => context.tr('stage_seedling'),
+      'Vegetative' => context.tr('stage_vegetative'),
+      'Tillering' => context.tr('stage_tillering'),
+      'Flowering' => context.tr('stage_flowering'),
+      'Fruit set' => context.tr('stage_fruit_set'),
+      'Maturity' => context.tr('stage_maturity'),
+      _ => stage,
+    };

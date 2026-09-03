@@ -78,8 +78,7 @@ class MultimodalDiseaseService {
     final diseaseWeather = weather?.diseaseRisk ?? false;
     final rainRisk = weather?.heavyRainRisk ?? false;
 
-    final visiblyBalanced =
-        visual.riskKey == 'leaf_result_low_risk' &&
+    final visiblyBalanced = visual.riskKey == 'leaf_result_low_risk' &&
         brown < 0.07 &&
         yellow < 0.14 &&
         green >= 0.2;
@@ -131,8 +130,7 @@ class MultimodalDiseaseService {
     }
 
     final ranked = candidates.take(3).toList(growable: false);
-    final isInconclusive =
-        cropName.contains('tomato') &&
+    final isInconclusive = cropName.contains('tomato') &&
         (ranked.isEmpty ||
             ranked.first.matchScore < 60 ||
             (ranked.length > 1 &&
@@ -170,8 +168,7 @@ class MultimodalDiseaseService {
           category: 'disease_category_fungal',
           reason: 'disease_rice_blast_reason',
           inspect: 'disease_rice_blast_inspect',
-          score:
-              18 +
+          score: 18 +
               brown * 155 +
               (highHumidity ? 17 : 0) +
               (diseaseWeather ? 17 : 0) +
@@ -183,8 +180,7 @@ class MultimodalDiseaseService {
           category: 'disease_category_fungal',
           reason: 'disease_rice_brown_spot_reason',
           inspect: 'disease_rice_brown_spot_inspect',
-          score:
-              15 +
+          score: 15 +
               brown * 130 +
               yellow * 42 +
               (drySoil ? 12 : 0) +
@@ -195,8 +191,7 @@ class MultimodalDiseaseService {
           category: 'disease_category_bacterial',
           reason: 'disease_rice_blight_reason',
           inspect: 'disease_rice_blight_inspect',
-          score:
-              12 +
+          score: 12 +
               yellow * 105 +
               brown * 42 +
               (highHumidity ? 16 : 0) +
@@ -232,8 +227,7 @@ class MultimodalDiseaseService {
           category: 'disease_category_fungal',
           reason: 'disease_tomato_late_blight_reason',
           inspect: 'disease_tomato_late_blight_inspect',
-          score:
-              10 +
+          score: 10 +
               brown * 74 +
               (waterSoaked ? 42 : 0) +
               (highHumidity ? 16 : 0) +
@@ -245,8 +239,7 @@ class MultimodalDiseaseService {
           category: 'disease_category_bacterial',
           reason: 'disease_tomato_bacterial_spot_reason',
           inspect: 'disease_tomato_bacterial_spot_inspect',
-          score:
-              11 +
+          score: 11 +
               brown * 76 +
               (halos ? 42 : 0) +
               (highHumidity ? 9 : 0) +
@@ -257,8 +250,7 @@ class MultimodalDiseaseService {
           category: 'disease_category_pest',
           reason: 'disease_tomato_leaf_curl_reason',
           inspect: 'disease_tomato_leaf_curl_inspect',
-          score:
-              10 +
+          score: 10 +
               yellow * 60 +
               lowSignal * 16 +
               (curling ? 32 : 0) +
@@ -275,8 +267,7 @@ class MultimodalDiseaseService {
         firstScore: 18 + brown * 142 + (warm ? 9 : 0) + (highHumidity ? 14 : 0),
         second: 'disease_maize_downy_mildew',
         secondCategory: 'disease_category_fungal',
-        secondScore:
-            14 +
+        secondScore: 14 +
             yellow * 112 +
             (highHumidity ? 20 : 0) +
             (diseaseWeather ? 12 : 0),
@@ -384,8 +375,7 @@ class MultimodalDiseaseService {
     return _threeCropCandidates(
       first: 'disease_generic_leaf_spot',
       firstCategory: 'disease_category_fungal',
-      firstScore:
-          18 +
+      firstScore: 18 +
           brown * 148 +
           (highHumidity ? 17 : 0) +
           (diseaseWeather ? 16 : 0),
@@ -414,29 +404,30 @@ class MultimodalDiseaseService {
     required String third,
     required String thirdCategory,
     required double thirdScore,
-  }) => [
-    _candidate(
-      name: first,
-      category: firstCategory,
-      reason: '${first}_reason',
-      inspect: '${first}_inspect',
-      score: firstScore,
-    ),
-    _candidate(
-      name: second,
-      category: secondCategory,
-      reason: '${second}_reason',
-      inspect: '${second}_inspect',
-      score: secondScore,
-    ),
-    _candidate(
-      name: third,
-      category: thirdCategory,
-      reason: '${third}_reason',
-      inspect: '${third}_inspect',
-      score: thirdScore,
-    ),
-  ];
+  }) =>
+      [
+        _candidate(
+          name: first,
+          category: firstCategory,
+          reason: '${first}_reason',
+          inspect: '${first}_inspect',
+          score: firstScore,
+        ),
+        _candidate(
+          name: second,
+          category: secondCategory,
+          reason: '${second}_reason',
+          inspect: '${second}_inspect',
+          score: secondScore,
+        ),
+        _candidate(
+          name: third,
+          category: thirdCategory,
+          reason: '${third}_reason',
+          inspect: '${third}_inspect',
+          score: thirdScore,
+        ),
+      ];
 
   static DiseaseCandidate _candidate({
     required String name,
@@ -444,11 +435,12 @@ class MultimodalDiseaseService {
     required String reason,
     required String inspect,
     required double score,
-  }) => DiseaseCandidate(
-    nameKey: name,
-    categoryKey: category,
-    reasonKey: reason,
-    inspectionKey: inspect,
-    matchScore: score.clamp(18, 96).round(),
-  );
+  }) =>
+      DiseaseCandidate(
+        nameKey: name,
+        categoryKey: category,
+        reasonKey: reason,
+        inspectionKey: inspect,
+        matchScore: score.clamp(18, 96).round(),
+      );
 }

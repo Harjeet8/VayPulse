@@ -30,8 +30,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
       builder: (context, _) {
         final visible = service.alerts.where((alert) {
           final resolved = evidence.feedbackFor(alert.id) != null;
-          final system =
-              alert.nodeId == 'weather' ||
+          final system = alert.nodeId == 'weather' ||
               alert.titleKey == 'alert_abnormal_sensor' ||
               alert.titleKey == 'alert_low_battery' ||
               alert.titleKey == 'alert_weak_signal';
@@ -331,7 +330,9 @@ Future<void> _showFeedbackSheet(
             children: [
               Text(
                 context.tr('farmer_outcome_title'),
-                style: Theme.of(context).textTheme.titleLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 5),
@@ -411,20 +412,20 @@ class _MetaPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surfaceContainerHighest,
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, size: 14),
-        const SizedBox(width: 5),
-        Text(text, style: Theme.of(context).textTheme.labelSmall),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surfaceContainerHighest,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, size: 14),
+            const SizedBox(width: 5),
+            Text(text, style: Theme.of(context).textTheme.labelSmall),
+          ],
+        ),
+      );
 }
 
 class _AlertsEmpty extends StatelessWidget {
@@ -432,33 +433,35 @@ class _AlertsEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 42),
-      child: Column(
-        children: [
-          Container(
-            width: 68,
-            height: 68,
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              borderRadius: BorderRadius.circular(22),
-            ),
-            child: const Icon(
-              Icons.notifications_active_outlined,
-              color: phytoGreen,
-              size: 32,
-            ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 42),
+          child: Column(
+            children: [
+              Container(
+                width: 68,
+                height: 68,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(22),
+                ),
+                child: const Icon(
+                  Icons.notifications_active_outlined,
+                  color: phytoGreen,
+                  size: 32,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text(
+                context.tr('no_alerts'),
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 6),
+              Text(context.tr('no_alerts_body'), textAlign: TextAlign.center),
+            ],
           ),
-          const SizedBox(height: 16),
-          Text(
-            context.tr('no_alerts'),
-            style: Theme.of(context).textTheme.titleLarge
-                ?.copyWith(fontWeight: FontWeight.w900),
-          ),
-          const SizedBox(height: 6),
-          Text(context.tr('no_alerts_body'), textAlign: TextAlign.center),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }

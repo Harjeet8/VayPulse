@@ -15,24 +15,24 @@ import 'weather_center_screen.dart';
 
 class AppCommandSearch extends SearchDelegate<void> {
   AppCommandSearch({required String searchLabel})
-    : super(searchFieldLabel: searchLabel);
+      : super(searchFieldLabel: searchLabel);
 
   @override
   List<Widget>? buildActions(BuildContext context) => [
-    if (query.isNotEmpty)
-      IconButton(
-        tooltip: context.tr('clear_search'),
-        onPressed: () => query = '',
-        icon: const Icon(Icons.close_rounded),
-      ),
-  ];
+        if (query.isNotEmpty)
+          IconButton(
+            tooltip: context.tr('clear_search'),
+            onPressed: () => query = '',
+            icon: const Icon(Icons.close_rounded),
+          ),
+      ];
 
   @override
   Widget? buildLeading(BuildContext context) => IconButton(
-    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-    onPressed: () => close(context, null),
-    icon: const Icon(Icons.arrow_back_rounded),
-  );
+        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+        onPressed: () => close(context, null),
+        icon: const Icon(Icons.arrow_back_rounded),
+      );
 
   @override
   Widget buildResults(BuildContext context) => _results(context);

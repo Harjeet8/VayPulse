@@ -62,8 +62,7 @@ class SettingsScreen extends StatelessWidget {
                         _SettingsOption(
                           icon: Icons.science_outlined,
                           title: context.tr('simulation_mode'),
-                          selected:
-                              scope.sensorManager.source ==
+                          selected: scope.sensorManager.source ==
                               SensorDataSource.simulation,
                           onTap: () async {
                             await HapticFeedback.mediumImpact();
@@ -79,8 +78,7 @@ class SettingsScreen extends StatelessWidget {
                         _SettingsOption(
                           icon: Icons.memory_rounded,
                           title: context.tr('esp32_live'),
-                          selected:
-                              scope.sensorManager.source ==
+                          selected: scope.sensorManager.source ==
                               SensorDataSource.esp32,
                           onTap: () async {
                             await HapticFeedback.mediumImpact();
@@ -265,8 +263,8 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Card(
-              color: Theme.of(context).colorScheme.primary
-                  .withValues(alpha: 0.07),
+              color:
+                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.07),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -309,119 +307,118 @@ class _ThemePicker extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Icon(
-                  Icons.palette_outlined,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
+              Row(
+                children: [
+                  Container(
+                    width: 42,
+                    height: 42,
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primaryContainer,
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Icon(
+                      Icons.palette_outlined,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
+                  ),
+                  const SizedBox(width: 11),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr('theme_picker_title'),
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          context.tr('theme_picker_body'),
+                          style: Theme.of(context).textTheme.bodySmall,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(width: 11),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+              const SizedBox(height: 15),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final vertical = constraints.maxWidth < 400 ||
+                      MediaQuery.textScalerOf(context).scale(1.0) > 1.35;
+                  final options = [
+                    _ThemeOption(
+                      mode: ThemeMode.system,
+                      selected: selected == ThemeMode.system,
+                      icon: Icons.brightness_auto_outlined,
+                      label: context.tr('system_theme'),
+                      onTap: onChanged,
+                    ),
+                    _ThemeOption(
+                      mode: ThemeMode.light,
+                      selected: selected == ThemeMode.light,
+                      icon: Icons.light_mode_outlined,
+                      label: context.tr('light_theme'),
+                      onTap: onChanged,
+                    ),
+                    _ThemeOption(
+                      mode: ThemeMode.dark,
+                      selected: selected == ThemeMode.dark,
+                      icon: Icons.dark_mode_outlined,
+                      label: context.tr('dark_theme'),
+                      onTap: onChanged,
+                    ),
+                  ];
+                  if (vertical) {
+                    return Column(
+                      children: [
+                        for (var i = 0; i < options.length; i++) ...[
+                          options[i],
+                          if (i < options.length - 1) const SizedBox(height: 8),
+                        ],
+                      ],
+                    );
+                  }
+                  return Row(
+                    children: [
+                      for (var i = 0; i < options.length; i++) ...[
+                        Expanded(child: options[i]),
+                        if (i < options.length - 1) const SizedBox(width: 8),
+                      ],
+                    ],
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.surfaceContainer,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: Theme.of(context).colorScheme.outlineVariant,
+                  ),
+                ),
+                child: Row(
                   children: [
-                    Text(
-                      context.tr('theme_picker_title'),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    Icon(
+                      Icons.visibility_outlined,
+                      size: 19,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
-                    const SizedBox(height: 2),
-                    Text(
-                      context.tr('theme_picker_body'),
-                      style: Theme.of(context).textTheme.bodySmall,
-                    ),
+                    const SizedBox(width: 9),
+                    Expanded(child: Text(context.tr('theme_preview_note'))),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final vertical =
-                  constraints.maxWidth < 400 ||
-                  MediaQuery.textScalerOf(context).scale(1.0) > 1.35;
-              final options = [
-                _ThemeOption(
-                  mode: ThemeMode.system,
-                  selected: selected == ThemeMode.system,
-                  icon: Icons.brightness_auto_outlined,
-                  label: context.tr('system_theme'),
-                  onTap: onChanged,
-                ),
-                _ThemeOption(
-                  mode: ThemeMode.light,
-                  selected: selected == ThemeMode.light,
-                  icon: Icons.light_mode_outlined,
-                  label: context.tr('light_theme'),
-                  onTap: onChanged,
-                ),
-                _ThemeOption(
-                  mode: ThemeMode.dark,
-                  selected: selected == ThemeMode.dark,
-                  icon: Icons.dark_mode_outlined,
-                  label: context.tr('dark_theme'),
-                  onTap: onChanged,
-                ),
-              ];
-              if (vertical) {
-                return Column(
-                  children: [
-                    for (var i = 0; i < options.length; i++) ...[
-                      options[i],
-                      if (i < options.length - 1) const SizedBox(height: 8),
-                    ],
-                  ],
-                );
-              }
-              return Row(
-                children: [
-                  for (var i = 0; i < options.length; i++) ...[
-                    Expanded(child: options[i]),
-                    if (i < options.length - 1) const SizedBox(width: 8),
-                  ],
-                ],
-              );
-            },
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surfaceContainer,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  Icons.visibility_outlined,
-                  size: 19,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(width: 9),
-                Expanded(child: Text(context.tr('theme_preview_note'))),
-              ],
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _ThemeOption extends StatelessWidget {
@@ -449,9 +446,8 @@ class _ThemeOption extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
         decoration: BoxDecoration(
-          color: selected
-              ? scheme.primaryContainer
-              : scheme.surfaceContainerLow,
+          color:
+              selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,
@@ -578,81 +574,82 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.router_outlined),
-              const SizedBox(width: 9),
-              Expanded(
-                child: Text(
-                  context.tr('configure_esp32'),
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(context.tr('configure_esp32_body')),
-          const SizedBox(height: 14),
-          TextField(
-            controller: controller,
-            keyboardType: TextInputType.url,
-            autocorrect: false,
-            decoration: InputDecoration(
-              labelText: context.tr('esp32_endpoint'),
-              hintText: 'http://192.168.4.1',
-              prefixIcon: const Icon(Icons.link_rounded),
-              errorText: validationError,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton.icon(
-              onPressed: testing ? null : _saveAndTest,
-              icon: testing
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.cable_rounded),
-              label: Text(
-                context.tr(testing ? 'testing_connection' : 'save_and_test'),
-              ),
-            ),
-          ),
-          if (testResult != null) ...[
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Icon(
-                  testResult!
-                      ? Icons.check_circle_rounded
-                      : Icons.error_outline_rounded,
-                  color: testResult! ? phytoLeaf : phytoTerracotta,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    context.tr(
-                      testResult!
-                          ? 'connection_test_success'
-                          : 'connection_test_failed',
+              Row(
+                children: [
+                  const Icon(Icons.router_outlined),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Text(
+                      context.tr('configure_esp32'),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                   ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Text(context.tr('configure_esp32_body')),
+              const SizedBox(height: 14),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.url,
+                autocorrect: false,
+                decoration: InputDecoration(
+                  labelText: context.tr('esp32_endpoint'),
+                  hintText: 'http://192.168.4.1',
+                  prefixIcon: const Icon(Icons.link_rounded),
+                  errorText: validationError,
+                ),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton.icon(
+                  onPressed: testing ? null : _saveAndTest,
+                  icon: testing
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.cable_rounded),
+                  label: Text(
+                    context
+                        .tr(testing ? 'testing_connection' : 'save_and_test'),
+                  ),
+                ),
+              ),
+              if (testResult != null) ...[
+                const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Icon(
+                      testResult!
+                          ? Icons.check_circle_rounded
+                          : Icons.error_outline_rounded,
+                      color: testResult! ? phytoLeaf : phytoTerracotta,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.tr(
+                          testResult!
+                              ? 'connection_test_success'
+                              : 'connection_test_failed',
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ],
-            ),
-          ],
-        ],
-      ),
-    ),
-  );
+            ],
+          ),
+        ),
+      );
 }
 
 class _SettingsLabel extends StatelessWidget {
@@ -662,12 +659,12 @@ class _SettingsLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-    text,
-    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.w900,
-      color: Theme.of(context).colorScheme.primary,
-    ),
-  );
+        text,
+        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w900,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+      );
 }
 
 class _VoicePreviewCard extends StatefulWidget {
@@ -750,9 +747,9 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
               Text(
                 context.tr('voice_selected', {'value': currentVoice}),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w800,
+                    ),
               ),
             ],
             const SizedBox(height: 14),
@@ -823,9 +820,8 @@ class _SettingsOption extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    color: selected
-                        ? scheme.onPrimaryContainer
-                        : scheme.onSurface,
+                    color:
+                        selected ? scheme.onPrimaryContainer : scheme.onSurface,
                   ),
                 ),
               ),

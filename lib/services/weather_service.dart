@@ -55,7 +55,8 @@ class WeatherService extends ChangeNotifier {
         'longitude': '$longitude',
         'current':
             'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
-        'daily': 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',
+        'daily':
+            'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',
         'forecast_days': '5',
         'timezone': 'auto',
       });
