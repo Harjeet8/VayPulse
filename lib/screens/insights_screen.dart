@@ -267,10 +267,9 @@ class _InsightsScreenState extends State<InsightsScreen> {
                             ),
                             const SizedBox(height: 6),
                             Text(context.tr((hardwareMode
-                                        ? !hardwareAttention
-                                        : analysis == null ||
-                                            analysis.level ==
-                                                InsightLevel.healthy)
+                                    ? !hardwareAttention
+                                    : analysis == null ||
+                                        analysis.level == InsightLevel.healthy)
                                 ? 'trend_healthy'
                                 : 'trend_attention')),
                           ],

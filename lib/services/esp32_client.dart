@@ -51,12 +51,10 @@ class Esp32Client {
 
   Future<http.Response?> _tryGet(String path) async {
     try {
-      final response = await _httpClient
-          .get(
-            Uri.parse('$baseUrl$path'),
-            headers: const {'Accept': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 4));
+      final response = await _httpClient.get(
+        Uri.parse('$baseUrl$path'),
+        headers: const {'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 4));
       return response.statusCode == 200 ? response : null;
     } catch (_) {
       return null;
@@ -182,10 +180,11 @@ class Esp32Client {
       bio['signalQuality'],
     ]);
     final bioSource = '${first([
-      data['bioSource'],
-      bio['source'],
-      'real',
-    ])}'.toLowerCase();
+          data['bioSource'],
+          bio['source'],
+          'real',
+        ])}'
+        .toLowerCase();
 
     final temperatureValid = _channelValid(
       air,
@@ -253,8 +252,7 @@ class Esp32Client {
         validity['plantSignal'],
         validity['bioelectric'],
       ]),
-      externalState:
-          sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
+      externalState: sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
     );
 
     final tempValue = temperatureValid ? _asDouble(temperature) : null;
@@ -278,7 +276,8 @@ class Esp32Client {
         luxValue == null &&
         leafValue == null &&
         voltageValue == null) {
-      throw const FormatException('ESP32 payload contains no usable sensor channels');
+      throw const FormatException(
+          'ESP32 payload contains no usable sensor channels');
     }
 
     final espHealth = _asDouble(first([
@@ -325,31 +324,34 @@ class Esp32Client {
     final primaryRootCause = _causeLabel(rawCause) ??
         (rankedCauses.isEmpty ? '' : rankedCauses.first);
     final farmerAction = _textValue(rawAction) ?? '';
-    final reliabilityMode = _normalizeReliability(first([
-      data['reliabilityMode'],
-      data['reliability'],
-      data['analysisMode'],
-      reliability['mode'],
-      reliability['status'],
-      analysis['mode'],
-      system['reliabilityMode'],
-    ]), degraded: <bool>[
-      temperatureValid,
-      humidityValid,
-      soilValid,
-      rootValid,
-      lightValid,
-      leafValid,
-      bioValid,
-    ].contains(false));
+    final reliabilityMode = _normalizeReliability(
+        first([
+          data['reliabilityMode'],
+          data['reliability'],
+          data['analysisMode'],
+          reliability['mode'],
+          reliability['status'],
+          analysis['mode'],
+          system['reliabilityMode'],
+        ]),
+        degraded: <bool>[
+          temperatureValid,
+          humidityValid,
+          soilValid,
+          rootValid,
+          lightValid,
+          leafValid,
+          bioValid,
+        ].contains(false));
     final bioticState = '${first([
-      data['bioticState'],
-      data['bioticStatus'],
-      biotic['state'],
-      biotic['status'],
-      analysis['bioticState'],
-      '',
-    ])}'.toUpperCase();
+          data['bioticState'],
+          data['bioticStatus'],
+          biotic['state'],
+          biotic['status'],
+          analysis['bioticState'],
+          '',
+        ])}'
+        .toUpperCase();
     final cameraRecommended = _asBool(first([
           data['cameraRecommended'],
           data['cameraHandoff'],
@@ -360,13 +362,13 @@ class Esp32Client {
 
     final normalized = <String, dynamic>{
       'nodeId': '${first([
-        data['nodeId'],
-        data['deviceId'],
-        root['nodeId'],
-        root['deviceId'],
-        data['device'],
-        'PHYTO-NODE-001',
-      ])}',
+            data['nodeId'],
+            data['deviceId'],
+            root['nodeId'],
+            root['deviceId'],
+            data['device'],
+            'PHYTO-NODE-001',
+          ])}',
       'timestamp': _timestamp(data),
       'soilMoisture': soilValue,
       'temperature': tempValue,
@@ -382,39 +384,39 @@ class Esp32Client {
       'healthScore': espHealth ?? 0,
       'stressScore': espStress ?? (espHealth == null ? 0 : 100 - espHealth),
       'healthStatus': '${first([
-        data['healthStatus'],
-        plantHealth['status'],
-        'starting',
-      ])}',
+            data['healthStatus'],
+            plantHealth['status'],
+            'starting',
+          ])}',
       'analysisConfidence': espConfidence ?? 0,
       'edgeAnalysisAvailable': espHealth != null,
       'crop': '${first([
-        data['crop'],
-        data['selectedCrop'],
-        plantHealth['crop'],
-        root['crop'],
-        'Universal',
-      ])}',
+            data['crop'],
+            data['selectedCrop'],
+            plantHealth['crop'],
+            root['crop'],
+            'Universal',
+          ])}',
       'growthStage': '${first([
-        data['growthStage'],
-        data['stage'],
-        plantHealth['growthStage'],
-        root['growthStage'],
-        'Vegetative',
-      ])}',
+            data['growthStage'],
+            data['stage'],
+            plantHealth['growthStage'],
+            root['growthStage'],
+            'Vegetative',
+          ])}',
       'reliabilityMode': reliabilityMode,
       'systemStatus': '${first([
-        data['systemStatus'],
-        system['status'],
-        data['status'],
-        '',
-      ])}',
+            data['systemStatus'],
+            system['status'],
+            data['status'],
+            '',
+          ])}',
       'recoveryStatus': '${first([
-        data['recoveryStatus'],
-        recovery['status'],
-        recovery['state'],
-        '',
-      ])}',
+            data['recoveryStatus'],
+            recovery['status'],
+            recovery['state'],
+            '',
+          ])}',
       'primaryRootCause': primaryRootCause,
       'farmerAction': farmerAction,
       'rootCauseConfidence': _asDouble(first([
@@ -426,18 +428,19 @@ class Esp32Client {
       'rankedRootCauses': rankedCauses,
       'bioticState': bioticState,
       'bioState': '${first([
-        data['bioState'],
-        bio['state'],
-        bio['status'],
-        '',
-      ])}'.toUpperCase(),
+            data['bioState'],
+            bio['state'],
+            bio['status'],
+            '',
+          ])}'
+          .toUpperCase(),
       'cameraRecommended': cameraRecommended,
       'cameraReason': '${first([
-        data['cameraReason'],
-        biotic['cameraReason'],
-        analysis['cameraReason'],
-        primaryRootCause,
-      ])}',
+            data['cameraReason'],
+            biotic['cameraReason'],
+            analysis['cameraReason'],
+            primaryRootCause,
+          ])}',
       'sensorStates': <String, String>{
         'temperature': _channelState(
           air,
@@ -554,21 +557,25 @@ class Esp32Client {
 
     return Esp32Snapshot(
       reading: SensorReading.fromJson(normalized),
-      batteryPercent: _percentInt(first([
-        data['batteryPercent'],
-        root['batteryPercent'],
-      ]), 100),
-      signalPercent: _percentInt(first([
-        data['signalPercent'],
-        root['signalPercent'],
-      ]), 100),
+      batteryPercent: _percentInt(
+          first([
+            data['batteryPercent'],
+            root['batteryPercent'],
+          ]),
+          100),
+      signalPercent: _percentInt(
+          first([
+            data['signalPercent'],
+            root['signalPercent'],
+          ]),
+          100),
       firmwareVersion: '${first([
-        data['firmware'],
-        data['firmwareVersion'],
-        root['firmware'],
-        root['firmwareVersion'],
-        'unknown',
-      ])}',
+            data['firmware'],
+            data['firmwareVersion'],
+            root['firmware'],
+            root['firmwareVersion'],
+            'unknown',
+          ])}',
       endpoint: endpoint,
       sensorCount: [
         soilValue,
@@ -582,9 +589,8 @@ class Esp32Client {
     );
   }
 
-  static Map<String, dynamic> _map(dynamic value) => value is Map
-      ? Map<String, dynamic>.from(value)
-      : <String, dynamic>{};
+  static Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 
   static bool _channelValid(
     Map<String, dynamic> channel, {
@@ -592,9 +598,10 @@ class Esp32Client {
     dynamic externalState,
   }) {
     if (_asBool(explicitValid) == false) return false;
-    final state = '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
-        .trim()
-        .toUpperCase();
+    final state =
+        '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
+            .trim()
+            .toUpperCase();
     return !const <String>{
       'UNAVAILABLE',
       'NOT_AVAILABLE',
@@ -615,9 +622,10 @@ class Esp32Client {
     bool valid, {
     dynamic externalState,
   }) {
-    final state = '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
-        .trim()
-        .toUpperCase();
+    final state =
+        '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
+            .trim()
+            .toUpperCase();
     if (state.isNotEmpty) return state;
     return valid ? 'AVAILABLE' : 'UNAVAILABLE';
   }
@@ -688,7 +696,8 @@ class Esp32Client {
 
   static String _timestamp(Map<String, dynamic> payload) {
     final direct = payload['timestamp'];
-    if (direct != null && DateTime.tryParse('$direct') != null) return '$direct';
+    if (direct != null && DateTime.tryParse('$direct') != null)
+      return '$direct';
     return DateTime.now().toIso8601String();
   }
 }

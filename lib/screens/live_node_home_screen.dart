@@ -86,7 +86,8 @@ class LiveNodeHomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _LiveSensorGrid(reading: reading),
               const SizedBox(height: 22),
-              if (!reading.isReliabilityFull || !reading.hasFullCoreReading) ...[
+              if (!reading.isReliabilityFull ||
+                  !reading.hasFullCoreReading) ...[
                 _PartialHardwareCard(reading: reading),
                 const SizedBox(height: 22),
               ],
@@ -114,8 +115,8 @@ class LiveNodeHomeScreen extends StatelessWidget {
                   evidence: reading.rankedRootCauses.isEmpty
                       ? reading.primaryRootCause
                       : reading.rankedRootCauses.map(_edgeText).join(' • '),
-                  confidence: reading.rootCauseConfidence ??
-                      reading.analysisConfidence,
+                  confidence:
+                      reading.rootCauseConfidence ?? reading.analysisConfidence,
                   reliabilityMode: reading.reliabilityMode,
                 ),
               ] else
@@ -962,8 +963,7 @@ String _edgeText(String value) {
   return text
       .toLowerCase()
       .split(' ')
-      .map((word) => word.isEmpty
-          ? word
-          : '${word[0].toUpperCase()}${word.substring(1)}')
+      .map((word) =>
+          word.isEmpty ? word : '${word[0].toUpperCase()}${word.substring(1)}')
       .join(' ');
 }
