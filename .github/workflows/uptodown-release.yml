@@ -51,6 +51,11 @@ jobs:
       - name: All tests
         run: flutter test
 
+      - name: Install release scan tooling
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ripgrep
+
       - name: Ownership, secret, URL, and release guard
         shell: bash
         run: |
