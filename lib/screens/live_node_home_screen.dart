@@ -541,7 +541,7 @@ class _PartialHardwareCard extends StatelessWidget {
                 children: [
                   Text(
                     '${reading.reliabilityMode} reliability',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                    style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 5),
                   Text(

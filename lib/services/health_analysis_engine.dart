@@ -330,8 +330,9 @@ class HealthAnalysisEngine {
     if (reading.soilMoistureAvailable) available += weights['soil']!;
     if (reading.temperatureAvailable) available += weights['airTemp']!;
     if (reading.humidityAvailable) available += weights['humidity']!;
-    if (!reading.daytime || reading.lightAvailable)
+    if (!reading.daytime || reading.lightAvailable) {
       available += weights['light']!;
+    }
     if (reading.soilTemperatureAvailable) available += weights['root']!;
     if (reading.leafWetnessAvailable) available += weights['leaf']!;
     if (reading.plantSignalAvailable && reading.bioBaselineReady) {

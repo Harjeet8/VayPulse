@@ -694,8 +694,9 @@ class Esp32Client {
 
   static String _timestamp(Map<String, dynamic> payload) {
     final direct = payload['timestamp'];
-    if (direct != null && DateTime.tryParse('$direct') != null)
+    if (direct != null && DateTime.tryParse('$direct') != null) {
       return '$direct';
+    }
     return DateTime.now().toIso8601String();
   }
 }
