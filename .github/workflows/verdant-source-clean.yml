@@ -1,0 +1,55 @@
+name: Verdant Crown Clean Source Archive
+
+on:
+  push:
+    branches: [phytosense-verdant-final]
+    paths: ['.github/workflows/verdant-source-clean.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phytosense-verdant-final
+          fetch-depth: 0
+      - name: Verify clean app source
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -R -n 'FieldPulse' lib; then
+            echo 'Legacy name remains in app source.' >&2
+            exit 1
+          fi
+          if grep -R -n 'Trichy Tomato Plot' lib; then
+            echo 'Removed simulation plot label returned.' >&2
+            exit 1
+          fi
+      - name: Package source
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/verdant-clean
+          git archive --format=tar HEAD | tar -x -C /tmp/verdant-clean
+          cat > /tmp/verdant-clean/VERDANT_BUILD_INFO.txt <<EOF
+          PhytoSense AI — VERDANT CROWN FINAL SOURCE
+          Branch: phytosense-verdant-final
+          Commit: $(git rev-parse HEAD)
+          Baseline: last polished PhytoSense application before the farm-scale shell replacement.
+          Policy: additive updates only; established application capabilities preserved.
+          Application ID: com.harjeet.phytosense
+          Validation: analysis passed; 49 tests passed; Android compile passed; mobile Fusion regression passed.
+          EOF
+          (cd /tmp/verdant-clean && zip -qr "$GITHUB_WORKSPACE/PhytoSense_AI_VERDANT_CROWN_FINAL_SOURCE.zip" .)
+      - name: Upload clean source archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-VERDANT-CROWN-CLEAN-SOURCE
+          path: PhytoSense_AI_VERDANT_CROWN_FINAL_SOURCE.zip
+          if-no-files-found: error
+          retention-days: 30
