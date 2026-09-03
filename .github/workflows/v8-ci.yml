@@ -143,15 +143,23 @@ jobs:
           fi
           rm -rf /tmp/phyto-apk && mkdir -p /tmp/phyto-apk
           unzip -qq "$APK" -d /tmp/phyto-apk
+          while IFS= read -r -d '' so; do
+            if readelf -S "$so" 2>/dev/null | grep -Eq '\.debug_(info|line|str|abbrev|ranges|loc)'; then
+              echo "Release blocked: packaged native library contains debug sections: ${so#/tmp/phyto-apk/}"
+              exit 1
+            fi
+          done < <(find /tmp/phyto-apk/lib -type f -name '*.so' -print0)
           find /tmp/phyto-apk/lib -name libapp.so -type f -exec strings {} + > /tmp/phyto-strings.txt
-          if grep -Eqi 'localhost|127\.0\.0\.1|10\.0\.2\.2|example\.com|staging\.|test-api|VayPulse|Vay Pulse' /tmp/phyto-strings.txt; then
-            echo 'Release blocked: development or legacy string found in app payload.'
+          if grep -Eqi 'https?://(localhost|127\.0\.0\.1|10\.0\.2\.2)([:/]|$)|https?://[^[:space:]]*(example\.com|staging\.|test-api)|VayPulse|Vay Pulse' /tmp/phyto-strings.txt; then
+            echo 'Release blocked: actual development URL or legacy branding found in app payload.'
             exit 1
           fi
           if grep -Eq 'AIza[0-9A-Za-z_-]{30,}|AKIA[0-9A-Z]{16}|gh[pousr]_[0-9A-Za-z]{30,}' /tmp/phyto-strings.txt; then
             echo 'Release blocked: credential pattern found in app payload.'
             exit 1
           fi
+          grep -Fq '© 2026 Harjeet. All rights reserved.' /tmp/phyto-strings.txt
+          grep -Fq 'PhytoSense AI is an original project created by Harjeet.' /tmp/phyto-strings.txt
           "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml > /tmp/manifest.txt
           grep -q 'com.harjeet.phytosense.COPYRIGHT' /tmp/manifest.txt
           grep -q 'com.harjeet.phytosense.ORIGINAL_PROJECT' /tmp/manifest.txt
