@@ -4,6 +4,7 @@ import 'package:phytosense_ai/models/crop_catalog.dart';
 import 'package:phytosense_ai/models/edge_intelligence.dart';
 import 'package:phytosense_ai/models/sensor_reading.dart';
 import 'package:phytosense_ai/widgets/calibre_upgrade_panels.dart';
+import 'package:phytosense_ai/widgets/time_phase_card.dart';
 
 SensorReading reading({String bioSource = 'real'}) => SensorReading(
       nodeId: 'test',
@@ -93,5 +94,21 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('time window prefers the ESP32 day or night phase',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Scaffold(
+          body: TimePhaseCard(live: true, espDayPhase: 'NIGHT'),
+        ),
+      ),
+    );
+
+    expect(find.text('NIGHT'), findsOneWidget);
+    expect(find.text('ESP32 PHASE'), findsOneWidget);
+    expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 }

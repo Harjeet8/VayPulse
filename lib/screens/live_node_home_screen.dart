@@ -17,6 +17,7 @@ import '../widgets/biotic_stress_card.dart';
 import '../widgets/calibre_upgrade_panels.dart';
 import '../widgets/competition_intelligence_panels.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/time_phase_card.dart';
 import 'judge_view_screen.dart';
 import 'leaf_screening_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
@@ -103,6 +104,11 @@ class LiveNodeHomeScreen extends StatelessWidget {
         child: PageFrame(
           children: [
             const DataSourceCard(),
+            const SizedBox(height: 12),
+            TimePhaseCard(
+              live: live,
+              espDayPhase: telemetry?.dayPhase,
+            ),
             if (!live) ...[
               const SizedBox(height: 12),
               const SimulationCommandDeck(),
