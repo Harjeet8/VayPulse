@@ -16,6 +16,7 @@ class DataSourceCard extends StatelessWidget {
       builder: (context, _) {
         final live = scope.sensorManager.source == SensorDataSource.esp32;
         final connected = scope.sensorManager.connected;
+        final bioDemo = live && scope.sensors.current?.bioIsDemo == true;
         final accent = live
             ? const Color(0xFF4E9DDB)
             : Theme.of(context).colorScheme.primary;
@@ -63,6 +64,16 @@ class DataSourceCard extends StatelessWidget {
                                 }),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
+                        if (bioDemo) ...[
+                          const SizedBox(height: 3),
+                          Text(
+                            'Bioelectric demo',
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.tertiary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
