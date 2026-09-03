@@ -150,6 +150,11 @@ class Esp32Client {
       bio['signalQualityPercent'],
       bio['signalQuality'],
     ]);
+    final bioSource = '${first([
+      data['bioSource'],
+      bio['source'],
+      'real',
+    ])}'.toLowerCase();
 
     final airValid = air['valid'] != false;
     final soilValid = soil['moistureValid'] != false;
@@ -211,6 +216,7 @@ class Esp32Client {
       'leafWetness': leafValue,
       'plantSignal': stabilityValue,
       'plantVoltageMv': voltageValue,
+      'bioSource': bioSource,
       // Hardware mode uses the ESP32 edge-intelligence result directly.
       'healthScore': espHealth,
       'healthStatus': '${first([
