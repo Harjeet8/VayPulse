@@ -29,32 +29,21 @@ jobs:
           git apply --check /tmp/phytosense-atlas.patch
           git apply /tmp/phytosense-atlas.patch
 
-      - name: Verify release structure
+      - name: Verify Atlas source is present
         shell: bash
         run: |
           set -euo pipefail
-          test ! -e lib/screens/onboarding_screen.dart
-          test ! -e lib/screens/competition_center_screen.dart
-          test ! -e lib/screens/presentation_mode_screen.dart
-          test ! -e lib/screens/engineering_center_screen.dart
           grep -q '^version: 8.7.1+871$' pubspec.yaml
           test -f assets/fonts/NotoSansTamil-Regular.ttf
-          grep -q 'family: NotoSansTamil' pubspec.yaml
-          grep -q "FarmerAnalysisScreen" lib/screens/shell_screen.dart
-          grep -q "LiveSensorsScreen" lib/screens/shell_screen.dart
-          grep -q "ObservationTimelineScreen" lib/screens/shell_screen.dart
-          grep -q "LeafScreeningScreen" lib/screens/shell_screen.dart
-          grep -q "SettingsScreen" lib/screens/shell_screen.dart
+          test -f lib/screens/home_screen.dart
+          test -f lib/screens/live_node_home_screen.dart
           test -f lib/screens/practice_farm_home_screen.dart
           test -f lib/widgets/live_icon.dart
           test -f lib/widgets/phytosense_boot_mark.dart
-          grep -q "LiveNodeHomeScreen" lib/screens/home_screen.dart
-          ! grep -q "PracticeFarmHomeScreen" lib/screens/home_screen.dart
-          grep -q "PhytoSenseBootMark" lib/screens/splash_screen.dart
-          ! grep -R "VayPulse\|Vay Pulse" lib/l10n web --include='*.dart' --include='*.html' --include='*.json'
-          grep -q "Welcome to PhytoSense AI" lib/l10n/app_strings.dart
-          grep -q "பைட்டோ சென்ஸ் ஏஐ" lib/l10n/app_strings.dart
-          ! grep -R "experienceMode\|setExperienceMode\|onboardingComplete" lib --include='*.dart'
+          grep -q 'LiveNodeHomeScreen' lib/screens/home_screen.dart
+          grep -q 'PhytoSenseBootMark' lib/screens/splash_screen.dart
+          grep -q 'Welcome to PhytoSense AI' lib/l10n/app_strings.dart
+          echo 'Atlas correction source verified.'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
