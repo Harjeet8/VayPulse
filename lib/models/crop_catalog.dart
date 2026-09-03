@@ -14,7 +14,7 @@ class CropProfile {
 ///
 /// Firmware-supported profiles use the exact canonical names expected
 /// by the ESP32 crop endpoint. Camera-only contexts are retained so no
-/// pre-FieldPulse screening capability is removed.
+/// established screening capability is removed.
 class CropCatalog {
   static const supported = <CropProfile>[
     CropProfile(
