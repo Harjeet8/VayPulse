@@ -34,18 +34,36 @@ class _ShellScreenState extends State<ShellScreen> {
   @override
   Widget build(BuildContext context) {
     final pages = [
-      HomeScreen(
-        onOpenAlerts: _openAlerts,
-        onOpenFields: () => setState(() => index = 2),
+      _TabAccent(
+        accent: const Color(0xFF176B4D),
+        child: HomeScreen(
+          onOpenAlerts: _openAlerts,
+          onOpenFields: () => setState(() => index = 2),
+        ),
       ),
-      const KeyedSubtree(
-        key: PageStorageKey<String>('farmer-analysis-page'),
-        child: FarmerAnalysisScreen(),
+      const _TabAccent(
+        accent: Color(0xFF5A61C9),
+        child: KeyedSubtree(
+          key: PageStorageKey<String>('farmer-analysis-page'),
+          child: FarmerAnalysisScreen(),
+        ),
       ),
-      const LiveSensorsScreen(),
-      const ObservationTimelineScreen(),
-      const LeafScreeningScreen(),
-      const SettingsScreen(),
+      const _TabAccent(
+        accent: Color(0xFF2879B9),
+        child: LiveSensorsScreen(),
+      ),
+      const _TabAccent(
+        accent: Color(0xFF287E83),
+        child: ObservationTimelineScreen(),
+      ),
+      const _TabAccent(
+        accent: Color(0xFFB8674E),
+        child: LeafScreeningScreen(),
+      ),
+      const _TabAccent(
+        accent: Color(0xFF66727E),
+        child: SettingsScreen(),
+      ),
     ];
 
     final railDestinations = [
@@ -175,3 +193,34 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 }
+
+class _TabAccent extends StatelessWidget {
+  final Color accent;
+  final Widget child;
+
+  const _TabAccent({required this.accent, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final scheme = theme.colorScheme;
+    final container = Color.alphaBlend(
+      accent.withValues(alpha: theme.brightness == Brightness.dark ? 0.18 : 0.11),
+      scheme.surface,
+    );
+    final themed = theme.copyWith(
+      colorScheme: scheme.copyWith(
+        primary: accent,
+        primaryContainer: container,
+        onPrimaryContainer: theme.brightness == Brightness.dark
+            ? Colors.white
+            : Color.alphaBlend(
+                Colors.black.withValues(alpha: 0.76),
+                accent,
+              ),
+      ),
+    );
+    return Theme(data: themed, child: child);
+  }
+}
+

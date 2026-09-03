@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
@@ -14,8 +15,6 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
-  late final Animation<double> _logoScale;
-  late final Animation<double> _contentOpacity;
   Timer? _timer;
 
   @override
@@ -23,20 +22,9 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1450),
-    );
-    _logoScale = Tween<double>(begin: 0.90, end: 1).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0, 0.72, curve: Curves.easeOutBack),
-      ),
-    );
-    _contentOpacity = CurvedAnimation(
-      parent: _controller,
-      curve: const Interval(0.08, 0.78, curve: Curves.easeOutCubic),
-    );
-    _controller.forward();
-    _timer = Timer(const Duration(milliseconds: 2150), _openApp);
+      duration: const Duration(milliseconds: 2250),
+    )..forward();
+    _timer = Timer(const Duration(milliseconds: 2400), _openApp);
   }
 
   void _openApp() {
@@ -46,8 +34,8 @@ class _SplashScreenState extends State<SplashScreen>
       PageRouteBuilder<void>(
         transitionDuration: const Duration(milliseconds: 420),
         pageBuilder: (_, __, ___) => const ShellScreen(),
-        transitionsBuilder: (_, animation, __, child) => FadeTransition(
-          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+        transitionsBuilder: (_, a, __, child) => FadeTransition(
+          opacity: CurvedAnimation(parent: a, curve: Curves.easeOutCubic),
           child: child,
         ),
       ),
@@ -65,133 +53,194 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
-    final reducedMotion = MediaQuery.disableAnimationsOf(context);
-    final background = dark ? const Color(0xFF071813) : const Color(0xFFF5FBF8);
-    final foreground = dark ? const Color(0xFFF2FFF8) : const Color(0xFF102D25);
-    final secondary = dark ? const Color(0xFFAFC8BD) : const Color(0xFF587066);
-    final grid = dark ? const Color(0x0EFFFFFF) : const Color(0x0B0C6A4C);
+    final reduced = MediaQuery.disableAnimationsOf(context);
+    final bg = dark ? const Color(0xFF09131B) : const Color(0xFFF8FAFD);
+    final fg = dark ? const Color(0xFFF3F6FA) : const Color(0xFF17212A);
+    final muted = dark ? const Color(0xFFAAB7C4) : const Color(0xFF687582);
 
     return Scaffold(
-      backgroundColor: background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0, -0.14),
-                radius: 0.82,
-                colors: dark
-                    ? const [Color(0xFF103A2B), Color(0xFF071813)]
-                    : const [Color(0xFFE2F7ED), Color(0xFFF8FCFA)],
+      backgroundColor: bg,
+      body: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final p = reduced ? 1.0 : _controller.value;
+          final intro = Curves.easeOutBack.transform((p / 0.48).clamp(0.0, 1.0));
+          final text = Curves.easeOutCubic.transform(((p - .30) / .40).clamp(0.0, 1.0));
+          final sweep = ((p - .12) / .68).clamp(0.0, 1.0);
+          return Stack(
+            fit: StackFit.expand,
+            children: [
+              DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: RadialGradient(
+                    center: const Alignment(0, -.16),
+                    radius: 1.0,
+                    colors: dark
+                        ? const [Color(0xFF132333), Color(0xFF09131B)]
+                        : const [Colors.white, Color(0xFFF1F5FA)],
+                  ),
+                ),
               ),
-            ),
-          ),
-          CustomPaint(painter: _QuietGridPainter(grid)),
-          SafeArea(
-            child: Center(
-              child: FadeTransition(
-                opacity: reducedMotion
-                    ? const AlwaysStoppedAnimation<double>(1)
-                    : _contentOpacity,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ScaleTransition(
-                      scale: reducedMotion
-                          ? const AlwaysStoppedAnimation<double>(1)
-                          : _logoScale,
-                      child: Container(
-                        width: 154,
-                        height: 154,
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(38),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF13B96B)
-                                  .withValues(alpha: dark ? 0.22 : 0.16),
-                              blurRadius: 34,
-                              spreadRadius: 4,
+              CustomPaint(painter: _BootSignalPainter(p, dark)),
+              SafeArea(
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Transform.scale(
+                        scale: .78 + .22 * intro,
+                        child: Opacity(
+                          opacity: intro.clamp(0.0, 1.0),
+                          child: SizedBox.square(
+                            dimension: 184,
+                            child: Stack(
+                              alignment: Alignment.center,
+                              children: [
+                                CustomPaint(
+                                  size: const Size.square(184),
+                                  painter: _LogoPulsePainter(p),
+                                ),
+                                Container(
+                                  width: 142,
+                                  height: 142,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(35),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF2388D8)
+                                            .withValues(alpha: .12),
+                                        blurRadius: 30,
+                                      ),
+                                    ],
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(34),
+                                    child: Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        Image.asset(
+                                          'assets/branding/phytosense_icon.png',
+                                          fit: BoxFit.cover,
+                                          semanticLabel: 'PhytoSense AI logo',
+                                        ),
+                                        if (!reduced)
+                                          Transform.translate(
+                                            offset: Offset(-190 + 380 * sweep, 0),
+                                            child: Transform.rotate(
+                                              angle: -.22,
+                                              child: Container(
+                                                width: 34,
+                                                decoration: BoxDecoration(
+                                                  gradient: LinearGradient(
+                                                    colors: [
+                                                      Colors.transparent,
+                                                      Colors.white.withValues(alpha: .34),
+                                                      Colors.transparent,
+                                                    ],
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(35),
-                          child: Image.asset(
-                            'assets/branding/phytosense_icon.png',
-                            fit: BoxFit.cover,
-                            semanticLabel: 'PhytoSense logo',
                           ),
                         ),
                       ),
-                    ),
-                    const SizedBox(height: 34),
-                    Text(
-                      'PhytoSense AI',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        color: foreground,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'See stress before it becomes visible',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: secondary,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.1,
-                      ),
-                    ),
-                    const SizedBox(height: 34),
-                    SizedBox(
-                      width: 112,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: LinearProgressIndicator(
-                          minHeight: 4,
-                          value: reducedMotion ? 1 : null,
-                          color: const Color(0xFF13B96B),
-                          backgroundColor: dark
-                              ? const Color(0xFF29483C)
-                              : const Color(0xFFD5E9E0),
+                      const SizedBox(height: 28),
+                      Opacity(
+                        opacity: text,
+                        child: Transform.translate(
+                          offset: Offset(0, 10 * (1 - text)),
+                          child: Column(
+                            children: [
+                              Text(
+                                'PhytoSense AI',
+                                style: theme.textTheme.displaySmall?.copyWith(
+                                  color: fg,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: -1.2,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'See stress before it becomes visible',
+                                textAlign: TextAlign.center,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: muted,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ],
+            ],
+          );
+        },
       ),
     );
   }
 }
 
-class _QuietGridPainter extends CustomPainter {
-  final Color color;
-
-  const _QuietGridPainter(this.color);
+class _LogoPulsePainter extends CustomPainter {
+  final double p;
+  const _LogoPulsePainter(this.p);
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-    const gap = 72.0;
-    for (double x = 0; x <= size.width; x += gap) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y <= size.height; y += gap) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+    final c = size.center(Offset.zero);
+    const colors = [Color(0xFF2388D8), Color(0xFF18A765), Color(0xFFFFB21A)];
+    for (var i = 0; i < colors.length; i++) {
+      final q = (p + i * .24) % 1.0;
+      canvas.drawCircle(
+        c,
+        72 + 18 * q,
+        Paint()
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6
+          ..color = colors[i].withValues(alpha: (1 - q) * .25),
+      );
     }
   }
 
   @override
-  bool shouldRepaint(covariant _QuietGridPainter oldDelegate) =>
-      oldDelegate.color != color;
+  bool shouldRepaint(covariant _LogoPulsePainter old) => old.p != p;
+}
+
+class _BootSignalPainter extends CustomPainter {
+  final double p;
+  final bool dark;
+  const _BootSignalPainter(this.p, this.dark);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height * .43);
+    final pulse = (math.sin(p * math.pi * 5) + 1) / 2;
+    final paint = Paint()..style = PaintingStyle.stroke..strokeCap = StrokeCap.round;
+    final y = c.dy + 126;
+    final path = Path()..moveTo(c.dx - 90, y);
+    path
+      ..lineTo(c.dx - 35, y)
+      ..lineTo(c.dx - 22, y - 8 * pulse)
+      ..lineTo(c.dx - 10, y + 12 * pulse)
+      ..lineTo(c.dx + 5, y - 18 * pulse)
+      ..lineTo(c.dx + 22, y)
+      ..lineTo(c.dx + 90, y);
+    paint
+      ..strokeWidth = 2
+      ..color = const Color(0xFF2388D8).withValues(alpha: .20 + .20 * pulse);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(covariant _BootSignalPainter old) => old.p != p || old.dark != dark;
 }
