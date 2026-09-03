@@ -16,7 +16,8 @@ class DataSourceCard extends StatelessWidget {
       builder: (context, _) {
         final live = scope.sensorManager.source == SensorDataSource.esp32;
         final connected = scope.sensorManager.connected;
-        final bioDemo = live && scope.sensors.current?.bioIsDemo == true;
+        final realtimeBio = live &&
+            scope.sensors.current?.bioSource.toLowerCase() == 'realtime';
         final accent = live
             ? const Color(0xFF4E9DDB)
             : Theme.of(context).colorScheme.primary;
@@ -64,7 +65,7 @@ class DataSourceCard extends StatelessWidget {
                                 }),
                           style: Theme.of(context).textTheme.bodySmall,
                         ),
-                        if (bioDemo) ...[
+                        if (realtimeBio) ...[
                           const SizedBox(height: 3),
                           Text(
                             'Real Time Signal',
