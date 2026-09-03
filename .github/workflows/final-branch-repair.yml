@@ -31,16 +31,28 @@ jobs:
 
       - name: Analyze current repaired app
         continue-on-error: true
-        run: flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
 
       - name: Test current repaired app
         continue-on-error: true
-        run: flutter test 2>&1 | tee test-report.txt
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee test-report.txt
 
       - name: Build current installable APK
-        run: flutter build apk --debug 2>&1 | tee build-report.txt
+        id: build_apk
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter build apk --debug 2>&1 | tee build-report.txt
 
       - name: Locate and package APK
+        if: steps.build_apk.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -51,6 +63,7 @@ jobs:
           ls -lh PhytoSense-AI-ULTRA-FINAL-LATEST.apk
 
       - name: Upload APK and diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-ULTRA-FINAL-LATEST
@@ -59,5 +72,9 @@ jobs:
             analyzer-report.txt
             test-report.txt
             build-report.txt
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
+
+      - name: Fail if APK build failed
+        if: steps.build_apk.outcome != 'success'
+        run: exit 1
