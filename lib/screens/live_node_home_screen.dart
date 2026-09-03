@@ -291,7 +291,7 @@ class _ConditionCard extends StatelessWidget {
         !possibleBiotic &&
         _isHealthyState(rawState);
     final title = useSoilPresentation
-        ? soilPresentation!.title(tamil: FarmerLanguage.isTamil(context))
+        ? soilPresentation.title(tamil: FarmerLanguage.isTamil(context))
         : _simpleConditionTitle(
             context,
             rawState: rawState,
@@ -325,7 +325,7 @@ class _ConditionCard extends StatelessWidget {
             fallback: '',
           );
     final summary = useSoilPresentation
-        ? soilPresentation!.summary(tamil: FarmerLanguage.isTamil(context))
+        ? soilPresentation.summary(tamil: FarmerLanguage.isTamil(context))
         : _simpleConditionSummary(
             context,
             raw: rawSummary,
