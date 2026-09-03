@@ -11,6 +11,7 @@ enum LiveIconKind {
   environment,
   connectivity,
   analysis,
+  alert,
 }
 
 /// PhytoSense AI live icon motion.
@@ -78,7 +79,8 @@ class _LiveIconState extends State<LiveIcon>
     final reduceMotion =
         MediaQuery.maybeOf(context)?.disableAnimations == true ||
             (AppScope.maybeOf(context)?.settings.value.reducedMotion ?? false);
-    final color = widget.color ?? IconTheme.of(context).color ??
+    final color = widget.color ??
+        IconTheme.of(context).color ??
         Theme.of(context).colorScheme.primary;
     final icon = Icon(
       widget.icon,
@@ -103,6 +105,7 @@ class _LiveIconState extends State<LiveIcon>
             LiveIconKind.connectivity => 0.96 + 0.07 * wave,
             LiveIconKind.analysis => 0.97 + 0.05 * wave,
             LiveIconKind.environment => 0.97 + 0.06 * wave,
+            LiveIconKind.alert => 0.94 + 0.12 * wave,
             LiveIconKind.subtle => 0.985 + 0.03 * wave,
           };
           final angle = switch (widget.kind) {
@@ -134,10 +137,7 @@ class _LiveIconState extends State<LiveIcon>
                   offset: Offset(0, dy),
                   child: Transform.rotate(
                     angle: angle,
-                    child: Transform.scale(
-                      scale: scale,
-                      child: icon,
-                    ),
+                    child: Transform.scale(scale: scale, child: icon),
                   ),
                 ),
               ),
@@ -191,7 +191,8 @@ class _SignalPainter extends CustomPainter {
           paint,
         );
         final sparkAngle = progress * math.pi * 2 - math.pi / 2;
-        final spark = c + Offset(math.cos(sparkAngle), math.sin(sparkAngle)) * base * 0.78;
+        final spark = c +
+            Offset(math.cos(sparkAngle), math.sin(sparkAngle)) * base * 0.78;
         canvas.drawCircle(
           spark,
           1.8 + wave,
@@ -232,6 +233,15 @@ class _SignalPainter extends CustomPainter {
           paint,
         );
         break;
+      case LiveIconKind.alert:
+        for (var i = 0; i < 2; i++) {
+          final p = (progress + i * 0.48) % 1.0;
+          paint
+            ..strokeWidth = 1.7
+            ..color = color.withValues(alpha: (1 - p) * 0.38);
+          canvas.drawCircle(c, base * (0.48 + p * 0.42), paint);
+        }
+        break;
       case LiveIconKind.subtle:
         break;
     }
@@ -250,10 +260,17 @@ Duration _durationFor(LiveIconKind kind) => switch (kind) {
       LiveIconKind.analysis => const Duration(milliseconds: 2100),
       LiveIconKind.environment => const Duration(milliseconds: 2300),
       LiveIconKind.plant => const Duration(milliseconds: 2200),
+      LiveIconKind.alert => const Duration(milliseconds: 1180),
       LiveIconKind.subtle => const Duration(milliseconds: 2800),
     };
 
 LiveIconKind liveIconKindFor(IconData icon) {
+  if (icon == Icons.notifications_rounded ||
+      icon == Icons.notifications_active_rounded ||
+      icon == Icons.warning_amber_rounded ||
+      icon == Icons.error_outline_rounded) {
+    return LiveIconKind.alert;
+  }
   if (icon == Icons.bolt_rounded ||
       icon == Icons.bolt_outlined ||
       icon == Icons.electric_bolt_rounded ||
