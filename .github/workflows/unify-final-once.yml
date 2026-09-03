@@ -1,0 +1,106 @@
+name: Unify PhytoSense Final Once
+
+on:
+  push:
+    branches: [main]
+    paths: ['.github/workflows/unify-final-once.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  unify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout ultra-final base
+        uses: actions/checkout@v4
+        with:
+          ref: phytosense-v8-ultra-final
+          fetch-depth: 0
+
+      - name: Configure git
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main phytosense-v8-ultra-final
+          git checkout -B phytosense-unified-final origin/phytosense-v8-ultra-final
+
+      - name: Replay September 3 hardware-sync commits
+        shell: bash
+        run: |
+          set -euo pipefail
+          commits=(
+            1f054e0d3700ba66a33156737a352253c97a063a
+            5280b8f14b51579c2b6de619e3c28ee48bd2b66e
+            3fe3a3e19599ec04299b7b3c058937c3ffccd95d
+            86ff5918600d466ab385429d7cfb9aa281c7a6d8
+            c7bf9d553ee93926cc5949aef05a28b4d79e086e
+            1108ac8d6953fd608240a632d792108ddebc705d
+            4a7bfa973de38b6f84945242b9105b5fbca18be3
+            dfdfcb8b3f78a28d9ee8ebd1d4d8481464a6b054
+            b7c5284ecc3ab078481e144cae373e48784db49b
+            3a666b162023a13ceaf2fd4caec45bc205da43cf
+          )
+          for c in "${commits[@]}"; do
+            git cherry-pick "$c" || {
+              echo "Conflict while applying $c"
+              git status --short
+              exit 1
+            }
+          done
+
+      - name: Bring release identity and hardening from main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout origin/main -- .gitignore COPYRIGHT.md FREEZE.md android/app/build.gradle.kts android/app/proguard-rules.pro android/app/src/main/AndroidManifest.xml
+          rm -f android/app/src/main/kotlin/ai/phytosense/app/MainActivity.kt
+          mkdir -p android/app/src/main/kotlin/com/harjeet/phytosense
+          git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
+          git add -A
+          git commit -m "Unify final release identity and hardening"
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Validate unified source
+        run: |
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib test
+          flutter analyze
+          flutter test
+
+      - name: Build fresh installable validation APK
+        run: flutter build apk --release
+
+      - name: Verify expected final UI and sync markers
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "assets/branding/phytosense_icon.png" lib/screens/splash_screen.dart
+          grep -Fq "See stress before it becomes visible" lib/screens/splash_screen.dart
+          rg -q "Real Time Signal" lib
+          rg -q "Live Readings" lib
+          rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
+
+      - name: Push unified final branch
+        run: git push --force-with-lease origin HEAD:phytosense-unified-final
+
+      - name: Upload unified APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-UNIFIED-FINAL
+          path: build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
