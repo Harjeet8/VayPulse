@@ -1,0 +1,25 @@
+name: Codex Workspace Export
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/codex-workspace-export.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Export exact source revision
+        run: git archive --format=zip --output=VayPulse-main.zip HEAD
+      - uses: actions/upload-artifact@v4
+        with:
+          name: codex-workspace-source
+          path: VayPulse-main.zip
+          if-no-files-found: error
+          retention-days: 1
