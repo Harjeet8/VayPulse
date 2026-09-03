@@ -15,24 +15,24 @@ import 'weather_center_screen.dart';
 
 class AppCommandSearch extends SearchDelegate<void> {
   AppCommandSearch({required String searchLabel})
-      : super(searchFieldLabel: searchLabel);
+    : super(searchFieldLabel: searchLabel);
 
   @override
   List<Widget>? buildActions(BuildContext context) => [
-        if (query.isNotEmpty)
-          IconButton(
-            tooltip: context.tr('clear_search'),
-            onPressed: () => query = '',
-            icon: const Icon(Icons.close_rounded),
-          ),
-      ];
+    if (query.isNotEmpty)
+      IconButton(
+        tooltip: context.tr('clear_search'),
+        onPressed: () => query = '',
+        icon: const Icon(Icons.close_rounded),
+      ),
+  ];
 
   @override
   Widget? buildLeading(BuildContext context) => IconButton(
-        tooltip: MaterialLocalizations.of(context).backButtonTooltip,
-        onPressed: () => close(context, null),
-        icon: const Icon(Icons.arrow_back_rounded),
-      );
+    tooltip: MaterialLocalizations.of(context).backButtonTooltip,
+    onPressed: () => close(context, null),
+    icon: const Icon(Icons.arrow_back_rounded),
+  );
 
   @override
   Widget buildResults(BuildContext context) => _results(context);
@@ -111,10 +111,12 @@ class AppCommandSearch extends SearchDelegate<void> {
     ];
     final needle = query.trim().toLowerCase();
     final visible = commands
-        .where((item) =>
-            needle.isEmpty ||
-            item.title.toLowerCase().contains(needle) ||
-            item.subtitle.toLowerCase().contains(needle))
+        .where(
+          (item) =>
+              needle.isEmpty ||
+              item.title.toLowerCase().contains(needle) ||
+              item.subtitle.toLowerCase().contains(needle),
+        )
         .toList();
     if (visible.isEmpty) {
       return Center(
@@ -144,8 +146,10 @@ class AppCommandSearch extends SearchDelegate<void> {
         return Card(
           child: ListTile(
             leading: Icon(command.icon),
-            title: Text(command.title,
-                style: const TextStyle(fontWeight: FontWeight.w800)),
+            title: Text(
+              command.title,
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
             subtitle: Text(command.subtitle),
             trailing: const Icon(Icons.arrow_forward_rounded),
             onTap: () {

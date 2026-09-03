@@ -9,8 +9,8 @@ class Esp32Client {
   final http.Client _httpClient;
 
   Esp32Client(String baseUrl, {http.Client? httpClient})
-      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
-        _httpClient = httpClient ?? http.Client();
+    : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
+      _httpClient = httpClient ?? http.Client();
 
   static const _sensorPaths = <String>[
     '/api/sensors',
@@ -95,34 +95,25 @@ class Esp32Client {
       return null;
     }
 
-    final analysis = _map(first([
-      data['analysis'],
-      data['edgeAnalysis'],
-      plantHealth['analysis'],
-    ]));
-    final reliability = _map(first([
-      data['reliability'],
-      analysis['reliability'],
-      data['systemReliability'],
-    ]));
+    final analysis = _map(
+      first([data['analysis'], data['edgeAnalysis'], plantHealth['analysis']]),
+    );
+    final reliability = _map(
+      first([
+        data['reliability'],
+        analysis['reliability'],
+        data['systemReliability'],
+      ]),
+    );
     final system = _map(data['system']);
-    final recovery = _map(first([
-      data['recovery'],
-      analysis['recovery'],
-    ]));
-    final biotic = _map(first([
-      data['biotic'],
-      analysis['biotic'],
-      plantHealth['biotic'],
-    ]));
-    final validity = _map(first([
-      data['sensorValidity'],
-      data['validity'],
-    ]));
-    final sensorStates = _map(first([
-      data['sensorStates'],
-      data['sensorStatus'],
-    ]));
+    final recovery = _map(first([data['recovery'], analysis['recovery']]));
+    final biotic = _map(
+      first([data['biotic'], analysis['biotic'], plantHealth['biotic']]),
+    );
+    final validity = _map(first([data['sensorValidity'], data['validity']]));
+    final sensorStates = _map(
+      first([data['sensorStates'], data['sensorStatus']]),
+    );
 
     final temperature = first([
       data['airTemperatureC'],
@@ -181,11 +172,8 @@ class Esp32Client {
       bio['signalQualityPercent'],
       bio['signalQuality'],
     ]);
-    final bioSource = '${first([
-      data['bioSource'],
-      bio['source'],
-      'real',
-    ])}'.toLowerCase();
+    final bioSource = '${first([data['bioSource'], bio['source'], 'real'])}'
+        .toLowerCase();
 
     final temperatureValid = _channelValid(
       air,
@@ -253,8 +241,7 @@ class Esp32Client {
         validity['plantSignal'],
         validity['bioelectric'],
       ]),
-      externalState:
-          sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
+      externalState: sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
     );
 
     final tempValue = temperatureValid ? _asDouble(temperature) : null;
@@ -263,7 +250,8 @@ class Esp32Client {
     final rootValue = rootValid ? _asDouble(soilTemperature) : null;
     final luxValue = lightValid ? _asDouble(lux) : null;
     final legacyLightValue = _asDouble(legacyLight);
-    final normalizedLight = legacyLightValue ??
+    final normalizedLight =
+        legacyLightValue ??
         (luxValue == null
             ? null
             : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
@@ -278,26 +266,34 @@ class Esp32Client {
         luxValue == null &&
         leafValue == null &&
         voltageValue == null) {
-      throw const FormatException('ESP32 payload contains no usable sensor channels');
+      throw const FormatException(
+        'ESP32 payload contains no usable sensor channels',
+      );
     }
 
-    final espHealth = _asDouble(first([
-      data['healthScore'],
-      data['health'],
-      plantHealth['score'],
-      plantHealth['index'],
-    ]));
-    final espConfidence = _asDouble(first([
-      data['healthConfidence'],
-      data['analysisConfidence'],
-      plantHealth['confidence'],
-    ]));
-    final espStress = _asDouble(first([
-      data['stressScore'],
-      data['stress'],
-      plantHealth['stressScore'],
-      plantHealth['stress'],
-    ]));
+    final espHealth = _asDouble(
+      first([
+        data['healthScore'],
+        data['health'],
+        plantHealth['score'],
+        plantHealth['index'],
+      ]),
+    );
+    final espConfidence = _asDouble(
+      first([
+        data['healthConfidence'],
+        data['analysisConfidence'],
+        plantHealth['confidence'],
+      ]),
+    );
+    final espStress = _asDouble(
+      first([
+        data['stressScore'],
+        data['stress'],
+        plantHealth['stressScore'],
+        plantHealth['stress'],
+      ]),
+    );
     final rawCause = first([
       data['primaryRootCause'],
       data['rootCause'],
@@ -315,58 +311,56 @@ class Esp32Client {
       plantHealth['farmerAction'],
       plantHealth['recommendation'],
     ]);
-    final rankedCauses = _causeList(first([
-      data['rankedRootCauses'],
-      data['rootCauses'],
-      data['causes'],
-      analysis['rankedRootCauses'],
-      analysis['causes'],
-    ]));
-    final primaryRootCause = _causeLabel(rawCause) ??
+    final rankedCauses = _causeList(
+      first([
+        data['rankedRootCauses'],
+        data['rootCauses'],
+        data['causes'],
+        analysis['rankedRootCauses'],
+        analysis['causes'],
+      ]),
+    );
+    final primaryRootCause =
+        _causeLabel(rawCause) ??
         (rankedCauses.isEmpty ? '' : rankedCauses.first);
     final farmerAction = _textValue(rawAction) ?? '';
-    final reliabilityMode = _normalizeReliability(first([
-      data['reliabilityMode'],
-      data['reliability'],
-      data['analysisMode'],
-      reliability['mode'],
-      reliability['status'],
-      analysis['mode'],
-      system['reliabilityMode'],
-    ]), degraded: <bool>[
-      temperatureValid,
-      humidityValid,
-      soilValid,
-      rootValid,
-      lightValid,
-      leafValid,
-      bioValid,
-    ].contains(false));
-    final bioticState = '${first([
-      data['bioticState'],
-      data['bioticStatus'],
-      biotic['state'],
-      biotic['status'],
-      analysis['bioticState'],
-      '',
-    ])}'.toUpperCase();
-    final cameraRecommended = _asBool(first([
-          data['cameraRecommended'],
-          data['cameraHandoff'],
-          biotic['cameraRecommended'],
-          analysis['cameraRecommended'],
-        ])) ??
+    final reliabilityMode = _normalizeReliability(
+      first([
+        data['reliabilityMode'],
+        data['reliability'],
+        data['analysisMode'],
+        reliability['mode'],
+        reliability['status'],
+        analysis['mode'],
+        system['reliabilityMode'],
+      ]),
+      degraded: <bool>[
+        temperatureValid,
+        humidityValid,
+        soilValid,
+        rootValid,
+        lightValid,
+        leafValid,
+        bioValid,
+      ].contains(false),
+    );
+    final bioticState =
+        '${first([data['bioticState'], data['bioticStatus'], biotic['state'], biotic['status'], analysis['bioticState'], ''])}'
+            .toUpperCase();
+    final cameraRecommended =
+        _asBool(
+          first([
+            data['cameraRecommended'],
+            data['cameraHandoff'],
+            biotic['cameraRecommended'],
+            analysis['cameraRecommended'],
+          ]),
+        ) ??
         bioticState == 'POSSIBLE_BIOTIC_STRESS';
 
     final normalized = <String, dynamic>{
-      'nodeId': '${first([
-        data['nodeId'],
-        data['deviceId'],
-        root['nodeId'],
-        root['deviceId'],
-        data['device'],
-        'PHYTO-NODE-001',
-      ])}',
+      'nodeId':
+          '${first([data['nodeId'], data['deviceId'], root['nodeId'], root['deviceId'], data['device'], 'PHYTO-NODE-001'])}',
       'timestamp': _timestamp(data),
       'soilMoisture': soilValue,
       'temperature': tempValue,
@@ -381,63 +375,37 @@ class Esp32Client {
       // Hardware mode uses the ESP32 edge-intelligence result directly.
       'healthScore': espHealth ?? 0,
       'stressScore': espStress ?? (espHealth == null ? 0 : 100 - espHealth),
-      'healthStatus': '${first([
-        data['healthStatus'],
-        plantHealth['status'],
-        'starting',
-      ])}',
+      'healthStatus':
+          '${first([data['healthStatus'], plantHealth['status'], 'starting'])}',
       'analysisConfidence': espConfidence ?? 0,
       'edgeAnalysisAvailable': espHealth != null,
-      'crop': '${first([
-        data['crop'],
-        data['selectedCrop'],
-        plantHealth['crop'],
-        root['crop'],
-        'Universal',
-      ])}',
-      'growthStage': '${first([
-        data['growthStage'],
-        data['stage'],
-        plantHealth['growthStage'],
-        root['growthStage'],
-        'Vegetative',
-      ])}',
+      'crop':
+          '${first([data['crop'], data['selectedCrop'], plantHealth['crop'], root['crop'], 'Universal'])}',
+      'growthStage':
+          '${first([data['growthStage'], data['stage'], plantHealth['growthStage'], root['growthStage'], 'Vegetative'])}',
       'reliabilityMode': reliabilityMode,
-      'systemStatus': '${first([
-        data['systemStatus'],
-        system['status'],
-        data['status'],
-        '',
-      ])}',
-      'recoveryStatus': '${first([
-        data['recoveryStatus'],
-        recovery['status'],
-        recovery['state'],
-        '',
-      ])}',
+      'systemStatus':
+          '${first([data['systemStatus'], system['status'], data['status'], ''])}',
+      'recoveryStatus':
+          '${first([data['recoveryStatus'], recovery['status'], recovery['state'], ''])}',
       'primaryRootCause': primaryRootCause,
       'farmerAction': farmerAction,
-      'rootCauseConfidence': _asDouble(first([
-        data['rootCauseConfidence'],
-        _map(rawCause)['confidence'],
-        analysis['rootCauseConfidence'],
-        espConfidence,
-      ])),
+      'rootCauseConfidence': _asDouble(
+        first([
+          data['rootCauseConfidence'],
+          _map(rawCause)['confidence'],
+          analysis['rootCauseConfidence'],
+          espConfidence,
+        ]),
+      ),
       'rankedRootCauses': rankedCauses,
       'bioticState': bioticState,
-      'bioState': '${first([
-        data['bioState'],
-        bio['state'],
-        bio['status'],
-        '',
-      ])}'.toUpperCase(),
+      'bioState':
+          '${first([data['bioState'], bio['state'], bio['status'], ''])}'
+              .toUpperCase(),
       'cameraRecommended': cameraRecommended,
-      'cameraReason': '${first([
-        data['cameraReason'],
-        biotic['cameraReason'],
-        analysis['cameraReason'],
-        primaryRootCause,
-      ])}',
+      'cameraReason':
+          '${first([data['cameraReason'], biotic['cameraReason'], analysis['cameraReason'], primaryRootCause])}',
       'sensorStates': <String, String>{
         'temperature': _channelState(
           air,
@@ -478,71 +446,81 @@ class Esp32Client {
       },
       'esp32HealthScore': espHealth,
       'esp32HealthConfidence': espConfidence,
-      'waterScore': _asDouble(first([
-        components['water'],
-        components['waterScore'],
-        data['waterScore'],
-      ])),
-      'thermalScore': _asDouble(first([
-        components['thermal'],
-        components['thermalScore'],
-        data['thermalScore'],
-      ])),
-      'rootZoneScore': _asDouble(first([
-        components['rootZone'],
-        components['rootZoneScore'],
-        data['rootZoneScore'],
-      ])),
-      'atmosphericScore': _asDouble(first([
-        components['atmospheric'],
-        components['atmosphericScore'],
-        data['atmosphericScore'],
-      ])),
-      'lightScore': _asDouble(first([
-        components['light'],
-        components['lightScore'],
-        data['lightScore'],
-      ])),
-      'diseaseRisk': _asDouble(first([
-        components['diseaseRiskPercent'],
-        data['diseaseRiskPercent'],
-        data['diseaseRisk'],
-      ])),
+      'waterScore': _asDouble(
+        first([
+          components['water'],
+          components['waterScore'],
+          data['waterScore'],
+        ]),
+      ),
+      'thermalScore': _asDouble(
+        first([
+          components['thermal'],
+          components['thermalScore'],
+          data['thermalScore'],
+        ]),
+      ),
+      'rootZoneScore': _asDouble(
+        first([
+          components['rootZone'],
+          components['rootZoneScore'],
+          data['rootZoneScore'],
+        ]),
+      ),
+      'atmosphericScore': _asDouble(
+        first([
+          components['atmospheric'],
+          components['atmosphericScore'],
+          data['atmosphericScore'],
+        ]),
+      ),
+      'lightScore': _asDouble(
+        first([
+          components['light'],
+          components['lightScore'],
+          data['lightScore'],
+        ]),
+      ),
+      'diseaseRisk': _asDouble(
+        first([
+          components['diseaseRiskPercent'],
+          data['diseaseRiskPercent'],
+          data['diseaseRisk'],
+        ]),
+      ),
       'bioelectricStability': stabilityValue,
-      'soilRaw': _asInt(first([
-        soil['moistureRaw'],
-        data['soilMoistureRaw'],
-      ])),
-      'leafRaw': _asInt(first([
-        leaf['raw'],
-        data['leafWetnessRaw'],
-      ])),
-      'soilCalibrated': first([
+      'soilRaw': _asInt(first([soil['moistureRaw'], data['soilMoistureRaw']])),
+      'leafRaw': _asInt(first([leaf['raw'], data['leafWetnessRaw']])),
+      'soilCalibrated':
+          first([
             soil['calibrated'],
             calibration['soilConfirmed'],
             calibration['soilCalibrated'],
           ]) ==
           true,
-      'leafCalibrated': first([
+      'leafCalibrated':
+          first([
             leaf['calibrated'],
             calibration['leafConfirmed'],
             calibration['leafCalibrated'],
           ]) ==
           true,
-      'daytime': first([
-            light['daytime'],
-            data['daytime'],
-          ]) !=
-          false,
-      'leafWetDurationSeconds': _asDouble(first([
-            leaf['continuousWetSeconds'],
-            data['continuousLeafWetSeconds'],
-          ])) ??
+      'daytime': first([light['daytime'], data['daytime']]) != false,
+      'leafWetDurationSeconds':
+          _asDouble(
+            first([
+              leaf['continuousWetSeconds'],
+              data['continuousLeafWetSeconds'],
+            ]),
+          ) ??
           0,
-      'recentWetExposureSeconds': _asDouble(first([
-            leaf['recentWetExposureSeconds'],
-            data['recentWetExposureSeconds'],
-          ])) ??
+      'recentWetExposureSeconds':
+          _asDouble(
+            first([
+              leaf['recentWetExposureSeconds'],
+              data['recentWetExposureSeconds'],
+            ]),
+          ) ??
           0,
       'bioBaselineReady': bio['baselineReady'] == true,
       'bioBaselineSamples': _asInt(bio['baselineSamples']) ?? 0,
@@ -554,21 +532,16 @@ class Esp32Client {
 
     return Esp32Snapshot(
       reading: SensorReading.fromJson(normalized),
-      batteryPercent: _percentInt(first([
-        data['batteryPercent'],
-        root['batteryPercent'],
-      ]), 100),
-      signalPercent: _percentInt(first([
-        data['signalPercent'],
-        root['signalPercent'],
-      ]), 100),
-      firmwareVersion: '${first([
-        data['firmware'],
-        data['firmwareVersion'],
-        root['firmware'],
-        root['firmwareVersion'],
-        'unknown',
-      ])}',
+      batteryPercent: _percentInt(
+        first([data['batteryPercent'], root['batteryPercent']]),
+        100,
+      ),
+      signalPercent: _percentInt(
+        first([data['signalPercent'], root['signalPercent']]),
+        100,
+      ),
+      firmwareVersion:
+          '${first([data['firmware'], data['firmwareVersion'], root['firmware'], root['firmwareVersion'], 'unknown'])}',
       endpoint: endpoint,
       sensorCount: [
         soilValue,
@@ -582,9 +555,8 @@ class Esp32Client {
     );
   }
 
-  static Map<String, dynamic> _map(dynamic value) => value is Map
-      ? Map<String, dynamic>.from(value)
-      : <String, dynamic>{};
+  static Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 
   static bool _channelValid(
     Map<String, dynamic> channel, {
@@ -592,9 +564,10 @@ class Esp32Client {
     dynamic externalState,
   }) {
     if (_asBool(explicitValid) == false) return false;
-    final state = '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
-        .trim()
-        .toUpperCase();
+    final state =
+        '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
+            .trim()
+            .toUpperCase();
     return !const <String>{
       'UNAVAILABLE',
       'NOT_AVAILABLE',
@@ -615,9 +588,10 @@ class Esp32Client {
     bool valid, {
     dynamic externalState,
   }) {
-    final state = '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
-        .trim()
-        .toUpperCase();
+    final state =
+        '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
+            .trim()
+            .toUpperCase();
     if (state.isNotEmpty) return state;
     return valid ? 'AVAILABLE' : 'UNAVAILABLE';
   }
@@ -645,11 +619,13 @@ class Esp32Client {
   static String? _causeLabel(dynamic value) {
     if (value == null) return null;
     if (value is Map) {
-      return _textValue(value['label'] ??
-          value['cause'] ??
-          value['name'] ??
-          value['title'] ??
-          value['id']);
+      return _textValue(
+        value['label'] ??
+            value['cause'] ??
+            value['name'] ??
+            value['title'] ??
+            value['id'],
+      );
     }
     return _textValue(value);
   }
@@ -688,7 +664,8 @@ class Esp32Client {
 
   static String _timestamp(Map<String, dynamic> payload) {
     final direct = payload['timestamp'];
-    if (direct != null && DateTime.tryParse('$direct') != null) return '$direct';
+    if (direct != null && DateTime.tryParse('$direct') != null)
+      return '$direct';
     return DateTime.now().toIso8601String();
   }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/sensor_node.dart';
@@ -36,11 +37,13 @@ class DevicesScreen extends StatelessWidget {
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Text(context.tr(
-                        sensors.source == SensorDataSource.simulation
-                            ? 'devices_demo_note'
-                            : 'devices_live_note',
-                      )),
+                      child: Text(
+                        context.tr(
+                          sensors.source == SensorDataSource.simulation
+                              ? 'devices_demo_note'
+                              : 'devices_live_note',
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -66,9 +69,10 @@ class DevicesScreen extends StatelessWidget {
                     _DiagnosticRow(
                       label: context.tr('diagnostic_provider'),
                       value: context.tr(
-                          sensors.source == SensorDataSource.simulation
-                              ? 'simulation_mode'
-                              : 'esp32_live'),
+                        sensors.source == SensorDataSource.simulation
+                            ? 'simulation_mode'
+                            : 'esp32_live',
+                      ),
                       healthy: true,
                     ),
                     _DiagnosticRow(
@@ -154,10 +158,8 @@ class _NodeCard extends StatelessWidget {
     final statusColor = node.isOnline ? phytoLeaf : phytoTerracotta;
     return Card(
       color: selected
-          ? Theme.of(context)
-              .colorScheme
-              .primaryContainer
-              .withValues(alpha: 0.35)
+          ? Theme.of(context).colorScheme.primaryContainer
+                .withValues(alpha: 0.35)
           : null,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -224,9 +226,11 @@ class _NodeCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 3),
-                    Text(node.zoneId.isEmpty
-                        ? node.id
-                        : '${node.zoneId} • ${node.id}'),
+                    Text(
+                      node.zoneId.isEmpty
+                          ? node.id
+                          : '${node.zoneId} • ${node.id}',
+                    ),
                     const SizedBox(height: 9),
                     Wrap(
                       spacing: 12,
@@ -278,14 +282,12 @@ class _NodeCard extends StatelessWidget {
               children: [
                 Text(
                   node.name,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
+                  style: Theme.of(context).textTheme.titleLarge
                       ?.copyWith(fontWeight: FontWeight.w900),
                 ),
-                Text(node.zoneId.isEmpty
-                    ? node.id
-                    : '${node.zoneId} • ${node.id}'),
+                Text(
+                  node.zoneId.isEmpty ? node.id : '${node.zoneId} • ${node.id}',
+                ),
                 const SizedBox(height: 12),
                 _DetailRow(
                   label: context.tr('battery'),
@@ -339,20 +341,20 @@ class _DiagnosticRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 6),
-        child: Row(
-          children: [
-            Icon(
-              healthy ? Icons.check_circle_rounded : Icons.schedule_rounded,
-              color: healthy ? phytoLeaf : phytoAmber,
-              size: 19,
-            ),
-            const SizedBox(width: 9),
-            Expanded(child: Text(label)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
-          ],
+    padding: const EdgeInsets.symmetric(vertical: 6),
+    child: Row(
+      children: [
+        Icon(
+          healthy ? Icons.check_circle_rounded : Icons.schedule_rounded,
+          color: healthy ? phytoLeaf : phytoAmber,
+          size: 19,
         ),
-      );
+        const SizedBox(width: 9),
+        Expanded(child: Text(label)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
+      ],
+    ),
+  );
 }
 
 class _NodeMeta extends StatelessWidget {
@@ -363,13 +365,13 @@ class _NodeMeta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 15),
-          const SizedBox(width: 4),
-          Text(text, style: Theme.of(context).textTheme.labelMedium),
-        ],
-      );
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Icon(icon, size: 15),
+      const SizedBox(width: 4),
+      Text(text, style: Theme.of(context).textTheme.labelMedium),
+    ],
+  );
 }
 
 class _DetailRow extends StatelessWidget {
@@ -380,12 +382,12 @@ class _DetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: 7),
-        child: Row(
-          children: [
-            Expanded(child: Text(label)),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: 7),
+    child: Row(
+      children: [
+        Expanded(child: Text(label)),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ],
+    ),
+  );
 }

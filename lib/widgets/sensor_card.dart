@@ -87,10 +87,7 @@ class SensorCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.bodyMedium,
-            ),
+            Text(title, style: Theme.of(context).textTheme.bodyMedium),
             const SizedBox(height: 4),
             if (numericValue != null)
               AnimatedMetricText(
@@ -110,9 +107,7 @@ class SensorCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
+                style: Theme.of(context).textTheme.headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
             if (previousValue != null && numericValue != null) ...[
@@ -141,8 +136,8 @@ class SensorCard extends StatelessWidget {
               Text(
                 preferredRange!,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    ),
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
             if (caption != null) ...[

@@ -31,19 +31,18 @@ void main() {
     double light = 68,
     double plantSignal = 50,
     double health = 90,
-  }) =>
-      SensorReading(
-        nodeId: 'test-node',
-        timestamp: DateTime(2026, 8, 23),
-        soilMoisture: soil,
-        temperature: temperature,
-        humidity: humidity,
-        light: light,
-        plantSignal: plantSignal,
-        healthScore: health,
-        stressScore: 100 - health,
-        healthStatus: SensorReading.statusForHealth(health),
-      );
+  }) => SensorReading(
+    nodeId: 'test-node',
+    timestamp: DateTime(2026, 8, 23),
+    soilMoisture: soil,
+    temperature: temperature,
+    humidity: humidity,
+    light: light,
+    plantSignal: plantSignal,
+    healthScore: health,
+    stressScore: 100 - health,
+    healthStatus: SensorReading.statusForHealth(health),
+  );
 
   test('healthy readings produce a balanced insight', () {
     final current = reading();
@@ -272,17 +271,9 @@ void main() {
         screenedAt: DateTime.now(),
       ),
       crop: 'Tomato',
-      reading: reading(
-        soil: 28,
-        temperature: 36,
-        plantSignal: 24,
-        health: 50,
-      ),
+      reading: reading(soil: 28, temperature: 36, plantSignal: 24, health: 50),
     );
-    expect(
-      assessment.candidates.first.nameKey,
-      'disease_tomato_leaf_curl',
-    );
+    expect(assessment.candidates.first.nameKey, 'disease_tomato_leaf_curl');
   });
 
   test('tomato target-like rings rank early blight first', () {
@@ -307,10 +298,7 @@ void main() {
         whitefliesPresent: FieldObservation.no,
       ),
     );
-    expect(
-      assessment.candidates.first.nameKey,
-      'disease_tomato_early_blight',
-    );
+    expect(assessment.candidates.first.nameKey, 'disease_tomato_early_blight');
     expect(assessment.isInconclusive, isFalse);
   });
 
@@ -336,10 +324,7 @@ void main() {
         whitefliesPresent: FieldObservation.no,
       ),
     );
-    expect(
-      assessment.candidates.first.nameKey,
-      'disease_tomato_late_blight',
-    );
+    expect(assessment.candidates.first.nameKey, 'disease_tomato_late_blight');
   });
 
   test('tomato curling and whiteflies rank leaf curl first', () {
@@ -364,10 +349,7 @@ void main() {
         whitefliesPresent: FieldObservation.yes,
       ),
     );
-    expect(
-      assessment.candidates.first.nameKey,
-      'disease_tomato_leaf_curl',
-    );
+    expect(assessment.candidates.first.nameKey, 'disease_tomato_leaf_curl');
   });
 
   test('all ten Tamil Nadu crop contexts produce crop-specific candidates', () {
@@ -419,16 +401,12 @@ void main() {
     expect(ricePrompt.reasonKeys, isNot(contains('disease_trigger_wet_soil')));
     expect(tomatoPrompt.reasonKeys, contains('disease_trigger_wet_soil'));
 
-    final riceInsight = AiAnalysisService.analyze(
+    final riceInsight = AiAnalysisService.analyze(reading(soil: 94), [
       reading(soil: 94),
-      [reading(soil: 94)],
-      crop: 'Rice',
-    );
-    final tomatoInsight = AiAnalysisService.analyze(
+    ], crop: 'Rice');
+    final tomatoInsight = AiAnalysisService.analyze(reading(soil: 94), [
       reading(soil: 94),
-      [reading(soil: 94)],
-      crop: 'Tomato',
-    );
+    ], crop: 'Tomato');
     expect(riceInsight.headlineKey, 'ai_paddy_water_expected');
     expect(tomatoInsight.headlineKey, 'ai_overwatering');
 
@@ -440,22 +418,24 @@ void main() {
     expect(riceIrrigation.titleKey, 'irrigation_paddy_water');
   });
 
-  test('farm impact estimator calculates an honest first-season projection',
-      () {
-    const projection = FarmImpactProjection(
-      areaAcres: 3.2,
-      seasonalValuePerAcre: 60000,
-      lossRiskPercent: 15,
-      preventableSharePercent: 35,
-      inputSavingsPerAcre: 1500,
-      systemCost: 6000,
-    );
-    expect(projection.seasonalCropValue, closeTo(192000, 0.01));
-    expect(projection.cropValueAtRisk, closeTo(28800, 0.01));
-    expect(projection.estimatedLossPrevented, closeTo(10080, 0.01));
-    expect(projection.estimatedInputSavings, closeTo(4800, 0.01));
-    expect(projection.grossSeasonalBenefit, closeTo(14880, 0.01));
-    expect(projection.firstSeasonNetBenefit, closeTo(8880, 0.01));
-    expect(projection.benefitCostRatio, closeTo(2.48, 0.01));
-  });
+  test(
+    'farm impact estimator calculates an honest first-season projection',
+    () {
+      const projection = FarmImpactProjection(
+        areaAcres: 3.2,
+        seasonalValuePerAcre: 60000,
+        lossRiskPercent: 15,
+        preventableSharePercent: 35,
+        inputSavingsPerAcre: 1500,
+        systemCost: 6000,
+      );
+      expect(projection.seasonalCropValue, closeTo(192000, 0.01));
+      expect(projection.cropValueAtRisk, closeTo(28800, 0.01));
+      expect(projection.estimatedLossPrevented, closeTo(10080, 0.01));
+      expect(projection.estimatedInputSavings, closeTo(4800, 0.01));
+      expect(projection.grossSeasonalBenefit, closeTo(14880, 0.01));
+      expect(projection.firstSeasonNetBenefit, closeTo(8880, 0.01));
+      expect(projection.benefitCostRatio, closeTo(2.48, 0.01));
+    },
+  );
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/alert.dart';
@@ -29,7 +30,8 @@ class _AlertsScreenState extends State<AlertsScreen> {
       builder: (context, _) {
         final visible = service.alerts.where((alert) {
           final resolved = evidence.feedbackFor(alert.id) != null;
-          final system = alert.nodeId == 'weather' ||
+          final system =
+              alert.nodeId == 'weather' ||
               alert.titleKey == 'alert_abnormal_sensor' ||
               alert.titleKey == 'alert_low_battery' ||
               alert.titleKey == 'alert_weak_signal';
@@ -79,9 +81,11 @@ class _AlertsScreenState extends State<AlertsScreen> {
                   alignment: Alignment.centerLeft,
                   child: Chip(
                     avatar: const Icon(Icons.fiber_manual_record, size: 12),
-                    label: Text(context.tr('unread_count', {
-                      'value': service.unreadCount,
-                    })),
+                    label: Text(
+                      context.tr('unread_count', {
+                        'value': service.unreadCount,
+                      }),
+                    ),
                   ),
                 ),
               const SizedBox(height: 10),
@@ -148,10 +152,7 @@ class _AlertsScreenState extends State<AlertsScreen> {
     );
   }
 
-  Future<void> _confirmClear(
-    BuildContext context,
-    AlertService service,
-  ) async {
+  Future<void> _confirmClear(BuildContext context, AlertService service) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -286,11 +287,8 @@ class _AlertCard extends StatelessWidget {
                       )
                     else
                       TextButton.icon(
-                        onPressed: () => _showFeedbackSheet(
-                          context,
-                          alert,
-                          evidence,
-                        ),
+                        onPressed: () =>
+                            _showFeedbackSheet(context, alert, evidence),
                         icon: const Icon(Icons.fact_check_outlined),
                         label: Text(context.tr('record_outcome')),
                       ),
@@ -333,9 +331,7 @@ Future<void> _showFeedbackSheet(
             children: [
               Text(
                 context.tr('farmer_outcome_title'),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
+                style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 5),
@@ -379,17 +375,19 @@ Future<void> _showFeedbackSheet(
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: () async {
-                    await evidence.saveFeedback(FarmerFeedback(
-                      alertId: alert.id,
-                      source: evidence.sensors.source.name,
-                      nodeId: alert.nodeId,
-                      recordedAt: DateTime.now(),
-                      conditionConfirmed: confirmed,
-                      recommendationUseful: useful,
-                      plantRecovered: recovered,
-                      falseAlert: falseAlert,
-                      notes: notes.text.trim(),
-                    ));
+                    await evidence.saveFeedback(
+                      FarmerFeedback(
+                        alertId: alert.id,
+                        source: evidence.sensors.source.name,
+                        nodeId: alert.nodeId,
+                        recordedAt: DateTime.now(),
+                        conditionConfirmed: confirmed,
+                        recommendationUseful: useful,
+                        plantRecovered: recovered,
+                        falseAlert: falseAlert,
+                        notes: notes.text.trim(),
+                      ),
+                    );
                     if (sheetContext.mounted) Navigator.pop(sheetContext);
                   },
                   icon: const Icon(Icons.save_outlined),
@@ -413,20 +411,20 @@ class _MetaPill extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerHighest,
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: 14),
-            const SizedBox(width: 5),
-            Text(text, style: Theme.of(context).textTheme.labelSmall),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerHighest,
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: 14),
+        const SizedBox(width: 5),
+        Text(text, style: Theme.of(context).textTheme.labelSmall),
+      ],
+    ),
+  );
 }
 
 class _AlertsEmpty extends StatelessWidget {
@@ -434,38 +432,33 @@ class _AlertsEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 42),
-          child: Column(
-            children: [
-              Container(
-                width: 68,
-                height: 68,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: const Icon(
-                  Icons.notifications_active_outlined,
-                  color: phytoGreen,
-                  size: 32,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                context.tr('no_alerts'),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 6),
-              Text(
-                context.tr('no_alerts_body'),
-                textAlign: TextAlign.center,
-              ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 42),
+      child: Column(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: const Icon(
+              Icons.notifications_active_outlined,
+              color: phytoGreen,
+              size: 32,
+            ),
           ),
-        ),
-      );
+          const SizedBox(height: 16),
+          Text(
+            context.tr('no_alerts'),
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          Text(context.tr('no_alerts_body'), textAlign: TextAlign.center),
+        ],
+      ),
+    ),
+  );
 }

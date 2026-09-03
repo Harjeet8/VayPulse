@@ -55,16 +55,13 @@ class WeatherService extends ChangeNotifier {
         'longitude': '$longitude',
         'current':
             'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
-        'daily':
-            'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',
+        'daily': 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum',
         'forecast_days': '5',
         'timezone': 'auto',
       });
       final response = await http.get(uri).timeout(const Duration(seconds: 8));
       if (response.statusCode != 200) throw Exception('weather http');
-      final json = Map<String, dynamic>.from(
-        jsonDecode(response.body) as Map,
-      );
+      final json = Map<String, dynamic>.from(jsonDecode(response.body) as Map);
       final current = Map<String, dynamic>.from(json['current'] as Map);
       final daily = Map<String, dynamic>.from(json['daily'] as Map);
       final dates = List<dynamic>.from(daily['time'] as List);
@@ -77,14 +74,16 @@ class WeatherService extends ChangeNotifier {
       final rainTotals = List<dynamic>.from(daily['precipitation_sum'] as List);
       final days = <WeatherDay>[];
       for (var index = 0; index < dates.length; index++) {
-        days.add(WeatherDay(
-          date: DateTime.parse('${dates[index]}'),
-          minimumTemperature: _number(minimums[index]),
-          maximumTemperature: _number(maximums[index]),
-          precipitationProbability: _number(rainProbabilities[index]),
-          precipitationMillimetres: _number(rainTotals[index]),
-          weatherCode: _number(weatherCodes[index]).round(),
-        ));
+        days.add(
+          WeatherDay(
+            date: DateTime.parse('${dates[index]}'),
+            minimumTemperature: _number(minimums[index]),
+            maximumTemperature: _number(maximums[index]),
+            precipitationProbability: _number(rainProbabilities[index]),
+            precipitationMillimetres: _number(rainTotals[index]),
+            weatherCode: _number(weatherCodes[index]).round(),
+          ),
+        );
       }
       snapshot = WeatherSnapshot(
         location: location,

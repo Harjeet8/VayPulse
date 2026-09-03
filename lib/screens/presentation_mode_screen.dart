@@ -50,7 +50,8 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
         child: Column(
           children: [
             LinearProgressIndicator(
-                value: (step + 1) / _content(context).length),
+              value: (step + 1) / _content(context).length,
+            ),
             Expanded(
               child: Align(
                 alignment: Alignment.topCenter,
@@ -68,23 +69,26 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
                             color: content.color.withValues(alpha: 0.12),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Icon(content.icon,
-                              color: content.color, size: 34),
+                          child: Icon(
+                            content.icon,
+                            color: content.color,
+                            size: 34,
+                          ),
                         ),
                         const SizedBox(height: 22),
                         Text(
                           content.title,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.7,
                               ),
                         ),
                         const SizedBox(height: 10),
-                        Text(content.body,
-                            style: Theme.of(context).textTheme.bodyLarge),
+                        Text(
+                          content.body,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                         const SizedBox(height: 20),
                         for (final point in content.points)
                           Padding(
@@ -94,8 +98,11 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
                               children: [
                                 const Padding(
                                   padding: EdgeInsets.only(top: 3),
-                                  child: Icon(Icons.check_circle_rounded,
-                                      color: phytoLeaf, size: 19),
+                                  child: Icon(
+                                    Icons.check_circle_rounded,
+                                    color: phytoLeaf,
+                                    size: 19,
+                                  ),
                                 ),
                                 const SizedBox(width: 10),
                                 Expanded(child: Text(point)),
@@ -105,7 +112,8 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
                         if (step == 3) ...[
                           const SizedBox(height: 8),
                           _DemoControls(
-                              onScenarioChanged: (_) => setState(() {})),
+                            onScenarioChanged: (_) => setState(() {}),
+                          ),
                         ],
                         if (step == 4) ...[
                           const SizedBox(height: 8),
@@ -140,13 +148,18 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
                           setState(() => step++);
                         }
                       },
-                      icon: Icon(step == _content(context).length - 1
-                          ? Icons.check_rounded
-                          : Icons.arrow_forward_rounded),
-                      label: Text(context.tr(
+                      icon: Icon(
+                        step == _content(context).length - 1
+                            ? Icons.check_rounded
+                            : Icons.arrow_forward_rounded,
+                      ),
+                      label: Text(
+                        context.tr(
                           step == _content(context).length - 1
                               ? 'finish'
-                              : 'next')),
+                              : 'next',
+                        ),
+                      ),
                     ),
                   ),
                 ],
@@ -159,80 +172,80 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
   }
 
   List<_PresentationContent> _content(BuildContext context) => [
-        _PresentationContent(
-          icon: Icons.agriculture_outlined,
-          color: phytoGreen,
-          title: context.tr('presentation_problem_title'),
-          body: context.tr('presentation_problem_body'),
-          points: [
-            context.tr('presentation_problem_1'),
-            context.tr('presentation_problem_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.hub_outlined,
-          color: const Color(0xFF2775B6),
-          title: context.tr('presentation_system_title'),
-          body: context.tr('presentation_system_body'),
-          points: [
-            context.tr('presentation_system_1'),
-            context.tr('presentation_system_2'),
-            context.tr('presentation_system_3'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.auto_awesome_outlined,
-          color: phytoLeaf,
-          title: context.tr('presentation_intelligence_title'),
-          body: context.tr('presentation_intelligence_body'),
-          points: [
-            context.tr('presentation_intelligence_1'),
-            context.tr('presentation_intelligence_2'),
-            context.tr('presentation_intelligence_3'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.science_outlined,
-          color: phytoAmber,
-          title: context.tr('presentation_demo_title'),
-          body: context.tr('presentation_demo_body'),
-          points: [
-            context.tr('presentation_demo_1'),
-            context.tr('presentation_demo_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.space_dashboard_outlined,
-          color: const Color(0xFF397FC0),
-          title: context.tr('presentation_dashboard_title'),
-          body: context.tr('presentation_dashboard_body'),
-          points: [
-            context.tr('presentation_dashboard_1'),
-            context.tr('presentation_dashboard_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.psychology_alt_outlined,
-          color: const Color(0xFF7A5CC7),
-          title: context.tr('presentation_ai_title'),
-          body: context.tr('presentation_ai_body'),
-          points: [
-            context.tr('presentation_ai_1'),
-            context.tr('presentation_ai_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.public_rounded,
-          color: phytoLeaf,
-          title: context.tr('presentation_impact_title'),
-          body: context.tr('presentation_impact_body'),
-          points: [
-            context.tr('presentation_impact_1'),
-            context.tr('presentation_impact_2'),
-            context.tr('presentation_impact_3'),
-          ],
-        ),
-      ];
+    _PresentationContent(
+      icon: Icons.agriculture_outlined,
+      color: phytoGreen,
+      title: context.tr('presentation_problem_title'),
+      body: context.tr('presentation_problem_body'),
+      points: [
+        context.tr('presentation_problem_1'),
+        context.tr('presentation_problem_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.hub_outlined,
+      color: const Color(0xFF2775B6),
+      title: context.tr('presentation_system_title'),
+      body: context.tr('presentation_system_body'),
+      points: [
+        context.tr('presentation_system_1'),
+        context.tr('presentation_system_2'),
+        context.tr('presentation_system_3'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.auto_awesome_outlined,
+      color: phytoLeaf,
+      title: context.tr('presentation_intelligence_title'),
+      body: context.tr('presentation_intelligence_body'),
+      points: [
+        context.tr('presentation_intelligence_1'),
+        context.tr('presentation_intelligence_2'),
+        context.tr('presentation_intelligence_3'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.science_outlined,
+      color: phytoAmber,
+      title: context.tr('presentation_demo_title'),
+      body: context.tr('presentation_demo_body'),
+      points: [
+        context.tr('presentation_demo_1'),
+        context.tr('presentation_demo_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.space_dashboard_outlined,
+      color: const Color(0xFF397FC0),
+      title: context.tr('presentation_dashboard_title'),
+      body: context.tr('presentation_dashboard_body'),
+      points: [
+        context.tr('presentation_dashboard_1'),
+        context.tr('presentation_dashboard_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.psychology_alt_outlined,
+      color: const Color(0xFF7A5CC7),
+      title: context.tr('presentation_ai_title'),
+      body: context.tr('presentation_ai_body'),
+      points: [
+        context.tr('presentation_ai_1'),
+        context.tr('presentation_ai_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.public_rounded,
+      color: phytoLeaf,
+      title: context.tr('presentation_impact_title'),
+      body: context.tr('presentation_impact_body'),
+      points: [
+        context.tr('presentation_impact_1'),
+        context.tr('presentation_impact_2'),
+        context.tr('presentation_impact_3'),
+      ],
+    ),
+  ];
 }
 
 class _PresentationSnapshot extends StatelessWidget {
@@ -279,14 +292,17 @@ class _PresentationSnapshot extends StatelessWidget {
                     Expanded(
                       child: Text(
                         context.tr(
-                            scope.sensors.source == SensorDataSource.esp32
-                                ? 'live_session_badge'
-                                : 'source_demo_badge'),
+                          scope.sensors.source == SensorDataSource.esp32
+                              ? 'live_session_badge'
+                              : 'source_demo_badge',
+                        ),
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                     ),
-                    Text(reading.nodeId,
-                        style: Theme.of(context).textTheme.labelSmall),
+                    Text(
+                      reading.nodeId,
+                      style: Theme.of(context).textTheme.labelSmall,
+                    ),
                   ],
                 ),
                 const SizedBox(height: 14),
@@ -338,11 +354,16 @@ class _PresentationSnapshot extends StatelessWidget {
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 4),
-                      Text(hardwareMode
-                          ? (reading.primaryRootCause.isEmpty
-                              ? 'ESP32 analysis unavailable'
-                              : reading.primaryRootCause.replaceAll('_', ' '))
-                          : context.tr(analysis!.evidenceKey)),
+                      Text(
+                        hardwareMode
+                            ? (reading.primaryRootCause.isEmpty
+                                  ? 'ESP32 analysis unavailable'
+                                  : reading.primaryRootCause.replaceAll(
+                                      '_',
+                                      ' ',
+                                    ))
+                            : context.tr(analysis!.evidenceKey),
+                      ),
                     ],
                   ),
                 ),
@@ -363,25 +384,27 @@ class _SnapshotMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 142,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Theme.of(context).dividerColor),
+    width: 142,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(color: Theme.of(context).dividerColor),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelSmall,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall),
-            const SizedBox(height: 3),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-          ],
-        ),
-      );
+        const SizedBox(height: 3),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ],
+    ),
+  );
 }
 
 class _DemoControls extends StatelessWidget {
@@ -400,8 +423,10 @@ class _DemoControls extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(context.tr('demo_console'),
-                style: const TextStyle(fontWeight: FontWeight.w900)),
+            Text(
+              context.tr('demo_console'),
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
             const SizedBox(height: 5),
             Text(context.tr('demo_console_body')),
             const SizedBox(height: 14),
@@ -486,9 +511,7 @@ class _DemoControls extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(13),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primaryContainer
+                          color: Theme.of(context).colorScheme.primaryContainer
                               .withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -517,24 +540,26 @@ class _MiniMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(11),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: Theme.of(context).dividerColor),
+    padding: const EdgeInsets.all(11),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(13),
+      border: Border.all(color: Theme.of(context).dividerColor),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelSmall,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(context).textTheme.labelSmall),
-            const SizedBox(height: 3),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-          ],
-        ),
-      );
+        const SizedBox(height: 3),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ],
+    ),
+  );
 }
 
 class _PresentationContent {

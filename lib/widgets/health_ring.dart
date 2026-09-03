@@ -18,15 +18,15 @@ class HealthRing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final ringColor = color ??
+    final ringColor =
+        color ??
         (score >= 75
             ? Theme.of(context).colorScheme.primary
             : score >= 45
-                ? Colors.orange
-                : Theme.of(context).colorScheme.error);
-    final fixedScaleMedia = MediaQuery.of(context).copyWith(
-      textScaler: TextScaler.noScaling,
-    );
+            ? Colors.orange
+            : Theme.of(context).colorScheme.error);
+    final fixedScaleMedia = MediaQuery.of(context)
+        .copyWith(textScaler: TextScaler.noScaling);
     return Semantics(
       label: '$label ${score.round()}',
       child: SizedBox.square(
@@ -40,8 +40,9 @@ class HealthRing extends StatelessWidget {
                 value: (score / 100).clamp(0, 1).toDouble(),
                 strokeWidth: size < 90 ? 7 : 10,
                 color: ringColor,
-                backgroundColor:
-                    Theme.of(context).colorScheme.surfaceContainerHighest,
+                backgroundColor: Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest,
               ),
             ),
             Padding(

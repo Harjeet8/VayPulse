@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 

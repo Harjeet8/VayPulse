@@ -115,11 +115,9 @@ class SimulationSensorProvider extends SensorDataProvider {
       _history[node.id] = readings;
       for (var hour = 47; hour >= 0; hour--) {
         final timestamp = now.subtract(Duration(hours: hour));
-        readings.add(_makeReading(
-          node,
-          timestamp,
-          historicalWave: sin(hour / 5) * 2,
-        ));
+        readings.add(
+          _makeReading(node, timestamp, historicalWave: sin(hour / 5) * 2),
+        );
       }
       _latest[node.id] = readings.last;
     }
@@ -155,9 +153,10 @@ class SimulationSensorProvider extends SensorDataProvider {
     final zoneOffset = (_nodes.indexOf(node) - 1.5) * 0.8;
     double noise(double amount) => (_random.nextDouble() - 0.5) * amount;
 
-    final soil = (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
-        .clamp(0, 100)
-        .toDouble();
+    final soil =
+        (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
+            .clamp(0, 100)
+            .toDouble();
     final temperature = (target.temperature + zoneOffset * 0.10 + noise(0.7))
         .clamp(-10, 60)
         .toDouble();
@@ -169,16 +168,16 @@ class SimulationSensorProvider extends SensorDataProvider {
         ? (target.light + zoneOffset + noise(4)).clamp(0, 100).toDouble()
         : 0.0;
     final lightLux = daytime ? lightPercent * 700 : 0.0;
-    final rootTemperature =
-        (temperature - 1.5 + noise(0.5)).clamp(-10, 60).toDouble();
+    final rootTemperature = (temperature - 1.5 + noise(0.5))
+        .clamp(-10, 60)
+        .toDouble();
 
     final leafWetness = switch (_mode) {
       DemoMode.overwatered => (82 + noise(5)).clamp(0, 100).toDouble(),
       DemoMode.lowLight => (52 + noise(7)).clamp(0, 100).toDouble(),
       DemoMode.critical => (68 + noise(8)).clamp(0, 100).toDouble(),
-      _ => (14 + _max(0, humidity - 70) * 0.7 + noise(5))
-          .clamp(0, 100)
-          .toDouble(),
+      _ =>
+        (14 + _max(0, humidity - 70) * 0.7 + noise(5)).clamp(0, 100).toDouble(),
     };
     final wetSeconds = leafWetness >= 60
         ? switch (_mode) {

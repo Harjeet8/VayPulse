@@ -50,9 +50,9 @@ class _OfflineSyncScreenState extends State<OfflineSyncScreen> {
     await AppScope.of(context).settings.setSyncEndpoint(endpoint);
     if (!mounted) return;
     setState(() => validationError = null);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(context.tr('sync_endpoint_saved'))),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(context.tr('sync_endpoint_saved'))));
   }
 
   @override
@@ -77,8 +77,11 @@ class _OfflineSyncScreenState extends State<OfflineSyncScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.cloud_sync_outlined,
-                        color: Colors.white, size: 48),
+                    const Icon(
+                      Icons.cloud_sync_outlined,
+                      color: Colors.white,
+                      size: 48,
+                    ),
                     const SizedBox(width: 14),
                     Expanded(
                       child: Column(
@@ -86,9 +89,7 @@ class _OfflineSyncScreenState extends State<OfflineSyncScreen> {
                         children: [
                           Text(
                             context.tr('offline_first'),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w900,
@@ -189,9 +190,7 @@ class _OfflineSyncScreenState extends State<OfflineSyncScreen> {
                           child: CircularProgressIndicator(strokeWidth: 2),
                         )
                       : const Icon(Icons.sync_rounded),
-                  label: Text(context.tr(
-                    syncing ? 'syncing_now' : 'sync_now',
-                  )),
+                  label: Text(context.tr(syncing ? 'syncing_now' : 'sync_now')),
                 ),
               ),
               if (sync.status == OfflineSyncStatus.success) ...[
@@ -249,21 +248,22 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: phytoGreen),
-              const SizedBox(height: 10),
-              Text(value,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.w900)),
-              Text(label, style: Theme.of(context).textTheme.bodySmall),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: phytoGreen),
+          const SizedBox(height: 10),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w900),
           ),
-        ),
-      );
+          Text(label, style: Theme.of(context).textTheme.bodySmall),
+        ],
+      ),
+    ),
+  );
 }
 
 class _SyncMessage extends StatelessWidget {
@@ -279,14 +279,16 @@ class _SyncMessage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        color: color.withValues(alpha: 0.08),
-        child: Padding(
-          padding: const EdgeInsets.all(14),
-          child: Row(children: [
-            Icon(icon, color: color),
-            const SizedBox(width: 9),
-            Expanded(child: Text(message)),
-          ]),
-        ),
-      );
+    color: color.withValues(alpha: 0.08),
+    child: Padding(
+      padding: const EdgeInsets.all(14),
+      child: Row(
+        children: [
+          Icon(icon, color: color),
+          const SizedBox(width: 9),
+          Expanded(child: Text(message)),
+        ],
+      ),
+    ),
+  );
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
@@ -36,11 +37,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         'onboarding_understand_title',
         'onboarding_understand_body',
       ),
-      (
-        Icons.task_alt_rounded,
-        'onboarding_act_title',
-        'onboarding_act_body',
-      ),
+      (Icons.task_alt_rounded, 'onboarding_act_title', 'onboarding_act_body'),
       (
         Icons.tune_rounded,
         'onboarding_experience_title',
@@ -115,9 +112,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           Text(
                             context.tr(data[index].$2),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .headlineMedium
+                            style: Theme.of(context).textTheme.headlineMedium
                                 ?.copyWith(
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: -0.7,
@@ -127,9 +122,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           Text(
                             context.tr(data[index].$3),
                             textAlign: TextAlign.center,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge
+                            style: Theme.of(context).textTheme.bodyLarge
                                 ?.copyWith(height: 1.5),
                           ),
                           if (index == data.length - 1) ...[
@@ -195,12 +188,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         MaterialPageRoute(builder: (_) => const ShellScreen()),
                       );
                     },
-                    icon: Icon(page == data.length - 1
-                        ? Icons.arrow_forward_rounded
-                        : Icons.navigate_next_rounded),
-                    label: Text(context.tr(
-                      page == data.length - 1 ? 'get_started' : 'next',
-                    )),
+                    icon: Icon(
+                      page == data.length - 1
+                          ? Icons.arrow_forward_rounded
+                          : Icons.navigate_next_rounded,
+                    ),
+                    label: Text(
+                      context.tr(
+                        page == data.length - 1 ? 'get_started' : 'next',
+                      ),
+                    ),
                   ),
                 ),
               ),

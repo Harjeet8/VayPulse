@@ -16,10 +16,7 @@ class HealthAnalysisEngine {
     String crop = 'Universal',
     String growthStage = 'vegetative',
   }) {
-    final profile = CropHealthProfile.forCrop(
-      crop,
-      growthStage: growthStage,
-    );
+    final profile = CropHealthProfile.forCrop(crop, growthStage: growthStage);
     final recent = history.length <= 12
         ? history
         : history.sublist(history.length - 12);
@@ -47,8 +44,8 @@ class HealthAnalysisEngine {
           )
         : null;
 
-    final rootZone = reading.soilTemperatureAvailable &&
-            reading.soilTemperature != null
+    final rootZone =
+        reading.soilTemperatureAvailable && reading.soilTemperature != null
         ? _rangeScore(reading.soilTemperature!, profile.rootZoneTemperature)
         : null;
 
@@ -59,14 +56,14 @@ class HealthAnalysisEngine {
     final light = !reading.daytime
         ? null
         : reading.lightAvailable && reading.lightLux != null
-            ? _persistentRangeScore(
-                reading.lightLux!,
-                profile.daylightLux,
-                recent
-                    .where((r) => r.lightAvailable && r.lightLux != null)
-                    .map((r) => r.lightLux!),
-              )
-            : null;
+        ? _persistentRangeScore(
+            reading.lightLux!,
+            profile.daylightLux,
+            recent
+                .where((r) => r.lightAvailable && r.lightLux != null)
+                .map((r) => r.lightLux!),
+          )
+        : null;
 
     final diseaseRisk = _diseaseRisk(reading);
     final bioelectric = _bioelectricStability(reading, recent);
@@ -240,11 +237,7 @@ class HealthAnalysisEngine {
           _fraction(value, range.criticalLow, range.warningLow),
         );
       }
-      return _lerp(
-        65,
-        100,
-        _fraction(value, range.warningLow, range.idealLow),
-      );
+      return _lerp(65, 100, _fraction(value, range.warningLow, range.idealLow));
     }
     if (value >= range.warningHigh) {
       return _lerp(
@@ -253,11 +246,7 @@ class HealthAnalysisEngine {
         _fraction(value, range.warningHigh, range.criticalHigh),
       );
     }
-    return _lerp(
-      100,
-      65,
-      _fraction(value, range.idealHigh, range.warningHigh),
-    );
+    return _lerp(100, 65, _fraction(value, range.idealHigh, range.warningHigh));
   }
 
   static double _persistentRangeScore(
@@ -311,15 +300,13 @@ class HealthAnalysisEngine {
         reading.plantVoltageMv == null) {
       return null;
     }
-    final deviation =
-        (reading.plantVoltageMv! - reading.bioBaselineMv!).abs();
+    final deviation = (reading.plantVoltageMv! - reading.bioBaselineMv!).abs();
     final noise = math.max(1.0, reading.bioNoiseMv ?? 2.0).toDouble();
     final normalized = deviation / (noise * 4.0);
-    var score = (100.0 - normalized * 35.0)
-        .clamp(0.0, 100.0)
-        .toDouble();
-    final recentBio =
-        history.where((r) => r.bioDeviationMv != null).toList(growable: false);
+    var score = (100.0 - normalized * 35.0).clamp(0.0, 100.0).toDouble();
+    final recentBio = history
+        .where((r) => r.bioDeviationMv != null)
+        .toList(growable: false);
     if (recentBio.length >= 3) {
       final repeated = recentBio
           .where((r) => r.bioDeviationMv!.abs() > noise * 4.0)
@@ -346,7 +333,8 @@ class HealthAnalysisEngine {
     if (reading.soilMoistureAvailable) available += weights['soil']!;
     if (reading.temperatureAvailable) available += weights['airTemp']!;
     if (reading.humidityAvailable) available += weights['humidity']!;
-    if (!reading.daytime || reading.lightAvailable) available += weights['light']!;
+    if (!reading.daytime || reading.lightAvailable)
+      available += weights['light']!;
     if (reading.soilTemperatureAvailable) available += weights['root']!;
     if (reading.leafWetnessAvailable) available += weights['leaf']!;
     if (reading.plantSignalAvailable && reading.bioBaselineReady) {
@@ -371,10 +359,10 @@ class HealthAnalysisEngine {
   static String _riskLabel(double risk) => risk < 25
       ? 'low'
       : risk < 50
-          ? 'moderate'
-          : risk < 75
-              ? 'elevated'
-              : 'high';
+      ? 'moderate'
+      : risk < 75
+      ? 'elevated'
+      : 'high';
 
   static double _fraction(double value, double low, double high) => high == low
       ? 0.0

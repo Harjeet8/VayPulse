@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../l10n/app_strings.dart';
 
 class BottomNav extends StatelessWidget {
@@ -28,10 +29,10 @@ class BottomNav extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).shadowColor.withValues(
-                    alpha: Theme.of(context).brightness == Brightness.dark
-                        ? 0.32
-                        : 0.08,
-                  ),
+                alpha: Theme.of(context).brightness == Brightness.dark
+                    ? 0.32
+                    : 0.08,
+              ),
               blurRadius: 24,
               offset: const Offset(0, 10),
             ),
@@ -51,10 +52,12 @@ class BottomNav extends StatelessWidget {
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
-              icon:
-                  Icon(live ? Icons.memory_outlined : Icons.grid_view_outlined),
-              selectedIcon:
-                  Icon(live ? Icons.memory_rounded : Icons.grid_view_rounded),
+              icon: Icon(
+                live ? Icons.memory_outlined : Icons.grid_view_outlined,
+              ),
+              selectedIcon: Icon(
+                live ? Icons.memory_rounded : Icons.grid_view_rounded,
+              ),
               label: context.tr(live ? 'nav_device' : 'nav_fields'),
             ),
             NavigationDestination(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
@@ -63,100 +64,120 @@ class _ShellScreenState extends State<ShellScreen> {
           },
           child: Focus(
             autofocus: true,
-            child: LayoutBuilder(builder: (context, constraints) {
-              final wide = constraints.maxWidth >= 880;
-              if (wide) {
-                return Scaffold(
-                  body: Row(
-                    children: [
-                      SafeArea(
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.surface,
-                              borderRadius: BorderRadius.circular(26),
-                              border: Border.all(
-                                  color: Theme.of(context).dividerColor),
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: NavigationRail(
-                              extended: constraints.maxWidth >= 1160,
-                              selectedIndex: index,
-                              onDestinationSelected: (value) =>
-                                  setState(() => index = value),
-                              leading: Padding(
-                                padding:
-                                    const EdgeInsets.only(top: 8, bottom: 20),
-                                child: Container(
-                                  width: 48,
-                                  height: 48,
-                                  decoration: BoxDecoration(
-                                    gradient: const LinearGradient(
-                                      colors: [phytoGreen, phytoLeaf],
-                                    ),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: const Icon(
-                                    Icons.eco_rounded,
-                                    color: Colors.white,
-                                  ),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final wide = constraints.maxWidth >= 880;
+                if (wide) {
+                  return Scaffold(
+                    body: Row(
+                      children: [
+                        SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.surface,
+                                borderRadius: BorderRadius.circular(26),
+                                border: Border.all(
+                                  color: Theme.of(context).dividerColor,
                                 ),
                               ),
-                              destinations: [
-                                NavigationRailDestination(
-                                  icon: const Icon(Icons.home_outlined),
-                                  selectedIcon: const Icon(Icons.home_rounded),
-                                  label: Text(context.tr('nav_home')),
+                              clipBehavior: Clip.antiAlias,
+                              child: NavigationRail(
+                                extended: constraints.maxWidth >= 1160,
+                                selectedIndex: index,
+                                onDestinationSelected: (value) =>
+                                    setState(() => index = value),
+                                leading: Padding(
+                                  padding: const EdgeInsets.only(
+                                    top: 8,
+                                    bottom: 20,
+                                  ),
+                                  child: Container(
+                                    width: 48,
+                                    height: 48,
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [phytoGreen, phytoLeaf],
+                                      ),
+                                      borderRadius: BorderRadius.circular(16),
+                                    ),
+                                    child: const Icon(
+                                      Icons.eco_rounded,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ),
-                                NavigationRailDestination(
-                                  icon: Icon(live
-                                      ? Icons.memory_outlined
-                                      : Icons.grid_view_outlined),
-                                  selectedIcon: Icon(live
-                                      ? Icons.memory_rounded
-                                      : Icons.grid_view_rounded),
-                                  label: Text(context
-                                      .tr(live ? 'nav_device' : 'nav_fields')),
-                                ),
-                                NavigationRailDestination(
-                                  icon: const Icon(Icons.insights_outlined),
-                                  selectedIcon:
-                                      const Icon(Icons.insights_rounded),
-                                  label: Text(context.tr('nav_insights')),
-                                ),
-                                NavigationRailDestination(
-                                  icon: const Icon(
-                                      Icons.notifications_none_rounded),
-                                  selectedIcon:
-                                      const Icon(Icons.notifications_rounded),
-                                  label: Text(context.tr('nav_alerts')),
-                                ),
-                                NavigationRailDestination(
-                                  icon: const Icon(Icons.more_horiz_rounded),
-                                  selectedIcon: const Icon(Icons.more_rounded),
-                                  label: Text(context.tr('nav_more')),
-                                ),
-                              ],
+                                destinations: [
+                                  NavigationRailDestination(
+                                    icon: const Icon(Icons.home_outlined),
+                                    selectedIcon: const Icon(
+                                      Icons.home_rounded,
+                                    ),
+                                    label: Text(context.tr('nav_home')),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: Icon(
+                                      live
+                                          ? Icons.memory_outlined
+                                          : Icons.grid_view_outlined,
+                                    ),
+                                    selectedIcon: Icon(
+                                      live
+                                          ? Icons.memory_rounded
+                                          : Icons.grid_view_rounded,
+                                    ),
+                                    label: Text(
+                                      context.tr(
+                                        live ? 'nav_device' : 'nav_fields',
+                                      ),
+                                    ),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: const Icon(Icons.insights_outlined),
+                                    selectedIcon: const Icon(
+                                      Icons.insights_rounded,
+                                    ),
+                                    label: Text(context.tr('nav_insights')),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: const Icon(
+                                      Icons.notifications_none_rounded,
+                                    ),
+                                    selectedIcon: const Icon(
+                                      Icons.notifications_rounded,
+                                    ),
+                                    label: Text(context.tr('nav_alerts')),
+                                  ),
+                                  NavigationRailDestination(
+                                    icon: const Icon(Icons.more_horiz_rounded),
+                                    selectedIcon: const Icon(
+                                      Icons.more_rounded,
+                                    ),
+                                    label: Text(context.tr('nav_more')),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      Expanded(
-                          child: IndexedStack(index: index, children: pages)),
-                    ],
+                        Expanded(
+                          child: IndexedStack(index: index, children: pages),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+                return Scaffold(
+                  body: IndexedStack(index: index, children: pages),
+                  bottomNavigationBar: BottomNav(
+                    index: index,
+                    live: live,
+                    onChanged: (value) => setState(() => index = value),
                   ),
                 );
-              }
-              return Scaffold(
-                body: IndexedStack(index: index, children: pages),
-                bottomNavigationBar: BottomNav(
-                  index: index,
-                  live: live,
-                  onChanged: (value) => setState(() => index = value),
-                ),
-              );
-            }),
+              },
+            ),
           ),
         );
       },

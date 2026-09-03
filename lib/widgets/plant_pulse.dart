@@ -4,18 +4,14 @@ class PlantPulse extends StatelessWidget {
   final Color color;
   final double height;
 
-  const PlantPulse({
-    super.key,
-    required this.color,
-    this.height = 54,
-  });
+  const PlantPulse({super.key, required this.color, this.height = 54});
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: double.infinity,
-        height: height,
-        child: CustomPaint(painter: _PlantPulsePainter(color)),
-      );
+    width: double.infinity,
+    height: height,
+    child: CustomPaint(painter: _PlantPulsePainter(color)),
+  );
 }
 
 class _PlantPulsePainter extends CustomPainter {

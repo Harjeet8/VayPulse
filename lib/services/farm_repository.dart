@@ -1,6 +1,8 @@
 import 'dart:convert';
+
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import '../models/farm.dart';
 
 class FarmRepository extends ChangeNotifier {
@@ -12,24 +14,24 @@ class FarmRepository extends ChangeNotifier {
   String? errorMessage;
 
   Farm get selectedFarm => farms.firstWhere(
-        (farm) => farm.id == selectedFarmId,
-        orElse: () => farms.first,
-      );
+    (farm) => farm.id == selectedFarmId,
+    orElse: () => farms.first,
+  );
 
   FarmField get selectedField => selectedFarm.fields.firstWhere(
-        (field) => field.id == selectedFieldId,
-        orElse: () => selectedFarm.fields.first,
-      );
+    (field) => field.id == selectedFieldId,
+    orElse: () => selectedFarm.fields.first,
+  );
 
   FarmZone get selectedZone => selectedField.zones.firstWhere(
-        (zone) => zone.id == selectedZoneId,
-        orElse: () => selectedField.zones.first,
-      );
+    (zone) => zone.id == selectedZoneId,
+    orElse: () => selectedField.zones.first,
+  );
 
   List<FarmZone> get allZones => [
-        for (final farm in farms)
-          for (final field in farm.fields) ...field.zones,
-      ];
+    for (final farm in farms)
+      for (final field in farm.fields) ...field.zones,
+  ];
 
   Future<void> load() async {
     try {
@@ -37,15 +39,20 @@ class FarmRepository extends ChangeNotifier {
       final raw = preferences.getString('farmHierarchy');
       if (raw != null) {
         final decoded = jsonDecode(raw) as List;
-        farms.addAll(decoded.map(
-            (item) => Farm.fromJson(Map<String, dynamic>.from(item as Map))));
+        farms.addAll(
+          decoded.map(
+            (item) => Farm.fromJson(Map<String, dynamic>.from(item as Map)),
+          ),
+        );
       }
       if (farms.isEmpty) farms.add(_demoFarm);
       selectedFarmId =
           preferences.getString('selectedFarmId') ?? farms.first.id;
-      selectedFieldId = preferences.getString('selectedFieldId') ??
+      selectedFieldId =
+          preferences.getString('selectedFieldId') ??
           farms.first.fields.first.id;
-      selectedZoneId = preferences.getString('selectedZoneId') ??
+      selectedZoneId =
+          preferences.getString('selectedZoneId') ??
           farms.first.fields.first.zones.first.id;
     } catch (error) {
       farms

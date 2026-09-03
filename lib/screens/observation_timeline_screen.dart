@@ -109,9 +109,10 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
                   const SizedBox(width: 10),
                   PhytoStatusBadge(
                     label: context.tr(
-                        scope.sensors.source == SensorDataSource.esp32
-                            ? 'source_live_badge'
-                            : 'source_demo_badge'),
+                      scope.sensors.source == SensorDataSource.esp32
+                          ? 'source_live_badge'
+                          : 'source_demo_badge',
+                    ),
                     icon: scope.sensors.source == SensorDataSource.esp32
                         ? Icons.memory_rounded
                         : Icons.science_outlined,

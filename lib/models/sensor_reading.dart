@@ -151,82 +151,81 @@ class SensorReading {
   String get bioSourceLabel => bioIsRealtime
       ? 'Real Time Signal'
       : bioIsLiveReading
-          ? 'Live Readings'
-          : bioSource;
+      ? 'Live Readings'
+      : bioSource;
 
   bool get isReliabilityFull => reliabilityMode.toUpperCase() == 'FULL';
 
-  bool get isReliabilityDegraded =>
-      reliabilityMode.toUpperCase() == 'DEGRADED';
+  bool get isReliabilityDegraded => reliabilityMode.toUpperCase() == 'DEGRADED';
 
   bool get isReliabilityRecovering =>
       reliabilityMode.toUpperCase() == 'RECOVERING';
 
   int get availableChannelCount => <bool>[
-        soilMoistureAvailable,
-        temperatureAvailable,
-        humidityAvailable,
-        lightAvailable,
-        soilTemperatureAvailable,
-        leafWetnessAvailable,
-        plantSignalAvailable,
-      ].where((value) => value).length;
+    soilMoistureAvailable,
+    temperatureAvailable,
+    humidityAvailable,
+    lightAvailable,
+    soilTemperatureAvailable,
+    leafWetnessAvailable,
+    plantSignalAvailable,
+  ].where((value) => value).length;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'nodeId': nodeId,
-        'timestamp': timestamp.toIso8601String(),
-        'soilMoisture': soilMoistureAvailable ? soilMoisture : null,
-        'temperature': temperatureAvailable ? temperature : null,
-        'humidity': humidityAvailable ? humidity : null,
-        'light': lightAvailable ? light : null,
-        'lightLux': lightAvailable ? lightLux : null,
-        'soilTemperature': soilTemperatureAvailable ? soilTemperature : null,
-        'leafWetness': leafWetnessAvailable ? leafWetness : null,
-        'plantSignal': plantSignalAvailable ? plantSignal : null,
-        'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
-        'bioSource': bioSource,
-        'healthScore': healthScore,
-        'stressScore': stressScore,
-        'healthStatus': healthStatus,
-        'analysisConfidence': analysisConfidence,
-        'edgeAnalysisAvailable': edgeAnalysisAvailable,
-        'crop': crop,
-        'growthStage': growthStage,
-        'reliabilityMode': reliabilityMode,
-        'systemStatus': systemStatus,
-        'recoveryStatus': recoveryStatus,
-        'primaryRootCause': primaryRootCause,
-        'farmerAction': farmerAction,
-        'rootCauseConfidence': rootCauseConfidence,
-        'rankedRootCauses': rankedRootCauses,
-        'bioticState': bioticState,
-        'bioState': bioState,
-        'cameraRecommended': cameraRecommended,
-        'cameraReason': cameraReason,
-        'sensorStates': sensorStates,
-        'esp32HealthScore': esp32HealthScore,
-        'esp32HealthConfidence': esp32HealthConfidence,
-        'waterScore': waterScore,
-        'thermalScore': thermalScore,
-        'rootZoneScore': rootZoneScore,
-        'atmosphericScore': atmosphericScore,
-        'lightScore': lightScore,
-        'diseaseRisk': diseaseRisk,
-        'bioelectricStability': bioelectricStability,
-        'soilRaw': soilRaw,
-        'leafRaw': leafRaw,
-        'soilCalibrated': soilCalibrated,
-        'leafCalibrated': leafCalibrated,
-        'daytime': daytime,
-        'leafWetDurationSeconds': leafWetDurationSeconds,
-        'recentWetExposureSeconds': recentWetExposureSeconds,
-        'bioBaselineReady': bioBaselineReady,
-        'bioBaselineSamples': bioBaselineSamples,
-        'bioBaselineMv': bioBaselineMv,
-        'bioDeviationMv': bioDeviationMv,
-        'bioNoiseMv': bioNoiseMv,
-        'bioSignalQuality': bioSignalQuality,
-      };
+    'nodeId': nodeId,
+    'timestamp': timestamp.toIso8601String(),
+    'soilMoisture': soilMoistureAvailable ? soilMoisture : null,
+    'temperature': temperatureAvailable ? temperature : null,
+    'humidity': humidityAvailable ? humidity : null,
+    'light': lightAvailable ? light : null,
+    'lightLux': lightAvailable ? lightLux : null,
+    'soilTemperature': soilTemperatureAvailable ? soilTemperature : null,
+    'leafWetness': leafWetnessAvailable ? leafWetness : null,
+    'plantSignal': plantSignalAvailable ? plantSignal : null,
+    'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
+    'bioSource': bioSource,
+    'healthScore': healthScore,
+    'stressScore': stressScore,
+    'healthStatus': healthStatus,
+    'analysisConfidence': analysisConfidence,
+    'edgeAnalysisAvailable': edgeAnalysisAvailable,
+    'crop': crop,
+    'growthStage': growthStage,
+    'reliabilityMode': reliabilityMode,
+    'systemStatus': systemStatus,
+    'recoveryStatus': recoveryStatus,
+    'primaryRootCause': primaryRootCause,
+    'farmerAction': farmerAction,
+    'rootCauseConfidence': rootCauseConfidence,
+    'rankedRootCauses': rankedRootCauses,
+    'bioticState': bioticState,
+    'bioState': bioState,
+    'cameraRecommended': cameraRecommended,
+    'cameraReason': cameraReason,
+    'sensorStates': sensorStates,
+    'esp32HealthScore': esp32HealthScore,
+    'esp32HealthConfidence': esp32HealthConfidence,
+    'waterScore': waterScore,
+    'thermalScore': thermalScore,
+    'rootZoneScore': rootZoneScore,
+    'atmosphericScore': atmosphericScore,
+    'lightScore': lightScore,
+    'diseaseRisk': diseaseRisk,
+    'bioelectricStability': bioelectricStability,
+    'soilRaw': soilRaw,
+    'leafRaw': leafRaw,
+    'soilCalibrated': soilCalibrated,
+    'leafCalibrated': leafCalibrated,
+    'daytime': daytime,
+    'leafWetDurationSeconds': leafWetDurationSeconds,
+    'recentWetExposureSeconds': recentWetExposureSeconds,
+    'bioBaselineReady': bioBaselineReady,
+    'bioBaselineSamples': bioBaselineSamples,
+    'bioBaselineMv': bioBaselineMv,
+    'bioDeviationMv': bioDeviationMv,
+    'bioNoiseMv': bioNoiseMv,
+    'bioSignalQuality': bioSignalQuality,
+  };
 
   factory SensorReading.fromJson(Map<String, dynamic> json) {
     final soilAvailable = _available(json, 'soilMoisture');
@@ -239,15 +238,14 @@ class SensorReading {
         _available(json, 'plantSignal') || _available(json, 'plantVoltageMv');
 
     final soil = soilAvailable ? _num(json['soilMoisture']) : 62.0;
-    final temperature =
-        temperatureAvailable ? _num(json['temperature']) : 25.0;
+    final temperature = temperatureAvailable ? _num(json['temperature']) : 25.0;
     final humidity = humidityAvailable ? _num(json['humidity']) : 58.0;
     final light = lightAvailable ? _num(json['light']) : 68.0;
     final plantSignal = _available(json, 'plantSignal')
         ? _num(json['plantSignal'])
         : (_available(json, 'bioelectricStability')
-            ? _num(json['bioelectricStability'])
-            : 50.0);
+              ? _num(json['bioelectricStability'])
+              : 50.0);
 
     final fallbackHealth = calculateHealth(
       soilMoisture: soil,
@@ -282,8 +280,9 @@ class SensorReading {
       healthScore: health,
       stressScore: stress,
       healthStatus: '${json['healthStatus'] ?? statusForHealth(health)}',
-      analysisConfidence:
-          _bounded(_nullableNum(json['analysisConfidence']) ?? 0),
+      analysisConfidence: _bounded(
+        _nullableNum(json['analysisConfidence']) ?? 0,
+      ),
       edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,
       crop: '${json['crop'] ?? 'Universal'}',
       growthStage: '${json['growthStage'] ?? 'Vegetative'}',
@@ -313,8 +312,7 @@ class SensorReading {
       soilCalibrated: json['soilCalibrated'] == true,
       leafCalibrated: json['leafCalibrated'] == true,
       daytime: json['daytime'] != false,
-      leafWetDurationSeconds:
-          _nullableNum(json['leafWetDurationSeconds']) ?? 0,
+      leafWetDurationSeconds: _nullableNum(json['leafWetDurationSeconds']) ?? 0,
       recentWetExposureSeconds:
           _nullableNum(json['recentWetExposureSeconds']) ?? 0,
       bioBaselineReady: json['bioBaselineReady'] == true,
@@ -322,8 +320,7 @@ class SensorReading {
       bioBaselineMv: _nullableNum(json['bioBaselineMv']),
       bioDeviationMv: _nullableNum(json['bioDeviationMv']),
       bioNoiseMv: _nullableNum(json['bioNoiseMv']),
-      bioSignalQuality:
-          _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
+      bioSignalQuality: _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
       soilMoistureAvailable: soilAvailable,
       temperatureAvailable: temperatureAvailable,
       humidityAvailable: humidityAvailable,
@@ -347,8 +344,7 @@ class SensorReading {
 
   static double? _nullableNum(dynamic value) {
     if (value == null) return null;
-    final parsed =
-        value is num ? value.toDouble() : double.tryParse('$value');
+    final parsed = value is num ? value.toDouble() : double.tryParse('$value');
     return parsed?.isFinite == true ? parsed : null;
   }
 
@@ -389,26 +385,10 @@ class SensorReading {
       usedWeight += weight;
     }
 
-    add(
-      100 - (soilMoisture - 62).abs() * 1.2,
-      0.4,
-      soilMoistureAvailable,
-    );
-    add(
-      100 - (temperature - 25).abs() * 4.0,
-      0.3,
-      temperatureAvailable,
-    );
-    add(
-      100 - (humidity - 60).abs() * 1.1,
-      0.2,
-      humidityAvailable,
-    );
-    add(
-      100 - (light - 65).abs() * 0.8,
-      0.1,
-      lightAvailable,
-    );
+    add(100 - (soilMoisture - 62).abs() * 1.2, 0.4, soilMoistureAvailable);
+    add(100 - (temperature - 25).abs() * 4.0, 0.3, temperatureAvailable);
+    add(100 - (humidity - 60).abs() * 1.1, 0.2, humidityAvailable);
+    add(100 - (light - 65).abs() * 0.8, 0.1, lightAvailable);
     return usedWeight == 0
         ? 50.0
         : (weighted / usedWeight).clamp(0.0, 100.0).toDouble();
@@ -417,10 +397,10 @@ class SensorReading {
   static String statusForHealth(double health) => health >= 82
       ? 'excellent'
       : health >= 65
-          ? 'good'
-          : health >= 42
-              ? 'watch'
-              : 'critical';
+      ? 'good'
+      : health >= 42
+      ? 'watch'
+      : 'critical';
 
   SensorReading copyWith({
     String? nodeId,
@@ -526,8 +506,7 @@ class SensorReading {
       atmosphericScore: atmosphericScore ?? this.atmosphericScore,
       lightScore: lightScore ?? this.lightScore,
       diseaseRisk: diseaseRisk ?? this.diseaseRisk,
-      bioelectricStability:
-          bioelectricStability ?? this.bioelectricStability,
+      bioelectricStability: bioelectricStability ?? this.bioelectricStability,
       soilRaw: soilRaw ?? this.soilRaw,
       leafRaw: leafRaw ?? this.leafRaw,
       soilCalibrated: soilCalibrated ?? this.soilCalibrated,
@@ -545,16 +524,13 @@ class SensorReading {
       bioSignalQuality: bioSignalQuality ?? this.bioSignalQuality,
       soilMoistureAvailable:
           soilMoistureAvailable ?? this.soilMoistureAvailable,
-      temperatureAvailable:
-          temperatureAvailable ?? this.temperatureAvailable,
+      temperatureAvailable: temperatureAvailable ?? this.temperatureAvailable,
       humidityAvailable: humidityAvailable ?? this.humidityAvailable,
       lightAvailable: lightAvailable ?? this.lightAvailable,
       soilTemperatureAvailable:
           soilTemperatureAvailable ?? this.soilTemperatureAvailable,
-      leafWetnessAvailable:
-          leafWetnessAvailable ?? this.leafWetnessAvailable,
-      plantSignalAvailable:
-          plantSignalAvailable ?? this.plantSignalAvailable,
+      leafWetnessAvailable: leafWetnessAvailable ?? this.leafWetnessAvailable,
+      plantSignalAvailable: plantSignalAvailable ?? this.plantSignalAvailable,
     );
   }
 

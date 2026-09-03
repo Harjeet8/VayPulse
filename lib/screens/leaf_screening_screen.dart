@@ -52,7 +52,8 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     final scope = AppScope.of(context);
     final fieldCrop = scope.farms.selectedField.crop;
     final hardwareCrop = scope.sensors.current?.crop;
-    final requestedCrop = widget.initialCrop ??
+    final requestedCrop =
+        widget.initialCrop ??
         (scope.sensors.source == SensorDataSource.esp32
             ? hardwareCrop
             : fieldCrop);
@@ -151,14 +152,13 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     final candidateText = topCandidate == null
         ? ''
         : '${context.tr('disease_top_match')}: '
-            '${context.tr(topCandidate.nameKey)}, '
-            '${context.tr('disease_match_score', {
-                'value': topCandidate.matchScore,
-              })}. '
-            '${context.tr(topCandidate.reasonKey)}. '
-            '${context.tr('disease_inspect_next')}: '
-            '${context.tr(topCandidate.inspectionKey)}. ';
-    final text = '$candidateText${context.tr(screening.riskKey)}. '
+              '${context.tr(topCandidate.nameKey)}, '
+              '${context.tr('disease_match_score', {'value': topCandidate.matchScore})}. '
+              '${context.tr(topCandidate.reasonKey)}. '
+              '${context.tr('disease_inspect_next')}: '
+              '${context.tr(topCandidate.inspectionKey)}. ';
+    final text =
+        '$candidateText${context.tr(screening.riskKey)}. '
         '${context.tr(screening.explanationKey)}. '
         '${context.tr(screening.actionKey)}. '
         '${context.tr('disease_not_confirmed_short')}';
@@ -167,9 +167,9 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
       languageCode: scope.settings.value.languageCode,
     );
     if (!spoken && mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('voice_unavailable'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.tr('voice_unavailable'))));
     }
   }
 
@@ -190,8 +190,11 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
             ),
             child: Row(
               children: [
-                const Icon(Icons.document_scanner_outlined,
-                    color: Colors.white, size: 42),
+                const Icon(
+                  Icons.document_scanner_outlined,
+                  color: Colors.white,
+                  size: 42,
+                ),
                 const SizedBox(width: 15),
                 Expanded(
                   child: Column(
@@ -200,9 +203,9 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
                       Text(
                         context.tr('leaf_screening_hero'),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const SizedBox(height: 5),
                       Text(
@@ -222,10 +225,10 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
             activeStep: !cropConfirmed
                 ? 0
                 : imageBytes == null
-                    ? 1
-                    : result == null
-                        ? 2
-                        : 3,
+                ? 1
+                : result == null
+                ? 2
+                : 3,
           ),
           const SizedBox(height: 14),
           _CropConfirmationCard(
@@ -254,11 +257,14 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
           ),
           const SizedBox(height: 14),
           _MultimodalContextCard(
-            crop: context.tr(CropCatalog.profileFor(
-              selectedCrop ?? CropCatalog.supported.first.name,
-            ).localizationKey),
+            crop: context.tr(
+              CropCatalog.profileFor(
+                selectedCrop ?? CropCatalog.supported.first.name,
+              ).localizationKey,
+            ),
             reading: scope.sensors.current,
-            hasWeather: scope.sensors.source != SensorDataSource.esp32 &&
+            hasWeather:
+                scope.sensors.source != SensorDataSource.esp32 &&
                 scope.weather.isFresh,
             isLive: scope.sensors.source == SensorDataSource.esp32,
             sensorPrompt: widget.sensorPrompt,
@@ -286,15 +292,9 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
                   if (constraints.maxWidth < 430) {
                     return Column(
                       children: [
-                        SizedBox(
-                          width: double.infinity,
-                          child: cameraButton,
-                        ),
+                        SizedBox(width: double.infinity, child: cameraButton),
                         const SizedBox(height: 10),
-                        SizedBox(
-                          width: double.infinity,
-                          child: galleryButton,
-                        ),
+                        SizedBox(width: double.infinity, child: galleryButton),
                       ],
                     );
                   }
@@ -359,8 +359,10 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
                 padding: const EdgeInsets.all(18),
                 child: Row(
                   children: [
-                    const Icon(Icons.error_outline_rounded,
-                        color: phytoTerracotta),
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: phytoTerracotta,
+                    ),
                     const SizedBox(width: 10),
                     Expanded(child: Text(context.tr(errorKey!))),
                   ],
@@ -368,10 +370,7 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
               ),
             ),
           if (result != null)
-            _ScreeningResultCard(
-              result: result!,
-              onSpeak: _speakResult,
-            ),
+            _ScreeningResultCard(result: result!, onSpeak: _speakResult),
           if (result != null && _isTomato) ...[
             const SizedBox(height: 14),
             _TomatoSymptomCard(
@@ -438,8 +437,8 @@ class _ScreeningProgress extends StatelessWidget {
                         backgroundColor: index <= activeStep
                             ? Theme.of(context).colorScheme.primary
                             : Theme.of(context)
-                                .colorScheme
-                                .surfaceContainerHighest,
+                                  .colorScheme
+                                  .surfaceContainerHighest,
                         foregroundColor: index <= activeStep
                             ? Theme.of(context).colorScheme.onPrimary
                             : Theme.of(context).colorScheme.onSurfaceVariant,
@@ -451,9 +450,8 @@ class _ScreeningProgress extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.w800,
-                            ),
+                        style: Theme.of(context).textTheme.labelSmall
+                            ?.copyWith(fontWeight: FontWeight.w800),
                       ),
                     ],
                   ),
@@ -489,80 +487,75 @@ class _TomatoSymptomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.fact_check_outlined,
-                    color: Theme.of(context).colorScheme.primary,
+              Icon(
+                Icons.fact_check_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  context.tr('tomato_symptoms_title'),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
                   ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Text(
-                      context.tr('tomato_symptoms_title'),
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(context.tr('tomato_symptoms_body')),
-              const SizedBox(height: 14),
-              _ObservationField(
-                questionKey: 'tomato_question_rings',
-                value: answers.concentricRings,
-                onChanged: (value) => onChanged(
-                  answers.copyWith(concentricRings: value),
-                ),
-              ),
-              _ObservationField(
-                questionKey: 'tomato_question_water_soaked',
-                value: answers.waterSoakedLesions,
-                onChanged: (value) => onChanged(
-                  answers.copyWith(waterSoakedLesions: value),
-                ),
-              ),
-              _ObservationField(
-                questionKey: 'tomato_question_yellow_halos',
-                value: answers.yellowHalos,
-                onChanged: (value) => onChanged(
-                  answers.copyWith(yellowHalos: value),
-                ),
-              ),
-              _ObservationField(
-                questionKey: 'tomato_question_leaf_curl',
-                value: answers.leafCurling,
-                onChanged: (value) => onChanged(
-                  answers.copyWith(leafCurling: value),
-                ),
-              ),
-              _ObservationField(
-                questionKey: 'tomato_question_whiteflies',
-                value: answers.whitefliesPresent,
-                onChanged: (value) => onChanged(
-                  answers.copyWith(whitefliesPresent: value),
-                ),
-              ),
-              const SizedBox(height: 5),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: answers.isComplete ? onSubmit : null,
-                  icon: const Icon(Icons.manage_search_rounded),
-                  label: Text(context.tr('rank_potential_issues')),
                 ),
               ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 6),
+          Text(context.tr('tomato_symptoms_body')),
+          const SizedBox(height: 14),
+          _ObservationField(
+            questionKey: 'tomato_question_rings',
+            value: answers.concentricRings,
+            onChanged: (value) =>
+                onChanged(answers.copyWith(concentricRings: value)),
+          ),
+          _ObservationField(
+            questionKey: 'tomato_question_water_soaked',
+            value: answers.waterSoakedLesions,
+            onChanged: (value) =>
+                onChanged(answers.copyWith(waterSoakedLesions: value)),
+          ),
+          _ObservationField(
+            questionKey: 'tomato_question_yellow_halos',
+            value: answers.yellowHalos,
+            onChanged: (value) =>
+                onChanged(answers.copyWith(yellowHalos: value)),
+          ),
+          _ObservationField(
+            questionKey: 'tomato_question_leaf_curl',
+            value: answers.leafCurling,
+            onChanged: (value) =>
+                onChanged(answers.copyWith(leafCurling: value)),
+          ),
+          _ObservationField(
+            questionKey: 'tomato_question_whiteflies',
+            value: answers.whitefliesPresent,
+            onChanged: (value) =>
+                onChanged(answers.copyWith(whitefliesPresent: value)),
+          ),
+          const SizedBox(height: 5),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: answers.isComplete ? onSubmit : null,
+              icon: const Icon(Icons.manage_search_rounded),
+              label: Text(context.tr('rank_potential_issues')),
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ObservationField extends StatelessWidget {
@@ -578,25 +571,25 @@ class _ObservationField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: DropdownButtonFormField<FieldObservation>(
-          key: ValueKey('$questionKey:${value?.name}'),
-          initialValue: value,
-          isExpanded: true,
-          decoration: InputDecoration(labelText: context.tr(questionKey)),
-          items: FieldObservation.values
-              .map(
-                (choice) => DropdownMenuItem(
-                  value: choice,
-                  child: Text(context.tr('observation_${choice.name}')),
-                ),
-              )
-              .toList(growable: false),
-          onChanged: (choice) {
-            if (choice != null) onChanged(choice);
-          },
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 12),
+    child: DropdownButtonFormField<FieldObservation>(
+      key: ValueKey('$questionKey:${value?.name}'),
+      initialValue: value,
+      isExpanded: true,
+      decoration: InputDecoration(labelText: context.tr(questionKey)),
+      items: FieldObservation.values
+          .map(
+            (choice) => DropdownMenuItem(
+              value: choice,
+              child: Text(context.tr('observation_${choice.name}')),
+            ),
+          )
+          .toList(growable: false),
+      onChanged: (choice) {
+        if (choice != null) onChanged(choice);
+      },
+    ),
+  );
 }
 
 class _CropConfirmationCard extends StatelessWidget {
@@ -614,62 +607,62 @@ class _CropConfirmationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(17),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(17),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.verified_outlined,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Text(
-                      context.tr('confirm_crop_title'),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                ],
+              Icon(
+                Icons.verified_outlined,
+                color: Theme.of(context).colorScheme.primary,
               ),
-              const SizedBox(height: 6),
-              Text(context.tr('confirm_crop_body')),
-              const SizedBox(height: 14),
-              DropdownButtonFormField<String>(
-                key: ValueKey(selectedCrop),
-                initialValue: selectedCrop,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  labelText: context.tr('select_crop'),
-                  prefixIcon: const Icon(Icons.grass_rounded),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  context.tr('confirm_crop_title'),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
-                items: CropCatalog.supported
-                    .map(
-                      (crop) => DropdownMenuItem(
-                        value: crop.name,
-                        child: Text(context.tr(crop.localizationKey)),
-                      ),
-                    )
-                    .toList(growable: false),
-                onChanged: (value) {
-                  if (value != null) onCropChanged(value);
-                },
-              ),
-              const SizedBox(height: 8),
-              CheckboxListTile(
-                value: confirmed,
-                onChanged: (value) => onConfirmed(value ?? false),
-                contentPadding: EdgeInsets.zero,
-                controlAffinity: ListTileControlAffinity.leading,
-                title: Text(context.tr('confirm_crop_checkbox')),
-                subtitle: Text(context.tr('crop_not_auto_detected')),
               ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 6),
+          Text(context.tr('confirm_crop_body')),
+          const SizedBox(height: 14),
+          DropdownButtonFormField<String>(
+            key: ValueKey(selectedCrop),
+            initialValue: selectedCrop,
+            isExpanded: true,
+            decoration: InputDecoration(
+              labelText: context.tr('select_crop'),
+              prefixIcon: const Icon(Icons.grass_rounded),
+            ),
+            items: CropCatalog.supported
+                .map(
+                  (crop) => DropdownMenuItem(
+                    value: crop.name,
+                    child: Text(context.tr(crop.localizationKey)),
+                  ),
+                )
+                .toList(growable: false),
+            onChanged: (value) {
+              if (value != null) onCropChanged(value);
+            },
+          ),
+          const SizedBox(height: 8),
+          CheckboxListTile(
+            value: confirmed,
+            onChanged: (value) => onConfirmed(value ?? false),
+            contentPadding: EdgeInsets.zero,
+            controlAffinity: ListTileControlAffinity.leading,
+            title: Text(context.tr('confirm_crop_checkbox')),
+            subtitle: Text(context.tr('crop_not_auto_detected')),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _MultimodalContextCard extends StatelessWidget {
@@ -717,15 +710,18 @@ class _MultimodalContextCard extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 5,
+                  ),
                   decoration: BoxDecoration(
                     color: sourceColor.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(99),
                   ),
                   child: Text(
-                    context
-                        .tr(isLive ? 'source_live_badge' : 'source_demo_badge'),
+                    context.tr(
+                      isLive ? 'source_live_badge' : 'source_demo_badge',
+                    ),
                     style: TextStyle(
                       color: sourceColor,
                       fontSize: 11,
@@ -736,11 +732,13 @@ class _MultimodalContextCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 8),
-            Text(context.tr(
-              sensorPrompt
-                  ? 'disease_prompt_context_body'
-                  : 'disease_context_body',
-            )),
+            Text(
+              context.tr(
+                sensorPrompt
+                    ? 'disease_prompt_context_body'
+                    : 'disease_context_body',
+              ),
+            ),
             const SizedBox(height: 12),
             Wrap(
               spacing: 8,
@@ -752,16 +750,22 @@ class _MultimodalContextCard extends StatelessWidget {
                 ),
                 Chip(
                   avatar: const Icon(Icons.sensors_outlined, size: 17),
-                  label: Text(reading == null || !reading!.plantSignalAvailable
-                      ? context.tr('disease_context_no_sensor')
-                      : '${context.tr('plant_signal')}: '
-                          '${reading!.plantSignal.toStringAsFixed(0)}%'),
+                  label: Text(
+                    reading == null || !reading!.plantSignalAvailable
+                        ? context.tr('disease_context_no_sensor')
+                        : '${context.tr('plant_signal')}: '
+                              '${reading!.plantSignal.toStringAsFixed(0)}%',
+                  ),
                 ),
                 Chip(
                   avatar: const Icon(Icons.cloud_outlined, size: 17),
-                  label: Text(context.tr(hasWeather
-                      ? 'disease_context_weather_ready'
-                      : 'disease_context_weather_unavailable')),
+                  label: Text(
+                    context.tr(
+                      hasWeather
+                          ? 'disease_context_weather_ready'
+                          : 'disease_context_weather_unavailable',
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -777,34 +781,39 @@ class _PhotoGuide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(context.tr('photo_guide_title'),
-                  style: const TextStyle(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 12),
-              for (final key in [
-                'photo_guide_light',
-                'photo_guide_single_leaf',
-                'photo_guide_focus',
-              ])
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle_rounded,
-                          color: phytoLeaf, size: 19),
-                      const SizedBox(width: 9),
-                      Expanded(child: Text(context.tr(key))),
-                    ],
-                  ),
-                ),
-            ],
+    child: Padding(
+      padding: const EdgeInsets.all(20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.tr('photo_guide_title'),
+            style: const TextStyle(fontWeight: FontWeight.w900),
           ),
-        ),
-      );
+          const SizedBox(height: 12),
+          for (final key in [
+            'photo_guide_light',
+            'photo_guide_single_leaf',
+            'photo_guide_focus',
+          ])
+            Padding(
+              padding: const EdgeInsets.only(bottom: 8),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.check_circle_rounded,
+                    color: phytoLeaf,
+                    size: 19,
+                  ),
+                  const SizedBox(width: 9),
+                  Expanded(child: Text(context.tr(key))),
+                ],
+              ),
+            ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ScreeningResultCard extends StatelessWidget {
@@ -826,8 +835,10 @@ class _ScreeningResultCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(caution ? Icons.search_rounded : Icons.eco_rounded,
-                    color: accent),
+                Icon(
+                  caution ? Icons.search_rounded : Icons.eco_rounded,
+                  color: accent,
+                ),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
@@ -887,224 +898,217 @@ class _DiseaseAssessmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(18),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: phytoGreen.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(13),
-                    ),
-                    child:
-                        const Icon(Icons.biotech_outlined, color: phytoGreen),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.tr('disease_potential_matches'),
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        Text(
-                          context.tr('disease_crop_context', {
-                            'crop': context.tr(
-                              CropCatalog.profileFor(assessment.crop)
-                                  .localizationKey,
-                            ),
-                          }),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(context.tr('disease_ranking_explanation')),
-              if (assessment.isInconclusive) ...[
-                const SizedBox(height: 12),
-                Container(
-                  padding: const EdgeInsets.all(13),
-                  decoration: BoxDecoration(
-                    color: phytoAmber.withValues(alpha: 0.09),
-                    borderRadius: BorderRadius.circular(15),
-                  ),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.help_outline_rounded, color: phytoAmber),
-                      const SizedBox(width: 9),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.tr('disease_inconclusive_title'),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w900),
-                            ),
-                            const SizedBox(height: 3),
-                            Text(context.tr('disease_inconclusive_body')),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-              const SizedBox(height: 14),
-              for (var index = 0;
-                  index < assessment.candidates.length;
-                  index++) ...[
-                _DiseaseCandidateTile(
-                  candidate: assessment.candidates[index],
-                  rank: index + 1,
-                ),
-                if (index != assessment.candidates.length - 1)
-                  const Divider(height: 25),
-              ],
-              const SizedBox(height: 16),
-              Text(
-                context.tr('disease_evidence_used'),
-                style: const TextStyle(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 9),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: assessment.evidenceKeys
-                    .map(
-                      (key) => Chip(
-                        avatar: const Icon(Icons.fact_check_outlined, size: 17),
-                        label: Text(context.tr(key)),
-                      ),
-                    )
-                    .toList(),
-              ),
-              const SizedBox(height: 14),
               Container(
-                padding: const EdgeInsets.all(13),
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: phytoAmber.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: phytoAmber.withValues(alpha: 0.28),
-                  ),
+                  color: phytoGreen.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(13),
                 ),
-                child: Row(
+                child: const Icon(Icons.biotech_outlined, color: phytoGreen),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.info_outline_rounded,
-                        color: phytoAmber, size: 20),
-                    const SizedBox(width: 9),
-                    Expanded(child: Text(context.tr('disease_not_confirmed'))),
+                    Text(
+                      context.tr('disease_potential_matches'),
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    Text(
+                      context.tr('disease_crop_context', {
+                        'crop': context.tr(
+                          CropCatalog.profileFor(assessment.crop)
+                              .localizationKey,
+                        ),
+                      }),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 12),
+          Text(context.tr('disease_ranking_explanation')),
+          if (assessment.isInconclusive) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(13),
+              decoration: BoxDecoration(
+                color: phytoAmber.withValues(alpha: 0.09),
+                borderRadius: BorderRadius.circular(15),
+              ),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.help_outline_rounded, color: phytoAmber),
+                  const SizedBox(width: 9),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context.tr('disease_inconclusive_title'),
+                          style: const TextStyle(fontWeight: FontWeight.w900),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(context.tr('disease_inconclusive_body')),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          const SizedBox(height: 14),
+          for (
+            var index = 0;
+            index < assessment.candidates.length;
+            index++
+          ) ...[
+            _DiseaseCandidateTile(
+              candidate: assessment.candidates[index],
+              rank: index + 1,
+            ),
+            if (index != assessment.candidates.length - 1)
+              const Divider(height: 25),
+          ],
+          const SizedBox(height: 16),
+          Text(
+            context.tr('disease_evidence_used'),
+            style: const TextStyle(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 9),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: assessment.evidenceKeys
+                .map(
+                  (key) => Chip(
+                    avatar: const Icon(Icons.fact_check_outlined, size: 17),
+                    label: Text(context.tr(key)),
+                  ),
+                )
+                .toList(),
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.all(13),
+            decoration: BoxDecoration(
+              color: phytoAmber.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: phytoAmber.withValues(alpha: 0.28)),
+            ),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  color: phytoAmber,
+                  size: 20,
+                ),
+                const SizedBox(width: 9),
+                Expanded(child: Text(context.tr('disease_not_confirmed'))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _DiseaseCandidateTile extends StatelessWidget {
   final DiseaseCandidate candidate;
   final int rank;
 
-  const _DiseaseCandidateTile({
-    required this.candidate,
-    required this.rank,
-  });
+  const _DiseaseCandidateTile({required this.candidate, required this.rank});
 
   @override
   Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 30,
-                height: 30,
-                alignment: Alignment.center,
-                decoration: BoxDecoration(
-                  color: rank == 1
-                      ? phytoGreen.withValues(alpha: 0.12)
-                      : Theme.of(context).colorScheme.surfaceContainerHighest,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Text(
-                  '$rank',
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(
-                  context.tr(candidate.nameKey),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-              Chip(
-                visualDensity: VisualDensity.compact,
-                label: Text(context.tr(candidate.categoryKey)),
-              ),
-            ],
+          Container(
+            width: 30,
+            height: 30,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: rank == 1
+                  ? phytoGreen.withValues(alpha: 0.12)
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Text(
+              '$rank',
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
           ),
-          const SizedBox(height: 9),
-          Row(
-            children: [
-              Expanded(
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(99),
-                  child: LinearProgressIndicator(
-                    value: candidate.matchScore / 100,
-                    minHeight: 8,
-                    backgroundColor: phytoGreen.withValues(alpha: 0.1),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Text(
-                context.tr('disease_match_score', {
-                  'value': candidate.matchScore,
-                }),
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ],
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              context.tr(candidate.nameKey),
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w900),
+            ),
           ),
-          const SizedBox(height: 10),
-          Text(context.tr(candidate.reasonKey)),
-          const SizedBox(height: 8),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.search_rounded, color: phytoGreen, size: 19),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  '${context.tr('disease_inspect_next')}: '
-                  '${context.tr(candidate.inspectionKey)}',
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-            ],
+          Chip(
+            visualDensity: VisualDensity.compact,
+            label: Text(context.tr(candidate.categoryKey)),
           ),
         ],
-      );
+      ),
+      const SizedBox(height: 9),
+      Row(
+        children: [
+          Expanded(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(99),
+              child: LinearProgressIndicator(
+                value: candidate.matchScore / 100,
+                minHeight: 8,
+                backgroundColor: phytoGreen.withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            context.tr('disease_match_score', {'value': candidate.matchScore}),
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+      const SizedBox(height: 10),
+      Text(context.tr(candidate.reasonKey)),
+      const SizedBox(height: 8),
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.search_rounded, color: phytoGreen, size: 19),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              '${context.tr('disease_inspect_next')}: '
+              '${context.tr(candidate.inspectionKey)}',
+              style: const TextStyle(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    ],
+  );
 }
 
 class _EvidenceChip extends StatelessWidget {
@@ -1114,7 +1118,6 @@ class _EvidenceChip extends StatelessWidget {
   const _EvidenceChip({required this.label, required this.value});
 
   @override
-  Widget build(BuildContext context) => Chip(
-        label: Text('$label ${value.toStringAsFixed(1)}%'),
-      );
+  Widget build(BuildContext context) =>
+      Chip(label: Text('$label ${value.toStringAsFixed(1)}%'));
 }

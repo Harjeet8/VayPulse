@@ -22,9 +22,8 @@ class SensorProviderManager extends SensorDataProvider {
     _attach();
   }
 
-  Esp32SensorProvider _buildHardware(String endpoint) => Esp32SensorProvider(
-        client: Esp32Client(endpoint),
-      );
+  Esp32SensorProvider _buildHardware(String endpoint) =>
+      Esp32SensorProvider(client: Esp32Client(endpoint));
 
   String get hardwareEndpoint => _hardware.endpoint;
 
@@ -33,10 +32,7 @@ class SensorProviderManager extends SensorDataProvider {
 
   Future<bool> testEndpoint(String endpoint) => Esp32Client(endpoint).ping();
 
-  void configure({
-    required SensorDataSource source,
-    required String endpoint,
-  }) {
+  void configure({required SensorDataSource source, required String endpoint}) {
     final cleanEndpoint = endpoint.trim().replaceFirst(RegExp(r'/$'), '');
     if (cleanEndpoint.isNotEmpty && cleanEndpoint != _hardware.endpoint) {
       final oldHardware = _hardware;
@@ -51,8 +47,9 @@ class SensorProviderManager extends SensorDataProvider {
       oldHardware.dispose();
     }
 
-    final target =
-        source == SensorDataSource.simulation ? simulation : _hardware;
+    final target = source == SensorDataSource.simulation
+        ? simulation
+        : _hardware;
     if (!identical(target, _active)) {
       _active.stop();
       _detach();

@@ -1,5 +1,6 @@
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/sensor_reading.dart';
@@ -53,10 +54,12 @@ class _InsightsScreenState extends State<InsightsScreen> {
         final average = values.isEmpty
             ? 0.0
             : values.reduce((a, b) => a + b) / values.length;
-        final minimum =
-            values.isEmpty ? 0.0 : values.reduce((a, b) => a < b ? a : b);
-        final maximum =
-            values.isEmpty ? 0.0 : values.reduce((a, b) => a > b ? a : b);
+        final minimum = values.isEmpty
+            ? 0.0
+            : values.reduce((a, b) => a < b ? a : b);
+        final maximum = values.isEmpty
+            ? 0.0
+            : values.reduce((a, b) => a > b ? a : b);
         final current = scope.sensors.current;
         final hardwareMode = scope.sensors.source == SensorDataSource.esp32;
         final analysis = current == null || hardwareMode
@@ -66,10 +69,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 allHistory,
                 crop: scope.farms.selectedField.crop,
               );
-        final hardwareAttention = hardwareMode &&
+        final hardwareAttention =
+            hardwareMode &&
             current != null &&
-            const <String>{'WATCH', 'STRESS', 'CRITICAL'}
-                .contains(current.healthStatus.toUpperCase());
+            const <String>{
+              'WATCH',
+              'STRESS',
+              'CRITICAL',
+            }.contains(current.healthStatus.toUpperCase());
 
         return Scaffold(
           appBar: AppBar(title: Text(context.tr('insights_title'))),
@@ -88,12 +95,16 @@ class _InsightsScreenState extends State<InsightsScreen> {
                   prefixIcon: const Icon(Icons.sensors_outlined),
                 ),
                 items: scope.sensors.nodes
-                    .map((node) => DropdownMenuItem(
-                          value: node.id,
-                          child: Text(node.zoneId.isEmpty
+                    .map(
+                      (node) => DropdownMenuItem(
+                        value: node.id,
+                        child: Text(
+                          node.zoneId.isEmpty
                               ? node.name
-                              : '${node.name} • ${node.zoneId}'),
-                        ))
+                              : '${node.name} • ${node.zoneId}',
+                        ),
+                      ),
+                    )
                     .toList(),
                 onChanged: (value) {
                   if (value != null) scope.sensors.selectNode(value);
@@ -141,10 +152,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
                 child: SegmentedButton<int>(
                   segments: [
                     ButtonSegment(
-                        value: 0, label: Text(context.tr('time_24h'))),
+                      value: 0,
+                      label: Text(context.tr('time_24h')),
+                    ),
                     ButtonSegment(value: 1, label: Text(context.tr('time_7d'))),
                     ButtonSegment(
-                        value: 2, label: Text(context.tr('time_30d'))),
+                      value: 2,
+                      label: Text(context.tr('time_30d')),
+                    ),
                   ],
                   selected: {range},
                   onSelectionChanged: (selection) =>
@@ -167,8 +182,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
                                 drawVerticalLine: false,
                                 horizontalInterval: _interval,
                                 getDrawingHorizontalLine: (_) => FlLine(
-                                  color: Theme.of(context)
-                                      .dividerColor
+                                  color: Theme.of(context).dividerColor
                                       .withValues(alpha: 0.7),
                                   strokeWidth: 1,
                                 ),
@@ -262,17 +276,22 @@ class _InsightsScreenState extends State<InsightsScreen> {
                           children: [
                             Text(
                               context.tr('trend_summary'),
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.w900),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w900,
+                              ),
                             ),
                             const SizedBox(height: 6),
-                            Text(context.tr((hardwareMode
+                            Text(
+                              context.tr(
+                                (hardwareMode
                                         ? !hardwareAttention
                                         : analysis == null ||
-                                            analysis.level ==
-                                                InsightLevel.healthy)
-                                ? 'trend_healthy'
-                                : 'trend_attention')),
+                                              analysis.level ==
+                                                  InsightLevel.healthy)
+                                    ? 'trend_healthy'
+                                    : 'trend_attention',
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -288,40 +307,34 @@ class _InsightsScreenState extends State<InsightsScreen> {
   }
 
   double _valueFor(SensorReading reading) => switch (metric) {
-        _Metric.health => reading.healthScore,
-        _Metric.soil => reading.soilMoisture,
-        _Metric.temperature => reading.temperature,
-        _Metric.humidity => reading.humidity,
-        _Metric.plantSignal => reading.plantSignal,
-      };
+    _Metric.health => reading.healthScore,
+    _Metric.soil => reading.soilMoisture,
+    _Metric.temperature => reading.temperature,
+    _Metric.humidity => reading.humidity,
+    _Metric.plantSignal => reading.plantSignal,
+  };
 
   bool _metricAvailable(SensorReading reading) => switch (metric) {
-        _Metric.health => reading.edgeAnalysisAvailable,
-        _Metric.soil => reading.soilMoistureAvailable,
-        _Metric.temperature => reading.temperatureAvailable,
-        _Metric.humidity => reading.humidityAvailable,
-        _Metric.plantSignal => reading.plantSignalAvailable,
-      };
+    _Metric.health => reading.edgeAnalysisAvailable,
+    _Metric.soil => reading.soilMoistureAvailable,
+    _Metric.temperature => reading.temperatureAvailable,
+    _Metric.humidity => reading.humidityAvailable,
+    _Metric.plantSignal => reading.plantSignalAvailable,
+  };
 
-  List<SensorReading> _downsample(
-    List<SensorReading> readings,
-    int maximum,
-  ) {
+  List<SensorReading> _downsample(List<SensorReading> readings, int maximum) {
     if (readings.length <= maximum) return readings;
     final step = readings.length / maximum;
-    return List.generate(
-      maximum,
-      (index) => readings[(index * step).floor()],
-    );
+    return List.generate(maximum, (index) => readings[(index * step).floor()]);
   }
 
   Color get _metricColor => switch (metric) {
-        _Metric.health => phytoGreen,
-        _Metric.soil => const Color(0xFF2F85C8),
-        _Metric.temperature => phytoTerracotta,
-        _Metric.humidity => const Color(0xFF6D78CE),
-        _Metric.plantSignal => const Color(0xFF7A5CC7),
-      };
+    _Metric.health => phytoGreen,
+    _Metric.soil => const Color(0xFF2F85C8),
+    _Metric.temperature => phytoTerracotta,
+    _Metric.humidity => const Color(0xFF6D78CE),
+    _Metric.plantSignal => const Color(0xFF7A5CC7),
+  };
 
   String _format(double value) =>
       '${value.toStringAsFixed(metric == _Metric.temperature ? 1 : 0)}${metric == _Metric.temperature ? '°' : '%'}';
@@ -356,29 +369,27 @@ class _StatCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Icon(icon, color: Theme.of(context).colorScheme.primary),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(label, style: Theme.of(context).textTheme.bodySmall),
-                    Text(
-                      value,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleLarge
-                          ?.copyWith(fontWeight: FontWeight.w900),
-                    ),
-                  ],
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Icon(icon, color: Theme.of(context).colorScheme.primary),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: Theme.of(context).textTheme.bodySmall),
+                Text(
+                  value,
+                  style: Theme.of(context).textTheme.titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 }

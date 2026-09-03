@@ -99,19 +99,22 @@ void main() {
       expect(wet.diseaseRisk, greaterThan(50));
     });
 
-    test('bioelectric baseline deviation lowers stability only when available', () {
-      final stable = HealthAnalysisEngine.analyze(
-        _reading(bioStability: 92),
-        const [],
-      );
-      final unstable = HealthAnalysisEngine.analyze(
-        _reading(bioStability: 35),
-        const [],
-      );
-      expect(
-        unstable.bioelectricStability!,
-        lessThan(stable.bioelectricStability!),
-      );
-    });
+    test(
+      'bioelectric baseline deviation lowers stability only when available',
+      () {
+        final stable = HealthAnalysisEngine.analyze(
+          _reading(bioStability: 92),
+          const [],
+        );
+        final unstable = HealthAnalysisEngine.analyze(
+          _reading(bioStability: 35),
+          const [],
+        );
+        expect(
+          unstable.bioelectricStability!,
+          lessThan(stable.bioelectricStability!),
+        );
+      },
+    );
   });
 }

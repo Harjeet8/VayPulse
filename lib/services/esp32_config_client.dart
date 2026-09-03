@@ -7,8 +7,8 @@ class Esp32ConfigClient {
   final http.Client _httpClient;
 
   Esp32ConfigClient(String baseUrl, {http.Client? httpClient})
-      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
-        _httpClient = httpClient ?? http.Client();
+    : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
+      _httpClient = httpClient ?? http.Client();
 
   Future<Esp32ConfigSnapshot> getConfig() async {
     final response = await _httpClient
@@ -67,7 +67,9 @@ class Esp32ConfigClient {
     }
     final refreshed = await getConfig();
     if (!_same(stage, refreshed.growthStage)) {
-      throw const FormatException('ESP32 growth-stage confirmation did not persist');
+      throw const FormatException(
+        'ESP32 growth-stage confirmation did not persist',
+      );
     }
     return refreshed.growthStage;
   }

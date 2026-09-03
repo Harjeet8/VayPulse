@@ -17,8 +17,9 @@ class InsightCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: (accent ?? Theme.of(context).colorScheme.primary)
-          .withValues(alpha: 0.1),
+      color: (accent ?? Theme.of(context).colorScheme.primary).withValues(
+        alpha: 0.1,
+      ),
       child: Padding(
         padding: const EdgeInsets.all(18),
         child: Row(
@@ -33,8 +34,10 @@ class InsightCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(title,
-                      style: const TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
                   const SizedBox(height: 6),
                   Text(message),
                   if (action != null) ...[

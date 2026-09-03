@@ -49,9 +49,9 @@ class OfflineSyncService extends ChangeNotifier {
     if (raw != null) {
       try {
         final decoded = jsonDecode(raw) as List;
-        _pending.addAll(decoded.map(
-          (item) => Map<String, dynamic>.from(item as Map),
-        ));
+        _pending.addAll(
+          decoded.map((item) => Map<String, dynamic>.from(item as Map)),
+        );
       } catch (_) {
         _pending.clear();
       }
@@ -60,9 +60,9 @@ class OfflineSyncService extends ChangeNotifier {
     if (historyRaw != null) {
       try {
         final decoded = jsonDecode(historyRaw) as List;
-        _history.addAll(decoded.map(
-          (item) => Map<String, dynamic>.from(item as Map),
-        ));
+        _history.addAll(
+          decoded.map((item) => Map<String, dynamic>.from(item as Map)),
+        );
       } catch (_) {
         _history.clear();
       }
@@ -107,14 +107,8 @@ class OfflineSyncService extends ChangeNotifier {
 
   Future<void> _persist() async {
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(
-      'offlineReadingQueue',
-      jsonEncode(_pending),
-    );
-    await preferences.setString(
-      'localReadingHistory',
-      jsonEncode(_history),
-    );
+    await preferences.setString('offlineReadingQueue', jsonEncode(_pending));
+    await preferences.setString('localReadingHistory', jsonEncode(_history));
   }
 
   Future<bool> syncNow() async {

@@ -26,10 +26,7 @@ void main() {
               'reliability': {'mode': 'RECOVERING'},
               'systemStatus': 'RECOVERY_ACTIVE',
               'recoveryStatus': 'STABILIZING',
-              'rootCause': {
-                'label': 'ROOT_ZONE_LOW_OXYGEN',
-                'confidence': 87,
-              },
+              'rootCause': {'label': 'ROOT_ZONE_LOW_OXYGEN', 'confidence': 87},
               'farmerAction': 'Inspect drainage before irrigating.',
               'rankedRootCauses': [
                 {'label': 'ROOT_ZONE_LOW_OXYGEN'},
@@ -129,31 +126,30 @@ void main() {
   test('crop sync rejects a mismatched node confirmation', () async {
     final client = Esp32ConfigClient(
       'http://192.168.4.1',
-      httpClient: MockClient((_) async => http.Response(
-            jsonEncode({'ok': true, 'crop': 'Tomato'}),
-            200,
-          )),
+      httpClient: MockClient(
+        (_) async =>
+            http.Response(jsonEncode({'ok': true, 'crop': 'Tomato'}), 200),
+      ),
     );
 
-    await expectLater(
-      client.setCrop('Rice'),
-      throwsA(isA<FormatException>()),
-    );
+    await expectLater(client.setCrop('Rice'), throwsA(isA<FormatException>()));
   });
 }
 
 Future<SensorReading> _readingForSource(String source) async {
   final client = Esp32Client(
     'http://192.168.4.1',
-    httpClient: MockClient((_) async => http.Response(
-          jsonEncode({
-            'nodeId': 'node-1',
-            'healthScore': 90,
-            'bioSource': source,
-            'temperature': 25,
-          }),
-          200,
-        )),
+    httpClient: MockClient(
+      (_) async => http.Response(
+        jsonEncode({
+          'nodeId': 'node-1',
+          'healthScore': 90,
+          'bioSource': source,
+          'temperature': 25,
+        }),
+        200,
+      ),
+    ),
   );
   return (await client.getSnapshot()).reading;
 }

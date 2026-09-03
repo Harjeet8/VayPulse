@@ -87,10 +87,7 @@ class VoiceGuidanceService {
       (a, b) => _voiceScore(b, target).compareTo(_voiceScore(a, target)),
     );
     final selected = matching.first;
-    return {
-      'name': selected['name']!,
-      'locale': selected['locale']!,
-    };
+    return {'name': selected['name']!, 'locale': selected['locale']!};
   }
 
   int _voiceScore(Map<String, String> voice, String targetLocale) {

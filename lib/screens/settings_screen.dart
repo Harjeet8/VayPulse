@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
@@ -61,7 +62,8 @@ class SettingsScreen extends StatelessWidget {
                         _SettingsOption(
                           icon: Icons.science_outlined,
                           title: context.tr('simulation_mode'),
-                          selected: scope.sensorManager.source ==
+                          selected:
+                              scope.sensorManager.source ==
                               SensorDataSource.simulation,
                           onTap: () async {
                             await HapticFeedback.mediumImpact();
@@ -77,7 +79,8 @@ class SettingsScreen extends StatelessWidget {
                         _SettingsOption(
                           icon: Icons.memory_rounded,
                           title: context.tr('esp32_live'),
-                          selected: scope.sensorManager.source ==
+                          selected:
+                              scope.sensorManager.source ==
                               SensorDataSource.esp32,
                           onTap: () async {
                             await HapticFeedback.mediumImpact();
@@ -94,9 +97,10 @@ class SettingsScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     Text(
                       context.tr(
-                          scope.sensorManager.source == SensorDataSource.esp32
-                              ? 'esp32_description'
-                              : 'simulation_description'),
+                        scope.sensorManager.source == SensorDataSource.esp32
+                            ? 'esp32_description'
+                            : 'simulation_description',
+                      ),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -144,8 +148,10 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 8),
             Card(
               child: ListTile(
-                contentPadding:
-                    const EdgeInsets.symmetric(horizontal: 18, vertical: 8),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 8,
+                ),
                 leading: const Icon(Icons.info_outline_rounded),
                 title: Text(
                   context.tr('about_settings_title'),
@@ -222,10 +228,12 @@ class SettingsScreen extends StatelessWidget {
                           prefixIcon: const Icon(Icons.science_outlined),
                         ),
                         items: scope.sensors.scenarioIds
-                            .map((scenario) => DropdownMenuItem(
-                                  value: scenario,
-                                  child: Text(context.tr('scenario_$scenario')),
-                                ))
+                            .map(
+                              (scenario) => DropdownMenuItem(
+                                value: scenario,
+                                child: Text(context.tr('scenario_$scenario')),
+                              ),
+                            )
                             .toList(),
                         onChanged: (scenario) {
                           if (scenario == null) return;
@@ -257,8 +265,8 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 18),
             Card(
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.07),
+              color: Theme.of(context).colorScheme.primary
+                  .withValues(alpha: 0.07),
               child: Padding(
                 padding: const EdgeInsets.all(16),
                 child: Row(
@@ -297,125 +305,123 @@ class _ThemePicker extends StatelessWidget {
   final ThemeMode selected;
   final ValueChanged<ThemeMode> onChanged;
 
-  const _ThemePicker({
-    required this.selected,
-    required this.onChanged,
-  });
+  const _ThemePicker({required this.selected, required this.onChanged});
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primaryContainer,
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(
-                      Icons.palette_outlined,
-                      color: Theme.of(context).colorScheme.primary,
-                    ),
-                  ),
-                  const SizedBox(width: 11),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.tr('theme_picker_title'),
-                          style: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          context.tr('theme_picker_body'),
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 15),
-              LayoutBuilder(
-                builder: (context, constraints) {
-                  final vertical = constraints.maxWidth < 400 ||
-                      MediaQuery.textScalerOf(context).scale(1.0) > 1.35;
-                  final options = [
-                    _ThemeOption(
-                      mode: ThemeMode.system,
-                      selected: selected == ThemeMode.system,
-                      icon: Icons.brightness_auto_outlined,
-                      label: context.tr('system_theme'),
-                      onTap: onChanged,
-                    ),
-                    _ThemeOption(
-                      mode: ThemeMode.light,
-                      selected: selected == ThemeMode.light,
-                      icon: Icons.light_mode_outlined,
-                      label: context.tr('light_theme'),
-                      onTap: onChanged,
-                    ),
-                    _ThemeOption(
-                      mode: ThemeMode.dark,
-                      selected: selected == ThemeMode.dark,
-                      icon: Icons.dark_mode_outlined,
-                      label: context.tr('dark_theme'),
-                      onTap: onChanged,
-                    ),
-                  ];
-                  if (vertical) {
-                    return Column(
-                      children: [
-                        for (var i = 0; i < options.length; i++) ...[
-                          options[i],
-                          if (i < options.length - 1) const SizedBox(height: 8),
-                        ],
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      for (var i = 0; i < options.length; i++) ...[
-                        Expanded(child: options[i]),
-                        if (i < options.length - 1) const SizedBox(width: 8),
-                      ],
-                    ],
-                  );
-                },
-              ),
-              const SizedBox(height: 12),
               Container(
-                padding: const EdgeInsets.all(12),
+                width: 42,
+                height: 42,
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceContainer,
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: Theme.of(context).colorScheme.outlineVariant,
-                  ),
+                  color: Theme.of(context).colorScheme.primaryContainer,
+                  borderRadius: BorderRadius.circular(14),
                 ),
-                child: Row(
+                child: Icon(
+                  Icons.palette_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+              ),
+              const SizedBox(width: 11),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(
-                      Icons.visibility_outlined,
-                      size: 19,
-                      color: Theme.of(context).colorScheme.primary,
+                    Text(
+                      context.tr('theme_picker_title'),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
-                    const SizedBox(width: 9),
-                    Expanded(child: Text(context.tr('theme_preview_note'))),
+                    const SizedBox(height: 2),
+                    Text(
+                      context.tr('theme_picker_body'),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
                   ],
                 ),
               ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 15),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final vertical =
+                  constraints.maxWidth < 400 ||
+                  MediaQuery.textScalerOf(context).scale(1.0) > 1.35;
+              final options = [
+                _ThemeOption(
+                  mode: ThemeMode.system,
+                  selected: selected == ThemeMode.system,
+                  icon: Icons.brightness_auto_outlined,
+                  label: context.tr('system_theme'),
+                  onTap: onChanged,
+                ),
+                _ThemeOption(
+                  mode: ThemeMode.light,
+                  selected: selected == ThemeMode.light,
+                  icon: Icons.light_mode_outlined,
+                  label: context.tr('light_theme'),
+                  onTap: onChanged,
+                ),
+                _ThemeOption(
+                  mode: ThemeMode.dark,
+                  selected: selected == ThemeMode.dark,
+                  icon: Icons.dark_mode_outlined,
+                  label: context.tr('dark_theme'),
+                  onTap: onChanged,
+                ),
+              ];
+              if (vertical) {
+                return Column(
+                  children: [
+                    for (var i = 0; i < options.length; i++) ...[
+                      options[i],
+                      if (i < options.length - 1) const SizedBox(height: 8),
+                    ],
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  for (var i = 0; i < options.length; i++) ...[
+                    Expanded(child: options[i]),
+                    if (i < options.length - 1) const SizedBox(width: 8),
+                  ],
+                ],
+              );
+            },
+          ),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Theme.of(context).colorScheme.outlineVariant,
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.visibility_outlined,
+                  size: 19,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 9),
+                Expanded(child: Text(context.tr('theme_preview_note'))),
+              ],
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
 class _ThemeOption extends StatelessWidget {
@@ -443,8 +449,9 @@ class _ThemeOption extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
         decoration: BoxDecoration(
-          color:
-              selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
+          color: selected
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerLow,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,
@@ -536,9 +543,7 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
       });
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
-        ..showSnackBar(
-          SnackBar(content: Text(context.tr('endpoint_invalid'))),
-        );
+        ..showSnackBar(SnackBar(content: Text(context.tr('endpoint_invalid'))));
       return;
     }
     final scope = AppScope.of(context);
@@ -562,85 +567,92 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
-          content: Text(context.tr(
-              result ? 'connection_test_success' : 'connection_test_failed')),
+          content: Text(
+            context.tr(
+              result ? 'connection_test_success' : 'connection_test_failed',
+            ),
+          ),
         ),
       );
   }
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  const Icon(Icons.router_outlined),
-                  const SizedBox(width: 9),
-                  Expanded(
-                    child: Text(
-                      context.tr('configure_esp32'),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Text(context.tr('configure_esp32_body')),
-              const SizedBox(height: 14),
-              TextField(
-                controller: controller,
-                keyboardType: TextInputType.url,
-                autocorrect: false,
-                decoration: InputDecoration(
-                  labelText: context.tr('esp32_endpoint'),
-                  hintText: 'http://192.168.4.1',
-                  prefixIcon: const Icon(Icons.link_rounded),
-                  errorText: validationError,
+              const Icon(Icons.router_outlined),
+              const SizedBox(width: 9),
+              Expanded(
+                child: Text(
+                  context.tr('configure_esp32'),
+                  style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
-              const SizedBox(height: 12),
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: testing ? null : _saveAndTest,
-                  icon: testing
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : const Icon(Icons.cable_rounded),
-                  label: Text(context.tr(
-                    testing ? 'testing_connection' : 'save_and_test',
-                  )),
-                ),
-              ),
-              if (testResult != null) ...[
-                const SizedBox(height: 10),
-                Row(
-                  children: [
-                    Icon(
-                      testResult!
-                          ? Icons.check_circle_rounded
-                          : Icons.error_outline_rounded,
-                      color: testResult! ? phytoLeaf : phytoTerracotta,
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(context.tr(testResult!
-                          ? 'connection_test_success'
-                          : 'connection_test_failed')),
-                    ),
-                  ],
-                ),
-              ],
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 6),
+          Text(context.tr('configure_esp32_body')),
+          const SizedBox(height: 14),
+          TextField(
+            controller: controller,
+            keyboardType: TextInputType.url,
+            autocorrect: false,
+            decoration: InputDecoration(
+              labelText: context.tr('esp32_endpoint'),
+              hintText: 'http://192.168.4.1',
+              prefixIcon: const Icon(Icons.link_rounded),
+              errorText: validationError,
+            ),
+          ),
+          const SizedBox(height: 12),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton.icon(
+              onPressed: testing ? null : _saveAndTest,
+              icon: testing
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.cable_rounded),
+              label: Text(
+                context.tr(testing ? 'testing_connection' : 'save_and_test'),
+              ),
+            ),
+          ),
+          if (testResult != null) ...[
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Icon(
+                  testResult!
+                      ? Icons.check_circle_rounded
+                      : Icons.error_outline_rounded,
+                  color: testResult! ? phytoLeaf : phytoTerracotta,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    context.tr(
+                      testResult!
+                          ? 'connection_test_success'
+                          : 'connection_test_failed',
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
 class _SettingsLabel extends StatelessWidget {
@@ -650,12 +662,12 @@ class _SettingsLabel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        text,
-        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-              fontWeight: FontWeight.w900,
-              color: Theme.of(context).colorScheme.primary,
-            ),
-      );
+    text,
+    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.w900,
+      color: Theme.of(context).colorScheme.primary,
+    ),
+  );
 }
 
 class _VoicePreviewCard extends StatefulWidget {
@@ -686,9 +698,9 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
       voiceLanguage = language;
     });
     if (!spoken) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.tr('voice_unavailable'))),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(context.tr('voice_unavailable'))));
     }
   }
 
@@ -738,9 +750,9 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
               Text(
                 context.tr('voice_selected', {'value': currentVoice}),
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).colorScheme.primary,
-                      fontWeight: FontWeight.w800,
-                    ),
+                  color: Theme.of(context).colorScheme.primary,
+                  fontWeight: FontWeight.w800,
+                ),
               ),
             ],
             const SizedBox(height: 14),
@@ -754,9 +766,11 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
                         child: CircularProgressIndicator(strokeWidth: 2),
                       )
                     : const Icon(Icons.play_arrow_rounded),
-                label: Text(context.tr(
-                  previewing ? 'voice_preview_playing' : 'voice_preview',
-                )),
+                label: Text(
+                  context.tr(
+                    previewing ? 'voice_preview_playing' : 'voice_preview',
+                  ),
+                ),
               ),
             ),
           ],
@@ -809,8 +823,9 @@ class _SettingsOption extends StatelessWidget {
                   title,
                   style: TextStyle(
                     fontWeight: FontWeight.w900,
-                    color:
-                        selected ? scheme.onPrimaryContainer : scheme.onSurface,
+                    color: selected
+                        ? scheme.onPrimaryContainer
+                        : scheme.onSurface,
                   ),
                 ),
               ),
