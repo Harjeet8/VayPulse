@@ -1,0 +1,107 @@
+name: Verdant Finalize V3
+
+on:
+  push:
+    branches: [phytosense-verdant-final]
+    paths: ['.github/workflows/verdant-finalize-v3.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  finalize:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phytosense-verdant-final
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main
+
+      - name: Recreate validated Verdant source
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml
+          python3 <<'PY'
+          import subprocess
+          from pathlib import Path
+          import yaml
+
+          workflow = yaml.safe_load(Path('.github/workflows/verdant-finalize-v2.yml').read_text(encoding='utf-8'))
+          step = next(
+              item for item in workflow['jobs']['finalize']['steps']
+              if item.get('name') == 'Replay vetted Verdant patch recipe'
+          )
+          subprocess.run(
+              ['bash', '-euo', 'pipefail', '-c', step['run']],
+              check=True,
+          )
+          PY
+
+          git checkout origin/main -- \
+            android/app/src/main/res/mipmap-mdpi \
+            android/app/src/main/res/mipmap-hdpi \
+            android/app/src/main/res/mipmap-xhdpi \
+            android/app/src/main/res/mipmap-xxhdpi \
+            android/app/src/main/res/mipmap-xxxhdpi
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve and format
+        run: |
+          flutter pub get
+          dart format lib test
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Test all
+        run: flutter test
+
+      - name: Android compile smoke
+        run: flutter build apk --debug
+
+      - name: Regression guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! rg -n 'Trichy Tomato Plot|Trichy.Thanjavur deployment|FieldPulse' lib
+          ! rg -n 'Color\(0xFFE17A22\)|Color\(0xFFE18A28\)|Color\(0xFFB76412\)' lib/widgets/data_source_card.dart lib/widgets/simulation_command_deck.dart lib/screens/live_node_home_screen.dart
+          rg -q 'bioSourceLabel' lib/models/sensor_reading.dart
+          rg -q 'Real Time Signal' lib/models/sensor_reading.dart
+          rg -q 'Live Readings' lib/models/sensor_reading.dart
+          rg -q 'Simulation Signal' lib/models/sensor_reading.dart
+          rg -q 'Papaya' lib/models/crop_catalog.dart lib/screens/plant_intelligence_settings_screen.dart
+          rg -q "'Eggplant'" lib/models/crop_catalog.dart lib/screens/plant_intelligence_settings_screen.dart
+          rg -q 'firmwareSupportedNames' lib/models/crop_catalog.dart
+          rg -q 'reliabilityMode' lib/models/edge_intelligence.dart
+          rg -q 'applicationId = "com.harjeet.phytosense"' android/app/build.gradle.kts
+          ! rg -n 'signingConfigs\.getByName\("debug"\)' android/app/build.gradle.kts
+          test -f android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+      - name: Commit validated Verdant source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m "Build Verdant final from pre-FieldPulse source of truth"
+          git push origin HEAD:phytosense-verdant-final
