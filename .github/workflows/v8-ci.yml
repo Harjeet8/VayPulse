@@ -17,13 +17,22 @@ jobs:
       - name: Checkout private PhytoSense AI source
         uses: actions/checkout@v4
 
-      - name: Apply approved Atlas UI correction
+      - name: Apply remaining approved Atlas UI correction
         shell: bash
         run: |
           set -euo pipefail
           cat .github/atlas_patch/part-* | base64 --decode | gzip --decompress > /tmp/phytosense-atlas.patch
-          git apply --check /tmp/phytosense-atlas.patch
-          git apply /tmp/phytosense-atlas.patch
+          # These five UI files are now committed directly to the branch. Apply
+          # only the remaining approved patch hunks so CI is idempotent.
+          EXCLUDES=(
+            --exclude=lib/screens/home_screen.dart
+            --exclude=lib/screens/shell_screen.dart
+            --exclude=lib/screens/splash_screen.dart
+            --exclude=lib/widgets/bottom_nav.dart
+            --exclude=lib/widgets/live_icon.dart
+          )
+          git apply --check "${EXCLUDES[@]}" /tmp/phytosense-atlas.patch
+          git apply "${EXCLUDES[@]}" /tmp/phytosense-atlas.patch
           python3 - <<'PY'
           from pathlib import Path
           path = Path('lib/screens/live_node_home_screen.dart')
