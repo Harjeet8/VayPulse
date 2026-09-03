@@ -43,9 +43,7 @@ jobs:
         run: flutter pub get
 
       - name: Flutter format
-        run: |
-          dart format lib test
-          git diff --exit-code
+        run: dart format --output=none --set-exit-if-changed lib test
 
       - name: Static analysis
         run: flutter analyze
