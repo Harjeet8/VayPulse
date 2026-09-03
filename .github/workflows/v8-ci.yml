@@ -47,6 +47,14 @@ jobs:
           git apply --check /tmp/phytosense-release.patch
           git apply /tmp/phytosense-release.patch
 
+      - name: Make continuous-animation regression test deterministic
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode .github/animation_test_fix.b64 | gzip --decompress > /tmp/phytosense-animation-test.patch
+          git apply --check /tmp/phytosense-animation-test.patch
+          git apply /tmp/phytosense-animation-test.patch
+
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
