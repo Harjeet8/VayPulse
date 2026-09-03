@@ -30,7 +30,7 @@ jobs:
           git config user.email "actions@users.noreply.github.com"
           git fetch origin main phytosense-v8-ultra-final
           git checkout -B phytosense-unified-final origin/phytosense-v8-ultra-final
-      - name: Replay September 3 hardware-sync commits
+      - name: Replay complete September 3 synchronization
         shell: bash
         run: |
           set -euo pipefail
@@ -44,7 +44,8 @@ jobs:
             4a7bfa973de38b6f84945242b9105b5fbca18be3 \
             dfdfcb8b3f78a28d9ee8ebd1d4d8481464a6b054 \
             b7c5284ecc3ab078481e144cae373e48784db49b \
-            3a666b162023a13ceaf2fd4caec45bc205da43cf; do
+            3a666b162023a13ceaf2fd4caec45bc205da43cf \
+            7c4571b29d913795a3a1ffc3e23f8157b775057e; do
             git cherry-pick -X theirs "$c"
           done
           git checkout origin/phytosense-v8-ultra-final -- lib/screens/splash_screen.dart
@@ -60,20 +61,18 @@ jobs:
           marker='  final double analysisConfidence;\n'
           specs=[
             ('analysisOrigin','  final String analysisOrigin;\n'),
-            ('primaryRootCause','  final String? primaryRootCause;\n'),
             ('secondaryRootCause','  final String? secondaryRootCause;\n'),
             ('degradedAnalysis','  final bool degradedAnalysis;\n'),
             ('healthTrend','  final String? healthTrend;\n'),
             ('diseaseRiskTrend','  final String? diseaseRiskTrend;\n'),
             ('recoveryActive','  final bool recoveryActive;\n'),
-            ('vpdKpa','  final double? vpdKpa;\n'),
-            ('bioticState','  final String? bioticState;\n')]
+            ('vpdKpa','  final double? vpdKpa;\n')]
           additions=[]
           for name,decl in specs:
             if not re.search(rf'final\s+[^;\n]+\s+{name};',text): additions.append(decl)
           if additions: text=text.replace(marker,marker+''.join(additions),1)
           p.write_text(text,encoding='utf-8')
-      - name: Bring release identity and hardening from main
+      - name: Bring latest release identity and hardening from main
         shell: bash
         run: |
           set -euo pipefail
@@ -82,7 +81,7 @@ jobs:
           mkdir -p android/app/src/main/kotlin/com/harjeet/phytosense
           git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
           git add -A
-          git commit -m "Unify final release identity and compatibility"
+          git commit -m "Unify final release identity and compatibility" || true
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -101,6 +100,20 @@ jobs:
         run: flutter analyze --no-fatal-infos
       - name: Test unified source
         run: flutter test
+      - name: Verify final synchronization contract
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "assets/branding/phytosense_icon.png" lib/screens/splash_screen.dart
+          grep -Fq "See stress before it becomes visible" lib/screens/splash_screen.dart
+          rg -q "Real Time Signal" lib
+          rg -q "Live Readings" lib
+          rg -q "reliabilityMode" lib/models/sensor_reading.dart lib/services/esp32_client.dart
+          rg -q "farmerAction" lib/models/sensor_reading.dart lib/services/esp32_client.dart
+          rg -q "rootCauseConfidence" lib/models/sensor_reading.dart lib/services/esp32_client.dart
+          rg -q "cameraRecommended" lib/models/sensor_reading.dart lib/services/esp32_client.dart
+          rg -q "RECOVERING" lib
+          rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
       - name: Configure permanent publisher signing
         shell: bash
         run: |
@@ -124,15 +137,10 @@ jobs:
           flutter build apk --release --obfuscate --split-debug-info="${symbol_dir}"
           test -s build/app/outputs/flutter-apk/app-release.apk
           cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI-UNIFIED-FINAL.apk
-      - name: Verify expected final UI and sync markers
+      - name: Verify signed APK
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq "assets/branding/phytosense_icon.png" lib/screens/splash_screen.dart
-          grep -Fq "See stress before it becomes visible" lib/screens/splash_screen.dart
-          rg -q "Real Time Signal" lib
-          rg -q "Live Readings" lib
-          rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
           sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
           build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "${build_tools}/apksigner" verify --verbose PhytoSense-AI-UNIFIED-FINAL.apk
@@ -146,4 +154,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 9
+# trigger: 10
