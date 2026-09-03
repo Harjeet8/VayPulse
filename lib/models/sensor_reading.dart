@@ -25,6 +25,9 @@ class SensorReading {
   final double stressScore;
   final String healthStatus;
   final double analysisConfidence;
+  final String analysisOrigin;
+  final double? vpdKpa;
+  final bool recoveryActive;
   final bool edgeAnalysisAvailable;
 
   /// Compatibility/provenance fields retained for the existing intelligence
@@ -100,6 +103,9 @@ class SensorReading {
     required this.stressScore,
     required this.healthStatus,
     this.analysisConfidence = 0,
+    this.analysisOrigin = 'persisted',
+    this.vpdKpa,
+    this.recoveryActive = false,
     this.edgeAnalysisAvailable = true,
     this.analysisOrigin = 'persisted',
     this.recoveryActive = false,
@@ -162,8 +168,8 @@ class SensorReading {
   String get bioSourceLabel => bioIsRealtime
       ? 'Real Time Signal'
       : bioIsLiveReading
-          ? 'Live Readings'
-          : bioSource;
+      ? 'Live Readings'
+      : bioSource;
 
   bool get isReliabilityFull => reliabilityMode.toUpperCase() == 'FULL';
 
@@ -173,73 +179,76 @@ class SensorReading {
       reliabilityMode.toUpperCase() == 'RECOVERING';
 
   int get availableChannelCount => <bool>[
-        soilMoistureAvailable,
-        temperatureAvailable,
-        humidityAvailable,
-        lightAvailable,
-        soilTemperatureAvailable,
-        leafWetnessAvailable,
-        plantSignalAvailable,
-      ].where((value) => value).length;
+    soilMoistureAvailable,
+    temperatureAvailable,
+    humidityAvailable,
+    lightAvailable,
+    soilTemperatureAvailable,
+    leafWetnessAvailable,
+    plantSignalAvailable,
+  ].where((value) => value).length;
 
   Map<String, dynamic> toJson() => <String, dynamic>{
-        'nodeId': nodeId,
-        'timestamp': timestamp.toIso8601String(),
-        'soilMoisture': soilMoistureAvailable ? soilMoisture : null,
-        'temperature': temperatureAvailable ? temperature : null,
-        'humidity': humidityAvailable ? humidity : null,
-        'light': lightAvailable ? light : null,
-        'lightLux': lightAvailable ? lightLux : null,
-        'soilTemperature': soilTemperatureAvailable ? soilTemperature : null,
-        'leafWetness': leafWetnessAvailable ? leafWetness : null,
-        'plantSignal': plantSignalAvailable ? plantSignal : null,
-        'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
-        'bioSource': bioSource,
-        'healthScore': healthScore,
-        'stressScore': stressScore,
-        'healthStatus': healthStatus,
-        'analysisConfidence': analysisConfidence,
-        'edgeAnalysisAvailable': edgeAnalysisAvailable,
-        'analysisOrigin': analysisOrigin,
-        'recoveryActive': recoveryActive,
-        'vpdKpa': vpdKpa,
-        'crop': crop,
-        'growthStage': growthStage,
-        'reliabilityMode': reliabilityMode,
-        'systemStatus': systemStatus,
-        'recoveryStatus': recoveryStatus,
-        'primaryRootCause': primaryRootCause,
-        'farmerAction': farmerAction,
-        'rootCauseConfidence': rootCauseConfidence,
-        'rankedRootCauses': rankedRootCauses,
-        'bioticState': bioticState,
-        'bioState': bioState,
-        'cameraRecommended': cameraRecommended,
-        'cameraReason': cameraReason,
-        'sensorStates': sensorStates,
-        'esp32HealthScore': esp32HealthScore,
-        'esp32HealthConfidence': esp32HealthConfidence,
-        'waterScore': waterScore,
-        'thermalScore': thermalScore,
-        'rootZoneScore': rootZoneScore,
-        'atmosphericScore': atmosphericScore,
-        'lightScore': lightScore,
-        'diseaseRisk': diseaseRisk,
-        'bioelectricStability': bioelectricStability,
-        'soilRaw': soilRaw,
-        'leafRaw': leafRaw,
-        'soilCalibrated': soilCalibrated,
-        'leafCalibrated': leafCalibrated,
-        'daytime': daytime,
-        'leafWetDurationSeconds': leafWetDurationSeconds,
-        'recentWetExposureSeconds': recentWetExposureSeconds,
-        'bioBaselineReady': bioBaselineReady,
-        'bioBaselineSamples': bioBaselineSamples,
-        'bioBaselineMv': bioBaselineMv,
-        'bioDeviationMv': bioDeviationMv,
-        'bioNoiseMv': bioNoiseMv,
-        'bioSignalQuality': bioSignalQuality,
-      };
+    'nodeId': nodeId,
+    'timestamp': timestamp.toIso8601String(),
+    'soilMoisture': soilMoistureAvailable ? soilMoisture : null,
+    'temperature': temperatureAvailable ? temperature : null,
+    'humidity': humidityAvailable ? humidity : null,
+    'light': lightAvailable ? light : null,
+    'lightLux': lightAvailable ? lightLux : null,
+    'soilTemperature': soilTemperatureAvailable ? soilTemperature : null,
+    'leafWetness': leafWetnessAvailable ? leafWetness : null,
+    'plantSignal': plantSignalAvailable ? plantSignal : null,
+    'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
+    'bioSource': bioSource,
+    'healthScore': healthScore,
+    'stressScore': stressScore,
+    'healthStatus': healthStatus,
+    'analysisConfidence': analysisConfidence,
+    'analysisOrigin': analysisOrigin,
+    'vpdKpa': vpdKpa,
+    'recoveryActive': recoveryActive,
+    'edgeAnalysisAvailable': edgeAnalysisAvailable,
+    'analysisOrigin': analysisOrigin,
+    'recoveryActive': recoveryActive,
+    'vpdKpa': vpdKpa,
+    'crop': crop,
+    'growthStage': growthStage,
+    'reliabilityMode': reliabilityMode,
+    'systemStatus': systemStatus,
+    'recoveryStatus': recoveryStatus,
+    'primaryRootCause': primaryRootCause,
+    'farmerAction': farmerAction,
+    'rootCauseConfidence': rootCauseConfidence,
+    'rankedRootCauses': rankedRootCauses,
+    'bioticState': bioticState,
+    'bioState': bioState,
+    'cameraRecommended': cameraRecommended,
+    'cameraReason': cameraReason,
+    'sensorStates': sensorStates,
+    'esp32HealthScore': esp32HealthScore,
+    'esp32HealthConfidence': esp32HealthConfidence,
+    'waterScore': waterScore,
+    'thermalScore': thermalScore,
+    'rootZoneScore': rootZoneScore,
+    'atmosphericScore': atmosphericScore,
+    'lightScore': lightScore,
+    'diseaseRisk': diseaseRisk,
+    'bioelectricStability': bioelectricStability,
+    'soilRaw': soilRaw,
+    'leafRaw': leafRaw,
+    'soilCalibrated': soilCalibrated,
+    'leafCalibrated': leafCalibrated,
+    'daytime': daytime,
+    'leafWetDurationSeconds': leafWetDurationSeconds,
+    'recentWetExposureSeconds': recentWetExposureSeconds,
+    'bioBaselineReady': bioBaselineReady,
+    'bioBaselineSamples': bioBaselineSamples,
+    'bioBaselineMv': bioBaselineMv,
+    'bioDeviationMv': bioDeviationMv,
+    'bioNoiseMv': bioNoiseMv,
+    'bioSignalQuality': bioSignalQuality,
+  };
 
   factory SensorReading.fromJson(Map<String, dynamic> json) {
     final soilAvailable = _available(json, 'soilMoisture');
@@ -258,8 +267,8 @@ class SensorReading {
     final plantSignal = _available(json, 'plantSignal')
         ? _num(json['plantSignal'])
         : (_available(json, 'bioelectricStability')
-            ? _num(json['bioelectricStability'])
-            : 50.0);
+              ? _num(json['bioelectricStability'])
+              : 50.0);
 
     final fallbackHealth = calculateHealth(
       soilMoisture: soil,
@@ -297,6 +306,12 @@ class SensorReading {
       analysisConfidence: _bounded(
         _nullableNum(json['analysisConfidence']) ?? 0,
       ),
+      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',
+      vpdKpa: _nullableNum(json['vpdKpa']),
+      recoveryActive:
+          json['recoveryActive'] == true ||
+          '${json['recoveryStatus'] ?? ''}'.toUpperCase() == 'RECOVERING' ||
+          '${json['reliabilityMode'] ?? ''}'.toUpperCase() == 'RECOVERING',
       edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,
       analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',
       recoveryActive: json['recoveryActive'] == true,
@@ -414,10 +429,10 @@ class SensorReading {
   static String statusForHealth(double health) => health >= 82
       ? 'excellent'
       : health >= 65
-          ? 'good'
-          : health >= 42
-              ? 'watch'
-              : 'critical';
+      ? 'good'
+      : health >= 42
+      ? 'watch'
+      : 'critical';
 
   SensorReading copyWith({
     String? nodeId,
@@ -436,6 +451,9 @@ class SensorReading {
     double? stressScore,
     String? healthStatus,
     double? analysisConfidence,
+    String? analysisOrigin,
+    double? vpdKpa,
+    bool? recoveryActive,
     bool? edgeAnalysisAvailable,
     String? analysisOrigin,
     bool? recoveryActive,
@@ -501,6 +519,9 @@ class SensorReading {
       stressScore: stressScore ?? this.stressScore,
       healthStatus: healthStatus ?? this.healthStatus,
       analysisConfidence: analysisConfidence ?? this.analysisConfidence,
+      analysisOrigin: analysisOrigin ?? this.analysisOrigin,
+      vpdKpa: vpdKpa ?? this.vpdKpa,
+      recoveryActive: recoveryActive ?? this.recoveryActive,
       edgeAnalysisAvailable:
           edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,
       analysisOrigin: analysisOrigin ?? this.analysisOrigin,
