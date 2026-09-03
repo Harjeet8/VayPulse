@@ -30,13 +30,6 @@ class SensorReading {
   final bool recoveryActive;
   final bool edgeAnalysisAvailable;
 
-  /// Compatibility/provenance fields retained for the existing intelligence
-  /// panels and persisted readings. These are additive to the newer firmware
-  /// authority fields below.
-  final String analysisOrigin;
-  final bool recoveryActive;
-  final double? vpdKpa;
-
   final String crop;
   final String growthStage;
   final String reliabilityMode;
@@ -107,9 +100,6 @@ class SensorReading {
     this.vpdKpa,
     this.recoveryActive = false,
     this.edgeAnalysisAvailable = true,
-    this.analysisOrigin = 'persisted',
-    this.recoveryActive = false,
-    this.vpdKpa,
     this.crop = 'Universal',
     this.growthStage = 'Vegetative',
     this.reliabilityMode = 'FULL',
@@ -209,9 +199,6 @@ class SensorReading {
     'vpdKpa': vpdKpa,
     'recoveryActive': recoveryActive,
     'edgeAnalysisAvailable': edgeAnalysisAvailable,
-    'analysisOrigin': analysisOrigin,
-    'recoveryActive': recoveryActive,
-    'vpdKpa': vpdKpa,
     'crop': crop,
     'growthStage': growthStage,
     'reliabilityMode': reliabilityMode,
@@ -313,9 +300,6 @@ class SensorReading {
           '${json['recoveryStatus'] ?? ''}'.toUpperCase() == 'RECOVERING' ||
           '${json['reliabilityMode'] ?? ''}'.toUpperCase() == 'RECOVERING',
       edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,
-      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',
-      recoveryActive: json['recoveryActive'] == true,
-      vpdKpa: _nullableNum(json['vpdKpa']),
       crop: '${json['crop'] ?? 'Universal'}',
       growthStage: '${json['growthStage'] ?? 'Vegetative'}',
       reliabilityMode: '${json['reliabilityMode'] ?? 'FULL'}'.toUpperCase(),
@@ -455,9 +439,6 @@ class SensorReading {
     double? vpdKpa,
     bool? recoveryActive,
     bool? edgeAnalysisAvailable,
-    String? analysisOrigin,
-    bool? recoveryActive,
-    double? vpdKpa,
     String? crop,
     String? growthStage,
     String? reliabilityMode,
@@ -524,9 +505,6 @@ class SensorReading {
       recoveryActive: recoveryActive ?? this.recoveryActive,
       edgeAnalysisAvailable:
           edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,
-      analysisOrigin: analysisOrigin ?? this.analysisOrigin,
-      recoveryActive: recoveryActive ?? this.recoveryActive,
-      vpdKpa: vpdKpa ?? this.vpdKpa,
       crop: crop ?? this.crop,
       growthStage: growthStage ?? this.growthStage,
       reliabilityMode: reliabilityMode ?? this.reliabilityMode,
