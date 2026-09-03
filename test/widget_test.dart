@@ -353,40 +353,66 @@ void main() {
     expect(assessment.candidates.first.nameKey, 'disease_tomato_leaf_curl');
   });
 
-  test('all ten Tamil Nadu crop contexts produce crop-specific candidates', () {
-    final visual = LeafScreeningResult(
-      riskKey: 'leaf_result_spot_risk',
-      explanationKey: 'leaf_result_spot_risk_body',
-      actionKey: 'leaf_action_spot',
-      confidence: 78,
-      greenPercent: 42,
-      yellowPercent: 24,
-      brownPercent: 22,
-      screenedAt: DateTime.now(),
-    );
-    expect(CropCatalog.supported, hasLength(14));
-    for (final crop in CropCatalog.supported) {
-      final assessment = MultimodalDiseaseService.assess(
-        visual: visual,
-        crop: crop.name,
-        reading: reading(
-          soil: 42,
-          temperature: 30,
-          humidity: 82,
-          plantSignal: 32,
-          health: 58,
-        ),
+  test(
+    'crop-specific camera contexts stay specific and other profiles stay generic',
+    () {
+      final visual = LeafScreeningResult(
+        riskKey: 'leaf_result_spot_risk',
+        explanationKey: 'leaf_result_spot_risk_body',
+        actionKey: 'leaf_action_spot',
+        confidence: 78,
+        greenPercent: 42,
+        yellowPercent: 24,
+        brownPercent: 22,
+        screenedAt: DateTime.now(),
       );
-      expect(assessment.candidates, isNotEmpty, reason: crop.name);
-      expect(
-        assessment.candidates.every(
-          (candidate) => candidate.nameKey.contains(crop.id),
-        ),
-        isTrue,
-        reason: crop.name,
-      );
-    }
-  });
+      const cropSpecificIds = <String>{
+        'tomato',
+        'rice',
+        'sugarcane',
+        'banana',
+        'eggplant',
+        'maize',
+        'groundnut',
+        'cotton',
+        'coconut',
+        'chilli',
+      };
+      expect(CropCatalog.supported, hasLength(14));
+      for (final crop in CropCatalog.supported) {
+        final assessment = MultimodalDiseaseService.assess(
+          visual: visual,
+          crop: crop.name,
+          reading: reading(
+            soil: 42,
+            temperature: 30,
+            humidity: 82,
+            plantSignal: 32,
+            health: 58,
+          ),
+        );
+        expect(assessment.candidates, isNotEmpty, reason: crop.name);
+        if (cropSpecificIds.contains(crop.id)) {
+          final diseaseKeyId = crop.id == 'eggplant' ? 'brinjal' : crop.id;
+          expect(
+            assessment.candidates.every(
+              (candidate) => candidate.nameKey.contains(diseaseKeyId),
+            ),
+            isTrue,
+            reason: crop.name,
+          );
+        } else {
+          expect(
+            assessment.candidates.every(
+              (candidate) => candidate.nameKey.startsWith('disease_generic_'),
+            ),
+            isTrue,
+            reason: crop.name,
+          );
+        }
+      }
+    },
+  );
 
   test('expected paddy flooding is not treated as generic overwatering', () {
     final ricePrompt = MultimodalDiseaseService.evaluatePhotoPrompt(
