@@ -1,0 +1,78 @@
+name: Commit Validated Verdant Source
+
+on:
+  push:
+    branches: [phytosense-verdant-final]
+    paths: ['.github/workflows/verdant-commit-validated.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phytosense-verdant-final
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main
+
+      - name: Recreate exact source that passed tests and Android build
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pyyaml
+          python3 <<'PY'
+          import subprocess
+          from pathlib import Path
+          import yaml
+
+          workflow = yaml.safe_load(Path('.github/workflows/verdant-finalize-v3.yml').read_text(encoding='utf-8'))
+          step = next(
+              item for item in workflow['jobs']['finalize']['steps']
+              if item.get('name') == 'Recreate validated Verdant source'
+          )
+          subprocess.run(
+              ['bash', '-euo', 'pipefail', '-c', step['run']],
+              check=True,
+          )
+          PY
+
+      - name: Portable regression guards
+        shell: bash
+        run: |
+          set -euo pipefail
+          ! grep -R -n -E 'Trichy Tomato Plot|Trichy.Thanjavur deployment|FieldPulse' lib
+          ! grep -n -E 'Color\(0xFFE17A22\)|Color\(0xFFE18A28\)|Color\(0xFFB76412\)' \
+            lib/widgets/data_source_card.dart \
+            lib/widgets/simulation_command_deck.dart \
+            lib/screens/live_node_home_screen.dart
+          grep -q 'bioSourceLabel' lib/models/sensor_reading.dart
+          grep -q 'Real Time Signal' lib/models/sensor_reading.dart
+          grep -q 'Live Readings' lib/models/sensor_reading.dart
+          grep -q 'Simulation Signal' lib/models/sensor_reading.dart
+          grep -q 'Papaya' lib/models/crop_catalog.dart
+          grep -q 'Papaya' lib/screens/plant_intelligence_settings_screen.dart
+          grep -q "'Eggplant'" lib/models/crop_catalog.dart
+          grep -q 'firmwareSupportedNames' lib/models/crop_catalog.dart
+          grep -q 'reliabilityMode' lib/models/edge_intelligence.dart
+          grep -q 'applicationId = "com.harjeet.phytosense"' android/app/build.gradle.kts
+          ! grep -q 'signingConfigs.getByName("debug")' android/app/build.gradle.kts
+          test -f android/app/src/main/res/mipmap-mdpi/ic_launcher.png
+          test -f android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+
+      - name: Commit validated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add -A
+          git commit -m "Build Verdant final from pre-FieldPulse source of truth"
+          git push origin HEAD:phytosense-verdant-final
