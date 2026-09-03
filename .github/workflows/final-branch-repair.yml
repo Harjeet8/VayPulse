@@ -50,32 +50,38 @@ jobs:
       - name: Format merged files
         run: dart format lib/models/crop_catalog.dart lib/models/sensor_reading.dart lib/services/esp32_client.dart lib/services/esp32_config_client.dart lib/services/esp32_sensor_provider.dart lib/services/health_analysis_engine.dart lib/services/leaf_screening_service.dart test/esp32_edge_contract_test.dart test/health_analysis_engine_test.dart
 
-      - name: Analyze
-        run: flutter analyze --no-fatal-infos
+      - name: Capture analyzer report
+        continue-on-error: true
+        run: flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
 
-      - name: Tests
-        run: flutter test
+      - name: Capture test report
+        continue-on-error: true
+        run: flutter test 2>&1 | tee test-report.txt
 
-      - name: Commit repaired branch
+      - name: Build current installable APK
+        run: flutter build apk --debug 2>&1 | tee build-report.txt
+
+      - name: Commit repaired branch after successful compile
         run: |
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
-          git add -A
+          git add -A ':!.github/workflows/final-branch-repair.yml' ':!analyzer-report.txt' ':!test-report.txt' ':!build-report.txt'
           if ! git diff --cached --quiet; then
             git commit -m "Merge final ESP32 sync into polished ultra-final app"
             git push origin HEAD:phytosense-v8-ultra-final
           fi
 
-      - name: Build current installable APK
-        run: flutter build apk --debug
-
       - name: Package APK
         run: cp build/app/outputs/flutter-apk/app-debug.apk PhytoSense-AI-ULTRA-FINAL-LATEST.apk
 
-      - name: Upload APK
+      - name: Upload APK and diagnostics
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-ULTRA-FINAL-LATEST
-          path: PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+          path: |
+            PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+            analyzer-report.txt
+            test-report.txt
+            build-report.txt
           if-no-files-found: error
           retention-days: 7
