@@ -50,6 +50,35 @@ jobs:
           git add lib/screens/splash_screen.dart
           git commit -m "Preserve ultra-final animated splash" || true
 
+      - name: Restore SensorReading compatibility superset
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          p = Path('lib/models/sensor_reading.dart')
+          text = p.read_text(encoding='utf-8')
+          marker = '  final double analysisConfidence;\n'
+          if marker not in text:
+              raise SystemExit('SensorReading analysisConfidence marker missing')
+          specs = [
+              ('analysisOrigin', '  final String analysisOrigin;\n'),
+              ('primaryRootCause', '  final String? primaryRootCause;\n'),
+              ('secondaryRootCause', '  final String? secondaryRootCause;\n'),
+              ('degradedAnalysis', '  final bool degradedAnalysis;\n'),
+              ('healthTrend', '  final String? healthTrend;\n'),
+              ('diseaseRiskTrend', '  final String? diseaseRiskTrend;\n'),
+              ('recoveryActive', '  final bool recoveryActive;\n'),
+              ('vpdKpa', '  final double? vpdKpa;\n'),
+              ('bioticState', '  final String? bioticState;\n'),
+          ]
+          additions = []
+          for name, decl in specs:
+              if not re.search(rf'final\s+[^;\n]+\s+{name};', text):
+                  additions.append(decl)
+          if additions:
+              text = text.replace(marker, marker + ''.join(additions), 1)
+          p.write_text(text, encoding='utf-8')
+
       - name: Bring release identity and hardening from main
         shell: bash
         run: |
@@ -59,7 +88,7 @@ jobs:
           mkdir -p android/app/src/main/kotlin/com/harjeet/phytosense
           git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
           git add -A
-          git commit -m "Unify final release identity and hardening"
+          git commit -m "Unify final release identity and compatibility"
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -81,11 +110,9 @@ jobs:
           git commit -m "Format unified final source" || true
 
       - name: Analyze unified source
-        shell: bash
         run: flutter analyze --no-fatal-infos
 
       - name: Test unified source
-        shell: bash
         run: flutter test
 
       - name: Build fresh installable validation APK
@@ -112,4 +139,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 5
+# trigger: 6
