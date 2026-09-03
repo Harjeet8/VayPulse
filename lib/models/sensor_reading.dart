@@ -26,6 +26,14 @@ class SensorReading {
   final String healthStatus;
   final double analysisConfidence;
   final bool edgeAnalysisAvailable;
+
+  /// Compatibility/provenance fields retained for the existing intelligence
+  /// panels and persisted readings. These are additive to the newer firmware
+  /// authority fields below.
+  final String analysisOrigin;
+  final bool recoveryActive;
+  final double? vpdKpa;
+
   final String crop;
   final String growthStage;
   final String reliabilityMode;
@@ -93,6 +101,9 @@ class SensorReading {
     required this.healthStatus,
     this.analysisConfidence = 0,
     this.edgeAnalysisAvailable = true,
+    this.analysisOrigin = 'persisted',
+    this.recoveryActive = false,
+    this.vpdKpa,
     this.crop = 'Universal',
     this.growthStage = 'Vegetative',
     this.reliabilityMode = 'FULL',
@@ -189,6 +200,9 @@ class SensorReading {
         'healthStatus': healthStatus,
         'analysisConfidence': analysisConfidence,
         'edgeAnalysisAvailable': edgeAnalysisAvailable,
+        'analysisOrigin': analysisOrigin,
+        'recoveryActive': recoveryActive,
+        'vpdKpa': vpdKpa,
         'crop': crop,
         'growthStage': growthStage,
         'reliabilityMode': reliabilityMode,
@@ -284,6 +298,9 @@ class SensorReading {
         _nullableNum(json['analysisConfidence']) ?? 0,
       ),
       edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,
+      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',
+      recoveryActive: json['recoveryActive'] == true,
+      vpdKpa: _nullableNum(json['vpdKpa']),
       crop: '${json['crop'] ?? 'Universal'}',
       growthStage: '${json['growthStage'] ?? 'Vegetative'}',
       reliabilityMode: '${json['reliabilityMode'] ?? 'FULL'}'.toUpperCase(),
@@ -420,6 +437,9 @@ class SensorReading {
     String? healthStatus,
     double? analysisConfidence,
     bool? edgeAnalysisAvailable,
+    String? analysisOrigin,
+    bool? recoveryActive,
+    double? vpdKpa,
     String? crop,
     String? growthStage,
     String? reliabilityMode,
@@ -483,6 +503,9 @@ class SensorReading {
       analysisConfidence: analysisConfidence ?? this.analysisConfidence,
       edgeAnalysisAvailable:
           edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,
+      analysisOrigin: analysisOrigin ?? this.analysisOrigin,
+      recoveryActive: recoveryActive ?? this.recoveryActive,
+      vpdKpa: vpdKpa ?? this.vpdKpa,
       crop: crop ?? this.crop,
       growthStage: growthStage ?? this.growthStage,
       reliabilityMode: reliabilityMode ?? this.reliabilityMode,
