@@ -20,6 +20,12 @@ jobs:
           ref: phytosense-v8-ultra-final
           fetch-depth: 0
 
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
       - name: Restore ultra-final SensorReading compatibility
         shell: python
         run: |
@@ -75,12 +81,6 @@ jobs:
 
       - name: Format compatibility repair
         run: dart format lib/models/sensor_reading.dart lib/services/esp32_client.dart
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
 
       - name: Resolve dependencies
         run: flutter pub get
