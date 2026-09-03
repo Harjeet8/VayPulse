@@ -93,34 +93,12 @@ jobs:
           git add lib test
           git commit -m "Format unified final source" || true
       - name: Analyze unified source
-        id: analyze
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter analyze --no-fatal-infos 2>&1 | tee analyze.log
+        run: flutter analyze --no-fatal-infos
       - name: Test unified source
-        id: tests
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter test 2>&1 | tee test.log
-      - name: Upload validation logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: PhytoSense-Unified-Validation-Logs-2
-          path: |
-            analyze.log
-            test.log
-          if-no-files-found: warn
-          retention-days: 2
+        run: flutter test
       - name: Build fresh installable validation APK
-        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         run: flutter build apk --release
       - name: Verify expected final UI and sync markers
-        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -130,10 +108,8 @@ jobs:
           rg -q "Live Readings" lib
           rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
       - name: Push unified final branch
-        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         run: git push --force origin HEAD:phytosense-unified-final
       - name: Upload unified APK
-        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-UNIFIED-FINAL
@@ -141,4 +117,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 7
+# trigger: 8
