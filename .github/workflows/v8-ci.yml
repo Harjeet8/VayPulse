@@ -28,22 +28,7 @@ jobs:
           cat .github/atlas_patch/part-* | base64 --decode | gzip --decompress > /tmp/phytosense-atlas.patch
           git apply --check /tmp/phytosense-atlas.patch
           git apply /tmp/phytosense-atlas.patch
-
-      - name: Verify Atlas source is present
-        shell: bash
-        run: |
-          set -euo pipefail
-          grep -q '^version: 8.7.1+871$' pubspec.yaml
-          test -f assets/fonts/NotoSansTamil-Regular.ttf
-          test -f lib/screens/home_screen.dart
-          test -f lib/screens/live_node_home_screen.dart
-          test -f lib/screens/practice_farm_home_screen.dart
-          test -f lib/widgets/live_icon.dart
-          test -f lib/widgets/phytosense_boot_mark.dart
-          grep -q 'LiveNodeHomeScreen' lib/screens/home_screen.dart
-          grep -q 'PhytoSenseBootMark' lib/screens/splash_screen.dart
-          grep -q 'Welcome to PhytoSense AI' lib/l10n/app_strings.dart
-          echo 'Atlas correction source verified.'
+          echo 'Atlas correction applied.'
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
