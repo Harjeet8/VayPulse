@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'live_motion.dart';
+
 class InsightCard extends StatelessWidget {
   final String title;
   final String message;
@@ -24,8 +26,8 @@ class InsightCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Icon(
-              Icons.auto_awesome,
+            LiveMotionIcon(
+              icon: Icons.auto_awesome,
               color: accent ?? Theme.of(context).colorScheme.primary,
             ),
             const SizedBox(width: 12),

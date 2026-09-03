@@ -6,6 +6,7 @@ import '../models/sensor_reading.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
+import '../widgets/live_motion.dart';
 import 'esp32_diagnostics_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
 
@@ -369,7 +370,11 @@ class _Section extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20, color: Theme.of(context).colorScheme.primary),
+                LiveMotionIcon(
+                  icon: icon,
+                  size: 20,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
                 const SizedBox(width: 8),
                 Text(title,
                     style: Theme.of(context)
@@ -417,10 +422,12 @@ class _SensorCard extends StatelessWidget {
         ? FarmerLanguage.label(context, 'no_confidence')
         : '${detail!.confidence!.round()}%';
 
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    return LiveDataMotion(
+      signature: '$title|$value|$result|$trend|$confidence',
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -487,7 +494,8 @@ class _SensorCard extends StatelessWidget {
                     ),
                 ],
               ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -713,10 +721,12 @@ class _DerivedCard extends StatelessWidget {
   const _DerivedCard({this.title = '', this.value, this.result, this.note});
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
+  Widget build(BuildContext context) => LiveDataMotion(
+        signature: '$title|$value|$result|$note',
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
@@ -734,7 +744,8 @@ class _DerivedCard extends StatelessWidget {
                 const SizedBox(height: 7),
                 Text(note!, style: Theme.of(context).textTheme.bodySmall),
               ],
-            ],
+              ],
+            ),
           ),
         ),
       );

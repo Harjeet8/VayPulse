@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../services/farmer_language.dart';
+import 'live_motion.dart';
 
 class BottomNav extends StatelessWidget {
   final int index;
@@ -48,32 +49,34 @@ class BottomNav extends StatelessWidget {
           destinations: [
             NavigationDestination(
               icon: const Icon(Icons.home_outlined),
-              selectedIcon: const Icon(Icons.home_rounded),
+              selectedIcon: const LiveMotionIcon(icon: Icons.home_rounded),
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.psychology_alt_outlined),
-              selectedIcon: const Icon(Icons.psychology_alt_rounded),
+              selectedIcon:
+                  const LiveMotionIcon(icon: Icons.psychology_alt_rounded),
               label: FarmerLanguage.label(context, 'analysis'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.sensors_outlined),
-              selectedIcon: const Icon(Icons.sensors_rounded),
+              selectedIcon: const LiveMotionIcon(icon: Icons.sensors_rounded),
               label: FarmerLanguage.label(context, 'sensors'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.timeline_outlined),
-              selectedIcon: const Icon(Icons.timeline_rounded),
+              selectedIcon: const LiveMotionIcon(icon: Icons.timeline_rounded),
               label: FarmerLanguage.label(context, 'history'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.photo_camera_outlined),
-              selectedIcon: const Icon(Icons.photo_camera_rounded),
+              selectedIcon:
+                  const LiveMotionIcon(icon: Icons.photo_camera_rounded),
               label: FarmerLanguage.label(context, 'camera'),
             ),
             NavigationDestination(
               icon: const Icon(Icons.settings_outlined),
-              selectedIcon: const Icon(Icons.settings_rounded),
+              selectedIcon: const LiveMotionIcon(icon: Icons.settings_rounded),
               label: FarmerLanguage.label(context, 'settings'),
             ),
           ],

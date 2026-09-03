@@ -11,6 +11,7 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
+import '../widgets/live_motion.dart';
 import '../widgets/simulation_command_deck.dart';
 import '../widgets/biotic_stress_card.dart';
 import '../widgets/calibre_upgrade_panels.dart';
@@ -54,12 +55,15 @@ class LiveNodeHomeScreen extends StatelessWidget {
           ),
           child: Row(
             children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(7),
-                child: Image.asset(
-                  'assets/branding/phytosense_icon.png',
-                  width: 28,
-                  height: 28,
+              LiveMotion(
+                style: LiveMotionStyle.signal,
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(7),
+                  child: Image.asset(
+                    'assets/branding/phytosense_icon.png',
+                    width: 28,
+                    height: 28,
+                  ),
                 ),
               ),
               const SizedBox(width: 9),
@@ -344,7 +348,11 @@ class _ConditionCard extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.grass_rounded, color: accent, size: 21),
+                LiveMotionIcon(
+                  icon: Icons.grass_rounded,
+                  color: accent,
+                  size: 21,
+                ),
                 const SizedBox(width: 9),
                 Expanded(
                   child: Text(
@@ -847,8 +855,8 @@ class _WeatherHomeCard extends StatelessWidget {
                       ),
                       borderRadius: BorderRadius.circular(15),
                     ),
-                    child: Icon(
-                      snapshot == null
+                    child: LiveMotionIcon(
+                      icon: snapshot == null
                           ? Icons.location_searching_rounded
                           : _homeWeatherIcon(snapshot.weatherCode),
                       color: Colors.white,
@@ -944,8 +952,10 @@ class _PlantResponseCard extends StatelessWidget {
                 color: Theme.of(context).colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(15),
               ),
-              child: Icon(Icons.electric_bolt_rounded,
-                  color: Theme.of(context).colorScheme.primary),
+              child: LiveMotionIcon(
+                icon: Icons.electric_bolt_rounded,
+                color: Theme.of(context).colorScheme.primary,
+              ),
             ),
             const SizedBox(width: 13),
             Expanded(
@@ -1100,7 +1110,10 @@ class _CoverageCard extends StatelessWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Icon(Icons.sensors_off_outlined),
+            const LiveMotionIcon(
+              icon: Icons.sensors_off_outlined,
+              style: LiveMotionStyle.signal,
+            ),
             const SizedBox(width: 12),
             Expanded(
               child: Column(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'live_motion.dart';
 import 'phyto_ui.dart';
 
 class SensorCard extends StatelessWidget {
@@ -36,10 +37,13 @@ class SensorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    final motionSignature = '$value|$status|${numericValue ?? ''}|$fresh';
+    return LiveDataMotion(
+      signature: motionSignature,
+      child: Card(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -52,9 +56,10 @@ class SensorCard extends StatelessWidget {
                         .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
-                    icon,
+                  child: LiveMotionIcon(
+                    icon: icon,
                     color: accent ?? Theme.of(context).colorScheme.primary,
+                    animate: animate && fresh,
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -149,7 +154,8 @@ class SensorCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(caption!, style: Theme.of(context).textTheme.bodySmall),
             ],
-          ],
+            ],
+          ),
         ),
       ),
     );

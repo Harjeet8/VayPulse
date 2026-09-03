@@ -5,6 +5,7 @@ import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
+import 'live_motion.dart';
 
 class DataSourceCard extends StatelessWidget {
   const DataSourceCard({super.key});
@@ -95,8 +96,10 @@ class DataSourceCard extends StatelessWidget {
                       ),
                       child: AnimatedSwitcher(
                         duration: const Duration(milliseconds: 260),
-                        child: Icon(
-                          live ? Icons.memory_rounded : Icons.science_outlined,
+                        child: LiveMotionIcon(
+                          icon: live
+                              ? Icons.memory_rounded
+                              : Icons.science_outlined,
                           key: ValueKey(live),
                           color: accent,
                         ),

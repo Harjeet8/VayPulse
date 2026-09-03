@@ -3,7 +3,13 @@ name: Verdant Crown Phone Test APK
 on:
   push:
     branches: [phytosense-verdant-final]
-    paths: ['.github/workflows/verdant-test-apk.yml']
+    paths:
+      - '.github/workflows/verdant-test-apk.yml'
+      - 'lib/**'
+      - 'assets/branding/**'
+      - 'android/app/src/main/res/**'
+      - 'pubspec.yaml'
+      - 'test/**'
   workflow_dispatch:
 
 permissions:
@@ -33,6 +39,15 @@ jobs:
 
       - name: Resolve dependencies
         run: flutter pub get
+
+      - name: Format sources
+        run: dart format lib test
+
+      - name: Analyze additive animation changes
+        run: flutter analyze --no-fatal-infos
+
+      - name: Run regression tests
+        run: flutter test
 
       - name: Build phone-test APK
         run: |

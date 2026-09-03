@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'live_motion.dart';
+
 class PageFrame extends StatelessWidget {
   final List<Widget> children;
   final EdgeInsets padding;
@@ -20,7 +22,16 @@ class PageFrame extends StatelessWidget {
           child: ListView(
             padding: padding,
             physics: physics,
-            children: children,
+            children: [
+              for (var index = 0; index < children.length; index++)
+                MotionEntrance(
+                  key: ValueKey<String>(
+                    'page-motion-$index-${children[index].runtimeType}',
+                  ),
+                  index: index,
+                  child: children[index],
+                ),
+            ],
           ),
         ),
       );
