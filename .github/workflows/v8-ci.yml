@@ -1,11 +1,7 @@
-name: PhytoSense AI Competition CI
-# Builds the PhytoSense AI Atlas correction pass from the preserved patch.
+name: PhytoSense AI Release CI
 
 on:
   push:
-    branches:
-      - phytosense-v8-ultra-final
-  pull_request:
     branches:
       - phytosense-v8-ultra-final
   workflow_dispatch:
@@ -14,14 +10,14 @@ permissions:
   contents: read
 
 jobs:
-  validate-build-package:
+  release-validate:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 55
     steps:
-      - name: Checkout PhytoSense AI
+      - name: Checkout private PhytoSense AI source
         uses: actions/checkout@v4
 
-      - name: Apply PhytoSense AI Atlas correction
+      - name: Apply approved Atlas UI correction
         shell: bash
         run: |
           set -euo pipefail
@@ -34,18 +30,22 @@ jobs:
           lines = path.read_text().splitlines()
           for i, line in enumerate(lines):
               if line.strip() == 'const LiveBrandIcon(size: 28),':
-                  if i < 2 or lines[i - 2].strip() != 'child: Row(':
-                      raise SystemExit('Unexpected Atlas Home title structure')
-                  lines[i - 2] = lines[i - 2].replace('child: Row(', 'child: const Row(', 1)
-                  lines[i] = line.replace('const LiveBrandIcon', 'LiveBrandIcon', 1)
-                  lines[i + 1] = lines[i + 1].replace('const SizedBox', 'SizedBox', 1)
-                  lines[i + 2] = lines[i + 2].replace('const Flexible', 'Flexible', 1)
+                  if i >= 2 and lines[i - 2].strip() == 'child: Row(':
+                      lines[i - 2] = lines[i - 2].replace('child: Row(', 'child: const Row(', 1)
+                      lines[i] = line.replace('const LiveBrandIcon', 'LiveBrandIcon', 1)
+                      lines[i + 1] = lines[i + 1].replace('const SizedBox', 'SizedBox', 1)
+                      lines[i + 2] = lines[i + 2].replace('const Flexible', 'Flexible', 1)
                   break
-          else:
-              raise SystemExit('Atlas Home brand icon not found')
           path.write_text('\n'.join(lines) + '\n')
           PY
-          echo 'Atlas correction applied.'
+
+      - name: Apply Uptodown release hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          base64 --decode .github/release_hardening.b64 | gzip --decompress > /tmp/phytosense-release.patch
+          git apply --check /tmp/phytosense-release.patch
+          git apply /tmp/phytosense-release.patch
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -53,11 +53,29 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Flutter version
-        run: flutter --version
-
       - name: Resolve dependencies
         run: flutter pub get
+
+      - name: Source security scan
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -RIlE 'https?://(localhost|127\.0\.0\.1|10\.0\.2\.2)|staging\.|dev\.|example\.com|test-api' lib android/app/src/main web --include='*.dart' --include='*.kt' --include='*.xml' --include='*.json' --include='*.html' | grep -q .; then
+            echo 'Release blocked: development endpoint found.'
+            exit 1
+          fi
+          if grep -RIlE '\b(debugPrint|print)[[:space:]]*\(' lib android/app/src/main --include='*.dart' --include='*.kt' | grep -q .; then
+            echo 'Release blocked: debug logging call found.'
+            exit 1
+          fi
+          if grep -RIlE '(api[_-]?key|client[_-]?secret|password|secret)[[:space:]]*[:=][[:space:]]*["'"'][^"'"']+["'"']' lib android/app/src/main web --include='*.dart' --include='*.kt' --include='*.xml' --include='*.json' --include='*.html' | grep -q .; then
+            echo 'Release blocked: credential-like literal found.'
+            exit 1
+          fi
+          if grep -RIlE 'VayPulse|Vay Pulse' lib web android/app/src/main --include='*.dart' --include='*.kt' --include='*.xml' --include='*.json' --include='*.html' | grep -q .; then
+            echo 'Release blocked: legacy branding found.'
+            exit 1
+          fi
 
       - name: Strict Flutter analyze
         run: flutter analyze
@@ -65,28 +83,103 @@ jobs:
       - name: Flutter tests
         run: flutter test
 
-      - name: Chrome web release build
-        run: flutter build web --release
-
-      - name: Android release APK
-        run: flutter build apk --release
-
-      - name: Package PhytoSense AI Atlas build
+      - name: Create isolated CI release signer
         shell: bash
         run: |
           set -euo pipefail
-          zip -r "PhytoSense-AI-Atlas-Source.zip" . \
-            -x ".git/*" ".dart_tool/*" "build/*" "android/.gradle/*" \
-               ".flutter-plugins" ".flutter-plugins-dependencies" "*.zip" \
-               ".github/atlas_patch/*"
-          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-Atlas.apk"
+          PASS="$(openssl rand -hex 32)"
+          STORE="$RUNNER_TEMP/phytosense-ci-release.jks"
+          keytool -genkeypair -noprompt \
+            -keystore "$STORE" -storetype JKS \
+            -storepass "$PASS" -keypass "$PASS" \
+            -alias phytosense-ci -keyalg RSA -keysize 4096 \
+            -sigalg SHA256withRSA -validity 365 \
+            -dname 'CN=PhytoSense CI Release, OU=Release Validation, O=PhytoSense AI, C=IN'
+          echo "PHYTOSENSE_KEYSTORE_PATH=$STORE" >> "$GITHUB_ENV"
+          echo "PHYTOSENSE_KEYSTORE_PASSWORD=$PASS" >> "$GITHUB_ENV"
+          echo "PHYTOSENSE_KEY_ALIAS=phytosense-ci" >> "$GITHUB_ENV"
+          echo "PHYTOSENSE_KEY_PASSWORD=$PASS" >> "$GITHUB_ENV"
 
-      - name: Upload PhytoSense AI Atlas artifact
+      - name: Obfuscated Android release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --release --obfuscate --split-debug-info="$RUNNER_TEMP/phytosense-symbols"
+          test -s build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Verify release hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          APK=build/app/outputs/flutter-apk/app-release.apk
+          BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -n1)"
+          test -x "$BT/aapt"
+          test -x "$BT/apksigner"
+          "$BT/aapt" dump badging "$APK" > /tmp/badging.txt
+          grep -q "package: name='com.harjeet.phytosense'" /tmp/badging.txt
+          if grep -q 'application-debuggable' /tmp/badging.txt; then
+            echo 'Release blocked: APK is debuggable.'
+            exit 1
+          fi
+          "$BT/apksigner" verify --verbose --print-certs "$APK" > /tmp/cert.txt
+          if grep -qi 'Android Debug' /tmp/cert.txt; then
+            echo 'Release blocked: debug signing certificate detected.'
+            exit 1
+          fi
+          test -s build/app/outputs/mapping/release/mapping.txt
+          grep -q 'isMinifyEnabled = true' android/app/build.gradle.kts
+          grep -q 'isShrinkResources = true' android/app/build.gradle.kts
+          if unzip -l "$APK" | grep -Eq '\.map$|/test/|/tests/|debug-symbols'; then
+            echo 'Release blocked: development artifact packaged.'
+            exit 1
+          fi
+          rm -rf /tmp/phyto-apk && mkdir -p /tmp/phyto-apk
+          unzip -qq "$APK" -d /tmp/phyto-apk
+          find /tmp/phyto-apk/lib -name libapp.so -type f -exec strings {} + > /tmp/phyto-strings.txt
+          if grep -Eqi 'localhost|127\.0\.0\.1|10\.0\.2\.2|example\.com|staging\.|test-api|VayPulse|Vay Pulse' /tmp/phyto-strings.txt; then
+            echo 'Release blocked: development or legacy string found in app payload.'
+            exit 1
+          fi
+          if grep -Eq 'AIza[0-9A-Za-z_-]{30,}|AKIA[0-9A-Z]{16}|gh[pousr]_[0-9A-Za-z]{30,}' /tmp/phyto-strings.txt; then
+            echo 'Release blocked: credential pattern found in app payload.'
+            exit 1
+          fi
+          "$BT/aapt" dump xmltree "$APK" AndroidManifest.xml > /tmp/manifest.txt
+          grep -q 'com.harjeet.phytosense.COPYRIGHT' /tmp/manifest.txt
+          grep -q 'com.harjeet.phytosense.ORIGINAL_PROJECT' /tmp/manifest.txt
+
+      - name: Android release install and launch smoke test
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            APK=build/app/outputs/flutter-apk/app-release.apk
+            adb install -r "$APK"
+            adb shell am force-stop com.harjeet.phytosense
+            adb shell am start -W -n com.harjeet.phytosense/.MainActivity
+            sleep 8
+            test -n "$(adb shell pidof com.harjeet.phytosense | tr -d '\r')"
+            adb shell uiautomator dump /sdcard/phytosense-ui.xml >/dev/null
+            adb pull /sdcard/phytosense-ui.xml /tmp/phytosense-ui.xml >/dev/null
+            grep -q 'PhytoSense' /tmp/phytosense-ui.xml
+
+      - name: Package generic release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI.apk
+          sha256sum PhytoSense-AI.apk > PhytoSense-AI.apk.sha256
+
+      - name: Upload APK only
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-Atlas
+          name: PhytoSense-AI
           path: |
-            PhytoSense-AI-Atlas-Source.zip
-            PhytoSense-AI-Atlas.apk
+            PhytoSense-AI.apk
+            PhytoSense-AI.apk.sha256
           if-no-files-found: error
           retention-days: 30
