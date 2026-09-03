@@ -14,29 +14,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout ultra-final UI base
+      - name: Checkout repaired ultra-final app
         uses: actions/checkout@v4
         with:
           ref: phytosense-v8-ultra-final
           fetch-depth: 0
-
-      - name: Fetch current main
-        run: git fetch origin main
-
-      - name: Merge September 3 core logic without replacing polished UI
-        run: |
-          set -euo pipefail
-          git checkout origin/main -- \
-            lib/models/crop_catalog.dart \
-            lib/models/sensor_reading.dart \
-            lib/services/esp32_client.dart \
-            lib/services/esp32_config_client.dart \
-            lib/services/esp32_sensor_provider.dart \
-            lib/services/health_analysis_engine.dart \
-            lib/services/leaf_screening_service.dart \
-            test/esp32_edge_contract_test.dart \
-            test/health_analysis_engine_test.dart
-          rm -f .github/merge-fix-placeholder.txt .github/repair-marker.txt
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -47,32 +29,26 @@ jobs:
       - name: Resolve dependencies
         run: flutter pub get
 
-      - name: Format merged files
-        run: dart format lib/models/crop_catalog.dart lib/models/sensor_reading.dart lib/services/esp32_client.dart lib/services/esp32_config_client.dart lib/services/esp32_sensor_provider.dart lib/services/health_analysis_engine.dart lib/services/leaf_screening_service.dart test/esp32_edge_contract_test.dart test/health_analysis_engine_test.dart
-
-      - name: Capture analyzer report
+      - name: Analyze current repaired app
         continue-on-error: true
         run: flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
 
-      - name: Capture test report
+      - name: Test current repaired app
         continue-on-error: true
         run: flutter test 2>&1 | tee test-report.txt
 
       - name: Build current installable APK
         run: flutter build apk --debug 2>&1 | tee build-report.txt
 
-      - name: Commit repaired branch after successful compile
+      - name: Locate and package APK
+        shell: bash
         run: |
-          git config user.name "PhytoSense Build Bot"
-          git config user.email "actions@users.noreply.github.com"
-          git add -A ':!.github/workflows/final-branch-repair.yml' ':!analyzer-report.txt' ':!test-report.txt' ':!build-report.txt'
-          if ! git diff --cached --quiet; then
-            git commit -m "Merge final ESP32 sync into polished ultra-final app"
-            git push origin HEAD:phytosense-v8-ultra-final
-          fi
-
-      - name: Package APK
-        run: cp build/app/outputs/flutter-apk/app-debug.apk PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+          set -euo pipefail
+          APK="$(find build -type f -name '*.apk' | head -n 1)"
+          test -n "$APK"
+          echo "Packaging $APK"
+          cp "$APK" PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+          ls -lh PhytoSense-AI-ULTRA-FINAL-LATEST.apk
 
       - name: Upload APK and diagnostics
         uses: actions/upload-artifact@v4
