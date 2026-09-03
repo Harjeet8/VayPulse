@@ -36,7 +36,12 @@ class Esp32Client {
   }
 
   Future<bool> ping() async {
-    for (final path in const ['/api/status', '/status', '/api/sensors', '/sensors']) {
+    for (final path in const [
+      '/api/status',
+      '/status',
+      '/api/sensors',
+      '/sensors',
+    ]) {
       if (await _tryGet(path) != null) return true;
     }
     return false;
@@ -75,8 +80,11 @@ class Esp32Client {
     final leaf = _map(readings['leaf']);
     final bio = _map(readings['bioelectric']);
     final calibration = _map(data['calibration']);
-    final components = _map(data['healthComponents']);
+    final legacyComponents = _map(data['healthComponents']);
     final plantHealth = _map(data['plantHealth']);
+    final components = legacyComponents.isNotEmpty
+        ? legacyComponents
+        : _map(plantHealth['components']);
 
     dynamic first(Iterable<dynamic> values) {
       for (final value in values) {
@@ -113,7 +121,6 @@ class Esp32Client {
       data['lux'],
       data['lightLux'],
       light['lux'],
-      // Current production firmware may keep `light` as a flat lux alias.
       if (_asDouble(data['light']) != null && _asDouble(data['light'])! > 100)
         data['light'],
     ]);
@@ -158,7 +165,9 @@ class Esp32Client {
     final luxValue = lightValid ? _asDouble(lux) : null;
     final legacyLightValue = _asDouble(legacyLight);
     final normalizedLight = legacyLightValue ??
-        (luxValue == null ? null : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
+        (luxValue == null
+            ? null
+            : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
     final leafValue = leafValid ? _asDouble(leafWetness) : null;
     final voltageValue = bioValid ? _asDouble(plantVoltageMv) : null;
     final stabilityValue = bioValid ? _asDouble(bioStability) : null;
@@ -177,6 +186,7 @@ class Esp32Client {
       data['healthScore'],
       data['health'],
       plantHealth['score'],
+      plantHealth['index'],
     ]));
     final espConfidence = _asDouble(first([
       data['healthConfidence'],
@@ -185,7 +195,12 @@ class Esp32Client {
     ]));
 
     final normalized = <String, dynamic>{
-      'nodeId': '${first([data['deviceId'], root['deviceId'], data['device'], 'PHYTO-NODE-001'])}',
+      'nodeId': '${first([
+        data['deviceId'],
+        root['deviceId'],
+        data['device'],
+        'PHYTO-NODE-001',
+      ])}',
       'timestamp': _timestamp(data),
       'soilMoisture': soilValue,
       'temperature': tempValue,
@@ -196,25 +211,55 @@ class Esp32Client {
       'leafWetness': leafValue,
       'plantSignal': stabilityValue,
       'plantVoltageMv': voltageValue,
-      // The provider replaces this fallback with the app-side Health Index.
+      // Hardware mode uses the ESP32 edge-intelligence result directly.
       'healthScore': espHealth,
-      'healthStatus': '${first([data['healthStatus'], plantHealth['status'], 'starting'])}',
-      'analysisConfidence': 0,
+      'healthStatus': '${first([
+        data['healthStatus'],
+        plantHealth['status'],
+        'starting',
+      ])}',
+      'analysisConfidence': espConfidence ?? 0,
       'esp32HealthScore': espHealth,
       'esp32HealthConfidence': espConfidence,
-      'waterScore': _asDouble(first([components['waterScore'], data['waterScore']])),
-      'thermalScore': _asDouble(first([components['thermalScore'], data['thermalScore']])),
-      'rootZoneScore': _asDouble(first([components['rootZoneScore'], data['rootZoneScore']])),
-      'atmosphericScore': _asDouble(first([components['atmosphericScore'], data['atmosphericScore']])),
-      'lightScore': _asDouble(first([components['lightScore'], data['lightScore']])),
+      'waterScore': _asDouble(first([
+        components['water'],
+        components['waterScore'],
+        data['waterScore'],
+      ])),
+      'thermalScore': _asDouble(first([
+        components['thermal'],
+        components['thermalScore'],
+        data['thermalScore'],
+      ])),
+      'rootZoneScore': _asDouble(first([
+        components['rootZone'],
+        components['rootZoneScore'],
+        data['rootZoneScore'],
+      ])),
+      'atmosphericScore': _asDouble(first([
+        components['atmospheric'],
+        components['atmosphericScore'],
+        data['atmosphericScore'],
+      ])),
+      'lightScore': _asDouble(first([
+        components['light'],
+        components['lightScore'],
+        data['lightScore'],
+      ])),
       'diseaseRisk': _asDouble(first([
         components['diseaseRiskPercent'],
         data['diseaseRiskPercent'],
         data['diseaseRisk'],
       ])),
       'bioelectricStability': stabilityValue,
-      'soilRaw': _asInt(first([soil['moistureRaw'], data['soilMoistureRaw']])),
-      'leafRaw': _asInt(first([leaf['raw'], data['leafWetnessRaw']])),
+      'soilRaw': _asInt(first([
+        soil['moistureRaw'],
+        data['soilMoistureRaw'],
+      ])),
+      'leafRaw': _asInt(first([
+        leaf['raw'],
+        data['leafWetnessRaw'],
+      ])),
       'soilCalibrated': first([
             soil['calibrated'],
             calibration['soilConfirmed'],
@@ -227,7 +272,11 @@ class Esp32Client {
             calibration['leafCalibrated'],
           ]) ==
           true,
-      'daytime': first([light['daytime'], data['daytime']]) != false,
+      'daytime': first([
+            light['daytime'],
+            data['daytime'],
+          ]) !=
+          false,
       'leafWetDurationSeconds': _asDouble(first([
             leaf['continuousWetSeconds'],
             data['continuousLeafWetSeconds'],
