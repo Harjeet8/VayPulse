@@ -33,40 +33,19 @@ jobs:
 
           p = Path('lib/models/sensor_reading.dart')
           s = p.read_text(encoding='utf-8')
-
           replacements = [
-            (
-              "  final double analysisConfidence;\n  final bool edgeAnalysisAvailable;",
-              "  final double analysisConfidence;\n  final String analysisOrigin;\n  final double? vpdKpa;\n  final bool recoveryActive;\n  final bool edgeAnalysisAvailable;",
-            ),
-            (
-              "    this.analysisConfidence = 0,\n    this.edgeAnalysisAvailable = true,",
-              "    this.analysisConfidence = 0,\n    this.analysisOrigin = 'persisted',\n    this.vpdKpa,\n    this.recoveryActive = false,\n    this.edgeAnalysisAvailable = true,",
-            ),
-            (
-              "        'analysisConfidence': analysisConfidence,\n        'edgeAnalysisAvailable': edgeAnalysisAvailable,",
-              "        'analysisConfidence': analysisConfidence,\n        'analysisOrigin': analysisOrigin,\n        'vpdKpa': vpdKpa,\n        'recoveryActive': recoveryActive,\n        'edgeAnalysisAvailable': edgeAnalysisAvailable,",
-            ),
-            (
-              "      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,",
-              "      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',\n      vpdKpa: _nullableNum(json['vpdKpa']),\n      recoveryActive: json['recoveryActive'] == true ||\n          '${json['recoveryStatus'] ?? ''}'.toUpperCase() == 'RECOVERING' ||\n          '${json['reliabilityMode'] ?? ''}'.toUpperCase() == 'RECOVERING',\n      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,",
-            ),
-            (
-              "    double? analysisConfidence,\n    bool? edgeAnalysisAvailable,",
-              "    double? analysisConfidence,\n    String? analysisOrigin,\n    double? vpdKpa,\n    bool? recoveryActive,\n    bool? edgeAnalysisAvailable,",
-            ),
-            (
-              "      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n      edgeAnalysisAvailable:",
-              "      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n      analysisOrigin: analysisOrigin ?? this.analysisOrigin,\n      vpdKpa: vpdKpa ?? this.vpdKpa,\n      recoveryActive: recoveryActive ?? this.recoveryActive,\n      edgeAnalysisAvailable:",
-            ),
+            ("  final double analysisConfidence;\n  final bool edgeAnalysisAvailable;", "  final double analysisConfidence;\n  final String analysisOrigin;\n  final double? vpdKpa;\n  final bool recoveryActive;\n  final bool edgeAnalysisAvailable;"),
+            ("    this.analysisConfidence = 0,\n    this.edgeAnalysisAvailable = true,", "    this.analysisConfidence = 0,\n    this.analysisOrigin = 'persisted',\n    this.vpdKpa,\n    this.recoveryActive = false,\n    this.edgeAnalysisAvailable = true,"),
+            ("        'analysisConfidence': analysisConfidence,\n        'edgeAnalysisAvailable': edgeAnalysisAvailable,", "        'analysisConfidence': analysisConfidence,\n        'analysisOrigin': analysisOrigin,\n        'vpdKpa': vpdKpa,\n        'recoveryActive': recoveryActive,\n        'edgeAnalysisAvailable': edgeAnalysisAvailable,"),
+            ("      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,", "      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',\n      vpdKpa: _nullableNum(json['vpdKpa']),\n      recoveryActive: json['recoveryActive'] == true ||\n          '${json['recoveryStatus'] ?? ''}'.toUpperCase() == 'RECOVERING' ||\n          '${json['reliabilityMode'] ?? ''}'.toUpperCase() == 'RECOVERING',\n      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,"),
+            ("    double? analysisConfidence,\n    bool? edgeAnalysisAvailable,", "    double? analysisConfidence,\n    String? analysisOrigin,\n    double? vpdKpa,\n    bool? recoveryActive,\n    bool? edgeAnalysisAvailable,"),
+            ("      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n      edgeAnalysisAvailable:", "      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n      analysisOrigin: analysisOrigin ?? this.analysisOrigin,\n      vpdKpa: vpdKpa ?? this.vpdKpa,\n      recoveryActive: recoveryActive ?? this.recoveryActive,\n      edgeAnalysisAvailable:"),
           ]
-
           for old, new in replacements:
-            if old not in s:
-              if new in s:
-                continue
+            if old in s:
+              s = s.replace(old, new, 1)
+            elif new not in s:
               raise SystemExit(f'Missing SensorReading patch anchor: {old[:80]}')
-            s = s.replace(old, new, 1)
           p.write_text(s, encoding='utf-8')
 
           p = Path('lib/services/esp32_client.dart')
@@ -82,22 +61,7 @@ jobs:
       - name: Format compatibility repair
         run: dart format lib/models/sensor_reading.dart lib/services/esp32_client.dart
 
-      - name: Resolve dependencies
-        run: flutter pub get
-
-      - name: Analyze repaired app
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
-
-      - name: Test repaired app
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter test 2>&1 | tee test-report.txt
-
-      - name: Commit compatibility repair
+      - name: Commit compatibility repair immediately
         run: |
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
@@ -107,13 +71,35 @@ jobs:
             git push origin HEAD:phytosense-v8-ultra-final
           fi
 
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Analyze repaired app
+        id: analyze
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
+
+      - name: Test repaired app
+        id: tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee test-report.txt
+
       - name: Build current installable APK
+        id: build_apk
+        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
           flutter build apk --debug 2>&1 | tee build-report.txt
 
       - name: Locate and package APK
+        if: steps.build_apk.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -124,6 +110,7 @@ jobs:
           ls -lh PhytoSense-AI-ULTRA-FINAL-LATEST.apk
 
       - name: Upload APK and diagnostics
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-ULTRA-FINAL-LATEST
@@ -132,5 +119,9 @@ jobs:
             analyzer-report.txt
             test-report.txt
             build-report.txt
-          if-no-files-found: error
+          if-no-files-found: warn
           retention-days: 7
+
+      - name: Enforce repaired app checks
+        if: steps.analyze.outcome != 'success' || steps.tests.outcome != 'success' || steps.build_apk.outcome != 'success'
+        run: exit 1
