@@ -6,3 +6,4 @@ FINAL Uptodown Release workflow before distribution.
 
 The only distributable artifact from the release gate is `PhytoSense-AI.apk`.
 Release status remains locked until every workflow gate passes.
+Verification is bound to the immutable release commit and its signed APK.
