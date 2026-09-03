@@ -753,20 +753,16 @@ class _AnswerCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
-  final String? secondary;
-  final Color? accent;
 
   const _AnswerCard({
     required this.icon,
     required this.title,
     required this.value,
-    this.secondary,
-    this.accent,
   });
 
   @override
   Widget build(BuildContext context) {
-    final color = accent ?? Theme.of(context).colorScheme.secondary;
+    final color = Theme.of(context).colorScheme.secondary;
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(17),
@@ -802,15 +798,6 @@ class _AnswerCard extends StatelessWidget {
                           height: 1.35,
                         ),
                   ),
-                  if (secondary != null && secondary!.trim().isNotEmpty) ...[
-                    const SizedBox(height: 7),
-                    Text(
-                      '${FarmerLanguage.label(context, 'making_it_worse')}: $secondary',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                  ],
                 ],
               ),
             ),
