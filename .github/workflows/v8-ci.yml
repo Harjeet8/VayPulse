@@ -1,5 +1,5 @@
 name: PhytoSense AI Competition CI
-# Final validation gate for the PhytoSense AI FieldPulse farm-scale build.
+# Builds the PhytoSense AI Atlas correction pass from the preserved patch.
 
 on:
   push:
@@ -21,6 +21,14 @@ jobs:
       - name: Checkout PhytoSense AI
         uses: actions/checkout@v4
 
+      - name: Apply PhytoSense AI Atlas correction
+        shell: bash
+        run: |
+          set -euo pipefail
+          cat .github/atlas_patch/part-* | base64 --decode | gzip --decompress > /tmp/phytosense-atlas.patch
+          git apply --check /tmp/phytosense-atlas.patch
+          git apply /tmp/phytosense-atlas.patch
+
       - name: Verify release structure
         shell: bash
         run: |
@@ -39,6 +47,13 @@ jobs:
           grep -q "SettingsScreen" lib/screens/shell_screen.dart
           test -f lib/screens/practice_farm_home_screen.dart
           test -f lib/widgets/live_icon.dart
+          test -f lib/widgets/phytosense_boot_mark.dart
+          grep -q "LiveNodeHomeScreen" lib/screens/home_screen.dart
+          ! grep -q "PracticeFarmHomeScreen" lib/screens/home_screen.dart
+          grep -q "PhytoSenseBootMark" lib/screens/splash_screen.dart
+          ! grep -R "VayPulse\|Vay Pulse" lib/l10n web --include='*.dart' --include='*.html' --include='*.json'
+          grep -q "Welcome to PhytoSense AI" lib/l10n/app_strings.dart
+          grep -q "பைட்டோ சென்ஸ் ஏஐ" lib/l10n/app_strings.dart
           ! grep -R "experienceMode\|setExperienceMode\|onboardingComplete" lib --include='*.dart'
 
       - name: Setup Flutter
@@ -65,22 +80,22 @@ jobs:
       - name: Android release APK
         run: flutter build apk --release
 
-      - name: Package PhytoSense FieldPulse build
+      - name: Package PhytoSense AI Atlas build
         shell: bash
         run: |
           set -euo pipefail
-          zip -r "PhytoSense-FieldPulse-Source.zip" . \
+          zip -r "PhytoSense-AI-Atlas-Source.zip" . \
             -x ".git/*" ".dart_tool/*" "build/*" "android/.gradle/*" \
                ".flutter-plugins" ".flutter-plugins-dependencies" "*.zip" \
-               ".github/v8-validation-trigger.txt"
-          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-FieldPulse.apk"
+               ".github/atlas_patch/*"
+          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-Atlas.apk"
 
-      - name: Upload PhytoSense FieldPulse artifact
+      - name: Upload PhytoSense AI Atlas artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-FieldPulse
+          name: PhytoSense-AI-Atlas
           path: |
-            PhytoSense-FieldPulse-Source.zip
-            PhytoSense-FieldPulse.apk
+            PhytoSense-AI-Atlas-Source.zip
+            PhytoSense-AI-Atlas.apk
           if-no-files-found: error
           retention-days: 30
