@@ -17,14 +17,16 @@ class SensorReading {
   /// bioelectric stability, not raw electrode voltage.
   final double plantSignal;
   final double? plantVoltageMv;
+  final String bioSource;
 
-  /// Main app-side decision-support index.
+  /// Main decision-support index. In ESP32 hardware mode this comes from the
+  /// edge firmware; simulation can continue using its own provider engine.
   final double healthScore;
   final double stressScore;
   final String healthStatus;
   final double analysisConfidence;
 
-  /// Embedded firmware result retained only for diagnostics/comparison.
+  /// Embedded firmware result retained for diagnostics/comparison.
   final double? esp32HealthScore;
   final double? esp32HealthConfidence;
 
@@ -70,6 +72,7 @@ class SensorReading {
     this.leafWetness,
     this.plantSignal = 50,
     this.plantVoltageMv,
+    this.bioSource = 'real',
     required this.healthScore,
     required this.stressScore,
     required this.healthStatus,
@@ -111,6 +114,8 @@ class SensorReading {
       humidityAvailable &&
       lightAvailable;
 
+  bool get bioIsDemo => bioSource.toLowerCase() == 'demo';
+
   int get availableChannelCount => <bool>[
         soilMoistureAvailable,
         temperatureAvailable,
@@ -133,6 +138,7 @@ class SensorReading {
         'leafWetness': leafWetnessAvailable ? leafWetness : null,
         'plantSignal': plantSignalAvailable ? plantSignal : null,
         'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
+        'bioSource': bioSource,
         'healthScore': healthScore,
         'stressScore': stressScore,
         'healthStatus': healthStatus,
@@ -211,6 +217,7 @@ class SensorReading {
       leafWetness: _nullableNum(json['leafWetness']),
       plantSignal: _bounded(plantSignal),
       plantVoltageMv: _nullableNum(json['plantVoltageMv']),
+      bioSource: '${json['bioSource'] ?? 'real'}',
       healthScore: health,
       stressScore: stress,
       healthStatus: '${json['healthStatus'] ?? statusForHealth(health)}',
@@ -276,8 +283,8 @@ class SensorReading {
 
   static double _bounded(double value) => value.clamp(0.0, 100.0).toDouble();
 
-  /// Compatibility fallback for old persisted data. New live and simulation
-  /// values are re-analysed by HealthAnalysisEngine.
+  /// Compatibility fallback for old persisted data. Current ESP32 hardware
+  /// values already include the edge-computed health score.
   static double calculateHealth({
     required double soilMoisture,
     required double temperature,
@@ -297,12 +304,26 @@ class SensorReading {
       usedWeight += weight;
     }
 
-    add(100 - (soilMoisture - 62).abs() * 1.2, 0.4,
-        soilMoistureAvailable);
-    add(100 - (temperature - 25).abs() * 4.0, 0.3,
-        temperatureAvailable);
-    add(100 - (humidity - 60).abs() * 1.1, 0.2, humidityAvailable);
-    add(100 - (light - 65).abs() * 0.8, 0.1, lightAvailable);
+    add(
+      100 - (soilMoisture - 62).abs() * 1.2,
+      0.4,
+      soilMoistureAvailable,
+    );
+    add(
+      100 - (temperature - 25).abs() * 4.0,
+      0.3,
+      temperatureAvailable,
+    );
+    add(
+      100 - (humidity - 60).abs() * 1.1,
+      0.2,
+      humidityAvailable,
+    );
+    add(
+      100 - (light - 65).abs() * 0.8,
+      0.1,
+      lightAvailable,
+    );
     return usedWeight == 0
         ? 50.0
         : (weighted / usedWeight).clamp(0.0, 100.0).toDouble();
@@ -328,6 +349,7 @@ class SensorReading {
     double? leafWetness,
     double? plantSignal,
     double? plantVoltageMv,
+    String? bioSource,
     double? healthScore,
     double? stressScore,
     String? healthStatus,
@@ -374,6 +396,7 @@ class SensorReading {
       leafWetness: leafWetness ?? this.leafWetness,
       plantSignal: plantSignal ?? this.plantSignal,
       plantVoltageMv: plantVoltageMv ?? this.plantVoltageMv,
+      bioSource: bioSource ?? this.bioSource,
       healthScore: healthScore ?? this.healthScore,
       stressScore: stressScore ?? this.stressScore,
       healthStatus: healthStatus ?? this.healthStatus,
