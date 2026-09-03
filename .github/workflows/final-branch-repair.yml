@@ -1,0 +1,81 @@
+name: Final Branch Repair
+
+on:
+  push:
+    branches: [phytosense-v8-ultra-final]
+    paths: ['.github/workflows/final-branch-repair.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  repair-and-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout ultra-final UI base
+        uses: actions/checkout@v4
+        with:
+          ref: phytosense-v8-ultra-final
+          fetch-depth: 0
+
+      - name: Fetch current main
+        run: git fetch origin main
+
+      - name: Merge September 3 core logic without replacing polished UI
+        run: |
+          set -euo pipefail
+          git checkout origin/main -- \
+            lib/models/crop_catalog.dart \
+            lib/models/sensor_reading.dart \
+            lib/services/esp32_client.dart \
+            lib/services/esp32_config_client.dart \
+            lib/services/esp32_sensor_provider.dart \
+            lib/services/health_analysis_engine.dart \
+            lib/services/leaf_screening_service.dart \
+            test/esp32_edge_contract_test.dart \
+            test/health_analysis_engine_test.dart
+          rm -f .github/merge-fix-placeholder.txt .github/repair-marker.txt
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Format merged files
+        run: dart format lib/models/crop_catalog.dart lib/models/sensor_reading.dart lib/services/esp32_client.dart lib/services/esp32_config_client.dart lib/services/esp32_sensor_provider.dart lib/services/health_analysis_engine.dart lib/services/leaf_screening_service.dart test/esp32_edge_contract_test.dart test/health_analysis_engine_test.dart
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos
+
+      - name: Tests
+        run: flutter test
+
+      - name: Commit repaired branch
+        run: |
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if ! git diff --cached --quiet; then
+            git commit -m "Merge final ESP32 sync into polished ultra-final app"
+            git push origin HEAD:phytosense-v8-ultra-final
+          fi
+
+      - name: Build current installable APK
+        run: flutter build apk --debug
+
+      - name: Package APK
+        run: cp build/app/outputs/flutter-apk/app-debug.apk PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-ULTRA-FINAL-LATEST
+          path: PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+          if-no-files-found: error
+          retention-days: 7
