@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
-      - name: Checkout repaired ultra-final app
+      - name: Checkout ultra-final app
         uses: actions/checkout@v4
         with:
           ref: phytosense-v8-ultra-final
@@ -26,48 +26,63 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Restore ultra-final SensorReading compatibility
+      - name: Remove duplicate compatibility fields
         shell: python
         run: |
           from pathlib import Path
 
           p = Path('lib/models/sensor_reading.dart')
           s = p.read_text(encoding='utf-8')
-          replacements = [
-            ("  final double analysisConfidence;\n  final bool edgeAnalysisAvailable;", "  final double analysisConfidence;\n  final String analysisOrigin;\n  final double? vpdKpa;\n  final bool recoveryActive;\n  final bool edgeAnalysisAvailable;"),
-            ("    this.analysisConfidence = 0,\n    this.edgeAnalysisAvailable = true,", "    this.analysisConfidence = 0,\n    this.analysisOrigin = 'persisted',\n    this.vpdKpa,\n    this.recoveryActive = false,\n    this.edgeAnalysisAvailable = true,"),
-            ("        'analysisConfidence': analysisConfidence,\n        'edgeAnalysisAvailable': edgeAnalysisAvailable,", "        'analysisConfidence': analysisConfidence,\n        'analysisOrigin': analysisOrigin,\n        'vpdKpa': vpdKpa,\n        'recoveryActive': recoveryActive,\n        'edgeAnalysisAvailable': edgeAnalysisAvailable,"),
-            ("      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,", "      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',\n      vpdKpa: _nullableNum(json['vpdKpa']),\n      recoveryActive: json['recoveryActive'] == true ||\n          '${json['recoveryStatus'] ?? ''}'.toUpperCase() == 'RECOVERING' ||\n          '${json['reliabilityMode'] ?? ''}'.toUpperCase() == 'RECOVERING',\n      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,"),
-            ("    double? analysisConfidence,\n    bool? edgeAnalysisAvailable,", "    double? analysisConfidence,\n    String? analysisOrigin,\n    double? vpdKpa,\n    bool? recoveryActive,\n    bool? edgeAnalysisAvailable,"),
-            ("      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n      edgeAnalysisAvailable:", "      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n      analysisOrigin: analysisOrigin ?? this.analysisOrigin,\n      vpdKpa: vpdKpa ?? this.vpdKpa,\n      recoveryActive: recoveryActive ?? this.recoveryActive,\n      edgeAnalysisAvailable:"),
+
+          fixes = [
+            (
+              "  final bool edgeAnalysisAvailable;\n\n  /// Compatibility/provenance fields retained for the existing intelligence\n  /// panels and persisted readings. These are additive to the newer firmware\n  /// authority fields below.\n  final String analysisOrigin;\n  final bool recoveryActive;\n  final double? vpdKpa;\n\n",
+              "  final bool edgeAnalysisAvailable;\n\n",
+            ),
+            (
+              "    this.recoveryActive = false,\n    this.edgeAnalysisAvailable = true,\n    this.analysisOrigin = 'persisted',\n    this.recoveryActive = false,\n    this.vpdKpa,\n",
+              "    this.recoveryActive = false,\n    this.edgeAnalysisAvailable = true,\n",
+            ),
+            (
+              "    'recoveryActive': recoveryActive,\n    'edgeAnalysisAvailable': edgeAnalysisAvailable,\n    'analysisOrigin': analysisOrigin,\n    'recoveryActive': recoveryActive,\n    'vpdKpa': vpdKpa,\n",
+              "    'recoveryActive': recoveryActive,\n    'edgeAnalysisAvailable': edgeAnalysisAvailable,\n",
+            ),
+            (
+              "      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,\n      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',\n      recoveryActive: json['recoveryActive'] == true,\n      vpdKpa: _nullableNum(json['vpdKpa']),\n",
+              "      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,\n",
+            ),
+            (
+              "    bool? recoveryActive,\n    bool? edgeAnalysisAvailable,\n    String? analysisOrigin,\n    bool? recoveryActive,\n    double? vpdKpa,\n",
+              "    bool? recoveryActive,\n    bool? edgeAnalysisAvailable,\n",
+            ),
+            (
+              "      edgeAnalysisAvailable:\n          edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,\n      analysisOrigin: analysisOrigin ?? this.analysisOrigin,\n      recoveryActive: recoveryActive ?? this.recoveryActive,\n      vpdKpa: vpdKpa ?? this.vpdKpa,\n",
+              "      edgeAnalysisAvailable:\n          edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,\n",
+            ),
           ]
-          for old, new in replacements:
+
+          for old, new in fixes:
             if old in s:
               s = s.replace(old, new, 1)
-            elif new not in s:
-              raise SystemExit(f'Missing SensorReading patch anchor: {old[:80]}')
+
+          # Hard guard: the model must contain exactly one declaration of each
+          # compatibility field after cleanup.
+          assert s.count('final String analysisOrigin;') == 1, s.count('final String analysisOrigin;')
+          assert s.count('final bool recoveryActive;') == 1, s.count('final bool recoveryActive;')
+          assert s.count('final double? vpdKpa;') == 1, s.count('final double? vpdKpa;')
+
           p.write_text(s, encoding='utf-8')
 
-          p = Path('lib/services/esp32_client.dart')
-          s = p.read_text(encoding='utf-8')
-          anchor = "      'analysisConfidence': espConfidence ?? 0,\n      'edgeAnalysisAvailable': espHealth != null,"
-          replacement = "      'analysisConfidence': espConfidence ?? 0,\n      'analysisOrigin': 'esp32',\n      'vpdKpa': _asDouble(first([data['vpdKpa'], analysis['vpdKpa']])),\n      'recoveryActive': reliabilityMode == 'RECOVERING' ||\n          '${first([data['recoveryStatus'], recovery['status'], recovery['state'], ''])}'.toUpperCase() == 'RECOVERING',\n      'edgeAnalysisAvailable': espHealth != null,"
-          if anchor in s:
-            s = s.replace(anchor, replacement, 1)
-          elif replacement not in s:
-            raise SystemExit('Missing ESP32 normalized-map patch anchor')
-          p.write_text(s, encoding='utf-8')
-
-      - name: Format compatibility repair
+      - name: Format repaired files
         run: dart format lib/models/sensor_reading.dart lib/services/esp32_client.dart
 
-      - name: Commit compatibility repair immediately
+      - name: Commit repaired model
         run: |
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
           git add lib/models/sensor_reading.dart lib/services/esp32_client.dart
           if ! git diff --cached --quiet; then
-            git commit -m "Restore ultra-final model compatibility after ESP32 sync"
+            git commit -m "Fix duplicate ultra-final compatibility fields"
             git push origin HEAD:phytosense-v8-ultra-final
           fi
 
@@ -75,53 +90,27 @@ jobs:
         run: flutter pub get
 
       - name: Analyze repaired app
-        id: analyze
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter analyze --no-fatal-infos 2>&1 | tee analyzer-report.txt
+        run: flutter analyze --no-fatal-infos
 
       - name: Test repaired app
-        id: tests
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter test 2>&1 | tee test-report.txt
+        run: flutter test
 
-      - name: Build current installable APK
-        id: build_apk
-        continue-on-error: true
-        shell: bash
-        run: |
-          set -o pipefail
-          flutter build apk --debug 2>&1 | tee build-report.txt
+      - name: Build installable APK
+        run: flutter build apk --debug
 
-      - name: Locate and package APK
-        if: steps.build_apk.outcome == 'success'
+      - name: Package APK
         shell: bash
         run: |
           set -euo pipefail
-          APK="$(find build -type f -name '*.apk' -print -quit)"
+          APK="$(find build/app/outputs/flutter-apk -type f -name '*.apk' -print -quit)"
           test -n "$APK"
-          echo "Packaging $APK"
           cp "$APK" PhytoSense-AI-ULTRA-FINAL-LATEST.apk
           ls -lh PhytoSense-AI-ULTRA-FINAL-LATEST.apk
 
-      - name: Upload APK and diagnostics
-        if: always()
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-ULTRA-FINAL-LATEST
-          path: |
-            PhytoSense-AI-ULTRA-FINAL-LATEST.apk
-            analyzer-report.txt
-            test-report.txt
-            build-report.txt
-          if-no-files-found: warn
+          path: PhytoSense-AI-ULTRA-FINAL-LATEST.apk
+          if-no-files-found: error
           retention-days: 7
-
-      - name: Enforce repaired app checks
-        if: steps.analyze.outcome != 'success' || steps.tests.outcome != 'success' || steps.build_apk.outcome != 'success'
-        run: exit 1
