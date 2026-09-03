@@ -163,6 +163,10 @@ class _NodeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         onTap: () {
           sensors.selectNode(node.id);
+          final scope = AppScope.of(context);
+          if (scope.sensors.source == SensorDataSource.simulation) {
+            scope.settings.setDemoNode(node.id);
+          }
           _showNode(context, node);
         },
         child: Padding(

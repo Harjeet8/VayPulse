@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/edge_intelligence.dart';
 import '../models/hardware_telemetry.dart';
@@ -53,11 +52,18 @@ class LiveNodeHomeScreen extends StatelessWidget {
             context,
             MaterialPageRoute(builder: (_) => const JudgeViewScreen()),
           ),
-          child: const Row(
+          child: Row(
             children: [
-              Icon(Icons.eco_rounded, color: phytoGreen),
-              SizedBox(width: 9),
-              Flexible(child: Text('PhytoSense AI')),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(7),
+                child: Image.asset(
+                  'assets/branding/phytosense_icon.png',
+                  width: 28,
+                  height: 28,
+                ),
+              ),
+              const SizedBox(width: 9),
+              const Flexible(child: Text('PhytoSense AI')),
             ],
           ),
         ),
@@ -97,13 +103,15 @@ class LiveNodeHomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               const SimulationCommandDeck(),
             ],
-            const SizedBox(height: 10),
-            _ConnectionStrip(
-              status: sensors.connectionStatus,
-              timestamp: reading?.timestamp,
-              onRetry: sensors.retry,
-              live: live,
-            ),
+            if (live) ...[
+              const SizedBox(height: 10),
+              _ConnectionStrip(
+                status: sensors.connectionStatus,
+                timestamp: reading?.timestamp,
+                onRetry: sensors.retry,
+                live: true,
+              ),
+            ],
             if (live &&
                 sensors.connectionStatus != SensorConnectionStatus.ready) ...[
               const SizedBox(height: 10),
@@ -164,8 +172,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
                   ),
                 ),
               ],
-              const SizedBox(height: 12),
-              _WhatChangedCard(edge: edge),
+              if (_changes(context, edge).isNotEmpty) ...[
+                const SizedBox(height: 12),
+                _WhatChangedCard(edge: edge),
+              ],
               if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
                 const SizedBox(height: 12),
                 _CoverageCard(edge: edge!),
@@ -267,7 +277,6 @@ class _ConditionCard extends StatelessWidget {
       recovering: recovering,
       possibleBiotic: possibleBiotic,
     );
-    final secondary = possibleBiotic ? null : edge?.rootCause.secondary;
     final rawAction = recovering
         ? FarmerLanguage.label(context, 'recovery_action')
         : possibleBiotic
@@ -299,7 +308,12 @@ class _ConditionCard extends StatelessWidget {
       title: title,
       healthy: healthy,
     );
-    final action = _simpleFarmerAction(context, rawAction, healthy: healthy);
+    final action = _simpleFarmerAction(
+      context,
+      rawAction,
+      title: title,
+      healthy: healthy,
+    );
     final accent = recovering
         ? Theme.of(context).colorScheme.primary
         : _stateColor(context, rawState);
@@ -337,6 +351,8 @@ class _ConditionCard extends StatelessWidget {
                     stage == null || stage.trim().isEmpty
                         ? FarmerLanguage.firmware(context, crop)
                         : '${FarmerLanguage.firmware(context, crop)}  •  ${FarmerLanguage.firmware(context, stage)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -353,8 +369,8 @@ class _ConditionCard extends StatelessWidget {
                   child: Text(
                     _competitionText(
                       context,
-                      live ? 'REAL SENSOR' : 'FARM DEMO',
-                      live ? 'நேரடி சென்சார்' : 'பண்ணை DEMO',
+                      live ? 'LIVE ESP32' : 'PRACTICE FARM',
+                      live ? 'நேரடி ESP32' : 'பயிற்சி பண்ணை',
                     ),
                     style: TextStyle(
                       color: live
@@ -418,13 +434,6 @@ class _ConditionCard extends StatelessWidget {
                       height: 1.38,
                     ),
               ),
-            ),
-          ],
-          if (secondary != null && secondary.trim().isNotEmpty) ...[
-            const SizedBox(height: 8),
-            _RankedCause(
-              label: FarmerLanguage.label(context, 'making_it_worse'),
-              value: FarmerLanguage.firmware(context, secondary),
             ),
           ],
           const SizedBox(height: 16),
@@ -492,7 +501,7 @@ class _ConditionCard extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: OutlinedButton.icon(
-              onPressed: () => _showWhy(context, edge),
+              onPressed: () => _showWhy(context, edge, live: live),
               icon: const Icon(Icons.help_outline_rounded),
               label: Text(
                 _competitionText(
@@ -515,7 +524,11 @@ class _ConditionCard extends StatelessWidget {
     );
   }
 
-  void _showWhy(BuildContext context, EdgeIntelligence? edge) {
+  void _showWhy(
+    BuildContext context,
+    EdgeIntelligence? edge, {
+    required bool live,
+  }) {
     final evidence = _evidence(context, edge);
     final confidence = FarmerLanguage.confidence(context, edge?.overallConfidence);
     final bio = edge?.bioelectric;
@@ -551,24 +564,22 @@ class _ConditionCard extends StatelessWidget {
                     '${FarmerLanguage.label(context, 'analysis_confidence')}: $confidence',
                     Theme.of(context).colorScheme.primary,
                   ),
-                  if (edge?.derivedEnvironment.vpdKpa != null)
-                    _Pill(
-                      Icons.air_rounded,
-                      '${FarmerLanguage.label(context, 'vpd')}: ${edge!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa',
-                      Theme.of(context).colorScheme.primary,
-                    ),
                 ],
               ),
               const SizedBox(height: 18),
               Text(
-                _competitionText(context, 'Evidence', 'ஆதாரம்'),
+                _competitionText(
+                  context,
+                  'What PhytoSense checked',
+                  'PhytoSense சரிபார்த்தது',
+                ),
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 9),
               if (evidence.isEmpty)
                 Text(FarmerLanguage.label(context, 'why_unavailable'))
               else
-                for (final item in evidence.take(5))
+                for (final item in evidence.take(3))
                   Padding(
                     padding: const EdgeInsets.only(bottom: 10),
                     child: Row(
@@ -607,14 +618,20 @@ class _ConditionCard extends StatelessWidget {
                           bio.excludedByFirmware
                               ? _competitionText(
                                   context,
-                                  'Bioelectric signal excluded because its quality is not reliable enough.',
+                                  'The plant signal was not reliable, so it was safely left out of this result.',
                                   'Bioelectric signal தரம் போதுமானதாக இல்லாததால் பகுப்பாய்வில் சேர்க்கப்படவில்லை.',
                                 )
-                              : _competitionText(
-                                  context,
-                                  'Bioelectric evidence is included in the ESP32 analysis.',
-                                  'Bioelectric ஆதாரம் ESP32 பகுப்பாய்வில் சேர்க்கப்பட்டுள்ளது.',
-                                ),
+                              : live
+                                  ? _competitionText(
+                                      context,
+                                      'The live plant signal supports this ESP32 result.',
+                                      'நேரடி செடி சிக்னல் இந்த ESP32 முடிவை ஆதரிக்கிறது.',
+                                    )
+                                  : _competitionText(
+                                      context,
+                                      'The practice plant signal supports this demo result.',
+                                      'பயிற்சி செடி சிக்னல் இந்த demo முடிவை ஆதரிக்கிறது.',
+                                    ),
                         ),
                       ),
                     ],
@@ -623,7 +640,7 @@ class _ConditionCard extends StatelessWidget {
               ],
               const SizedBox(height: 18),
               Text(
-                _competitionText(context, 'Conclusion', 'முடிவு'),
+                _competitionText(context, 'Main finding', 'முக்கிய முடிவு'),
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 7),
@@ -662,7 +679,7 @@ class _PlantHealthMeter extends StatelessWidget {
             curve: Curves.easeOutCubic,
             builder: (context, value, _) => SizedBox(
               width: double.infinity,
-              height: 152,
+              height: 168,
               child: Stack(
                 alignment: Alignment.center,
                 children: [
@@ -707,8 +724,10 @@ class _PlantHealthMeterPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height * 0.59);
-    final radius = math.min(size.width * 0.40, size.height * 0.52);
+    // Keep the whole semicircle above the score band. This prevents the hub
+    // and needle from ever touching the number on narrow Android screens.
+    final center = Offset(size.width / 2, size.height * 0.46);
+    final radius = math.min(size.width * 0.39, size.height * 0.40);
     const start = math.pi;
     const totalSweep = math.pi;
     const gap = 0.035;
@@ -801,10 +820,13 @@ class _WeatherHomeCard extends StatelessWidget {
         final detail = snapshot == null
             ? _competitionText(
                 context,
-                'Tap to use your phone location and load farm weather.',
-                'Phone இடத்தைப் பயன்படுத்தி பண்ணை வானிலையைப் பார்க்க தொடவும்.',
+                'Tap to load local farm weather.',
+                'உள்ளூர் பண்ணை வானிலையைப் பார்க்க தொடவும்.',
               )
-            : '${snapshot.temperature.round()}°C  •  ${FarmerLanguage.label(context, 'humidity')} ${snapshot.humidity.round()}%  •  ${weather.usingCachedData ? _competitionText(context, 'Saved weather', 'சேமித்த வானிலை') : _competitionText(context, 'Updated weather', 'புதிய வானிலை')}';
+            : '${snapshot.temperature.round()}°C  •  ${snapshot.humidity.round()}% humidity';
+        final freshness = weather.usingCachedData
+            ? _competitionText(context, 'Saved forecast', 'சேமித்த முன்னறிவிப்பு')
+            : _competitionText(context, 'Weather updated', 'வானிலை புதுப்பிக்கப்பட்டது');
         return Card(
           clipBehavior: Clip.antiAlias,
           child: InkWell(
@@ -848,17 +870,31 @@ class _WeatherHomeCard extends StatelessWidget {
                         const SizedBox(height: 2),
                         Text(
                           title,
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 3),
                         Text(
                           detail,
-                          maxLines: 2,
+                          maxLines: 1,
                           overflow: TextOverflow.ellipsis,
-                          style: Theme.of(context).textTheme.bodySmall,
+                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
                         ),
+                        if (snapshot != null) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            freshness,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -922,7 +958,11 @@ class _PlantResponseCard extends StatelessWidget {
                   Text(state,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
                   const SizedBox(height: 5),
-                  Text(result),
+                  Text(
+                    result,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                   const SizedBox(height: 7),
                   Wrap(
                     spacing: 10,
@@ -932,14 +972,6 @@ class _PlantResponseCard extends StatelessWidget {
                         Text('${FarmerLanguage.label(context, 'confidence')}: ${FarmerLanguage.confidence(context, bio.confidence)}'),
                       if (bio.trend != null)
                         Text('${FarmerLanguage.label(context, 'trend')}: ${FarmerLanguage.firmware(context, bio.trend)}'),
-                      if (bio.persistenceSeconds != null)
-                        Text('${FarmerLanguage.label(context, 'persistent_for')}: ${_duration(bio.persistenceSeconds!)}'),
-                      if (bio.includedInFusion != null)
-                        Text(
-                          bio.includedInFusion!
-                              ? FarmerLanguage.label(context, 'included_in_analysis')
-                              : FarmerLanguage.label(context, 'excluded_from_analysis'),
-                        ),
                     ],
                   ),
                   if (learning && bio.baselineSamples != null) ...[
@@ -1170,28 +1202,6 @@ class _AdvancedHomeIntelligence extends StatelessWidget {
       ),
     );
   }
-}
-
-class _RankedCause extends StatelessWidget {
-  final String label;
-  final String value;
-  const _RankedCause({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 112,
-            child: Text(label,
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w700)),
-          ),
-          const SizedBox(width: 8),
-          Expanded(child: Text(value, style: const TextStyle(fontWeight: FontWeight.w800))),
-        ],
-      );
 }
 
 class _ConnectionStrip extends StatefulWidget {
@@ -1558,22 +1568,22 @@ List<String> _evidence(BuildContext context, EdgeIntelligence? edge) {
     if (!result.contains(clean)) result.add(clean);
   }
 
-  add(edge.rootCause.primary);
   add(edge.rootCause.primaryCandidate?.evidenceFor);
-  final counterEvidence = edge.rootCause.primaryCandidate?.evidenceAgainst;
-  if (counterEvidence != null) {
-    add('Counter-evidence: $counterEvidence');
-  }
-  add(edge.rootCause.secondary);
   add(edge.rootCause.secondaryCandidate?.evidenceFor);
-  if (edge.bioelectric.corroborated == true && edge.bioelectric.corroboratedBy.isNotEmpty) {
-    result.add('${FarmerLanguage.label(context, 'plant_response_supported_by')}: ${edge.bioelectric.corroboratedBy.map((e) => _friendlyChannel(context, e)).join(', ')}');
+  if (edge.bioelectric.corroborated == true &&
+      !edge.bioelectric.excludedByFirmware) {
+    result.add(
+      _competitionText(
+        context,
+        'The plant signal agrees with the soil and climate readings.',
+        'செடி சிக்னல் மண் மற்றும் வானிலை மதிப்புகளுடன் ஒத்துள்ளது.',
+      ),
+    );
   }
-  for (final trend in edge.trends.where((t) => t.state != null)) {
-    result.add('${_friendlyChannel(context, trend.channel)}: ${FarmerLanguage.firmware(context, trend.state)}');
-    if (result.length >= 4) break;
+  if (result.isEmpty) {
+    add(edge.rootCause.primary);
+    add(edge.decisionExplanation);
   }
-  if (result.length < 4) add(edge.decisionExplanation);
   return result;
 }
 
@@ -1615,6 +1625,14 @@ String _simpleConditionTitle(
     );
   }
   final value = (main ?? rawState).toUpperCase();
+  if ((value.contains('HEAT') && value.contains('WATER')) ||
+      value.contains('COMPOUND')) {
+    return _competitionText(
+      context,
+      'Heat and dry soil need urgent attention',
+      'வெப்பம் மற்றும் உலர் மண்ணை உடனே கவனிக்கவும்',
+    );
+  }
   if (value.contains('ATMOSPHERIC') || value.contains('DRYING_DEMAND')) {
     return _competitionText(
       context,
@@ -1673,6 +1691,14 @@ String _simpleConditionSummary(
     return '';
   }
   final value = raw.toUpperCase();
+  if ((value.contains('HEAT') && value.contains('WATER')) ||
+      value.contains('COMPOUND')) {
+    return _competitionText(
+      context,
+      'High heat and very dry soil are stressing the plant.',
+      'அதிக வெப்பமும் மிகவும் உலர்ந்த மண்ணும் செடிக்கு அழுத்தம் தருகின்றன.',
+    );
+  }
   if (value.contains('ATMOSPHERIC') || value.contains('DRYING')) {
     return _competitionText(
       context,
@@ -1686,6 +1712,7 @@ String _simpleConditionSummary(
 String _simpleFarmerAction(
   BuildContext context,
   String raw, {
+  required String title,
   required bool healthy,
 }) {
   if (healthy) {
@@ -1695,7 +1722,23 @@ String _simpleFarmerAction(
       'வழக்கம்போல் தொடர்ந்து கண்காணிக்கவும்.',
     );
   }
-  final value = raw.toUpperCase();
+  final value = '$title $raw'.toUpperCase();
+  if (value.contains('TOO WET') || value.contains('OVERWATER')) {
+    return _competitionText(
+      context,
+      'Pause watering and check that the root zone can drain.',
+      'நீர் பாய்ச்சுவதை நிறுத்தி, வேர் பகுதியில் வடிகால் உள்ளதா பாருங்கள்.',
+    );
+  }
+  if ((value.contains('HEAT') &&
+          (value.contains('DRY') || value.contains('WATER'))) ||
+      value.contains('URGENT')) {
+    return _competitionText(
+      context,
+      'Check the soil near the roots. If it is dry, irrigate slowly and reduce strong midday heat where possible.',
+      'வேர் அருகே மண்ணை பாருங்கள். உலர்ந்தால் மெதுவாக நீர் பாய்ச்சி, முடிந்தால் மதிய வெப்பத்தை குறைக்கவும்.',
+    );
+  }
   if (value.contains('DRYING') || value.contains('ROOT-ZONE MOISTURE')) {
     return _competitionText(
       context,

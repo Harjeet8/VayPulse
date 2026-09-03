@@ -499,33 +499,30 @@ class PlantStateJourneyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tamil = FarmerLanguage.isTamil(context);
     final journey = _buildJourney(history, edge);
+    final visible = journey.length <= 4
+        ? journey
+        : journey.sublist(journey.length - 4);
     return _CompetitionCard(
       icon: Icons.route_rounded,
-      title: tamil ? 'Plant response journey' : 'Plant response journey',
+      title: tamil ? 'சமீபத்திய செடி மாற்றங்கள்' : 'Recent plant changes',
       subtitle: tamil
-          ? 'Validated state changes மற்றும் firmware events.'
-          : 'Validated state changes and firmware-reported events.',
+          ? 'சமீபத்திய அளவீடுகளில் செடியின் நிலை எப்படி மாறியது.'
+          : 'How the plant condition changed over recent readings.',
       child: journey.isEmpty
-          ? Text(tamil ? 'State change இன்னும் பதிவு ஆகவில்லை.' : 'No state transition recorded yet.')
-          : SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  for (var i = 0; i < journey.length; i++) ...[
-                    _JourneyNode(item: journey[i]),
-                    if (i != journey.length - 1)
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 5),
-                        child: Icon(
-                          Icons.arrow_forward_rounded,
-                          size: 18,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                  ],
+          ? Text(tamil
+              ? 'மாற்றம் இன்னும் பதிவாகவில்லை.'
+              : 'No plant change has been recorded yet.')
+          : Column(
+              children: [
+                for (var i = 0; i < visible.length; i++) ...[
+                  _JourneyNode(
+                    item: visible[i],
+                    latest: i == visible.length - 1,
+                  ),
+                  if (i != visible.length - 1)
+                    const Divider(height: 12, indent: 40),
                 ],
-              ),
+              ],
             ),
     );
   }
@@ -1018,7 +1015,9 @@ class _JourneyItem {
 
 class _JourneyNode extends StatelessWidget {
   final _JourneyItem item;
-  const _JourneyNode({required this.item});
+  final bool latest;
+
+  const _JourneyNode({required this.item, required this.latest});
 
   @override
   Widget build(BuildContext context) {
@@ -1031,29 +1030,56 @@ class _JourneyNode extends StatelessWidget {
             : upper.contains('WATCH') || upper.contains('ATTENTION')
                 ? scheme.tertiary
                 : scheme.primary;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 320),
-      constraints: const BoxConstraints(minWidth: 116, maxWidth: 172),
-      padding: const EdgeInsets.all(11),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(15),
-        border: Border.all(color: color.withValues(alpha: 0.20)),
-      ),
-      child: Column(
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            item.label.replaceAll('_', ' '),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(color: color, fontWeight: FontWeight.w900),
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: latest ? 0.18 : 0.09),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              latest ? Icons.circle : Icons.check_rounded,
+              size: latest ? 10 : 17,
+              color: color,
+            ),
           ),
-          const SizedBox(height: 5),
-          Text(
-            item.timestamp == null ? item.type : _time(item.timestamp!),
-            style: Theme.of(context).textTheme.bodySmall,
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  FarmerLanguage.firmware(
+                    context,
+                    item.label.replaceAll('_', ' '),
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(color: color, fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  item.timestamp == null ? item.type : _time(item.timestamp!),
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
           ),
+          if (latest)
+            Text(
+              FarmerLanguage.isTamil(context) ? 'தற்போது' : 'CURRENT',
+              style: TextStyle(
+                color: color,
+                fontSize: 9,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 0.5,
+              ),
+            ),
         ],
       ),
     );

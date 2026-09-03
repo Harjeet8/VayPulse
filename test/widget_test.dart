@@ -1,4 +1,6 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:phytosense_ai/models/farm_impact_projection.dart';
 import 'package:phytosense_ai/models/edge_intelligence.dart';
@@ -9,12 +11,21 @@ import 'package:phytosense_ai/models/app_settings.dart';
 import 'package:phytosense_ai/models/sensor_reading.dart';
 import 'package:phytosense_ai/models/weather_snapshot.dart';
 import 'package:phytosense_ai/services/ai_analysis_service.dart';
+import 'package:phytosense_ai/services/alert_service.dart';
+import 'package:phytosense_ai/services/app_scope.dart';
 import 'package:phytosense_ai/services/engineering_evidence_service.dart';
+import 'package:phytosense_ai/services/farm_repository.dart';
+import 'package:phytosense_ai/services/inspection_history_service.dart';
 import 'package:phytosense_ai/services/irrigation_advisor.dart';
 import 'package:phytosense_ai/services/location_name_resolver.dart';
 import 'package:phytosense_ai/services/multimodal_disease_service.dart';
+import 'package:phytosense_ai/services/offline_sync_service.dart';
 import 'package:phytosense_ai/services/sensor_data_provider.dart';
 import 'package:phytosense_ai/services/sensor_provider_manager.dart';
+import 'package:phytosense_ai/services/settings_service.dart';
+import 'package:phytosense_ai/services/voice_guidance_service.dart';
+import 'package:phytosense_ai/services/weather_service.dart';
+import 'package:phytosense_ai/screens/farmer_analysis_screen.dart';
 import 'package:phytosense_ai/simulation/simulated_sensor_provider.dart';
 
 void main() {
@@ -205,9 +216,109 @@ void main() {
     expect(manager.supportsScenarios, isFalse);
     expect(manager.scenarioIds, isEmpty);
     expect(manager.current, isNull);
+    expect(manager.edgeIntelligence, isNull);
+    expect(manager.hardwareTelemetry, isNull);
     manager.setScenario('drought');
     expect(manager.current, isNull);
     manager.dispose();
+  });
+
+  test('refresh keeps the selected critical Practice Farm condition', () {
+    final provider = SimulationSensorProvider();
+    provider.setScenario('critical');
+    provider.start();
+    provider.selectNode('node-rice-a1');
+
+    expect(provider.scenarioId, 'critical');
+    expect(provider.selectedNodeId, 'node-rice-a1');
+
+    provider.retry();
+
+    expect(provider.scenarioId, 'critical');
+    expect(provider.selectedNodeId, 'node-rice-a1');
+    expect(provider.current, isNotNull);
+    provider.dispose();
+  });
+
+  test('an offline Practice Farm node does not expose an old reading', () {
+    final provider = SimulationSensorProvider()..start();
+    expect(provider.current, isNotNull);
+
+    provider.setScenario('offline');
+
+    expect(provider.current, isNull);
+    expect(provider.latestReadings, isEmpty);
+    expect(provider.edgeIntelligence, isNull);
+    expect(provider.hardwareTelemetry, isNull);
+    provider.dispose();
+  });
+
+  test('Practice Farm condition and zone survive a settings reload', () async {
+    SharedPreferences.setMockInitialValues(const <String, Object>{});
+    final settings = SettingsService();
+    await settings.load();
+    await settings.setScenario('critical');
+    await settings.setDemoNode('node-rice-a1');
+
+    final restored = SettingsService();
+    await restored.load();
+
+    expect(restored.value.demoScenario, 'critical');
+    expect(restored.value.demoNodeId, 'node-rice-a1');
+  });
+
+  testWidgets('farmer analysis stays rendered and keeps details open on refresh',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    final settings = SettingsService();
+    final farms = FarmRepository();
+    final sensors = SensorProviderManager();
+    sensors.setScenario('critical');
+    sensors.start();
+    final weather = WeatherService();
+    final alerts = AlertService(sensors, settings, weather, farms);
+    final voice = VoiceGuidanceService();
+    final offlineSync = OfflineSyncService(sensors, settings);
+    final evidence = EngineeringEvidenceService(sensors);
+    final inspections = InspectionHistoryService();
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: AppScope(
+          settings: settings,
+          farms: farms,
+          sensorManager: sensors,
+          alerts: alerts,
+          weather: weather,
+          voice: voice,
+          offlineSync: offlineSync,
+          engineeringEvidence: evidence,
+          inspectionHistory: inspections,
+          child: const FarmerAnalysisScreen(),
+        ),
+      ),
+    );
+    await tester.pump();
+
+    expect(find.text('Plant needs urgent attention'), findsOneWidget);
+    await tester.scrollUntilVisible(
+      find.text('More details'),
+      420,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.tap(find.text('More details'));
+    await tester.pumpAndSettle();
+    expect(find.text('Firmware'), findsOneWidget);
+
+    sensors.retry();
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(find.text('Firmware'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+    sensors.dispose();
   });
 
   test('simulation supplies environment and bioelectric intelligence', () {

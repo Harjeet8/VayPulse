@@ -95,8 +95,10 @@ class PhoneNotificationService {
       final strings = AppStrings(settings.value.languageCode);
       final copy = _notificationCopy(chosen, strings, source);
       final isEsp32 = source == SensorDataSource.esp32;
+      // Keep one current card per source. When the condition changes or
+      // escalates, the new decision replaces the old card instead of stacking.
       final notificationTag =
-          '${isEsp32 ? 'live' : 'simulation'}:${chosen.titleKey}';
+          'phytosense:${isEsp32 ? 'live-current' : 'demo-current'}';
       final sequence = ++_sequence;
 
       try {
@@ -192,39 +194,30 @@ class PhoneNotificationService {
         (_isRawKey(localizedTitle, alert.titleKey)
             ? _humanize(alert.titleKey)
             : localizedTitle);
-    var bodyText = friendlyBody ??
+    final localizedMessage = friendlyBody ??
         (_isRawKey(localizedBody, alert.messageKey)
             ? _humanize(alert.messageKey)
             : localizedBody);
 
     final metric = _metricContext(alert, reading);
-    final cause = _cleanNullable(edge?.rootCause.primary);
-    final recommendation = _cleanNullable(edge?.recommendation);
-
-    final details = <String>[];
-    if (metric != null) details.add(metric);
-    if (cause != null && !_containsMeaning(bodyText, cause)) {
-      details.add('Leading cause: $cause.');
-    }
-    if (recommendation != null && !_containsMeaning(bodyText, recommendation)) {
-      details.add('Action: $recommendation.');
-    }
-    if (details.isNotEmpty) {
-      bodyText = '${_ensureSentence(bodyText)} ${details.join(' ')}';
-    }
+    final bodyText = disconnected && alert.titleKey == 'alert_sensor_attention'
+        ? 'Reconnect the sensor to continue live monitoring.'
+        : _farmerAction(alert.messageKey, fallback: localizedMessage);
 
     final confidence = _confidence(edge, reading);
     final sourceLabel = source == SensorDataSource.esp32
         ? 'LIVE ESP32'
-        : 'SIMULATION';
-    final confidenceLabel = confidence == null
-        ? 'Plant intelligence'
-        : '${confidence.round()}% confidence';
+        : 'DEMO DATA';
+    final summaryParts = <String>[sourceLabel];
+    if (metric != null) summaryParts.add(metric);
+    if (confidence != null) {
+      summaryParts.add('${confidence.round()}% confidence');
+    }
 
     return _PhoneCopy(
       title: _clean(titleText),
       body: _clean(bodyText),
-      summary: '$sourceLabel • $confidenceLabel',
+      summary: summaryParts.join(' • '),
     );
   }
 
@@ -236,14 +229,14 @@ class PhoneNotificationService {
             key.contains('dry') ||
             key.contains('overwatering')) &&
         reading.soilMoistureAvailable) {
-      return 'Soil moisture: ${reading.soilMoisture.round()}%.';
+      return 'Soil ${reading.soilMoisture.round()}%';
     }
     if ((key.contains('heat') || key.contains('temperature')) &&
         reading.temperatureAvailable) {
-      return 'Air temperature: ${reading.temperature.toStringAsFixed(1)}°C.';
+      return '${reading.temperature.toStringAsFixed(1)}°C';
     }
     if (key.contains('plant_stress') && reading.plantSignalAvailable) {
-      return 'Bio signal quality: ${reading.bioSignalQuality.round()}%.';
+      return 'Plant signal ${reading.bioSignalQuality.round()}%';
     }
     return null;
   }
@@ -254,24 +247,6 @@ class PhoneNotificationService {
         reading?.analysisConfidence;
     if (value == null || !value.isFinite) return null;
     return value.clamp(0.0, 100.0).toDouble();
-  }
-
-  bool _containsMeaning(String body, String detail) {
-    final left = body.toLowerCase().replaceAll(RegExp(r'[^a-z0-9 ]'), ' ');
-    final right = detail.toLowerCase().replaceAll(RegExp(r'[^a-z0-9 ]'), ' ');
-    final words = right.split(RegExp(r'\s+')).where((word) => word.length >= 5);
-    return words.any(left.contains);
-  }
-
-  String? _cleanNullable(String? value) {
-    if (value == null || value.trim().isEmpty) return null;
-    return _clean(value);
-  }
-
-  String _ensureSentence(String value) {
-    final clean = _clean(value);
-    if (clean.isEmpty) return clean;
-    return RegExp(r'[.!?]$').hasMatch(clean) ? clean : '$clean.';
   }
 
   bool _isRawKey(String value, String key) =>
@@ -336,20 +311,20 @@ class PhoneNotificationService {
   }
 
   static const Map<String, String> _friendlyTitles = {
-    'alert_severe_dryness': 'Critical soil dryness detected',
-    'alert_low_moisture': 'Root-zone moisture is falling',
-    'alert_overwatering': 'Root zone is staying too wet',
-    'alert_heat_stress': 'Heat stress is building',
-    'alert_low_light': 'Light level is below target',
-    'alert_sensor_attention': 'Sensor signal needs attention',
-    'alert_plant_recovering': 'Plant response is recovering',
-    'alert_possible_biotic': 'Unusual plant pattern needs inspection',
-    'alert_water_stress_edge': 'Water-stress evidence is rising',
-    'alert_heat_stress_edge': 'Heat-stress evidence is rising',
-    'alert_root_stress_edge': 'Root-zone stress detected',
-    'alert_plant_stress_edge': 'Plant stress signal confirmed',
-    'alert_low_battery': 'PhytoSense node battery is low',
-    'alert_weak_signal': 'ESP32 link quality is weak',
+    'alert_severe_dryness': 'Soil is critically dry',
+    'alert_low_moisture': 'Soil moisture is low',
+    'alert_overwatering': 'Soil is staying too wet',
+    'alert_heat_stress': 'Heat stress is rising',
+    'alert_low_light': 'The crop needs more light',
+    'alert_sensor_attention': 'Check the plant sensor',
+    'alert_plant_recovering': 'The plant is recovering',
+    'alert_possible_biotic': 'Inspect the plant for damage',
+    'alert_water_stress_edge': 'Water stress is rising',
+    'alert_heat_stress_edge': 'Heat stress is rising',
+    'alert_root_stress_edge': 'The root zone needs attention',
+    'alert_plant_stress_edge': 'Plant stress is confirmed',
+    'alert_low_battery': 'Sensor battery is low',
+    'alert_weak_signal': 'ESP32 signal is weak',
   };
 
   static const Map<String, String> _friendlyBodies = {
@@ -382,6 +357,43 @@ class PhoneNotificationService {
     'alert_weak_signal_message':
         'The ESP32 connection is weak. Move the node or phone closer to the Wi-Fi source for more reliable live data.',
   };
+
+  static const Map<String, String> _farmerActions = {
+    'alert_severe_dryness_message':
+        'Check soil near the roots and water if it is dry.',
+    'alert_low_moisture_message':
+        'Check soil near the roots before watering.',
+    'alert_overwatering_message':
+        'Pause watering and check the field drainage.',
+    'alert_heat_stress_message':
+        'Check water supply and reduce avoidable heat exposure.',
+    'alert_low_light_message': 'Check for excess shade around the crop.',
+    'alert_sensor_attention_message':
+        'Check the sensor contact and connection.',
+    'alert_plant_recovering_message':
+        'Keep monitoring; no immediate change is needed.',
+    'alert_possible_biotic_message':
+        'Inspect leaves and stems before choosing a treatment.',
+    'alert_water_stress_edge_message':
+        'Check soil near the roots before watering.',
+    'alert_heat_stress_edge_message':
+        'Check water supply and protect the crop from excess heat.',
+    'alert_root_stress_edge_message':
+        'Check soil moisture, drainage and root temperature.',
+    'alert_plant_stress_edge_message':
+        'Open the analysis and check the main cause.',
+    'alert_low_battery_message': 'Recharge the sensor node soon.',
+    'alert_weak_signal_message':
+        'Move the node closer to the Wi-Fi source.',
+  };
+
+  String _farmerAction(String messageKey, {required String fallback}) {
+    final action = _farmerActions[messageKey];
+    if (action != null) return action;
+    final clean = _clean(fallback);
+    if (clean.length <= 110) return clean;
+    return 'Open PhytoSense to check the cause and next action.';
+  }
 }
 
 class _PhoneCopy {

@@ -6,527 +6,368 @@ import 'package:flutter/services.dart';
 import '../services/app_scope.dart';
 import '../services/sensor_data_provider.dart';
 
-class SimulationCommandDeck extends StatefulWidget {
+/// Compact, clearly labelled farm demonstration controls.
+///
+/// Only the farm facts needed at a glance are shown here. Simulated values
+/// remain isolated inside the simulation provider and can never be presented
+/// as ESP32 readings.
+class SimulationCommandDeck extends StatelessWidget {
   const SimulationCommandDeck({super.key});
-
-  @override
-  State<SimulationCommandDeck> createState() => _SimulationCommandDeckState();
-}
-
-class _SimulationCommandDeckState extends State<SimulationCommandDeck>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _pulse;
-  bool _storyRunning = false;
-
-  static const _story = <String>[
-    'healthy',
-    'baseline_learning',
-    'atmospheric_drying',
-    'bio_response',
-    'recovery',
-  ];
 
   static const _meta = <String, _ScenarioMeta>{
     'healthy': _ScenarioMeta(
-      'Healthy farm',
-      'See normal soil, weather and plant readings',
+      'Healthy crop',
+      'Soil, climate and plant response are in a safe range.',
       Icons.eco_rounded,
     ),
     'baseline_learning': _ScenarioMeta(
-      'Plant learning',
-      'See how the app learns the plant’s normal signal',
+      'Learning plant signal',
+      'PhytoSense is learning the plant’s normal electrical pattern.',
       Icons.memory_rounded,
     ),
     'atmospheric_drying': _ScenarioMeta(
       'Dry air',
-      'Air pulls water quickly while the soil is still moist',
+      'The air is pulling water quickly while the soil remains moist.',
       Icons.air_rounded,
     ),
     'dry': _ScenarioMeta(
-      'Dry soil',
-      'See what happens when root-zone moisture falls',
+      'Dry root zone',
+      'Soil moisture has fallen below the preferred range.',
       Icons.water_drop_outlined,
     ),
     'overwatered': _ScenarioMeta(
       'Soil too wet',
-      'See how excess root-zone water changes the result',
+      'The root zone is staying wetter than the crop needs.',
       Icons.water_rounded,
     ),
     'heat_stress': _ScenarioMeta(
       'Heat stress',
-      'Hot air raises water loss and plant stress',
+      'High temperature is increasing plant water loss.',
       Icons.device_thermostat_rounded,
     ),
     'bio_response': _ScenarioMeta(
       'Plant signal change',
-      'The plant signal changes before one clear cause is found',
+      'The plant signal changed before one clear cause was found.',
       Icons.electric_bolt_rounded,
     ),
     'recovery': _ScenarioMeta(
-      'Recovery',
-      'See the plant result improve after conditions become safer',
+      'Plant recovering',
+      'Conditions improved and the plant response is settling.',
       Icons.restore_rounded,
     ),
     'biotic_risk': _ScenarioMeta(
-      'Possible pest or disease',
-      'Practice checking visible signs without claiming a diagnosis',
+      'Plant needs inspection',
+      'The pattern suggests checking for pests or visible damage.',
       Icons.biotech_outlined,
     ),
     'low_light': _ScenarioMeta(
-      'Low light',
-      'Daylight falls below the expected farm range',
+      'Low daylight',
+      'Available daylight is below the expected crop range.',
       Icons.wb_twilight_rounded,
     ),
     'critical': _ScenarioMeta(
-      'Several stresses',
-      'Heat, dry soil and plant response all need action',
+      'Urgent crop stress',
+      'Heat, dry soil and plant response all need attention.',
       Icons.warning_amber_rounded,
     ),
     'sensor_fault': _ScenarioMeta(
-      'Sensor problem',
-      'A bad sensor is ignored instead of creating a false warning',
+      'Sensor needs attention',
+      'An unreliable channel is excluded from the result.',
       Icons.sensors_off_rounded,
     ),
     'offline': _ScenarioMeta(
-      'Farm offline',
-      'No new demo reading is shown as live data',
+      'Practice node offline',
+      'No old reading is shown as current data.',
       Icons.wifi_off_rounded,
     ),
   };
 
   @override
-  void initState() {
-    super.initState();
-    _pulse = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 3600),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _pulse.dispose();
-    super.dispose();
-  }
-
-  Future<void> _runStory() async {
-    if (_storyRunning) return;
-    final scope = AppScope.of(context);
-    setState(() => _storyRunning = true);
-    await HapticFeedback.mediumImpact();
-    try {
-      for (final scenario in _story) {
-        if (!mounted || scope.sensorManager.source != SensorDataSource.simulation) {
-          break;
-        }
-        if (scope.sensorManager.scenarioIds.contains(scenario)) {
-          scope.sensorManager.setScenario(scenario);
-        }
-        await Future<void>.delayed(const Duration(milliseconds: 1900));
-      }
-    } finally {
-      if (mounted) setState(() => _storyRunning = false);
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
     final scope = AppScope.of(context);
-    final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return AnimatedBuilder(
-      animation: Listenable.merge([scope.sensorManager, _pulse]),
+      animation: scope.sensorManager,
       builder: (context, _) {
-        if (scope.sensorManager.source != SensorDataSource.simulation) {
+        final sensors = scope.sensorManager;
+        if (sensors.source != SensorDataSource.simulation) {
           return const SizedBox.shrink();
         }
-        final theme = Theme.of(context);
-        final colors = theme.colorScheme;
-        final selected = scope.sensorManager.scenarioId;
-        final ids = scope.sensorManager.scenarioIds;
-        final meta = _meta[selected] ??
-            _ScenarioMeta(
-              selected.replaceAll('_', ' '),
-              'Clearly-labelled simulated evidence',
-              Icons.science_outlined,
-            );
-        final wave = reduceMotion ? 0.35 : _pulse.value;
 
-        return TweenAnimationBuilder<double>(
-          duration: reduceMotion
-              ? Duration.zero
-              : const Duration(milliseconds: 520),
-          curve: Curves.easeOutCubic,
-          tween: Tween(begin: 0.96, end: 1),
-          builder: (context, value, child) => Opacity(
-            opacity: value.clamp(0.0, 1.0),
-            child: Transform.translate(
-              offset: Offset(0, (1 - value) * 18),
-              child: Transform.scale(scale: value, child: child),
-            ),
-          ),
-          child: Container(
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(28),
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  colors.primaryContainer.withValues(alpha: 0.68),
-                  colors.surfaceContainerHighest.withValues(alpha: 0.54),
-                  colors.surface,
-                ],
-              ),
-              border: Border.all(
-                color: colors.primary.withValues(alpha: 0.18),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: colors.primary.withValues(alpha: 0.07),
-                  blurRadius: 26,
-                  offset: const Offset(0, 10),
-                ),
-              ],
-            ),
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: IgnorePointer(
-                    child: CustomPaint(
-                      painter: _SimulationFieldPainter(
-                        phase: wave,
-                        color: colors.primary,
-                      ),
-                    ),
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(17, 16, 17, 17),
-                  child: Column(
+        final selected = sensors.scenarioId;
+        final meta = _meta[selected] ?? _fallbackMeta(selected);
+        final profile = _farmProfile(sensors.selectedNodeId);
+        const demo = Color(0xFFE17A22);
+        final scheme = Theme.of(context).colorScheme;
+
+        return Card(
+          clipBehavior: Clip.antiAlias,
+          margin: EdgeInsets.zero,
+          child: InkWell(
+            onTap: () => _showConditionPicker(context),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(15, 14, 13, 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Row(
-                        children: [
-                          Container(
-                            width: 46,
-                            height: 46,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(15),
-                              color: colors.primary.withValues(alpha: 0.12),
-                              border: Border.all(
-                                color: colors.primary.withValues(alpha: 0.16),
-                              ),
-                            ),
-                            child: Icon(Icons.science_outlined,
-                                color: colors.primary),
-                          ),
-                          const SizedBox(width: 11),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                      Container(
+                        width: 42,
+                        height: 42,
+                        decoration: BoxDecoration(
+                          color: demo.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(Icons.agriculture_rounded, color: demo),
+                      ),
+                      const SizedBox(width: 11),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                const Text(
-                                  'FARM PRACTICE MODE',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 1.5,
+                                Expanded(
+                                  child: Text(
+                                    profile.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                    ),
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  'Choose a farm condition to see how PhytoSense responds',
-                                  style: theme.textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w900,
+                                const SizedBox(width: 8),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: demo.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(99),
+                                  ),
+                                  child: const Text(
+                                    'DEMO DATA',
+                                    style: TextStyle(
+                                      color: Color(0xFFAD5510),
+                                      fontSize: 8.5,
+                                      fontWeight: FontWeight.w900,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                          ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 9,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: colors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(99),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                _PulseDot(
-                                  phase: wave,
-                                  color: colors.primary,
-                                ),
-                                const SizedBox(width: 6),
-                                Text(
-                                  'DEMO ONLY',
-                                  style: TextStyle(
-                                    color: colors.primary,
-                                    fontSize: 9,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 0.7,
+                            const SizedBox(height: 3),
+                            Text(
+                              profile.details,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                    color: scheme.onSurfaceVariant,
+                                    fontWeight: FontWeight.w700,
                                   ),
-                                ),
-                              ],
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 14),
-                      AnimatedSwitcher(
-                        duration: reduceMotion
-                            ? Duration.zero
-                            : const Duration(milliseconds: 360),
-                        switchInCurve: Curves.easeOutCubic,
-                        switchOutCurve: Curves.easeInCubic,
-                        transitionBuilder: (child, animation) => FadeTransition(
-                          opacity: animation,
-                          child: SlideTransition(
-                            position: Tween<Offset>(
-                              begin: const Offset(0.03, 0),
-                              end: Offset.zero,
-                            ).animate(animation),
-                            child: child,
-                          ),
+                          ],
                         ),
-                        child: Container(
-                          key: ValueKey(selected),
-                          width: double.infinity,
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: colors.surface.withValues(alpha: 0.72),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(
-                              color: colors.outlineVariant.withValues(alpha: 0.55),
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              AnimatedContainer(
-                                duration: const Duration(milliseconds: 320),
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(16),
-                                  color: colors.primary.withValues(alpha: 0.1),
-                                ),
-                                child: Icon(meta.icon, color: colors.primary),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      meta.title,
-                                      style: theme.textTheme.titleMedium?.copyWith(
-                                        fontWeight: FontWeight.w900,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 3),
-                                    Text(
-                                      meta.description,
-                                      style: theme.textTheme.bodySmall?.copyWith(
-                                        height: 1.35,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 13),
-                      SizedBox(
-                        height: 46,
-                        child: ListView.separated(
-                          scrollDirection: Axis.horizontal,
-                          itemCount: ids.length,
-                          separatorBuilder: (_, __) => const SizedBox(width: 8),
-                          itemBuilder: (context, index) {
-                            final id = ids[index];
-                            final item = _meta[id] ??
-                                _ScenarioMeta(
-                                  id.replaceAll('_', ' '),
-                                  'Simulated scenario',
-                                  Icons.science_outlined,
-                                );
-                            final active = id == selected;
-                            return _ScenarioChip(
-                              meta: item,
-                              active: active,
-                              onTap: () {
-                                HapticFeedback.selectionClick();
-                                scope.sensorManager.setScenario(id);
-                              },
-                            );
-                          },
-                        ),
-                      ),
-                      const SizedBox(height: 13),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              'Practice with demo farm values. They never mix with ESP32 readings.',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                height: 1.35,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          FilledButton.tonalIcon(
-                            onPressed: _storyRunning ? null : _runStory,
-                            icon: _storyRunning
-                                ? const SizedBox(
-                                    width: 16,
-                                    height: 16,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                    ),
-                                  )
-                                : const Icon(Icons.play_arrow_rounded),
-                            label: Text(
-                              _storyRunning ? 'RUNNING' : 'PLAY DEMO',
-                            ),
-                          ),
-                        ],
                       ),
                     ],
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  AnimatedSwitcher(
+                    duration: MediaQuery.disableAnimationsOf(context)
+                        ? Duration.zero
+                        : const Duration(milliseconds: 280),
+                    child: Container(
+                      key: ValueKey(selected),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: demo.withValues(alpha: 0.065),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: demo.withValues(alpha: 0.16)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(meta.icon, color: demo, size: 21),
+                          const SizedBox(width: 9),
+                          Expanded(
+                            child: Text(
+                              meta.title,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: const TextStyle(fontWeight: FontWeight.w900),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'CHANGE',
+                            style: TextStyle(
+                              color: demo,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const Icon(Icons.chevron_right_rounded, color: demo),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
       },
     );
   }
-}
 
-class _ScenarioChip extends StatelessWidget {
-  final _ScenarioMeta meta;
-  final bool active;
-  final VoidCallback onTap;
-
-  const _ScenarioChip({
-    required this.meta,
-    required this.active,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(15),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 260),
-          curve: Curves.easeOutCubic,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-          decoration: BoxDecoration(
-            color: active
-                ? colors.primary.withValues(alpha: 0.13)
-                : colors.surface.withValues(alpha: 0.62),
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: active
-                  ? colors.primary.withValues(alpha: 0.34)
-                  : colors.outlineVariant.withValues(alpha: 0.52),
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              AnimatedScale(
-                duration: const Duration(milliseconds: 260),
-                scale: active ? 1.08 : 1,
-                child: Icon(
-                  meta.icon,
-                  size: 18,
-                  color: active ? colors.primary : colors.onSurfaceVariant,
-                ),
-              ),
-              const SizedBox(width: 7),
-              Text(
-                meta.title,
-                style: TextStyle(
-                  color: active ? colors.primary : null,
-                  fontWeight: FontWeight.w900,
-                  fontSize: 12,
-                ),
-              ),
-            ],
+  Future<void> _showConditionPicker(BuildContext context) async {
+    final scope = AppScope.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      isScrollControlled: true,
+      builder: (sheetContext) => SafeArea(
+        child: FractionallySizedBox(
+          heightFactor: 0.78,
+          child: AnimatedBuilder(
+            animation: scope.sensorManager,
+            builder: (context, _) {
+              final selected = scope.sensorManager.scenarioId;
+              final ids = scope.sensorManager.scenarioIds;
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 0, 12, 8),
+                    child: Row(
+                      children: [
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Practice Farm condition',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              SizedBox(height: 3),
+                              Text('Choose the field situation to demonstrate.'),
+                            ],
+                          ),
+                        ),
+                        if (selected != 'healthy')
+                          TextButton(
+                            onPressed: () => _selectScenario(
+                              sheetContext,
+                              'healthy',
+                              close: false,
+                            ),
+                            child: const Text('RESET'),
+                          ),
+                      ],
+                    ),
+                  ),
+                  const Divider(height: 1),
+                  Expanded(
+                    child: ListView.separated(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+                      itemCount: ids.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 3),
+                      itemBuilder: (context, index) {
+                        final id = ids[index];
+                        final item = _meta[id] ?? _fallbackMeta(id);
+                        final active = id == selected;
+                        return ListTile(
+                          selected: active,
+                          selectedTileColor: const Color(0xFFE17A22)
+                              .withValues(alpha: 0.09),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          leading: Icon(
+                            item.icon,
+                            color: active ? const Color(0xFFE17A22) : null,
+                          ),
+                          title: Text(
+                            item.title,
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          subtitle: Text(
+                            item.description,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          trailing: active
+                              ? const Icon(
+                                  Icons.check_circle_rounded,
+                                  color: Color(0xFFE17A22),
+                                )
+                              : null,
+                          onTap: () => _selectScenario(sheetContext, id),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
-}
 
-class _PulseDot extends StatelessWidget {
-  final double phase;
-  final Color color;
-
-  const _PulseDot({required this.phase, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    final wave = 0.68 + 0.32 * (1 - (phase * 2 - 1).abs());
-    return Transform.scale(
-      scale: wave,
-      child: Container(
-        width: 7,
-        height: 7,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          color: color,
-          boxShadow: [
-            BoxShadow(
-              color: color.withValues(alpha: 0.28),
-              blurRadius: 8,
-              spreadRadius: 1,
-            ),
-          ],
-        ),
-      ),
-    );
+  void _selectScenario(
+    BuildContext context,
+    String scenario, {
+    bool close = true,
+  }) {
+    final scope = AppScope.of(context);
+    HapticFeedback.selectionClick();
+    scope.sensorManager.setScenario(scenario);
+    unawaited(scope.settings.setScenario(scenario));
+    if (close) Navigator.pop(context);
   }
-}
 
-class _SimulationFieldPainter extends CustomPainter {
-  final double phase;
-  final Color color;
-
-  const _SimulationFieldPainter({required this.phase, required this.color});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8
-      ..color = color.withValues(alpha: 0.07);
-    final y = size.height * (0.18 + 0.64 * phase);
-    canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-
-    final node = Paint()..style = PaintingStyle.fill;
-    for (var i = 0; i < 8; i++) {
-      final x = size.width * (0.08 + i * 0.12);
-      final dy = size.height * (0.15 + ((i * 0.19 + phase) % 0.7));
-      node.color = color.withValues(alpha: 0.04 + (i % 3) * 0.018);
-      canvas.drawCircle(Offset(x, dy), 2 + (i % 2).toDouble(), node);
+  static _FarmProfile _farmProfile(String nodeId) {
+    if (nodeId.startsWith('node-rice')) {
+      return const _FarmProfile(
+        'Thanjavur Rice Field',
+        'North zone  •  Clay loam  •  Channel water',
+      );
     }
+    final zone = nodeId.endsWith('a2')
+        ? 'Centre zone'
+        : nodeId.endsWith('b1')
+            ? 'West zone'
+            : 'East zone';
+    return _FarmProfile(
+      'Trichy Tomato Plot',
+      '$zone  •  Red loam  •  Drip irrigation',
+    );
   }
 
-  @override
-  bool shouldRepaint(covariant _SimulationFieldPainter oldDelegate) =>
-      oldDelegate.phase != phase || oldDelegate.color != color;
+  static _ScenarioMeta _fallbackMeta(String id) => _ScenarioMeta(
+        id.replaceAll('_', ' '),
+        'Clearly labelled practice values.',
+        Icons.science_outlined,
+      );
+}
+
+class _FarmProfile {
+  final String name;
+  final String details;
+
+  const _FarmProfile(this.name, this.details);
 }
 
 class _ScenarioMeta {

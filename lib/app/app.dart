@@ -62,6 +62,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
       inspectionHistory.load(),
     ]);
     sensors.setScenario(settings.value.demoScenario);
+    sensors.simulation.selectNode(settings.value.demoNodeId);
     sensors.configure(
       source: settings.value.dataSource == 'esp32'
           ? SensorDataSource.esp32

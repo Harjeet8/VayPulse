@@ -27,7 +27,7 @@ class SimulationSensorProvider extends SensorDataProvider {
     _nodes = [
       SensorNode(
         id: 'node-tomato-a1',
-        name: 'Tomato Simulation Node',
+        name: 'Tomato East Zone',
         farmId: 'green-valley',
         fieldId: 'tomato-field',
         zoneId: 'tomato-east',
@@ -38,7 +38,7 @@ class SimulationSensorProvider extends SensorDataProvider {
       ),
       SensorNode(
         id: 'node-tomato-a2',
-        name: 'Tomato Node T2',
+        name: 'Tomato Centre Zone',
         farmId: 'green-valley',
         fieldId: 'tomato-field',
         zoneId: 'tomato-east',
@@ -49,7 +49,7 @@ class SimulationSensorProvider extends SensorDataProvider {
       ),
       SensorNode(
         id: 'node-tomato-b1',
-        name: 'Tomato Node T3',
+        name: 'Tomato West Zone',
         farmId: 'green-valley',
         fieldId: 'tomato-field',
         zoneId: 'tomato-west',
@@ -60,7 +60,7 @@ class SimulationSensorProvider extends SensorDataProvider {
       ),
       SensorNode(
         id: 'node-rice-a1',
-        name: 'Rice Node A1',
+        name: 'Rice North Zone',
         farmId: 'green-valley',
         fieldId: 'rice-field',
         zoneId: 'rice-north',
@@ -76,11 +76,14 @@ class SimulationSensorProvider extends SensorDataProvider {
   SensorDataSource get source => SensorDataSource.simulation;
 
   @override
-  SensorReading? get current => _latest[_selectedNodeId];
+  SensorReading? get current =>
+      _status == SensorConnectionStatus.ready ? _latest[_selectedNodeId] : null;
 
   @override
   Map<String, SensorReading> get latestReadings =>
-      Map<String, SensorReading>.unmodifiable(_latest);
+      _status == SensorConnectionStatus.ready
+          ? Map<String, SensorReading>.unmodifiable(_latest)
+          : const <String, SensorReading>{};
 
   @override
   List<SensorNode> get nodes => List<SensorNode>.unmodifiable(_nodes);
@@ -358,7 +361,16 @@ class SimulationSensorProvider extends SensorDataProvider {
   }
 
   @override
-  void retry() => setScenario('healthy');
+  void retry() {
+    // Refresh the selected practice condition. A pull-to-refresh must never
+    // silently replace a critical or recovery demonstration with "healthy".
+    _applyConnectionState();
+    if (_status == SensorConnectionStatus.ready) {
+      _tick();
+    } else {
+      notifyListeners();
+    }
+  }
 
   @override
   void stop() {

@@ -244,9 +244,9 @@ class AppStrings {
       'units': 'Metric units',
       'units_subtitle': 'Show temperature in Celsius',
       'notifications': 'Farm alerts',
-      'notifications_subtitle': 'Show important zone warnings',
+      'notifications_subtitle': 'Show clear crop warnings and actions',
       'demo_controls': 'Demo controls',
-      'demo_scenario': 'Simulation scenario',
+      'demo_scenario': 'Practice Farm condition',
       'replay_onboarding': 'Replay onboarding',
       'scenario_healthy': 'Healthy farm',
       'scenario_baseline_learning': 'Baseline learning',
@@ -286,10 +286,10 @@ class AppStrings {
       'source_control_body':
           'Choose exactly where every dashboard, chart, insight and alert receives its values.',
       'choose_data_source': 'Choose data source',
-      'simulation_mode': 'Simulation demo',
+      'simulation_mode': 'Practice Farm',
       'esp32_live': 'ESP32 live',
       'simulation_description':
-          'Safe presentation mode with realistic, controllable farm scenarios. Values are clearly labelled as simulated.',
+          'Explore realistic farm conditions with controllable demo sensor values. Every value is marked as demo data.',
       'esp32_description':
           'Polls the configured ESP32 node over the local network and validates every reading before use.',
       'source_demo_badge': 'DEMO',

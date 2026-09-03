@@ -155,6 +155,14 @@ class FirmwareTextAdapter {
     'LEARNING_BASELINE': 'Learning this plant’s normal electrical pattern',
     'BASELINE_STABLE': 'Electrical pattern is close to its learned baseline',
     'STRESS_CORROBORATED': 'Electrical change supports stress seen by other sensors',
+    'COMPOUND_HEAT_AND_WATER_STRESS':
+        'Heat and dry soil are stressing the plant',
+    'VERY_LOW_SOIL_MOISTURE_HIGH_TEMPERATURE_AND_HIGH_VPD_AGREE':
+        'Soil is very dry and the air is hot and dry.',
+    'BIOELECTRIC_RESPONSE_IS_STRONG_AND_CORROBORATED_BY_ENVIRONMENTAL_CHANNELS':
+        'The plant signal agrees with the soil and climate readings.',
+    'VPD_IS_HIGH_WHILE_ROOT_ZONE_MOISTURE_REMAINS_ADEQUATE':
+        'The air is drying the plant quickly, but the root zone still has moisture.',
     'NO_DATA': 'No reliable reading',
   };
 

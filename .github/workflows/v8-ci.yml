@@ -65,22 +65,22 @@ jobs:
       - name: Android release APK
         run: flutter build apk --release
 
-      - name: Package PhytoSense NOVA
+      - name: Package final competition build
         shell: bash
         run: |
           set -euo pipefail
-          zip -r "PhytoSense-NOVA-Source.zip" . \
+          zip -r "PhytoSense-AI-Competition-Source.zip" . \
             -x ".git/*" ".dart_tool/*" "build/*" "android/.gradle/*" \
                ".flutter-plugins" ".flutter-plugins-dependencies" "*.zip" \
                ".github/v8-validation-trigger.txt"
-          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-NOVA.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-Competition.apk"
 
-      - name: Upload PhytoSense NOVA artifact
+      - name: Upload final competition artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-NOVA
+          name: PhytoSense-AI-Competition
           path: |
-            PhytoSense-NOVA-Source.zip
-            PhytoSense-NOVA.apk
+            PhytoSense-AI-Competition-Source.zip
+            PhytoSense-AI-Competition.apk
           if-no-files-found: error
           retention-days: 30

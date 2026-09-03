@@ -100,9 +100,9 @@ class MainActivity : FlutterActivity() {
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         val live = mode == "esp32"
         val channelId = if (live) {
-            "phytosense_live_intelligence_v2"
+            "phytosense_live_intelligence_v3"
         } else {
-            "phytosense_simulation_intelligence_v2"
+            "phytosense_demo_intelligence_v3"
         }
         val channelName = if (live) {
             "PhytoSense Live Plant Intelligence"
@@ -168,16 +168,17 @@ class MainActivity : FlutterActivity() {
             .setContentText(safeBody)
             .setSubText(summary)
             .setStyle(richStyle)
-            .setCategory(Notification.CATEGORY_MESSAGE)
+            .setCategory(Notification.CATEGORY_STATUS)
             .setContentIntent(pendingIntent)
             .setAutoCancel(true)
-            .setOnlyAlertOnce(true)
+            // Dart has already applied dedupe, cooldown and escalation rules.
+            // An allowed escalation should still be able to alert the farmer.
+            .setOnlyAlertOnce(false)
             .setVisibility(Notification.VISIBILITY_PRIVATE)
             .setGroup("phytosense.$mode")
             .setWhen(System.currentTimeMillis())
             .setShowWhen(true)
             .setTicker("$safeTitle — $safeBody")
-            .setNumber(sequence)
             .addAction(0, actionLabel, pendingIntent)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -198,8 +199,8 @@ class MainActivity : FlutterActivity() {
             builder.setLights(accent, 500, 1500)
         }
 
-        // The tag is stable for each condition type. A later update to the same
-        // condition replaces its older card instead of stacking duplicates.
+        // The tag is stable for each source. A changed or escalating condition
+        // replaces its older card instead of leaving stale alerts in the tray.
         val notificationId = if (live) 2400 else 1400
         manager.notify(notificationTag, notificationId, builder.build())
     }

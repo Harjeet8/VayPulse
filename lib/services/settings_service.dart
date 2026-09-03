@@ -13,6 +13,7 @@ class SettingsService extends ChangeNotifier {
       value.notificationsEnabled = p.getBool('notifications') ?? true;
       value.languageCode = p.getString('languageCode') ?? 'en';
       value.demoScenario = p.getString('scenario') ?? 'healthy';
+      value.demoNodeId = p.getString('demoNodeId') ?? 'node-tomato-a1';
       value.dataSource = p.getString('dataSource') ?? 'simulation';
       value.esp32Endpoint =
           p.getString('esp32Endpoint') ?? 'http://192.168.4.1';
@@ -44,6 +45,13 @@ class SettingsService extends ChangeNotifier {
     value.demoScenario = scenario;
     final p = await SharedPreferences.getInstance();
     await p.setString('scenario', scenario);
+    notifyListeners();
+  }
+
+  Future<void> setDemoNode(String nodeId) async {
+    value.demoNodeId = nodeId;
+    final p = await SharedPreferences.getInstance();
+    await p.setString('demoNodeId', nodeId);
     notifyListeners();
   }
 

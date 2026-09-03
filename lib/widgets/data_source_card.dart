@@ -123,8 +123,8 @@ class DataSourceCard extends StatelessWidget {
                                           )
                                         : _sourceText(
                                             context,
-                                            'Farm simulation',
-                                            'பண்ணை simulation',
+                                            'Practice Farm',
+                                            'பயிற்சி பண்ணை',
                                           ),
                                     key: ValueKey(live),
                                     style: const TextStyle(
@@ -275,8 +275,8 @@ class DataSourceCard extends StatelessWidget {
                 icon: Icons.agriculture_outlined,
                 title: _sourceText(
                   context,
-                  'Farm simulation',
-                  'பண்ணை simulation',
+                  'Practice Farm',
+                  'பயிற்சி பண்ணை',
                 ),
                 body: _sourceText(
                   context,
