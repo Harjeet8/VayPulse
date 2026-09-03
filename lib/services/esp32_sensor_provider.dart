@@ -4,7 +4,6 @@ import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import 'esp32_client.dart';
 import 'hardware_sensor_provider.dart';
-import 'health_analysis_engine.dart';
 import 'sensor_data_provider.dart';
 
 class Esp32SensorProvider extends HardwareSensorProvider {
@@ -85,21 +84,13 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _polling = true;
     try {
       final snapshot = await client.getSnapshot();
-      final raw = snapshot.reading.copyWith(
-        nodeId: _nodeId,
-        timestamp: DateTime.now(),
-      );
-      _validate(raw);
+      final reading = snapshot.reading.copyWith(nodeId: _nodeId);
+      _validate(reading);
 
-      // Hardware and simulation go through the same app-side engine. The
-      // ESP32's own score is retained in esp32HealthScore for diagnostics.
-      final reading = HealthAnalysisEngine.apply(
-        raw,
-        _history,
-        crop: 'Tomato',
-        growthStage: 'vegetative',
-      );
-
+      // Hardware mode uses the ESP32 edge-intelligence result as the source of
+      // truth. Flutter must not run a second crop/health engine over the same
+      // packet, because that can contradict the node and previously hard-coded
+      // Tomato even when another crop profile was active on the ESP32.
       _current = reading;
       _history.add(reading);
       if (_history.length > 600) _history.removeAt(0);
@@ -151,7 +142,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
             (reading.soilTemperature != null &&
                 between(reading.soilTemperature!, -20, 70))) &&
         (!reading.leafWetnessAvailable ||
-            (reading.leafWetness != null && between(reading.leafWetness!, 0, 100))) &&
+            (reading.leafWetness != null &&
+                between(reading.leafWetness!, 0, 100))) &&
         (!reading.plantSignalAvailable ||
             (reading.plantVoltageMv == null ||
                 between(reading.plantVoltageMv!, 0, 5000))) &&
