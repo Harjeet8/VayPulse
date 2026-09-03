@@ -11,6 +11,7 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
+import '../widgets/home_soil_presentation.dart';
 import '../widgets/live_motion.dart';
 import '../widgets/simulation_command_deck.dart';
 import '../widgets/biotic_stress_card.dart';
@@ -277,16 +278,27 @@ class _ConditionCard extends StatelessWidget {
         : edge?.rootCause.primary ??
             edge?.farmerSummary ??
             edge?.bioelectric.farmerResult;
+    final soilPresentation = live
+        ? HomeSoilPresentation.fromFirmware(
+            telemetry?.sensor('soilMoisture')?.result,
+          )
+        : null;
+    final useSoilPresentation = soilPresentation != null &&
+        !recovering &&
+        !possibleBiotic &&
+        HomeSoilPresentation.isSoilLedFinding(edge?.rootCause.primary);
     final healthy = !recovering &&
         !possibleBiotic &&
         _isHealthyState(rawState);
-    final title = _simpleConditionTitle(
-      context,
-      rawState: rawState,
-      main: main,
-      recovering: recovering,
-      possibleBiotic: possibleBiotic,
-    );
+    final title = useSoilPresentation
+        ? soilPresentation!.title(tamil: FarmerLanguage.isTamil(context))
+        : _simpleConditionTitle(
+            context,
+            rawState: rawState,
+            main: main,
+            recovering: recovering,
+            possibleBiotic: possibleBiotic,
+          );
     final rawAction = recovering
         ? FarmerLanguage.label(context, 'recovery_action')
         : possibleBiotic
@@ -312,12 +324,14 @@ class _ConditionCard extends StatelessWidget {
             edge?.farmerSummary ?? main,
             fallback: '',
           );
-    final summary = _simpleConditionSummary(
-      context,
-      raw: rawSummary,
-      title: title,
-      healthy: healthy,
-    );
+    final summary = useSoilPresentation
+        ? soilPresentation!.summary(tamil: FarmerLanguage.isTamil(context))
+        : _simpleConditionSummary(
+            context,
+            raw: rawSummary,
+            title: title,
+            healthy: healthy,
+          );
     final action = _simpleFarmerAction(
       context,
       rawAction,

@@ -4,6 +4,7 @@ import 'package:phytosense_ai/models/crop_catalog.dart';
 import 'package:phytosense_ai/models/edge_intelligence.dart';
 import 'package:phytosense_ai/models/sensor_reading.dart';
 import 'package:phytosense_ai/widgets/calibre_upgrade_panels.dart';
+import 'package:phytosense_ai/widgets/home_soil_presentation.dart';
 import 'package:phytosense_ai/widgets/time_phase_card.dart';
 
 SensorReading reading({String bioSource = 'real'}) => SensorReading(
@@ -110,5 +111,28 @@ void main() {
     expect(find.text('ESP32 PHASE'), findsOneWidget);
     expect(find.byIcon(Icons.dark_mode_outlined), findsOneWidget);
     await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  test('Home uses ESP soil states without rewriting technical root cause', () {
+    final veryDry = HomeSoilPresentation.fromFirmware('VERY DRY');
+    expect(veryDry, isNotNull);
+    expect(veryDry!.title(tamil: false), 'VERY DRY');
+    expect(
+      veryDry.summary(tamil: false),
+      'Root-zone moisture is critically low.',
+    );
+    expect(HomeSoilPresentation.isSoilLedFinding('Water stress'), isTrue);
+    expect(HomeSoilPresentation.isSoilLedFinding('Heat stress'), isFalse);
+
+    for (final state in const [
+      'VERY DRY',
+      'DRY',
+      'LOW',
+      'GOOD',
+      'WET',
+      'VERY WET',
+    ]) {
+      expect(HomeSoilPresentation.fromFirmware(state), isNotNull);
+    }
   });
 }
