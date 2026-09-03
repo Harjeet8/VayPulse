@@ -422,22 +422,29 @@ class SensorFusionMapCard extends StatelessWidget {
               child: child,
             ),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 13),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
               decoration: BoxDecoration(
                 color: Theme.of(context).colorScheme.primaryContainer,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
-                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(
                     Icons.memory_rounded,
                     color: Theme.of(context).colorScheme.primary,
                   ),
                   const SizedBox(width: 8),
-                  const Text(
-                    'CONFIDENCE-WEIGHTED FUSION',
-                    style: TextStyle(fontWeight: FontWeight.w900),
+                  const Flexible(
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        'CONFIDENCE-WEIGHTED FUSION',
+                        maxLines: 1,
+                        style: TextStyle(fontWeight: FontWeight.w900),
+                      ),
+                    ),
                   ),
                 ],
               ),

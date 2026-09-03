@@ -39,7 +39,7 @@ class BottomNav extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: NavigationBar(
-          height: 70,
+          height: 74,
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
           backgroundColor: Colors.transparent,
           indicatorColor: Theme.of(context).colorScheme.primaryContainer,

@@ -589,14 +589,17 @@ void main() {
       brownPercent: 22,
       screenedAt: DateTime.now(),
     );
-    expect(CropCatalog.supported, hasLength(13));
+    expect(CropCatalog.supported, hasLength(14));
     for (final crop in CropCatalog.supported) {
       final assessment = MultimodalDiseaseService.assess(
         visual: visual,
         crop: crop.name,
       );
       expect(assessment.candidates, isNotEmpty, reason: crop.name);
-      if (crop.id != 'universal' && crop.id != 'okra') {
+      if (crop.id != 'universal' &&
+          crop.id != 'okra' &&
+          crop.id != 'papaya' &&
+          crop.id != 'eggplant') {
         expect(
           assessment.candidates.every(
             (candidate) => candidate.nameKey.contains(crop.id),

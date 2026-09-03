@@ -19,9 +19,7 @@ class DataSourceCard extends StatelessWidget {
         final colors = theme.colorScheme;
         final live = scope.sensorManager.source == SensorDataSource.esp32;
         final connected = scope.sensorManager.connected;
-        final accent = live
-            ? const Color(0xFF2879B9)
-            : const Color(0xFFE18A28);
+        final accent = colors.primary;
         final scenario = context.tr(
           'scenario_${scope.sensorManager.scenarioId}',
         );
@@ -39,8 +37,8 @@ class DataSourceCard extends StatelessWidget {
                   ))
             : _sourceText(
                 context,
-                'Practice farm: $scenario. These are demo values.',
-                'பயிற்சி பண்ணை: $scenario. இவை demo மதிப்புகள்.',
+                'Practice farm: $scenario. These are simulated values.',
+                'சிமுலேஷன்: $scenario. இவை demo மதிப்புகள்.',
               );
 
         return TweenAnimationBuilder<double>(
@@ -123,8 +121,8 @@ class DataSourceCard extends StatelessWidget {
                                           )
                                         : _sourceText(
                                             context,
-                                            'Practice Farm',
-                                            'பயிற்சி பண்ணை',
+                                            'Simulation',
+                                            'சிமுலேஷன்',
                                           ),
                                     key: ValueKey(live),
                                     style: const TextStyle(
@@ -190,8 +188,8 @@ class DataSourceCard extends StatelessWidget {
                                   )
                                 : _sourceText(
                                     context,
-                                    'DEMO DATA',
-                                    'DEMO DATA',
+                                    'SIMULATED',
+                                    'SIMULATED',
                                   ),
                             style: TextStyle(
                               color: accent,
@@ -275,17 +273,17 @@ class DataSourceCard extends StatelessWidget {
                 icon: Icons.agriculture_outlined,
                 title: _sourceText(
                   context,
-                  'Practice Farm',
-                  'பயிற்சி பண்ணை',
+                  'Simulation',
+                  'சிமுலேஷன்',
                 ),
                 body: _sourceText(
                   context,
-                  'Practice common farm conditions without an ESP32. Every value is clearly marked as demo data.',
+                  'Practice common farm conditions without an ESP32. Simulated values remain clearly identified and separate from hardware readings.',
                   'ESP32 இல்லாமல் பண்ணை நிலைகளை பயிற்சி செய்யலாம். எல்லா மதிப்புகளும் demo data என்று தெளிவாக காட்டப்படும்.',
                 ),
                 selected:
                     scope.sensorManager.source == SensorDataSource.simulation,
-                badge: 'PRACTICE FARM',
+                badge: 'SIMULATION',
                 onTap: () => Navigator.pop(
                   sheetContext,
                   SensorDataSource.simulation,

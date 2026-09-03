@@ -76,7 +76,7 @@ class SimulationCommandDeck extends StatelessWidget {
       Icons.sensors_off_rounded,
     ),
     'offline': _ScenarioMeta(
-      'Practice node offline',
+      'Simulation offline',
       'No old reading is shown as current data.',
       Icons.wifi_off_rounded,
     ),
@@ -96,7 +96,7 @@ class SimulationCommandDeck extends StatelessWidget {
         final selected = sensors.scenarioId;
         final meta = _meta[selected] ?? _fallbackMeta(selected);
         final profile = _farmProfile(sensors.selectedNodeId);
-        const demo = Color(0xFFE17A22);
+        const demo = Color(0xFF176B4D);
         final scheme = Theme.of(context).colorScheme;
 
         return Card(
@@ -149,9 +149,9 @@ class SimulationCommandDeck extends StatelessWidget {
                                     borderRadius: BorderRadius.circular(99),
                                   ),
                                   child: const Text(
-                                    'DEMO DATA',
+                                    'SIMULATED',
                                     style: TextStyle(
-                                      color: Color(0xFFAD5510),
+                                      color: Color(0xFF176B4D),
                                       fontSize: 8.5,
                                       fontWeight: FontWeight.w900,
                                       letterSpacing: 0.5,
@@ -253,7 +253,7 @@ class SimulationCommandDeck extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Practice Farm condition',
+                                'Simulation condition',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.w900,
@@ -288,14 +288,14 @@ class SimulationCommandDeck extends StatelessWidget {
                         final active = id == selected;
                         return ListTile(
                           selected: active,
-                          selectedTileColor: const Color(0xFFE17A22)
+                          selectedTileColor: const Color(0xFF176B4D)
                               .withValues(alpha: 0.09),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                           leading: Icon(
                             item.icon,
-                            color: active ? const Color(0xFFE17A22) : null,
+                            color: active ? const Color(0xFF176B4D) : null,
                           ),
                           title: Text(
                             item.title,
@@ -309,7 +309,7 @@ class SimulationCommandDeck extends StatelessWidget {
                           trailing: active
                               ? const Icon(
                                   Icons.check_circle_rounded,
-                                  color: Color(0xFFE17A22),
+                                  color: Color(0xFF176B4D),
                                 )
                               : null,
                           onTap: () => _selectScenario(sheetContext, id),
@@ -341,8 +341,8 @@ class SimulationCommandDeck extends StatelessWidget {
   static _FarmProfile _farmProfile(String nodeId) {
     if (nodeId.startsWith('node-rice')) {
       return const _FarmProfile(
-        'Thanjavur Rice Field',
-        'North zone  •  Clay loam  •  Channel water',
+        'Simulation · Rice',
+        'North zone  •  Clay loam  •  Channel irrigation',
       );
     }
     final zone = nodeId.endsWith('a2')
@@ -351,14 +351,14 @@ class SimulationCommandDeck extends StatelessWidget {
             ? 'West zone'
             : 'East zone';
     return _FarmProfile(
-      'Trichy Tomato Plot',
+      'Simulation · Tomato',
       '$zone  •  Red loam  •  Drip irrigation',
     );
   }
 
   static _ScenarioMeta _fallbackMeta(String id) => _ScenarioMeta(
         id.replaceAll('_', ' '),
-        'Clearly labelled practice values.',
+        'Clearly labelled simulated values.',
         Icons.science_outlined,
       );
 }

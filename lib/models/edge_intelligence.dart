@@ -622,6 +622,7 @@ class EdgeIntelligence {
   final String? degradedReason;
   final List<String> degradedReasons;
   final String? analysisQuality;
+  final String reliabilityMode;
   final RootCauseAnalysis rootCause;
   final RecoveryInfo recovery;
   final BioelectricIntelligence bioelectric;
@@ -665,6 +666,7 @@ class EdgeIntelligence {
     this.degradedReason,
     this.degradedReasons = const [],
     this.analysisQuality,
+    this.reliabilityMode = 'FULL',
     this.rootCause = const RootCauseAnalysis(),
     this.recovery = const RecoveryInfo(),
     this.bioelectric = const BioelectricIntelligence(),
@@ -717,6 +719,10 @@ class EdgeIntelligence {
 
   String? get compatibilityIssue =>
       firmwareCompatible ? null : 'Firmware compatibility issue';
+
+  bool get reliabilityFull => reliabilityMode == 'FULL';
+  bool get reliabilityDegraded => reliabilityMode == 'DEGRADED';
+  bool get reliabilityRecovering => reliabilityMode == 'RECOVERING';
 
   factory EdgeIntelligence.fromPayload({
     required Map<String, dynamic> root,
@@ -1605,6 +1611,30 @@ class EdgeIntelligence {
         ])) ==
         true;
 
+    final explicitReliability = _text(_first([
+      qualityMap['reliabilityMode'],
+      qualityMap['reliability'],
+      edge['reliabilityMode'],
+      edge['reliability'],
+      data['reliabilityMode'],
+      data['reliability'],
+      plantHealth['reliabilityMode'],
+      plantHealth['reliability'],
+    ]))
+        ?.trim()
+        .toUpperCase()
+        .replaceAll(' ', '_')
+        .replaceAll('-', '_');
+    final reliabilityMode = explicitReliability == 'FULL' ||
+            explicitReliability == 'DEGRADED' ||
+            explicitReliability == 'RECOVERING'
+        ? explicitReliability!
+        : recovery.active
+            ? 'RECOVERING'
+            : degraded
+                ? 'DEGRADED'
+                : 'FULL';
+
     final capabilities = FirmwareCapabilities(
       edgeDecision: decision.isNotEmpty ||
           recommendation != null ||
@@ -1659,6 +1689,7 @@ class EdgeIntelligence {
       degradedReason: degradedReason,
       degradedReasons: degradedReasons,
       analysisQuality: analysisQuality,
+      reliabilityMode: reliabilityMode,
       rootCause: rootCause,
       recovery: recovery,
       bioelectric: bioelectric,

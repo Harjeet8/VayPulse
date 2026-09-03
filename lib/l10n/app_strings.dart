@@ -102,6 +102,7 @@ class AppStrings {
       'crop_cotton': 'Cotton',
       'crop_sugarcane': 'Sugarcane',
       'crop_banana': 'Banana',
+      'crop_papaya': 'Papaya',
       'crop_coconut': 'Coconut',
       'crop_brinjal': 'Brinjal',
       'crop_chilli': 'Chilli',
@@ -245,8 +246,8 @@ class AppStrings {
       'units_subtitle': 'Show temperature in Celsius',
       'notifications': 'Farm alerts',
       'notifications_subtitle': 'Show clear crop warnings and actions',
-      'demo_controls': 'Demo controls',
-      'demo_scenario': 'Practice Farm condition',
+      'demo_controls': 'Simulation controls',
+      'demo_scenario': 'Simulation scenario',
       'replay_onboarding': 'Replay onboarding',
       'scenario_healthy': 'Healthy farm',
       'scenario_baseline_learning': 'Baseline learning',
@@ -286,13 +287,13 @@ class AppStrings {
       'source_control_body':
           'Choose exactly where every dashboard, chart, insight and alert receives its values.',
       'choose_data_source': 'Choose data source',
-      'simulation_mode': 'Practice Farm',
+      'simulation_mode': 'Simulation',
       'esp32_live': 'ESP32 live',
       'simulation_description':
-          'Explore realistic farm conditions with controllable demo sensor values. Every value is marked as demo data.',
+          'Explore realistic farm conditions with controllable simulated sensor values. Every value is marked as simulated data.',
       'esp32_description':
           'Polls the configured ESP32 node over the local network and validates every reading before use.',
-      'source_demo_badge': 'DEMO',
+      'source_demo_badge': 'SIM',
       'source_live_badge': 'LIVE',
       'simulation_active_scenario': 'Scenario: {value}',
       'live_data_connected': 'Receiving validated ESP32 readings',
@@ -1071,7 +1072,7 @@ class AppStrings {
       'data_source_separation_note':
           'Demo and ESP32 readings use separate workspaces and histories. Switching never mixes their values.',
       'live_workspace_enabled':
-          'ESP32 Live workspace enabled. Farm demo data is now hidden.',
+          'ESP32 Live workspace enabled. Farm simulated data is now hidden.',
       'demo_workspace_enabled':
           'Simulation workspace enabled. Live ESP32 values remain separate.',
       'live_node_dashboard': 'VayPulse Node • ESP32 Live',
@@ -1404,6 +1405,7 @@ class AppStrings {
       'crop_cotton': 'பருத்தி',
       'crop_sugarcane': 'கரும்பு',
       'crop_banana': 'வாழை',
+      'crop_papaya': 'பப்பாளி',
       'crop_coconut': 'தென்னை',
       'crop_brinjal': 'கத்திரிக்காய்',
       'crop_chilli': 'மிளகாய்',
@@ -1591,7 +1593,7 @@ class AppStrings {
           'விளக்கக்காட்சிக்கான கட்டுப்படுத்தக்கூடிய பண்ணை நிலைகள். இவை simulation மதிப்புகள் என்று தெளிவாக காட்டப்படும்.',
       'esp32_description':
           'உள்ளூர் வலையில் ESP32 தரவைப் பெற்று, பயன்படுத்தும் முன் ஒவ்வொரு அளவையும் சரிபார்க்கும்.',
-      'source_demo_badge': 'DEMO',
+      'source_demo_badge': 'SIM',
       'source_live_badge': 'LIVE',
       'simulation_active_scenario': 'நிலை: {value}',
       'live_data_connected': 'ESP32 தரவு பெறப்படுகிறது',
@@ -2358,7 +2360,7 @@ class AppStrings {
       'about_capabilities_body':
           'Sensing, crop-specific multimodal screening, weather மற்றும் farmer guidance ஒரே workflow-ல் இணைகிறது.',
       'about_capabilities_1':
-          'Physical ESP32 node மற்றும் தெளிவாக label செய்த demo data இடையே runtime switching.',
+          'Physical ESP32 node மற்றும் தெளிவாக label செய்த simulated data இடையே runtime switching.',
       'about_capabilities_2':
           'Camera, electrode, sensor மற்றும் weather இணைந்த crop-specific potential issue ranking.',
       'about_capabilities_3':
@@ -2377,7 +2379,7 @@ class AppStrings {
       'data_source_separation_note':
           'Demo மற்றும் ESP32 readings தனித்தனி workspace மற்றும் history பயன்படுத்தும். மாற்றும்போது values கலக்காது.',
       'live_workspace_enabled':
-          'ESP32 Live workspace இயங்குகிறது. Farm demo data மறைக்கப்பட்டது.',
+          'ESP32 Live workspace இயங்குகிறது. Farm simulated data மறைக்கப்பட்டது.',
       'demo_workspace_enabled':
           'Simulation workspace இயங்குகிறது. ESP32 நேரடி values தனியாக பாதுகாக்கப்படும்.',
       'live_node_dashboard': 'VayPulse Node • ESP32 நேரடி',
@@ -2416,7 +2418,7 @@ class AppStrings {
           'தெளிவான architecture • அளவிடக்கூடிய trials • responsible AI',
       'system_xray': 'Live System X-Ray',
       'system_xray_body':
-          'ESP32 அல்லது demo data validation, fusion, reasoning, alerts மற்றும் evidence வழியாக செல்வதைப் பாருங்கள்.',
+          'ESP32 அல்லது simulated data validation, fusion, reasoning, alerts மற்றும் evidence வழியாக செல்வதைப் பாருங்கள்.',
       'experiment_lab': 'Experiment Evidence Lab',
       'experiment_lab_body':
           'Baseline, response மற்றும் recovery trials-ஐ sensor evidence உடன் பதிவு செய்யுங்கள்.',

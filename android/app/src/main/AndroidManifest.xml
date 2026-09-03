@@ -5,14 +5,15 @@
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <application
         android:label="PhytoSense AI"
         android:name="${applicationName}"
-        android:icon="@drawable/ic_launcher_nova"
+        android:icon="@mipmap/ic_launcher"
         android:usesCleartextTraffic="true">
+        <meta-data
+            android:name="com.harjeet.phytosense.COPYRIGHT"
+            android:value="Copyright © 2026 Harjeet. All rights reserved." />
         <activity
             android:name=".MainActivity"
             android:exported="true"

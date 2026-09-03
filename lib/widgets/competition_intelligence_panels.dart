@@ -276,6 +276,11 @@ class BioelectricPulseCard extends StatelessWidget {
             runSpacing: 8,
             children: [
               _MetricChip(
+                label: tamil ? 'Source' : 'Source',
+                value: current.bioSourceLabel,
+                accent: accent,
+              ),
+              _MetricChip(
                 label: tamil ? 'Signal' : 'Signal',
                 value: info?.signalQualityState ??
                     (current.plantSignalAvailable ? 'AVAILABLE' : 'UNAVAILABLE'),

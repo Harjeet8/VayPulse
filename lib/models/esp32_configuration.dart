@@ -272,6 +272,7 @@ String _displayCrop(String id) {
     case 'rice': return 'Rice';
     case 'sugarcane': return 'Sugarcane';
     case 'banana': return 'Banana';
+    case 'papaya': return 'Papaya';
     case 'eggplant': return 'Eggplant';
     case 'okra': return 'Okra';
     case 'maize': return 'Maize';

@@ -102,6 +102,7 @@ class Esp32ControlClient {
       'rice': 'Rice',
       'sugarcane': 'Sugarcane',
       'banana': 'Banana',
+      'papaya': 'Papaya',
       'eggplant': 'Eggplant',
       'okra': 'Okra',
       'maize': 'Maize',

@@ -17,6 +17,7 @@ class SensorReading {
   /// bioelectric stability, not raw electrode voltage.
   final double plantSignal;
   final double? plantVoltageMv;
+  final String bioSource;
 
   /// Main app-side decision-support index.
   final double healthScore;
@@ -83,6 +84,7 @@ class SensorReading {
     this.leafWetness,
     this.plantSignal = 50,
     this.plantVoltageMv,
+    this.bioSource = 'real',
     required this.healthScore,
     required this.stressScore,
     required this.healthStatus,
@@ -133,6 +135,23 @@ class SensorReading {
       humidityAvailable &&
       lightAvailable;
 
+  bool get bioIsRealtime => bioSource.trim().toLowerCase() == 'realtime';
+
+  bool get bioIsLiveReading => bioSource.trim().toLowerCase() == 'real';
+
+  bool get bioIsSimulation {
+    final source = bioSource.trim().toLowerCase();
+    return source == 'simulation' || source == 'sim' || source == 'demo';
+  }
+
+  String get bioSourceLabel => bioIsRealtime
+      ? 'Real Time Signal'
+      : bioIsLiveReading
+          ? 'Live Readings'
+          : bioIsSimulation
+              ? 'Simulation Signal'
+              : bioSource;
+
   int get availableChannelCount => <bool>[
         soilMoistureAvailable,
         temperatureAvailable,
@@ -155,6 +174,7 @@ class SensorReading {
         'leafWetness': leafWetnessAvailable ? leafWetness : null,
         'plantSignal': plantSignalAvailable ? plantSignal : null,
         'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
+        'bioSource': bioSource,
         'healthScore': healthScore,
         'stressScore': stressScore,
         'healthStatus': healthStatus,
@@ -242,6 +262,7 @@ class SensorReading {
       leafWetness: _nullableNum(json['leafWetness']),
       plantSignal: _bounded(plantSignal),
       plantVoltageMv: _nullableNum(json['plantVoltageMv']),
+      bioSource: '${json['bioSource'] ?? 'real'}',
       healthScore: health,
       stressScore: stress,
       healthStatus: '${json['healthStatus'] ?? statusForHealth(health)}',
@@ -368,6 +389,7 @@ class SensorReading {
     double? leafWetness,
     double? plantSignal,
     double? plantVoltageMv,
+    String? bioSource,
     double? healthScore,
     double? stressScore,
     String? healthStatus,
@@ -423,6 +445,7 @@ class SensorReading {
       leafWetness: leafWetness ?? this.leafWetness,
       plantSignal: plantSignal ?? this.plantSignal,
       plantVoltageMv: plantVoltageMv ?? this.plantVoltageMv,
+      bioSource: bioSource ?? this.bioSource,
       healthScore: healthScore ?? this.healthScore,
       stressScore: stressScore ?? this.stressScore,
       healthStatus: healthStatus ?? this.healthStatus,

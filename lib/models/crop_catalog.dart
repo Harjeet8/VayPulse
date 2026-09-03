@@ -10,11 +10,11 @@ class CropProfile {
   });
 }
 
-/// Major Tamil Nadu crop contexts supported by the Ultimate screening flow.
+/// Crop contexts available to PhytoSense AI.
 ///
-/// The camera does not claim to identify a crop species by itself. Farmers
-/// confirm the crop before screening so that only relevant issue candidates
-/// are ranked.
+/// Firmware-supported profiles use the exact canonical names expected
+/// by the ESP32 crop endpoint. Camera-only contexts are retained so no
+/// pre-FieldPulse screening capability is removed.
 class CropCatalog {
   static const supported = <CropProfile>[
     CropProfile(
@@ -22,7 +22,26 @@ class CropCatalog {
       name: 'Universal',
       localizationKey: 'crop_universal',
     ),
+    CropProfile(id: 'tomato', name: 'Tomato', localizationKey: 'crop_tomato'),
+    CropProfile(
+      id: 'hibiscus',
+      name: 'Hibiscus',
+      localizationKey: 'crop_hibiscus',
+    ),
     CropProfile(id: 'rice', name: 'Rice', localizationKey: 'crop_rice'),
+    CropProfile(
+      id: 'sugarcane',
+      name: 'Sugarcane',
+      localizationKey: 'crop_sugarcane',
+    ),
+    CropProfile(id: 'banana', name: 'Banana', localizationKey: 'crop_banana'),
+    CropProfile(id: 'papaya', name: 'Papaya', localizationKey: 'crop_papaya'),
+    CropProfile(
+      id: 'eggplant',
+      name: 'Eggplant',
+      localizationKey: 'crop_brinjal',
+    ),
+    CropProfile(id: 'okra', name: 'Okra', localizationKey: 'crop_okra'),
     CropProfile(id: 'maize', name: 'Maize', localizationKey: 'crop_maize'),
     CropProfile(
       id: 'groundnut',
@@ -31,43 +50,38 @@ class CropCatalog {
     ),
     CropProfile(id: 'cotton', name: 'Cotton', localizationKey: 'crop_cotton'),
     CropProfile(
-      id: 'sugarcane',
-      name: 'Sugarcane',
-      localizationKey: 'crop_sugarcane',
-    ),
-    CropProfile(id: 'banana', name: 'Banana', localizationKey: 'crop_banana'),
-    CropProfile(
       id: 'coconut',
       name: 'Coconut',
       localizationKey: 'crop_coconut',
     ),
-    CropProfile(id: 'tomato', name: 'Tomato', localizationKey: 'crop_tomato'),
-    CropProfile(
-      id: 'hibiscus',
-      name: 'Hibiscus',
-      localizationKey: 'crop_hibiscus',
-    ),
-    CropProfile(
-      id: 'brinjal',
-      name: 'Brinjal',
-      localizationKey: 'crop_brinjal',
-    ),
     CropProfile(id: 'chilli', name: 'Chilli', localizationKey: 'crop_chilli'),
-    CropProfile(id: 'okra', name: 'Okra', localizationKey: 'crop_okra'),
   ];
+
+  static const firmwareSupportedNames = <String>{
+    'Universal',
+    'Tomato',
+    'Hibiscus',
+    'Rice',
+    'Sugarcane',
+    'Banana',
+    'Papaya',
+    'Eggplant',
+    'Okra',
+    'Maize',
+    'Groundnut',
+  };
 
   static bool supports(String crop) =>
       supported.any((profile) => profile.name == normalize(crop));
+
+  static bool firmwareSupports(String crop) =>
+      firmwareSupportedNames.contains(normalize(crop));
 
   static CropProfile profileFor(String crop) {
     final normalized = normalize(crop);
     return supported.firstWhere(
       (profile) => profile.name == normalized,
-      // Unknown firmware profiles are intentionally neutral. Never silently
-      // turn an unknown crop into Rice or Tomato.
-      orElse: () => supported.firstWhere(
-        (profile) => profile.id == 'universal',
-      ),
+      orElse: () => supported.first,
     );
   }
 
@@ -89,6 +103,7 @@ class CropCatalog {
       return 'Sugarcane';
     }
     if (value.contains('banana') || value.contains('plantain')) return 'Banana';
+    if (value.contains('papaya') || value.contains('pawpaw')) return 'Papaya';
     if (value.contains('coconut')) return 'Coconut';
     if (value.contains('tomato')) return 'Tomato';
     if (value.contains('hibiscus') ||
@@ -99,7 +114,7 @@ class CropCatalog {
       return 'Hibiscus';
     }
     if (value.contains('brinjal') || value.contains('eggplant')) {
-      return 'Brinjal';
+      return 'Eggplant';
     }
     if (value.contains('chilli') ||
         value.contains('chili') ||
@@ -110,10 +125,11 @@ class CropCatalog {
         value.contains('lady finger') ||
         value.contains('ladyfinger') ||
         value.contains('bhindi') ||
+        value.contains('bhendi') ||
         value.contains('vendakkai') ||
         value.contains('வெண்டைக்காய்')) {
       return 'Okra';
     }
-    return 'Universal';
+    return crop.trim();
   }
 }

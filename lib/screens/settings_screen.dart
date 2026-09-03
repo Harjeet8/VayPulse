@@ -189,6 +189,7 @@ class SettingsScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: DropdownButtonFormField<String>(
+                    isExpanded: true,
                     initialValue: scope.sensors.scenarioId,
                     decoration: const InputDecoration(
                       labelText: 'Simulation scenario',
@@ -386,7 +387,7 @@ class _ThemeOption extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
         decoration: BoxDecoration(
           color:
-              selected ? scheme.primaryContainer : scheme.surfaceContainerLow,
+              selected ? scheme.primaryContainer : scheme.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,
@@ -729,8 +730,8 @@ class _SettingsOption extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     return Material(
       color: selected
-          ? scheme.primaryContainer.withValues(alpha: 0.72)
-          : scheme.surfaceContainerLow,
+          ? scheme.primaryContainer.withValues(alpha: 0.52)
+          : scheme.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(

@@ -15,6 +15,8 @@ class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _logoScale;
+  late final Animation<double> _logoTurn;
+  late final Animation<double> _logoLift;
   late final Animation<double> _contentOpacity;
   Timer? _timer;
 
@@ -23,20 +25,32 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1450),
+      duration: const Duration(milliseconds: 1100),
     );
-    _logoScale = Tween<double>(begin: 0.90, end: 1).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0, 0.72, curve: Curves.easeOutBack),
+    _logoScale = TweenSequence<double>([
+      TweenSequenceItem(
+        tween: Tween(begin: 0.72, end: 1.06)
+            .chain(CurveTween(curve: Curves.easeOutCubic)),
+        weight: 72,
       ),
+      TweenSequenceItem(
+        tween: Tween(begin: 1.06, end: 1.0)
+            .chain(CurveTween(curve: Curves.easeOutBack)),
+        weight: 28,
+      ),
+    ]).animate(_controller);
+    _logoTurn = Tween<double>(begin: -0.055, end: 0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
+    );
+    _logoLift = Tween<double>(begin: 22, end: 0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic),
     );
     _contentOpacity = CurvedAnimation(
       parent: _controller,
-      curve: const Interval(0.08, 0.78, curve: Curves.easeOutCubic),
+      curve: const Interval(0.12, 0.86, curve: Curves.easeOutCubic),
     );
     _controller.forward();
-    _timer = Timer(const Duration(milliseconds: 2150), _openApp);
+    _timer = Timer(const Duration(milliseconds: 1650), _openApp);
   }
 
   void _openApp() {
@@ -44,10 +58,13 @@ class _SplashScreenState extends State<SplashScreen>
     Navigator.pushReplacement(
       context,
       PageRouteBuilder<void>(
-        transitionDuration: const Duration(milliseconds: 420),
+        transitionDuration: const Duration(milliseconds: 260),
         pageBuilder: (_, __, ___) => const ShellScreen(),
         transitionsBuilder: (_, animation, __, child) => FadeTransition(
-          opacity: CurvedAnimation(parent: animation, curve: Curves.easeOut),
+          opacity: CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+          ),
           child: child,
         ),
       ),
@@ -66,132 +83,126 @@ class _SplashScreenState extends State<SplashScreen>
     final theme = Theme.of(context);
     final dark = theme.brightness == Brightness.dark;
     final reducedMotion = MediaQuery.disableAnimationsOf(context);
-    final background = dark ? const Color(0xFF071813) : const Color(0xFFF5FBF8);
-    final foreground = dark ? const Color(0xFFF2FFF8) : const Color(0xFF102D25);
-    final secondary = dark ? const Color(0xFFAFC8BD) : const Color(0xFF587066);
-    final grid = dark ? const Color(0x0EFFFFFF) : const Color(0x0B0C6A4C);
+    final background =
+        dark ? const Color(0xFF071611) : const Color(0xFFF7FBF8);
+    final foreground =
+        dark ? const Color(0xFFF1FBF5) : const Color(0xFF102D25);
+    final secondary =
+        dark ? const Color(0xFFAFC8BD) : const Color(0xFF587066);
 
     return Scaffold(
       backgroundColor: background,
-      body: Stack(
-        fit: StackFit.expand,
-        children: [
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: RadialGradient(
-                center: const Alignment(0, -0.14),
-                radius: 0.82,
-                colors: dark
-                    ? const [Color(0xFF103A2B), Color(0xFF071813)]
-                    : const [Color(0xFFE2F7ED), Color(0xFFF8FCFA)],
-              ),
-            ),
+      body: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: RadialGradient(
+            center: const Alignment(0, -0.2),
+            radius: 0.88,
+            colors: dark
+                ? const [Color(0xFF123126), Color(0xFF071611)]
+                : const [Color(0xFFE7F6EE), Color(0xFFF9FCFA)],
           ),
-          CustomPaint(painter: _QuietGridPainter(grid)),
-          SafeArea(
-            child: Center(
-              child: FadeTransition(
-                opacity: reducedMotion
-                    ? const AlwaysStoppedAnimation<double>(1)
-                    : _contentOpacity,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    ScaleTransition(
-                      scale: reducedMotion
-                          ? const AlwaysStoppedAnimation<double>(1)
-                          : _logoScale,
-                      child: Container(
-                        width: 154,
-                        height: 154,
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(38),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFF13B96B)
-                                  .withValues(alpha: dark ? 0.22 : 0.16),
-                              blurRadius: 34,
-                              spreadRadius: 4,
-                            ),
-                          ],
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(35),
-                          child: Image.asset(
-                            'assets/branding/phytosense_icon.png',
-                            fit: BoxFit.cover,
-                            semanticLabel: 'PhytoSense logo',
+        ),
+        child: SafeArea(
+          child: Center(
+            child: FadeTransition(
+              opacity: reducedMotion
+                  ? const AlwaysStoppedAnimation<double>(1)
+                  : _contentOpacity,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 124,
+                    height: 124,
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: dark
+                          ? const Color(0xFF10251B)
+                          : Colors.white,
+                      borderRadius: BorderRadius.circular(30),
+                      border: Border.all(
+                        color: dark
+                            ? const Color(0xFF2B4B3D)
+                            : const Color(0xFFDDEBE3),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(
+                            alpha: dark ? 0.22 : 0.07,
                           ),
+                          blurRadius: 24,
+                          offset: const Offset(0, 10),
                         ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(22),
+                      child: AnimatedBuilder(
+                        animation: _controller,
+                        child: Image.asset(
+                          'assets/branding/phytosense_icon.png',
+                          fit: BoxFit.contain,
+                          semanticLabel: 'PhytoSense AI logo',
+                        ),
+                        builder: (context, child) {
+                          if (reducedMotion) return child!;
+                          return Transform.translate(
+                            offset: Offset(0, _logoLift.value),
+                            child: Transform.rotate(
+                              angle: _logoTurn.value,
+                              child: Transform.scale(
+                                scale: _logoScale.value,
+                                child: child,
+                              ),
+                            ),
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(height: 34),
-                    Text(
-                      'PhytoSense AI',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.displaySmall?.copyWith(
-                        color: foreground,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -1.2,
-                      ),
+                  ),
+                  const SizedBox(height: 28),
+                  Text(
+                    'PhytoSense AI',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.displaySmall?.copyWith(
+                      color: foreground,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -1.1,
                     ),
-                    const SizedBox(height: 10),
-                    Text(
-                      'See stress before it becomes visible',
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: secondary,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.1,
-                      ),
+                  ),
+                  const SizedBox(height: 9),
+                  Text(
+                    'See stress before it becomes visible',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: secondary,
+                      fontWeight: FontWeight.w600,
                     ),
-                    const SizedBox(height: 34),
-                    SizedBox(
-                      width: 112,
-                      child: ClipRRect(
+                  ),
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: 112,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (context, _) => ClipRRect(
                         borderRadius: BorderRadius.circular(20),
                         child: LinearProgressIndicator(
                           minHeight: 4,
-                          value: reducedMotion ? 1 : null,
-                          color: const Color(0xFF13B96B),
+                          value: reducedMotion ? 1 : _controller.value,
+                          color: theme.colorScheme.primary,
                           backgroundColor: dark
                               ? const Color(0xFF29483C)
-                              : const Color(0xFFD5E9E0),
+                              : const Color(0xFFD7E8DF),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-        ],
+        ),
       ),
     );
   }
-}
-
-class _QuietGridPainter extends CustomPainter {
-  final Color color;
-
-  const _QuietGridPainter(this.color);
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-    const gap = 72.0;
-    for (double x = 0; x <= size.width; x += gap) {
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
-    }
-    for (double y = 0; y <= size.height; y += gap) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _QuietGridPainter oldDelegate) =>
-      oldDelegate.color != color;
 }

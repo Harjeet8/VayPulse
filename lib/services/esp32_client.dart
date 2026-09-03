@@ -207,6 +207,7 @@ class Esp32Client {
       'leafWetness': leafValue,
       'plantSignal': stabilityValue,
       'plantVoltageMv': voltageValue,
+      'bioSource': '${first([data['bioSource'], data['bioelectricSource'], bio['source'], bio['bioSource'], 'real'])}',
       'healthScore': espHealth,
       'healthStatus':
           '${first([data['plantState'], data['healthStatus'], plantHealth['plantCondition'], plantHealth['status'], 'starting'])}',

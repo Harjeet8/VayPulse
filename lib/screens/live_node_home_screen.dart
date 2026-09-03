@@ -362,20 +362,20 @@ class _ConditionCard extends StatelessWidget {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: (live ? const Color(0xFF2879B9) : const Color(0xFFE18A28))
+                    color: (live ? const Color(0xFF2879B9) : const Color(0xFF176B4D))
                         .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(99),
                   ),
                   child: Text(
                     _competitionText(
                       context,
-                      live ? 'LIVE ESP32' : 'PRACTICE FARM',
-                      live ? 'நேரடி ESP32' : 'பயிற்சி பண்ணை',
+                      live ? 'LIVE ESP32' : 'SIMULATION',
+                      live ? 'நேரடி ESP32' : 'சிமுலேஷன்',
                     ),
                     style: TextStyle(
                       color: live
                           ? const Color(0xFF2879B9)
-                          : const Color(0xFFB76412),
+                          : const Color(0xFF176B4D),
                       fontSize: 8.5,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 0.45,

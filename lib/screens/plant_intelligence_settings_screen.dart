@@ -22,6 +22,7 @@ class _PlantIntelligenceSettingsScreenState
     'rice': 'Rice',
     'sugarcane': 'Sugarcane',
     'banana': 'Banana',
+    'papaya': 'Papaya',
     'eggplant': 'Eggplant',
     'okra': 'Okra',
     'maize': 'Maize',
@@ -219,6 +220,7 @@ class _PlantIntelligenceSettingsScreenState
                     const LinearProgressIndicator()
                   else ...[
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       key: ValueKey('crop-$cropId'),
                       initialValue: _crops.containsKey(cropId) ? cropId : 'universal',
                       decoration: InputDecoration(
@@ -237,6 +239,7 @@ class _PlantIntelligenceSettingsScreenState
                     ),
                     const SizedBox(height: 14),
                     DropdownButtonFormField<String>(
+                      isExpanded: true,
                       key: ValueKey('stage-$stageId'),
                       initialValue: _stages.containsKey(stageId) ? stageId : 'general',
                       decoration: InputDecoration(

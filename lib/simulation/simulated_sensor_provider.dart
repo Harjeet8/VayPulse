@@ -271,6 +271,7 @@ class SimulationSensorProvider extends SensorDataProvider {
       leafWetness: leafWetness,
       plantSignal: bioStability,
       plantVoltageMv: plantVoltageMv,
+      bioSource: 'simulation',
       healthScore: 75,
       stressScore: 25,
       healthStatus: 'starting',
