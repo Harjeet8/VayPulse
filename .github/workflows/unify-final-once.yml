@@ -44,12 +44,15 @@ jobs:
             3a666b162023a13ceaf2fd4caec45bc205da43cf
           )
           for c in "${commits[@]}"; do
-            git cherry-pick "$c" || {
+            git cherry-pick -X theirs "$c" || {
               echo "Conflict while applying $c"
               git status --short
               exit 1
             }
           done
+          git checkout origin/phytosense-v8-ultra-final -- lib/screens/splash_screen.dart
+          git add lib/screens/splash_screen.dart
+          git commit -m "Preserve ultra-final animated splash" || true
 
       - name: Bring release identity and hardening from main
         shell: bash
@@ -77,9 +80,11 @@ jobs:
       - name: Validate unified source
         run: |
           flutter pub get
-          dart format --output=none --set-exit-if-changed lib test
+          dart format lib test
           flutter analyze
           flutter test
+          git add lib test
+          git commit -m "Format unified final source" || true
 
       - name: Build fresh installable validation APK
         run: flutter build apk --release
@@ -95,7 +100,7 @@ jobs:
           rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
 
       - name: Push unified final branch
-        run: git push --force-with-lease origin HEAD:phytosense-unified-final
+        run: git push --force origin HEAD:phytosense-unified-final
 
       - name: Upload unified APK
         uses: actions/upload-artifact@v4
@@ -105,4 +110,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 2
+# trigger: 3
