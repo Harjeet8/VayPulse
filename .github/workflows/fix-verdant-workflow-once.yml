@@ -1,0 +1,41 @@
+name: Fix Verdant Workflow Once
+
+on:
+  push:
+    branches: [phytosense-verdant-final]
+    paths: ['.github/workflows/fix-verdant-workflow-once.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: phytosense-verdant-final
+          fetch-depth: 0
+      - name: Correct package imports in finalizer
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          python3 <<'PY'
+          from pathlib import Path
+          path = Path('.github/workflows/verdant-integrate.yml')
+          text = path.read_text(encoding='utf-8')
+          old = 'package:vaypulse/'
+          if old not in text:
+              raise SystemExit('Expected old test package namespace not found')
+          text = text.replace(old, 'package:phytosense_ai/')
+          path.write_text(text, encoding='utf-8')
+          assert 'package:vaypulse/' not in text
+          assert 'package:phytosense_ai/' in text
+          PY
+          git add .github/workflows/verdant-integrate.yml
+          git commit -m "ci: use PhytoSense package namespace in Verdant tests"
+          git push origin HEAD:phytosense-verdant-final
