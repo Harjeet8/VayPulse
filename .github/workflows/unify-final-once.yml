@@ -50,6 +50,49 @@ jobs:
           grep -R -Fq "RECOVERING" lib
           grep -Fq "firmwareSupportedNames" lib/models/crop_catalog.dart
 
+      - name: Restore polished UI compatibility fields
+        shell: python
+        run: |
+          from pathlib import Path
+
+          p = Path('lib/models/sensor_reading.dart')
+          text = p.read_text(encoding='utf-8')
+
+          def insert_after(anchor, addition):
+              global text
+              if addition.strip() in text:
+                  return
+              if anchor not in text:
+                  raise SystemExit(f'Missing compatibility anchor: {anchor!r}')
+              text = text.replace(anchor, anchor + addition, 1)
+
+          insert_after(
+              '  final double analysisConfidence;\n',
+              '  final String analysisOrigin;\n  final bool recoveryActive;\n  final double? vpdKpa;\n',
+          )
+          insert_after(
+              '    this.analysisConfidence = 0,\n',
+              "    this.analysisOrigin = 'persisted',\n    this.recoveryActive = false,\n    this.vpdKpa,\n",
+          )
+          insert_after(
+              "        'analysisConfidence': analysisConfidence,\n",
+              "        'analysisOrigin': analysisOrigin,\n        'recoveryActive': recoveryActive,\n        'vpdKpa': vpdKpa,\n",
+          )
+          insert_after(
+              "      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n",
+              "      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',\n      recoveryActive: json['recoveryActive'] == true,\n      vpdKpa: _nullableNum(json['vpdKpa']),\n",
+          )
+          insert_after(
+              '    double? analysisConfidence,\n',
+              '    String? analysisOrigin,\n    bool? recoveryActive,\n    double? vpdKpa,\n',
+          )
+          insert_after(
+              '      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n',
+              '      analysisOrigin: analysisOrigin ?? this.analysisOrigin,\n      recoveryActive: recoveryActive ?? this.recoveryActive,\n      vpdKpa: vpdKpa ?? this.vpdKpa,\n',
+          )
+
+          p.write_text(text, encoding='utf-8')
+
       - name: Apply permanent release identity and hardening
         shell: bash
         run: |
@@ -82,7 +125,7 @@ jobs:
           flutter analyze --no-fatal-infos --no-fatal-warnings
           flutter test
           git add lib test
-          git commit -m "Format validated unified final source" || true
+          git commit -m "Restore compatibility and validate unified final" || true
 
       - name: Configure permanent publisher signing
         shell: bash
@@ -132,4 +175,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 13
+# trigger: 14
