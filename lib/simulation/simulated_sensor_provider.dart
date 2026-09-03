@@ -30,6 +30,12 @@ class _PracticeNodeProfile {
 
 class SimulationSensorProvider extends SensorDataProvider {
   static const _scenarioNodeId = 'node-sugarcane-east';
+  static const _legacyNodeAliases = <String, String>{
+    'node-rice-a1': 'node-rice-delta',
+    'node-tomato-a1': 'node-sugarcane-east',
+    'node-tomato-a2': 'node-sugarcane-north',
+    'node-tomato-b1': 'node-maize-trial',
+  };
   static const _profiles = <String, _PracticeNodeProfile>{
     'node-sugarcane-east': _PracticeNodeProfile(
       crop: 'Sugarcane',
@@ -164,12 +170,15 @@ class SimulationSensorProvider extends SensorDataProvider {
     ];
   }
 
+  String _resolvedNodeId(String nodeId) => _legacyNodeAliases[nodeId] ?? nodeId;
+
   @override
   SensorDataSource get source => SensorDataSource.simulation;
 
   @override
-  SensorReading? get current =>
-      _status == SensorConnectionStatus.ready ? _latest[_selectedNodeId] : null;
+  SensorReading? get current => _status == SensorConnectionStatus.ready
+      ? _latest[_resolvedNodeId(_selectedNodeId)]
+      : null;
 
   @override
   Map<String, SensorReading> get latestReadings =>
@@ -184,8 +193,9 @@ class SimulationSensorProvider extends SensorDataProvider {
   String get selectedNodeId => _selectedNodeId;
 
   @override
-  List<SensorReading> historyFor(String nodeId) =>
-      List<SensorReading>.unmodifiable(_history[nodeId] ?? const []);
+  List<SensorReading> historyFor(String nodeId) => List<SensorReading>.unmodifiable(
+        _history[_resolvedNodeId(nodeId)] ?? const [],
+      );
 
   @override
   bool get connected => _status == SensorConnectionStatus.ready;
@@ -213,12 +223,13 @@ class SimulationSensorProvider extends SensorDataProvider {
   EdgeIntelligence? get edgeIntelligence {
     final reading = current;
     if (reading == null) return null;
-    final history = _history[_selectedNodeId] ?? const <SensorReading>[];
-    final profile = _profileFor(_selectedNodeId);
+    final resolved = _resolvedNodeId(_selectedNodeId);
+    final history = _history[resolved] ?? const <SensorReading>[];
+    final profile = _profileFor(resolved);
     return SimulationIntelligenceV2.build(
       reading: reading,
       history: history,
-      mode: _effectiveMode(_selectedNodeId),
+      mode: _effectiveMode(resolved),
       crop: profile.crop,
       growthStage: profile.growthStage,
     );
@@ -228,12 +239,13 @@ class SimulationSensorProvider extends SensorDataProvider {
   HardwareTelemetry? get hardwareTelemetry {
     final reading = current;
     if (reading == null) return null;
-    final history = _history[_selectedNodeId] ?? const <SensorReading>[];
-    final profile = _profileFor(_selectedNodeId);
+    final resolved = _resolvedNodeId(_selectedNodeId);
+    final history = _history[resolved] ?? const <SensorReading>[];
+    final profile = _profileFor(resolved);
     return SimulationIntelligenceV2.buildTelemetry(
       reading: reading,
       history: history,
-      mode: _effectiveMode(_selectedNodeId),
+      mode: _effectiveMode(resolved),
       crop: profile.crop,
       growthStage: profile.growthStage,
     );
@@ -422,7 +434,7 @@ class SimulationSensorProvider extends SensorDataProvider {
   }
 
   _PracticeNodeProfile _profileFor(String nodeId) =>
-      _profiles[nodeId] ??
+      _profiles[_resolvedNodeId(nodeId)] ??
       const _PracticeNodeProfile(
         crop: 'Universal',
         growthStage: 'general',
@@ -430,7 +442,7 @@ class SimulationSensorProvider extends SensorDataProvider {
 
   DemoMode _effectiveMode(String nodeId) {
     if (_mode == DemoMode.offline) return DemoMode.offline;
-    return nodeId == _scenarioNodeId ? _mode : DemoMode.healthy;
+    return _resolvedNodeId(nodeId) == _scenarioNodeId ? _mode : DemoMode.healthy;
   }
 
   double _max(double a, double b) => a > b ? a : b;
@@ -445,7 +457,11 @@ class SimulationSensorProvider extends SensorDataProvider {
 
   @override
   void selectNode(String nodeId) {
-    if (_nodes.any((node) => node.id == nodeId)) {
+    final resolved = _resolvedNodeId(nodeId);
+    if (_nodes.any((node) => node.id == resolved)) {
+      // Keep the caller's ID so previously persisted Practice Farm selections
+      // survive an app upgrade, while all data access transparently resolves
+      // to the new farm-scale node identity.
       _selectedNodeId = nodeId;
       notifyListeners();
     }
