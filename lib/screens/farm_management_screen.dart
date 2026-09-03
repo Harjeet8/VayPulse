@@ -5,12 +5,15 @@ import '../l10n/app_strings.dart';
 import '../models/crop_catalog.dart';
 import '../models/farm.dart';
 import '../services/app_scope.dart';
+import '../services/esp32_config_client.dart';
+import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
 
 class FarmManagementScreen extends StatelessWidget {
   const FarmManagementScreen({super.key});
 
   static final crops = CropCatalog.supported
+      .where((profile) => CropCatalog.firmwareSupports(profile.name))
       .map((profile) => profile.name)
       .toList(growable: false);
   static const stages = [
@@ -110,13 +113,44 @@ class _ManagedField extends StatelessWidget {
                         child: Text(_cropName(context, crop)),
                       ))
                   .toList(),
-              onChanged: (crop) {
+              onChanged: (crop) async {
                 if (crop == null) return;
-                AppScope.of(context).farms.updateFieldCrop(
-                      farmId: farm.id,
-                      fieldId: field.id,
-                      crop: crop,
-                    );
+                final scope = AppScope.of(context);
+                final canonicalCrop = CropCatalog.normalize(crop);
+
+                await scope.farms.updateFieldCrop(
+                  farmId: farm.id,
+                  fieldId: field.id,
+                  crop: canonicalCrop,
+                );
+
+                if (scope.sensorManager.source != SensorDataSource.esp32) {
+                  return;
+                }
+
+                try {
+                  final result = await Esp32ConfigClient(
+                    scope.sensorManager.hardwareEndpoint,
+                  ).setCrop(canonicalCrop);
+                  scope.sensors.retry();
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        '${result.crop} profile synchronized with the PhytoSense node${result.baselineReset ? ' • bio baseline restarted' : ''}',
+                      ),
+                    ),
+                  );
+                } catch (_) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Crop saved in the app, but the PhytoSense node could not confirm the change. Reconnect to PhytoSense_AI and retry.',
+                      ),
+                    ),
+                  );
+                }
               },
             ),
             const SizedBox(height: 14),
@@ -146,14 +180,30 @@ class _ManagedField extends StatelessWidget {
                             child: Text(_stageName(context, stage)),
                           ))
                       .toList(),
-                  onChanged: (stage) {
+                  onChanged: (stage) async {
                     if (stage == null) return;
-                    AppScope.of(context).farms.updateZoneStage(
-                          farmId: farm.id,
-                          fieldId: field.id,
-                          zoneId: zone.id,
-                          cropStage: stage,
-                        );
+                    final scope = AppScope.of(context);
+                    await scope.farms.updateZoneStage(
+                      farmId: farm.id,
+                      fieldId: field.id,
+                      zoneId: zone.id,
+                      cropStage: stage,
+                    );
+
+                    if (scope.sensorManager.source != SensorDataSource.esp32) {
+                      return;
+                    }
+
+                    try {
+                      await Esp32ConfigClient(
+                        scope.sensorManager.hardwareEndpoint,
+                      ).setGrowthStage(stage);
+                      scope.sensors.retry();
+                    } catch (_) {
+                      // Local farm editing remains usable even when the node is
+                      // temporarily disconnected. A later crop/stage edit can
+                      // synchronize again once PhytoSense_AI is reachable.
+                    }
                   },
                 ),
               ),
@@ -162,8 +212,11 @@ class _ManagedField extends StatelessWidget {
       );
 }
 
-String _cropName(BuildContext context, String crop) =>
-    context.tr(CropCatalog.profileFor(crop).localizationKey);
+String _cropName(BuildContext context, String crop) {
+  final profile = CropCatalog.profileFor(crop);
+  final translated = context.tr(profile.localizationKey);
+  return translated == profile.localizationKey ? profile.name : translated;
+}
 
 String _stageName(BuildContext context, String stage) => switch (stage) {
       'Seedling' => context.tr('stage_seedling'),
