@@ -67,7 +67,7 @@ class DataSourceCard extends StatelessWidget {
                         if (bioDemo) ...[
                           const SizedBox(height: 3),
                           Text(
-                            'Bioelectric demo',
+                            'Real Time Signal',
                             style: Theme.of(context).textTheme.labelSmall?.copyWith(
                                   color: Theme.of(context).colorScheme.tertiary,
                                   fontWeight: FontWeight.w800,
