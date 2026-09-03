@@ -142,7 +142,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
             between(reading.temperature, -20, 70)) &&
         (!reading.humidityAvailable || between(reading.humidity, 0, 100)) &&
         (!reading.lightAvailable ||
-            (reading.lightLux == null || between(reading.lightLux!, 0, 200000))) &&
+            (reading.lightLux == null ||
+                between(reading.lightLux!, 0, 200000))) &&
         (!reading.soilTemperatureAvailable ||
             (reading.soilTemperature != null &&
                 between(reading.soilTemperature!, -20, 70))) &&

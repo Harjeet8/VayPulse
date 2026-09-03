@@ -155,9 +155,10 @@ class SimulationSensorProvider extends SensorDataProvider {
     final zoneOffset = (_nodes.indexOf(node) - 1.5) * 0.8;
     double noise(double amount) => (_random.nextDouble() - 0.5) * amount;
 
-    final soil = (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
-        .clamp(0, 100)
-        .toDouble();
+    final soil =
+        (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
+            .clamp(0, 100)
+            .toDouble();
     final temperature = (target.temperature + zoneOffset * 0.10 + noise(0.7))
         .clamp(-10, 60)
         .toDouble();
@@ -176,9 +177,8 @@ class SimulationSensorProvider extends SensorDataProvider {
       DemoMode.overwatered => (82 + noise(5)).clamp(0, 100).toDouble(),
       DemoMode.lowLight => (52 + noise(7)).clamp(0, 100).toDouble(),
       DemoMode.critical => (68 + noise(8)).clamp(0, 100).toDouble(),
-      _ => (14 + _max(0, humidity - 70) * 0.7 + noise(5))
-          .clamp(0, 100)
-          .toDouble(),
+      _ =>
+        (14 + _max(0, humidity - 70) * 0.7 + noise(5)).clamp(0, 100).toDouble(),
     };
     final wetSeconds = leafWetness >= 60
         ? switch (_mode) {

@@ -11,12 +11,10 @@ class Esp32ConfigClient {
         _httpClient = httpClient ?? http.Client();
 
   Future<Esp32ConfigSnapshot> getConfig() async {
-    final response = await _httpClient
-        .get(
-          Uri.parse('$baseUrl/api/config'),
-          headers: const {'Accept': 'application/json'},
-        )
-        .timeout(const Duration(seconds: 4));
+    final response = await _httpClient.get(
+      Uri.parse('$baseUrl/api/config'),
+      headers: const {'Accept': 'application/json'},
+    ).timeout(const Duration(seconds: 4));
     if (response.statusCode != 200) {
       throw Exception('ESP32 config unavailable (${response.statusCode})');
     }
@@ -67,7 +65,8 @@ class Esp32ConfigClient {
     }
     final refreshed = await getConfig();
     if (!_same(stage, refreshed.growthStage)) {
-      throw const FormatException('ESP32 growth-stage confirmation did not persist');
+      throw const FormatException(
+          'ESP32 growth-stage confirmation did not persist');
     }
     return refreshed.growthStage;
   }
