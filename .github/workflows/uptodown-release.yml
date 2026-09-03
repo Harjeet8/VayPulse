@@ -1,0 +1,147 @@
+name: FINAL Uptodown Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: phytosense-final-release
+  cancel-in-progress: false
+
+jobs:
+  verify-build-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+      ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+      ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+      ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+    steps:
+      - name: Checkout frozen source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Flutter format
+        run: |
+          dart format lib test
+          git diff --exit-code
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: All tests
+        run: flutter test
+
+      - name: Ownership, secret, URL, and release guard
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(sed -n 's/.*applicationId = "\([^"]*\)".*/\1/p' android/app/build.gradle.kts)" = "com.harjeet.phytosense"
+          rg -q 'Copyright © 2026 Harjeet' COPYRIGHT.md lib/screens/about_screen.dart android/app/src/main/AndroidManifest.xml
+          if git ls-files | rg -i '(^|/)(key\.properties|.*\.(jks|keystore|p12|pfx|pem))$'; then
+            echo 'Signing material is tracked by git.' >&2
+            exit 1
+          fi
+          if rg -n --hidden --glob '!.git/**' --glob '!pubspec.lock' --glob '!COPYRIGHT.md' \
+            '(-----BEGIN (RSA |EC |OPENSSH )?PRIVATE KEY-----|AKIA[0-9A-Z]{16}|AIza[0-9A-Za-z_-]{35})' .; then
+            echo 'A likely committed secret was found.' >&2
+            exit 1
+          fi
+          if rg -n --glob '*.dart' --glob '*.xml' --glob '*.gradle*' \
+            '(https?://(localhost|127\.0\.0\.1|10\.0\.2\.2)|https?://[^/]*(dev|staging)\.)' lib android; then
+            echo 'A development URL was found.' >&2
+            exit 1
+          fi
+          ! rg -n 'signingConfigs\.getByName\("debug"\)' android/app/build.gradle.kts
+
+      - name: Require permanent publisher signing
+        shell: bash
+        run: |
+          set -euo pipefail
+          for value in ANDROID_KEYSTORE_BASE64 ANDROID_STORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!value:-}" ]; then
+              echo "Missing $value. No APK will be built with a temporary or debug key." >&2
+              exit 1
+            fi
+          done
+          keystore_path="${RUNNER_TEMP}/phytosense-publisher.jks"
+          printf '%s' "${ANDROID_KEYSTORE_BASE64}" | base64 --decode > "${keystore_path}"
+          test -s "${keystore_path}"
+          chmod 600 "${keystore_path}"
+          echo "ANDROID_KEYSTORE_PATH=${keystore_path}" >> "${GITHUB_ENV}"
+
+      - name: Build obfuscated release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          symbol_dir="${RUNNER_TEMP}/phytosense-dart-symbols"
+          flutter build apk --release --obfuscate --split-debug-info="${symbol_dir}"
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          test -d "${symbol_dir}"
+          test -s build/app/outputs/mapping/release/mapping.txt
+          cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI.apk
+
+      - name: Inspect signed APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "${build_tools}/apksigner" verify --verbose PhytoSense-AI.apk
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          "${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable PhytoSense-AI.apk | rg -qx 'false'
+          if unzip -Z1 PhytoSense-AI.apk | rg -i '(^|/)([^/]+\.(dart|kt|java|symbols)|mapping\.txt|.*debug.*\.json)$'; then
+            echo 'Source, symbol, mapping, or debug metadata was packaged.' >&2
+            exit 1
+          fi
+          test "$(find . -maxdepth 1 -type f -name '*.apk' -printf '%f\n')" = 'PhytoSense-AI.apk'
+
+      - name: Android install, launch, and basic UI smoke
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            adb install -r PhytoSense-AI.apk
+            adb shell am force-stop com.harjeet.phytosense
+            adb shell am start -W -n com.harjeet.phytosense/.MainActivity | tee /tmp/launch.txt
+            rg -q 'Status: ok' /tmp/launch.txt
+            adb shell pidof com.harjeet.phytosense
+            adb shell uiautomator dump /sdcard/phytosense-ui.xml
+            adb pull /sdcard/phytosense-ui.xml /tmp/phytosense-ui.xml
+            rg -q 'PhytoSense AI' /tmp/phytosense-ui.xml
+          if adb logcat -d -t 500 | rg -A 4 'FATAL EXCEPTION: main' | rg -q 'com\.harjeet\.phytosense'; then
+            echo 'PhytoSense AI crashed during launch smoke testing.' >&2
+            exit 1
+          fi
+
+      - name: Upload verified APK only
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI
+          path: PhytoSense-AI.apk
+          if-no-files-found: error
+          retention-days: 30

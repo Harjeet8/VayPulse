@@ -59,7 +59,7 @@ void main() {
     expect(result.level, InsightLevel.urgent);
   });
 
-  test('raw ESP32 JSON receives a calculated health score', () {
+  test('legacy persisted sensor JSON receives a calculated health score', () {
     final result = SensorReading.fromJson({
       'soilMoisture': 62,
       'temperature': 25,
@@ -68,7 +68,7 @@ void main() {
       'plantSignal': 70,
     });
     expect(result.healthScore, greaterThan(95));
-    expect(result.nodeId, 'node-rice-a1');
+    expect(result.nodeId, 'PHYTO-NODE-001');
   });
 
   test('falling moisture is detected before the dry threshold', () {
@@ -94,7 +94,7 @@ void main() {
       endpoint: 'http://192.168.4.1',
     );
     expect(manager.source, SensorDataSource.esp32);
-    expect(manager.selectedNodeId, 'phytosense-live-01');
+    expect(manager.selectedNodeId, 'PHYTO-NODE-001');
     expect(manager.selectedNodeId, isNot(demoNodeId));
     expect(manager.supportsScenarios, isFalse);
     expect(manager.scenarioIds, isEmpty);
@@ -381,7 +381,7 @@ void main() {
       brownPercent: 22,
       screenedAt: DateTime.now(),
     );
-    expect(CropCatalog.supported, hasLength(10));
+    expect(CropCatalog.supported, hasLength(14));
     for (final crop in CropCatalog.supported) {
       final assessment = MultimodalDiseaseService.assess(
         visual: visual,

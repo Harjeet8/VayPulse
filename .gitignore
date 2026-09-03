@@ -44,5 +44,12 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
+# Permanent publisher signing material must remain outside the repository.
+key.properties
+*.jks
+*.keystore
+release-symbols/
+android-signing/
+
 # Widget Preview related
 .widget_preview/

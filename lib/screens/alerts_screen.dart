@@ -245,7 +245,7 @@ class _AlertCard extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            context.tr(alert.titleKey),
+                            alert.titleText ?? context.tr(alert.titleKey),
                             style: const TextStyle(fontWeight: FontWeight.w900),
                           ),
                         ),
@@ -261,7 +261,7 @@ class _AlertCard extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 5),
-                    Text(context.tr(alert.messageKey)),
+                    Text(alert.messageText ?? context.tr(alert.messageKey)),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 8,

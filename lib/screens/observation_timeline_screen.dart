@@ -49,8 +49,8 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
               time: alert.timestamp,
               type: _TimelineFilter.alerts,
               icon: Icons.notification_important_outlined,
-              title: context.tr(alert.titleKey),
-              body: context.tr(alert.messageKey),
+              title: alert.titleText ?? context.tr(alert.titleKey),
+              body: alert.messageText ?? context.tr(alert.messageKey),
               color: alert.severity.name == 'critical'
                   ? Theme.of(context).colorScheme.error
                   : Theme.of(context).colorScheme.tertiary,

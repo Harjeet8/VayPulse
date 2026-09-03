@@ -13,7 +13,7 @@ class HealthAnalysisEngine {
   static PhytoSenseHealthResult analyze(
     SensorReading reading,
     List<SensorReading> history, {
-    String crop = 'Tomato',
+    String crop = 'Universal',
     String growthStage = 'vegetative',
   }) {
     final profile = CropHealthProfile.forCrop(
@@ -106,7 +106,7 @@ class HealthAnalysisEngine {
           'Soil moisture has remained below the preferred calibrated range.',
         );
         recommendations.add(
-          'Check the tomato root zone and consider irrigation only after confirming the pot is actually dry.',
+          'Check the crop root zone and consider irrigation only after confirming the soil is actually dry.',
         );
       } else if (water < 60 &&
           reading.soilMoisture > profile.calibratedSoilMoisture.idealHigh) {
@@ -203,7 +203,7 @@ class HealthAnalysisEngine {
   static SensorReading apply(
     SensorReading reading,
     List<SensorReading> history, {
-    String crop = 'Tomato',
+    String crop = 'Universal',
     String growthStage = 'vegetative',
   }) {
     final result = analyze(

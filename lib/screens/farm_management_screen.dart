@@ -117,40 +117,40 @@ class _ManagedField extends StatelessWidget {
                 if (crop == null) return;
                 final scope = AppScope.of(context);
                 final canonicalCrop = CropCatalog.normalize(crop);
+                CropSyncResult? hardwareResult;
+                if (scope.sensorManager.source == SensorDataSource.esp32) {
+                  try {
+                    hardwareResult = await Esp32ConfigClient(
+                      scope.sensorManager.hardwareEndpoint,
+                    ).setCrop(canonicalCrop);
+                  } catch (_) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text(
+                          'Crop was not changed because the PhytoSense node did not confirm it. Reconnect to PhytoSense_AI and retry.',
+                        ),
+                      ),
+                    );
+                    return;
+                  }
+                }
 
                 await scope.farms.updateFieldCrop(
                   farmId: farm.id,
                   fieldId: field.id,
                   crop: canonicalCrop,
                 );
-
-                if (scope.sensorManager.source != SensorDataSource.esp32) {
-                  return;
-                }
-
-                try {
-                  final result = await Esp32ConfigClient(
-                    scope.sensorManager.hardwareEndpoint,
-                  ).setCrop(canonicalCrop);
-                  scope.sensors.retry();
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        '${result.crop} profile synchronized with the PhytoSense node${result.baselineReset ? ' • bio baseline restarted' : ''}',
-                      ),
+                if (hardwareResult == null) return;
+                scope.sensors.retry();
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      '${hardwareResult.crop} profile synchronized with the PhytoSense node${hardwareResult.baselineReset ? ' • bio baseline restarted' : ''}',
                     ),
-                  );
-                } catch (_) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Crop saved in the app, but the PhytoSense node could not confirm the change. Reconnect to PhytoSense_AI and retry.',
-                      ),
-                    ),
-                  );
-                }
+                  ),
+                );
               },
             ),
             const SizedBox(height: 14),
@@ -183,26 +183,31 @@ class _ManagedField extends StatelessWidget {
                   onChanged: (stage) async {
                     if (stage == null) return;
                     final scope = AppScope.of(context);
+                    if (scope.sensorManager.source == SensorDataSource.esp32) {
+                      try {
+                        await Esp32ConfigClient(
+                          scope.sensorManager.hardwareEndpoint,
+                        ).setGrowthStage(stage);
+                      } catch (_) {
+                        if (!context.mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Growth stage was not changed because the PhytoSense node did not confirm it.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                    }
                     await scope.farms.updateZoneStage(
                       farmId: farm.id,
                       fieldId: field.id,
                       zoneId: zone.id,
                       cropStage: stage,
                     );
-
-                    if (scope.sensorManager.source != SensorDataSource.esp32) {
-                      return;
-                    }
-
-                    try {
-                      await Esp32ConfigClient(
-                        scope.sensorManager.hardwareEndpoint,
-                      ).setGrowthStage(stage);
+                    if (scope.sensorManager.source == SensorDataSource.esp32) {
                       scope.sensors.retry();
-                    } catch (_) {
-                      // Local farm editing remains usable even when the node is
-                      // temporarily disconnected. A later crop/stage edit can
-                      // synchronize again once PhytoSense_AI is reachable.
                     }
                   },
                 ),

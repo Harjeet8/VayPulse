@@ -7,7 +7,7 @@ import 'hardware_sensor_provider.dart';
 import 'sensor_data_provider.dart';
 
 class Esp32SensorProvider extends HardwareSensorProvider {
-  static const _nodeId = 'phytosense-live-01';
+  static const _fallbackNodeId = 'PHYTO-NODE-001';
 
   final Duration pollInterval;
   final _controller = StreamController<SensorReading>.broadcast();
@@ -19,7 +19,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   String? _errorMessage;
   int _consecutiveFailures = 0;
   SensorNode _node = SensorNode(
-    id: _nodeId,
+    id: _fallbackNodeId,
     name: 'PhytoSense Node 01',
     farmId: '',
     fieldId: '',
@@ -43,17 +43,17 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   @override
   Map<String, SensorReading> get latestReadings => _current == null
       ? const <String, SensorReading>{}
-      : <String, SensorReading>{_nodeId: _current!};
+      : <String, SensorReading>{_current!.nodeId: _current!};
 
   @override
   List<SensorNode> get nodes => <SensorNode>[_node];
 
   @override
-  String get selectedNodeId => _nodeId;
+  String get selectedNodeId => _current?.nodeId ?? _node.id;
 
   @override
   List<SensorReading> historyFor(String nodeId) =>
-      nodeId == _nodeId ? List.unmodifiable(_history) : const [];
+      nodeId == selectedNodeId ? List.unmodifiable(_history) : const [];
 
   @override
   bool get connected => _status == SensorConnectionStatus.ready;
@@ -84,7 +84,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _polling = true;
     try {
       final snapshot = await client.getSnapshot();
-      final reading = snapshot.reading.copyWith(nodeId: _nodeId);
+      final reading = snapshot.reading;
       _validate(reading);
 
       // Hardware mode uses the ESP32 edge-intelligence result as the source of
@@ -94,7 +94,12 @@ class Esp32SensorProvider extends HardwareSensorProvider {
       _current = reading;
       _history.add(reading);
       if (_history.length > 600) _history.removeAt(0);
-      _node = _node.copyWith(
+      _node = SensorNode(
+        id: reading.nodeId,
+        name: reading.nodeId,
+        farmId: _node.farmId,
+        fieldId: _node.fieldId,
+        zoneId: _node.zoneId,
         batteryPercent: snapshot.batteryPercent,
         signalPercent: snapshot.signalPercent,
         lastSeen: reading.timestamp,

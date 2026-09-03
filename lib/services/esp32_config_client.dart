@@ -4,12 +4,14 @@ import 'package:http/http.dart' as http;
 
 class Esp32ConfigClient {
   final String baseUrl;
+  final http.Client _httpClient;
 
-  Esp32ConfigClient(String baseUrl)
-      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
+  Esp32ConfigClient(String baseUrl, {http.Client? httpClient})
+      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
+        _httpClient = httpClient ?? http.Client();
 
   Future<Esp32ConfigSnapshot> getConfig() async {
-    final response = await http
+    final response = await _httpClient
         .get(
           Uri.parse('$baseUrl/api/config'),
           headers: const {'Accept': 'application/json'},
@@ -20,9 +22,13 @@ class Esp32ConfigClient {
     }
     final decoded = jsonDecode(response.body);
     if (decoded is! Map) throw const FormatException('Invalid ESP32 config');
-    final json = Map<String, dynamic>.from(decoded);
-    final crops = (json['availableCrops'] is List)
-        ? (json['availableCrops'] as List).map((e) => '$e').toList()
+    final root = Map<String, dynamic>.from(decoded);
+    final json = root['data'] is Map
+        ? Map<String, dynamic>.from(root['data'] as Map)
+        : root;
+    final cropList = json['availableCrops'] ?? json['supportedCrops'];
+    final crops = cropList is List
+        ? cropList.map((e) => '$e').toList()
         : const <String>[];
     return Esp32ConfigSnapshot(
       crop: '${json['crop'] ?? 'Universal'}',
@@ -33,30 +39,47 @@ class Esp32ConfigClient {
 
   Future<CropSyncResult> setCrop(String crop) async {
     final response = await _post('/api/config/crop', {'crop': crop});
-    final confirmed = '${response['crop'] ?? ''}';
-    if (response['ok'] != true || confirmed.isEmpty) {
+    final data = response['data'] is Map
+        ? Map<String, dynamic>.from(response['data'] as Map)
+        : response;
+    final confirmed = '${data['crop'] ?? ''}';
+    if (response['ok'] != true || !_same(crop, confirmed)) {
       throw const FormatException('ESP32 did not confirm crop change');
     }
+    final refreshed = await getConfig();
+    if (!_same(crop, refreshed.crop)) {
+      throw const FormatException('ESP32 crop confirmation did not persist');
+    }
     return CropSyncResult(
-      crop: confirmed,
-      baselineReset: response['baselineReset'] == true,
+      crop: refreshed.crop,
+      baselineReset: data['baselineReset'] == true,
     );
   }
 
   Future<String> setGrowthStage(String stage) async {
     final response = await _post('/api/config/stage', {'stage': stage});
-    final confirmed = '${response['growthStage'] ?? ''}';
-    if (response['ok'] != true || confirmed.isEmpty) {
+    final data = response['data'] is Map
+        ? Map<String, dynamic>.from(response['data'] as Map)
+        : response;
+    final confirmed = '${data['growthStage'] ?? data['stage'] ?? ''}';
+    if (response['ok'] != true || !_same(stage, confirmed)) {
       throw const FormatException('ESP32 did not confirm growth-stage change');
     }
-    return confirmed;
+    final refreshed = await getConfig();
+    if (!_same(stage, refreshed.growthStage)) {
+      throw const FormatException('ESP32 growth-stage confirmation did not persist');
+    }
+    return refreshed.growthStage;
   }
+
+  static bool _same(String expected, String actual) =>
+      expected.trim().toLowerCase() == actual.trim().toLowerCase();
 
   Future<Map<String, dynamic>> _post(
     String path,
     Map<String, dynamic> body,
   ) async {
-    final response = await http
+    final response = await _httpClient
         .post(
           Uri.parse('$baseUrl$path'),
           headers: const {

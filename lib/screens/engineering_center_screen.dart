@@ -91,15 +91,17 @@ class SystemXrayScreen extends StatelessWidget {
       builder: (context, _) {
         final sensors = scope.sensors;
         final reading = sensors.current;
-        final analysis = reading == null
+        final hardwareMode = sensors.source == SensorDataSource.esp32;
+        final analysis = reading == null || hardwareMode
             ? null
             : AiAnalysisService.analyze(
                 reading,
                 sensors.historyFor(reading.nodeId),
-                crop: sensors.source == SensorDataSource.esp32
-                    ? 'Tomato'
-                    : scope.farms.selectedField.crop,
+                crop: scope.farms.selectedField.crop,
               );
+        final analysisAvailable = hardwareMode
+            ? reading?.edgeAnalysisAvailable == true
+            : analysis != null;
         return Scaffold(
           appBar: AppBar(title: Text(context.tr('system_xray'))),
           body: PageFrame(
@@ -142,19 +144,27 @@ class SystemXrayScreen extends StatelessWidget {
                 number: '04',
                 icon: Icons.psychology_alt_outlined,
                 title: context.tr('xray_reasoning'),
-                detail: analysis == null
+                detail: !analysisAvailable
                     ? context.tr('no_data')
-                    : context.tr(analysis.headlineKey),
-                complete: analysis != null,
+                    : hardwareMode
+                        ? (reading!.primaryRootCause.isEmpty
+                            ? reading.healthStatus.replaceAll('_', ' ')
+                            : reading.primaryRootCause.replaceAll('_', ' '))
+                        : context.tr(analysis!.headlineKey),
+                complete: analysisAvailable,
               ),
               _PipelineStep(
                 number: '05',
                 icon: Icons.notifications_active_outlined,
                 title: context.tr('xray_action'),
-                detail: context.tr(scope.alerts.alerts.isEmpty
-                    ? 'xray_no_alert'
-                    : 'xray_alert_ready'),
-                complete: analysis != null,
+                detail: hardwareMode && reading != null
+                    ? (reading.farmerAction.isEmpty
+                        ? context.tr('xray_no_alert')
+                        : reading.farmerAction)
+                    : context.tr(scope.alerts.alerts.isEmpty
+                        ? 'xray_no_alert'
+                        : 'xray_alert_ready'),
+                complete: analysisAvailable,
               ),
               _PipelineStep(
                 number: '06',
@@ -207,7 +217,7 @@ class _ExperimentLabScreenState extends State<ExperimentLabScreen> {
       animation: Listenable.merge([service, scope.sensors]),
       builder: (context, _) {
         final crop = scope.sensors.source == SensorDataSource.esp32
-            ? 'Tomato'
+            ? scope.sensors.current?.crop ?? 'Universal'
             : scope.farms.selectedField.crop;
         final sourceTrials = service.trialsForSource(scope.sensors.source.name);
         return Scaffold(

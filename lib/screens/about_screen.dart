@@ -162,6 +162,20 @@ class AboutVayPulseScreen extends StatelessWidget {
                 subtitle: Text(context.tr('about_build_status')),
               ),
             ),
+            const SizedBox(height: 12),
+            const Card(
+              child: ListTile(
+                contentPadding: EdgeInsets.all(16),
+                leading: Icon(Icons.copyright_rounded),
+                title: Text(
+                  'Copyright © 2026 Harjeet',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                subtitle: Text(
+                  'PhytoSense AI. All rights reserved. Third-party packages retain their respective licenses.',
+                ),
+              ),
+            ),
           ],
         ),
       );
@@ -190,7 +204,7 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
     final scope = AppScope.of(context);
     final live = scope.sensors.source == SensorDataSource.esp32;
     final field = scope.farms.selectedField;
-    final crop = live ? 'Tomato' : field.crop;
+    final crop = live ? scope.sensors.current?.crop ?? 'Universal' : field.crop;
     areaAcres = live ? 1 : field.areaAcres.clamp(1, 20).toDouble();
     seasonalValuePerAcre = _defaultCropValue(crop);
     initialized = true;
@@ -207,7 +221,7 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
     final scope = AppScope.of(context);
     final live = scope.sensors.source == SensorDataSource.esp32;
     final field = scope.farms.selectedField;
-    final crop = live ? 'Tomato' : field.crop;
+    final crop = live ? scope.sensors.current?.crop ?? 'Universal' : field.crop;
     setState(() {
       areaAcres = live ? 1 : field.areaAcres.clamp(1, 20).toDouble();
       seasonalValuePerAcre = _defaultCropValue(crop);
@@ -229,8 +243,9 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
     final scheme = Theme.of(context).colorScheme;
     final scope = AppScope.of(context);
     final field = scope.farms.selectedField;
-    final crop =
-        scope.sensors.source == SensorDataSource.esp32 ? 'Tomato' : field.crop;
+    final crop = scope.sensors.source == SensorDataSource.esp32
+        ? scope.sensors.current?.crop ?? 'Universal'
+        : field.crop;
     final projection = FarmImpactProjection(
       areaAcres: areaAcres,
       seasonalValuePerAcre: seasonalValuePerAcre,

@@ -31,6 +31,11 @@ class AlertService extends ChangeNotifier {
 
   void _evaluate(SensorReading reading) {
     if (!settings.value.notificationsEnabled) return;
+    if (sensors.source == SensorDataSource.esp32) {
+      _evaluateEdgeDecision(reading);
+      _evaluateNodeHealth(reading.nodeId);
+      return;
+    }
     String? titleKey;
     String? messageKey;
     var severity = AlertSeverity.warning;
@@ -64,6 +69,28 @@ class AlertService extends ChangeNotifier {
       );
     }
     _evaluateNodeHealth(reading.nodeId);
+  }
+
+  void _evaluateEdgeDecision(SensorReading reading) {
+    if (!reading.edgeAnalysisAvailable) return;
+    final status = reading.healthStatus.toUpperCase();
+    if (!const <String>{'WATCH', 'STRESS', 'CRITICAL'}.contains(status)) {
+      return;
+    }
+    _addAlert(
+      nodeId: reading.nodeId,
+      titleKey: 'alert_edge_decision',
+      messageKey: 'alert_abnormal_sensor_message',
+      titleText: reading.primaryRootCause.isEmpty
+          ? 'ESP32 plant-health alert'
+          : reading.primaryRootCause.replaceAll('_', ' '),
+      messageText: reading.farmerAction.isEmpty
+          ? 'Open the live dashboard for the ESP32 recommendation.'
+          : reading.farmerAction,
+      severity: status == 'CRITICAL'
+          ? AlertSeverity.critical
+          : AlertSeverity.warning,
+    );
   }
 
   bool _isFloodedRiceNode(String nodeId) {
@@ -162,6 +189,8 @@ class AlertService extends ChangeNotifier {
     required String titleKey,
     required String messageKey,
     required AlertSeverity severity,
+    String? titleText,
+    String? messageText,
     Duration cooldown = const Duration(seconds: 25),
   }) {
     final dedupeKey = '$nodeId:$titleKey';
@@ -176,6 +205,8 @@ class AlertService extends ChangeNotifier {
         timestamp: DateTime.now(),
         titleKey: titleKey,
         messageKey: messageKey,
+        titleText: titleText,
+        messageText: messageText,
         severity: severity,
       ),
     );

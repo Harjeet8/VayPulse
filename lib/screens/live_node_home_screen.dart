@@ -4,9 +4,7 @@ import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
-import '../services/ai_analysis_service.dart';
 import '../services/app_scope.dart';
-import '../services/multimodal_disease_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/health_ring.dart';
@@ -27,24 +25,6 @@ class LiveNodeHomeScreen extends StatelessWidget {
     final sensors = scope.sensors;
     final reading = sensors.current;
     final node = sensors.nodes.isEmpty ? null : sensors.nodes.first;
-    final analysis = reading == null || !reading.hasFullCoreReading
-        ? null
-        : AiAnalysisService.analyze(
-            reading,
-            sensors.historyFor(reading.nodeId),
-            crop: 'Tomato',
-          );
-    final photoPrompt = reading?.plantSignalAvailable == true
-        ? MultimodalDiseaseService.evaluatePhotoPrompt(
-            reading,
-            null,
-            crop: 'Tomato',
-          )
-        : MultimodalDiseaseService.evaluatePhotoPrompt(
-            null,
-            null,
-            crop: 'Tomato',
-          );
 
     return Scaffold(
       appBar: AppBar(
@@ -106,38 +86,54 @@ class LiveNodeHomeScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _LiveSensorGrid(reading: reading),
               const SizedBox(height: 22),
-              if (!reading.hasFullCoreReading) ...[
+              if (!reading.isReliabilityFull || !reading.hasFullCoreReading) ...[
                 _PartialHardwareCard(reading: reading),
                 const SizedBox(height: 22),
               ],
               _SectionTitle(title: context.tr('ai_field_insight')),
               const SizedBox(height: 12),
-              if (analysis != null)
+              if (reading.edgeAnalysisAvailable)
                 InsightCard(
-                  title: context.tr(analysis.headlineKey),
-                  message: context.tr(analysis.explanationKey),
-                  action:
-                      '${context.tr('recommended_action')}: ${context.tr(analysis.recommendationKey)}',
-                  accent: analysis.level.name == 'urgent'
+                  title: _edgeText(reading.healthStatus),
+                  message: reading.primaryRootCause.isEmpty
+                      ? 'The ESP32 did not report a primary root cause.'
+                      : _edgeText(reading.primaryRootCause),
+                  action: reading.farmerAction.isEmpty
+                      ? '${context.tr('recommended_action')}: Awaiting ESP32 guidance.'
+                      : '${context.tr('recommended_action')}: ${reading.farmerAction}',
+                  accent: reading.healthStatus.toUpperCase() == 'CRITICAL'
                       ? Theme.of(context).colorScheme.error
-                      : analysis.level.name == 'attention'
+                      : reading.healthStatus.toUpperCase() == 'STRESS' ||
+                              reading.healthStatus.toUpperCase() == 'WATCH'
                           ? Theme.of(context).colorScheme.tertiary
                           : Theme.of(context).colorScheme.primary,
                 ),
-              if (analysis != null) ...[
+              if (reading.edgeAnalysisAvailable) ...[
                 const SizedBox(height: 12),
                 _EvidenceCard(
-                  evidenceKey: analysis.evidenceKey,
-                  confidence: analysis.confidence,
+                  evidence: reading.rankedRootCauses.isEmpty
+                      ? reading.primaryRootCause
+                      : reading.rankedRootCauses.map(_edgeText).join(' • '),
+                  confidence: reading.rootCauseConfidence ??
+                      reading.analysisConfidence,
+                  reliabilityMode: reading.reliabilityMode,
                 ),
-              ] else if (!reading.hasFullCoreReading)
-                const _PartialAnalysisCard(),
-              if (photoPrompt.shouldPrompt) ...[
+              ] else
+                _PartialAnalysisCard(reading: reading),
+              if (reading.cameraRecommended) ...[
                 const SizedBox(height: 14),
-                _PhotoPrompt(reasonKeys: photoPrompt.reasonKeys),
+                _PhotoPrompt(
+                  reason: reading.cameraReason.isEmpty
+                      ? reading.bioticState
+                      : reading.cameraReason,
+                  crop: reading.crop,
+                ),
               ],
               const SizedBox(height: 14),
-              _TomatoReferenceCard(),
+              _CropReferenceCard(
+                crop: reading.crop,
+                growthStage: reading.growthStage,
+              ),
             ],
           ],
         ),
@@ -399,7 +395,7 @@ class _HealthSummary extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    context.tr('live_reference_crop'),
+                    'ESP32 CROP PROFILE',
                     style: Theme.of(context).textTheme.labelLarge?.copyWith(
                           color: Theme.of(context).colorScheme.primary,
                           fontWeight: FontWeight.w900,
@@ -407,7 +403,7 @@ class _HealthSummary extends StatelessWidget {
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    context.tr('tomato_reference_title'),
+                    '${reading.crop} • ${reading.growthStage}',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),
@@ -440,10 +436,7 @@ class _HealthSummary extends StatelessWidget {
               if (constraints.maxWidth < 430 || textScale > 1.35) {
                 return Column(
                   children: [
-                    HealthRing(
-                      score: reading.healthScore,
-                      label: context.tr('health_score'),
-                    ),
+                    _EdgeHealthIndicator(reading: reading),
                     const SizedBox(height: 18),
                     Align(alignment: Alignment.centerLeft, child: info),
                   ],
@@ -451,10 +444,7 @@ class _HealthSummary extends StatelessWidget {
               }
               return Row(
                 children: [
-                  HealthRing(
-                    score: reading.healthScore,
-                    label: context.tr('health_score'),
-                  ),
+                  _EdgeHealthIndicator(reading: reading),
                   const SizedBox(width: 20),
                   Expanded(child: info),
                 ],
@@ -480,6 +470,40 @@ class _Meta extends StatelessWidget {
           Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
         ],
       );
+}
+
+class _EdgeHealthIndicator extends StatelessWidget {
+  final SensorReading reading;
+
+  const _EdgeHealthIndicator({required this.reading});
+
+  @override
+  Widget build(BuildContext context) {
+    if (reading.edgeAnalysisAvailable) {
+      return HealthRing(
+        score: reading.healthScore,
+        label: context.tr('health_score'),
+      );
+    }
+    return SizedBox(
+      width: 126,
+      child: Column(
+        children: [
+          Icon(
+            Icons.hourglass_top_rounded,
+            size: 42,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+          const SizedBox(height: 8),
+          const Text(
+            'ESP32 analysis unavailable',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PartialHardwareCard extends StatelessWidget {
@@ -509,14 +533,15 @@ class _PartialHardwareCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Hardware bring-up mode',
+                  Text(
+                    '${reading.reliabilityMode} reliability',
                     style: TextStyle(fontWeight: FontWeight.w900),
                   ),
                   const SizedBox(height: 5),
                   Text(
-                    'Live ${connected.join(' + ')} received from the ESP32. '
-                    'Sensors not connected yet are shown as unavailable, not as simulated values.',
+                    'Live ${connected.isEmpty ? 'channels are recovering' : connected.join(' + ')} received from the ESP32. '
+                    'Unavailable or rejected channels are never replaced with simulated values.'
+                    '${reading.recoveryStatus.isEmpty ? '' : ' ${_edgeText(reading.recoveryStatus)}.'}',
                   ),
                 ],
               ),
@@ -529,7 +554,9 @@ class _PartialHardwareCard extends StatelessWidget {
 }
 
 class _PartialAnalysisCard extends StatelessWidget {
-  const _PartialAnalysisCard();
+  final SensorReading reading;
+
+  const _PartialAnalysisCard({required this.reading});
 
   @override
   Widget build(BuildContext context) => Card(
@@ -541,9 +568,11 @@ class _PartialAnalysisCard extends StatelessWidget {
               Icon(Icons.science_outlined,
                   color: Theme.of(context).colorScheme.primary),
               const SizedBox(width: 12),
-              const Expanded(
+              Expanded(
                 child: Text(
-                  'Live readings are connected. Full plant-health analysis will start automatically once the remaining core sensors are connected.',
+                  'The ESP32 has not published a health decision yet. '
+                  'Status: ${_edgeText(reading.systemStatus.isEmpty ? reading.reliabilityMode : reading.systemStatus)}. '
+                  'The app will not calculate a replacement hardware diagnosis.',
                 ),
               ),
             ],
@@ -628,6 +657,7 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.water_drop_outlined,
                 title: context.tr('soil_moisture'),
+                message: _sensorState(reading, 'soilMoisture'),
               ),
             if (reading.temperatureAvailable)
               SensorCard(
@@ -646,6 +676,7 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.thermostat_outlined,
                 title: context.tr('temperature'),
+                message: _sensorState(reading, 'temperature'),
               ),
             if (reading.humidityAvailable)
               SensorCard(
@@ -663,6 +694,7 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.water_outlined,
                 title: context.tr('humidity'),
+                message: _sensorState(reading, 'humidity'),
               ),
             if (reading.lightAvailable)
               SensorCard(
@@ -680,6 +712,7 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.light_mode_outlined,
                 title: context.tr('light'),
+                message: _sensorState(reading, 'light'),
               ),
             if (reading.plantSignalAvailable)
               SensorCard(
@@ -697,8 +730,9 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.monitor_heart_outlined,
                 title: context.tr('plant_signal'),
+                message: _sensorState(reading, 'plantSignal'),
               ),
-            if (reading.hasFullCoreReading)
+            if (reading.edgeAnalysisAvailable)
               SensorCard(
                 icon: Icons.warning_amber_rounded,
                 title: context.tr('stress'),
@@ -707,7 +741,7 @@ class _LiveSensorGrid extends StatelessWidget {
                 unit: '%',
                 preferredRange: context.tr('preferred_stress_range'),
                 animate: !AppScope.of(context).settings.value.reducedMotion,
-                status: context.tr(reading.healthStatus),
+                status: _edgeText(reading.healthStatus),
                 accent: reading.stressScore > 55
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.primary,
@@ -716,7 +750,7 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.warning_amber_rounded,
                 title: context.tr('stress'),
-                message: 'Waiting for the remaining sensors',
+                message: 'ESP32 analysis unavailable',
               ),
           ];
           return Wrap(
@@ -731,10 +765,15 @@ class _LiveSensorGrid extends StatelessWidget {
 }
 
 class _EvidenceCard extends StatelessWidget {
-  final String? evidenceKey;
-  final int? confidence;
+  final String evidence;
+  final double? confidence;
+  final String reliabilityMode;
 
-  const _EvidenceCard({required this.evidenceKey, required this.confidence});
+  const _EvidenceCard({
+    required this.evidence,
+    required this.confidence,
+    required this.reliabilityMode,
+  });
 
   @override
   Widget build(BuildContext context) => Card(
@@ -754,11 +793,17 @@ class _EvidenceCard extends StatelessWidget {
                     ),
                   ),
                   if (confidence != null)
-                    Text(context.tr('confidence', {'value': confidence!})),
+                    Text(context.tr('confidence', {
+                      'value': confidence!.round(),
+                    })),
                 ],
               ),
               const SizedBox(height: 9),
-              Text(context.tr(evidenceKey ?? 'live_waiting_body')),
+              Text(evidence.isEmpty
+                  ? 'No ranked root cause was published by the ESP32.'
+                  : evidence),
+              const SizedBox(height: 6),
+              Text('Reliability: $reliabilityMode'),
               const SizedBox(height: 9),
               Text(
                 context.tr('decision_support_note'),
@@ -771,9 +816,10 @@ class _EvidenceCard extends StatelessWidget {
 }
 
 class _PhotoPrompt extends StatelessWidget {
-  final List<String> reasonKeys;
+  final String reason;
+  final String crop;
 
-  const _PhotoPrompt({required this.reasonKeys});
+  const _PhotoPrompt({required this.reason, required this.crop});
 
   @override
   Widget build(BuildContext context) => Card(
@@ -788,11 +834,9 @@ class _PhotoPrompt extends StatelessWidget {
                 style: const TextStyle(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 7),
-              for (final key in reasonKeys)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 5),
-                  child: Text('• ${context.tr(key)}'),
-                ),
+              Text(reason.isEmpty
+                  ? 'The ESP32 recommends a leaf photo for visual screening.'
+                  : _edgeText(reason)),
               const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
@@ -800,8 +844,9 @@ class _PhotoPrompt extends StatelessWidget {
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const LeafScreeningScreen(
+                      builder: (_) => LeafScreeningScreen(
                         sensorPrompt: true,
+                        initialCrop: crop,
                       ),
                     ),
                   ),
@@ -815,7 +860,12 @@ class _PhotoPrompt extends StatelessWidget {
       );
 }
 
-class _TomatoReferenceCard extends StatelessWidget {
+class _CropReferenceCard extends StatelessWidget {
+  final String crop;
+  final String growthStage;
+
+  const _CropReferenceCard({required this.crop, required this.growthStage});
+
   @override
   Widget build(BuildContext context) => Card(
         child: Padding(
@@ -838,17 +888,21 @@ class _TomatoReferenceCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      context.tr('tomato_demo_ready'),
+                      '$crop leaf-screening context',
                       style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                     const SizedBox(height: 5),
-                    Text(context.tr('tomato_demo_ready_body')),
+                    Text(
+                      'Camera screening will use the ESP32-confirmed $crop profile and $growthStage stage.',
+                    ),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       onPressed: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const LeafScreeningScreen(),
+                          builder: (_) => LeafScreeningScreen(
+                            initialCrop: crop,
+                          ),
                         ),
                       ),
                       icon: const Icon(Icons.document_scanner_outlined),
@@ -894,4 +948,22 @@ enum _Freshness {
     if (age <= const Duration(seconds: 20)) return _Freshness.delayed;
     return _Freshness.stale;
   }
+}
+
+String _sensorState(SensorReading reading, String key) {
+  final state = reading.sensorStates[key];
+  return state == null || state.isEmpty ? 'Unavailable' : _edgeText(state);
+}
+
+String _edgeText(String value) {
+  final text = value.trim().replaceAll('_', ' ');
+  if (text.isEmpty) return 'Awaiting ESP32 status';
+  if (text != text.toUpperCase()) return text;
+  return text
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.isEmpty
+          ? word
+          : '${word[0].toUpperCase()}${word.substring(1)}')
+      .join(' ');
 }

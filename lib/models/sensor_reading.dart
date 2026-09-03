@@ -25,6 +25,21 @@ class SensorReading {
   final double stressScore;
   final String healthStatus;
   final double analysisConfidence;
+  final bool edgeAnalysisAvailable;
+  final String crop;
+  final String growthStage;
+  final String reliabilityMode;
+  final String systemStatus;
+  final String recoveryStatus;
+  final String primaryRootCause;
+  final String farmerAction;
+  final double? rootCauseConfidence;
+  final List<String> rankedRootCauses;
+  final String bioticState;
+  final String bioState;
+  final bool cameraRecommended;
+  final String cameraReason;
+  final Map<String, String> sensorStates;
 
   /// Embedded firmware result retained for diagnostics/comparison.
   final double? esp32HealthScore;
@@ -77,6 +92,21 @@ class SensorReading {
     required this.stressScore,
     required this.healthStatus,
     this.analysisConfidence = 0,
+    this.edgeAnalysisAvailable = true,
+    this.crop = 'Universal',
+    this.growthStage = 'Vegetative',
+    this.reliabilityMode = 'FULL',
+    this.systemStatus = '',
+    this.recoveryStatus = '',
+    this.primaryRootCause = '',
+    this.farmerAction = '',
+    this.rootCauseConfidence,
+    this.rankedRootCauses = const <String>[],
+    this.bioticState = '',
+    this.bioState = '',
+    this.cameraRecommended = false,
+    this.cameraReason = '',
+    this.sensorStates = const <String, String>{},
     this.esp32HealthScore,
     this.esp32HealthConfidence,
     this.waterScore,
@@ -114,7 +144,23 @@ class SensorReading {
       humidityAvailable &&
       lightAvailable;
 
-  bool get bioIsDemo => bioSource.toLowerCase() == 'demo';
+  bool get bioIsRealtime => bioSource.toLowerCase() == 'realtime';
+
+  bool get bioIsLiveReading => bioSource.toLowerCase() == 'real';
+
+  String get bioSourceLabel => bioIsRealtime
+      ? 'Real Time Signal'
+      : bioIsLiveReading
+          ? 'Live Readings'
+          : bioSource;
+
+  bool get isReliabilityFull => reliabilityMode.toUpperCase() == 'FULL';
+
+  bool get isReliabilityDegraded =>
+      reliabilityMode.toUpperCase() == 'DEGRADED';
+
+  bool get isReliabilityRecovering =>
+      reliabilityMode.toUpperCase() == 'RECOVERING';
 
   int get availableChannelCount => <bool>[
         soilMoistureAvailable,
@@ -143,6 +189,21 @@ class SensorReading {
         'stressScore': stressScore,
         'healthStatus': healthStatus,
         'analysisConfidence': analysisConfidence,
+        'edgeAnalysisAvailable': edgeAnalysisAvailable,
+        'crop': crop,
+        'growthStage': growthStage,
+        'reliabilityMode': reliabilityMode,
+        'systemStatus': systemStatus,
+        'recoveryStatus': recoveryStatus,
+        'primaryRootCause': primaryRootCause,
+        'farmerAction': farmerAction,
+        'rootCauseConfidence': rootCauseConfidence,
+        'rankedRootCauses': rankedRootCauses,
+        'bioticState': bioticState,
+        'bioState': bioState,
+        'cameraRecommended': cameraRecommended,
+        'cameraReason': cameraReason,
+        'sensorStates': sensorStates,
         'esp32HealthScore': esp32HealthScore,
         'esp32HealthConfidence': esp32HealthConfidence,
         'waterScore': waterScore,
@@ -206,7 +267,7 @@ class SensorReading {
         : _bounded(_num(json['stressScore']));
 
     return SensorReading(
-      nodeId: '${json['nodeId'] ?? 'phytosense-live-01'}',
+      nodeId: '${json['nodeId'] ?? 'PHYTO-NODE-001'}',
       timestamp: DateTime.tryParse('${json['timestamp']}') ?? DateTime.now(),
       soilMoisture: soil,
       temperature: temperature,
@@ -223,6 +284,21 @@ class SensorReading {
       healthStatus: '${json['healthStatus'] ?? statusForHealth(health)}',
       analysisConfidence:
           _bounded(_nullableNum(json['analysisConfidence']) ?? 0),
+      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,
+      crop: '${json['crop'] ?? 'Universal'}',
+      growthStage: '${json['growthStage'] ?? 'Vegetative'}',
+      reliabilityMode: '${json['reliabilityMode'] ?? 'FULL'}'.toUpperCase(),
+      systemStatus: '${json['systemStatus'] ?? ''}',
+      recoveryStatus: '${json['recoveryStatus'] ?? ''}',
+      primaryRootCause: '${json['primaryRootCause'] ?? ''}',
+      farmerAction: '${json['farmerAction'] ?? ''}',
+      rootCauseConfidence: _nullableNum(json['rootCauseConfidence']),
+      rankedRootCauses: _stringList(json['rankedRootCauses']),
+      bioticState: '${json['bioticState'] ?? ''}',
+      bioState: '${json['bioState'] ?? ''}',
+      cameraRecommended: json['cameraRecommended'] == true,
+      cameraReason: '${json['cameraReason'] ?? ''}',
+      sensorStates: _stringMap(json['sensorStates']),
       esp32HealthScore: _nullableNum(json['esp32HealthScore']),
       esp32HealthConfidence: _nullableNum(json['esp32HealthConfidence']),
       waterScore: _nullableNum(json['waterScore']),
@@ -279,6 +355,15 @@ class SensorReading {
   static int? _nullableInt(dynamic value) {
     if (value == null) return null;
     return value is num ? value.toInt() : int.tryParse('$value');
+  }
+
+  static List<String> _stringList(dynamic value) => value is List
+      ? value.map((item) => '$item').where((item) => item.isNotEmpty).toList()
+      : const <String>[];
+
+  static Map<String, String> _stringMap(dynamic value) {
+    if (value is! Map) return const <String, String>{};
+    return value.map((key, item) => MapEntry('$key', '$item'));
   }
 
   static double _bounded(double value) => value.clamp(0.0, 100.0).toDouble();
@@ -354,6 +439,21 @@ class SensorReading {
     double? stressScore,
     String? healthStatus,
     double? analysisConfidence,
+    bool? edgeAnalysisAvailable,
+    String? crop,
+    String? growthStage,
+    String? reliabilityMode,
+    String? systemStatus,
+    String? recoveryStatus,
+    String? primaryRootCause,
+    String? farmerAction,
+    double? rootCauseConfidence,
+    List<String>? rankedRootCauses,
+    String? bioticState,
+    String? bioState,
+    bool? cameraRecommended,
+    String? cameraReason,
+    Map<String, String>? sensorStates,
     double? esp32HealthScore,
     double? esp32HealthConfidence,
     double? waterScore,
@@ -401,6 +501,22 @@ class SensorReading {
       stressScore: stressScore ?? this.stressScore,
       healthStatus: healthStatus ?? this.healthStatus,
       analysisConfidence: analysisConfidence ?? this.analysisConfidence,
+      edgeAnalysisAvailable:
+          edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,
+      crop: crop ?? this.crop,
+      growthStage: growthStage ?? this.growthStage,
+      reliabilityMode: reliabilityMode ?? this.reliabilityMode,
+      systemStatus: systemStatus ?? this.systemStatus,
+      recoveryStatus: recoveryStatus ?? this.recoveryStatus,
+      primaryRootCause: primaryRootCause ?? this.primaryRootCause,
+      farmerAction: farmerAction ?? this.farmerAction,
+      rootCauseConfidence: rootCauseConfidence ?? this.rootCauseConfidence,
+      rankedRootCauses: rankedRootCauses ?? this.rankedRootCauses,
+      bioticState: bioticState ?? this.bioticState,
+      bioState: bioState ?? this.bioState,
+      cameraRecommended: cameraRecommended ?? this.cameraRecommended,
+      cameraReason: cameraReason ?? this.cameraReason,
+      sensorStates: sensorStates ?? this.sensorStates,
       esp32HealthScore: esp32HealthScore ?? this.esp32HealthScore,
       esp32HealthConfidence:
           esp32HealthConfidence ?? this.esp32HealthConfidence,

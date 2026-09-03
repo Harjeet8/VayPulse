@@ -49,7 +49,7 @@ class _InsightsScreenState extends State<InsightsScreen> {
             .where((reading) => reading.timestamp.isAfter(cutoff))
             .toList();
         final history = _downsample(inRange, 300);
-        final values = history.map(_valueFor).toList();
+        final values = history.where(_metricAvailable).map(_valueFor).toList();
         final average = values.isEmpty
             ? 0.0
             : values.reduce((a, b) => a + b) / values.length;
@@ -58,15 +58,18 @@ class _InsightsScreenState extends State<InsightsScreen> {
         final maximum =
             values.isEmpty ? 0.0 : values.reduce((a, b) => a > b ? a : b);
         final current = scope.sensors.current;
-        final analysis = current == null
+        final hardwareMode = scope.sensors.source == SensorDataSource.esp32;
+        final analysis = current == null || hardwareMode
             ? null
             : AiAnalysisService.analyze(
                 current,
                 allHistory,
-                crop: scope.sensors.source == SensorDataSource.esp32
-                    ? 'Tomato'
-                    : scope.farms.selectedField.crop,
+                crop: scope.farms.selectedField.crop,
               );
+        final hardwareAttention = hardwareMode &&
+            current != null &&
+            const <String>{'WATCH', 'STRESS', 'CRITICAL'}
+                .contains(current.healthStatus.toUpperCase());
 
         return Scaffold(
           appBar: AppBar(title: Text(context.tr('insights_title'))),
@@ -263,8 +266,11 @@ class _InsightsScreenState extends State<InsightsScreen> {
                                   const TextStyle(fontWeight: FontWeight.w900),
                             ),
                             const SizedBox(height: 6),
-                            Text(context.tr(analysis == null ||
-                                    analysis.level == InsightLevel.healthy
+                            Text(context.tr((hardwareMode
+                                        ? !hardwareAttention
+                                        : analysis == null ||
+                                            analysis.level ==
+                                                InsightLevel.healthy)
                                 ? 'trend_healthy'
                                 : 'trend_attention')),
                           ],
@@ -287,6 +293,14 @@ class _InsightsScreenState extends State<InsightsScreen> {
         _Metric.temperature => reading.temperature,
         _Metric.humidity => reading.humidity,
         _Metric.plantSignal => reading.plantSignal,
+      };
+
+  bool _metricAvailable(SensorReading reading) => switch (metric) {
+        _Metric.health => reading.edgeAnalysisAvailable,
+        _Metric.soil => reading.soilMoistureAvailable,
+        _Metric.temperature => reading.temperatureAvailable,
+        _Metric.humidity => reading.humidityAvailable,
+        _Metric.plantSignal => reading.plantSignalAvailable,
       };
 
   List<SensorReading> _downsample(

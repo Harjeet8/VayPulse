@@ -6,9 +6,11 @@ import '../models/sensor_reading.dart';
 
 class Esp32Client {
   final String baseUrl;
+  final http.Client _httpClient;
 
-  Esp32Client(String baseUrl)
-      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), '');
+  Esp32Client(String baseUrl, {http.Client? httpClient})
+      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
+        _httpClient = httpClient ?? http.Client();
 
   static const _sensorPaths = <String>[
     '/api/sensors',
@@ -49,7 +51,7 @@ class Esp32Client {
 
   Future<http.Response?> _tryGet(String path) async {
     try {
-      final response = await http
+      final response = await _httpClient
           .get(
             Uri.parse('$baseUrl$path'),
             headers: const {'Accept': 'application/json'},
@@ -92,6 +94,35 @@ class Esp32Client {
       }
       return null;
     }
+
+    final analysis = _map(first([
+      data['analysis'],
+      data['edgeAnalysis'],
+      plantHealth['analysis'],
+    ]));
+    final reliability = _map(first([
+      data['reliability'],
+      analysis['reliability'],
+      data['systemReliability'],
+    ]));
+    final system = _map(data['system']);
+    final recovery = _map(first([
+      data['recovery'],
+      analysis['recovery'],
+    ]));
+    final biotic = _map(first([
+      data['biotic'],
+      analysis['biotic'],
+      plantHealth['biotic'],
+    ]));
+    final validity = _map(first([
+      data['sensorValidity'],
+      data['validity'],
+    ]));
+    final sensorStates = _map(first([
+      data['sensorStates'],
+      data['sensorStatus'],
+    ]));
 
     final temperature = first([
       data['airTemperatureC'],
@@ -156,15 +187,78 @@ class Esp32Client {
       'real',
     ])}'.toLowerCase();
 
-    final airValid = air['valid'] != false;
-    final soilValid = soil['moistureValid'] != false;
-    final rootValid = soil['temperatureValid'] != false;
-    final lightValid = light['valid'] != false;
-    final leafValid = leaf['valid'] != false;
-    final bioValid = bio['valid'] != false;
+    final temperatureValid = _channelValid(
+      air,
+      explicitValid: first([
+        air['temperatureValid'],
+        data['temperatureValid'],
+        validity['temperature'],
+        air['valid'],
+      ]),
+      externalState: sensorStates['temperature'],
+    );
+    final humidityValid = _channelValid(
+      air,
+      explicitValid: first([
+        air['humidityValid'],
+        data['humidityValid'],
+        validity['humidity'],
+        air['valid'],
+      ]),
+      externalState: sensorStates['humidity'],
+    );
+    final soilValid = _channelValid(
+      soil,
+      explicitValid: first([
+        soil['moistureValid'],
+        data['soilMoistureValid'],
+        validity['soilMoisture'],
+        soil['valid'],
+      ]),
+      externalState: sensorStates['soilMoisture'],
+    );
+    final rootValid = _channelValid(
+      soil,
+      explicitValid: first([
+        soil['temperatureValid'],
+        data['soilTemperatureValid'],
+        validity['soilTemperature'],
+        soil['valid'],
+      ]),
+      externalState: sensorStates['soilTemperature'],
+    );
+    final lightValid = _channelValid(
+      light,
+      explicitValid: first([
+        light['valid'],
+        data['lightValid'],
+        validity['light'],
+      ]),
+      externalState: sensorStates['light'],
+    );
+    final leafValid = _channelValid(
+      leaf,
+      explicitValid: first([
+        leaf['valid'],
+        data['leafWetnessValid'],
+        validity['leafWetness'],
+      ]),
+      externalState: sensorStates['leafWetness'],
+    );
+    final bioValid = _channelValid(
+      bio,
+      explicitValid: first([
+        bio['valid'],
+        data['bioValid'],
+        validity['plantSignal'],
+        validity['bioelectric'],
+      ]),
+      externalState:
+          sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
+    );
 
-    final tempValue = airValid ? _asDouble(temperature) : null;
-    final humidityValue = airValid ? _asDouble(humidity) : null;
+    final tempValue = temperatureValid ? _asDouble(temperature) : null;
+    final humidityValue = humidityValid ? _asDouble(humidity) : null;
     final soilValue = soilValid ? _asDouble(soilMoisture) : null;
     final rootValue = rootValid ? _asDouble(soilTemperature) : null;
     final luxValue = lightValid ? _asDouble(lux) : null;
@@ -198,10 +292,77 @@ class Esp32Client {
       data['analysisConfidence'],
       plantHealth['confidence'],
     ]));
+    final espStress = _asDouble(first([
+      data['stressScore'],
+      data['stress'],
+      plantHealth['stressScore'],
+      plantHealth['stress'],
+    ]));
+    final rawCause = first([
+      data['primaryRootCause'],
+      data['rootCause'],
+      data['primaryCause'],
+      analysis['primaryRootCause'],
+      analysis['rootCause'],
+      plantHealth['rootCause'],
+    ]);
+    final rawAction = first([
+      data['farmerAction'],
+      data['recommendedAction'],
+      data['recommendation'],
+      analysis['farmerAction'],
+      analysis['recommendedAction'],
+      plantHealth['farmerAction'],
+      plantHealth['recommendation'],
+    ]);
+    final rankedCauses = _causeList(first([
+      data['rankedRootCauses'],
+      data['rootCauses'],
+      data['causes'],
+      analysis['rankedRootCauses'],
+      analysis['causes'],
+    ]));
+    final primaryRootCause = _causeLabel(rawCause) ??
+        (rankedCauses.isEmpty ? '' : rankedCauses.first);
+    final farmerAction = _textValue(rawAction) ?? '';
+    final reliabilityMode = _normalizeReliability(first([
+      data['reliabilityMode'],
+      data['reliability'],
+      data['analysisMode'],
+      reliability['mode'],
+      reliability['status'],
+      analysis['mode'],
+      system['reliabilityMode'],
+    ]), degraded: <bool>[
+      temperatureValid,
+      humidityValid,
+      soilValid,
+      rootValid,
+      lightValid,
+      leafValid,
+      bioValid,
+    ].contains(false));
+    final bioticState = '${first([
+      data['bioticState'],
+      data['bioticStatus'],
+      biotic['state'],
+      biotic['status'],
+      analysis['bioticState'],
+      '',
+    ])}'.toUpperCase();
+    final cameraRecommended = _asBool(first([
+          data['cameraRecommended'],
+          data['cameraHandoff'],
+          biotic['cameraRecommended'],
+          analysis['cameraRecommended'],
+        ])) ??
+        bioticState == 'POSSIBLE_BIOTIC_STRESS';
 
     final normalized = <String, dynamic>{
       'nodeId': '${first([
+        data['nodeId'],
         data['deviceId'],
+        root['nodeId'],
         root['deviceId'],
         data['device'],
         'PHYTO-NODE-001',
@@ -218,13 +379,103 @@ class Esp32Client {
       'plantVoltageMv': voltageValue,
       'bioSource': bioSource,
       // Hardware mode uses the ESP32 edge-intelligence result directly.
-      'healthScore': espHealth,
+      'healthScore': espHealth ?? 0,
+      'stressScore': espStress ?? (espHealth == null ? 0 : 100 - espHealth),
       'healthStatus': '${first([
         data['healthStatus'],
         plantHealth['status'],
         'starting',
       ])}',
       'analysisConfidence': espConfidence ?? 0,
+      'edgeAnalysisAvailable': espHealth != null,
+      'crop': '${first([
+        data['crop'],
+        data['selectedCrop'],
+        plantHealth['crop'],
+        root['crop'],
+        'Universal',
+      ])}',
+      'growthStage': '${first([
+        data['growthStage'],
+        data['stage'],
+        plantHealth['growthStage'],
+        root['growthStage'],
+        'Vegetative',
+      ])}',
+      'reliabilityMode': reliabilityMode,
+      'systemStatus': '${first([
+        data['systemStatus'],
+        system['status'],
+        data['status'],
+        '',
+      ])}',
+      'recoveryStatus': '${first([
+        data['recoveryStatus'],
+        recovery['status'],
+        recovery['state'],
+        '',
+      ])}',
+      'primaryRootCause': primaryRootCause,
+      'farmerAction': farmerAction,
+      'rootCauseConfidence': _asDouble(first([
+        data['rootCauseConfidence'],
+        _map(rawCause)['confidence'],
+        analysis['rootCauseConfidence'],
+        espConfidence,
+      ])),
+      'rankedRootCauses': rankedCauses,
+      'bioticState': bioticState,
+      'bioState': '${first([
+        data['bioState'],
+        bio['state'],
+        bio['status'],
+        '',
+      ])}'.toUpperCase(),
+      'cameraRecommended': cameraRecommended,
+      'cameraReason': '${first([
+        data['cameraReason'],
+        biotic['cameraReason'],
+        analysis['cameraReason'],
+        primaryRootCause,
+      ])}',
+      'sensorStates': <String, String>{
+        'temperature': _channelState(
+          air,
+          temperatureValid,
+          externalState: sensorStates['temperature'],
+        ),
+        'humidity': _channelState(
+          air,
+          humidityValid,
+          externalState: sensorStates['humidity'],
+        ),
+        'soilMoisture': _channelState(
+          soil,
+          soilValid,
+          externalState: sensorStates['soilMoisture'],
+        ),
+        'soilTemperature': _channelState(
+          soil,
+          rootValid,
+          externalState: sensorStates['soilTemperature'],
+        ),
+        'light': _channelState(
+          light,
+          lightValid,
+          externalState: sensorStates['light'],
+        ),
+        'leafWetness': _channelState(
+          leaf,
+          leafValid,
+          externalState: sensorStates['leafWetness'],
+        ),
+        'plantSignal': _channelState(
+          bio,
+          bioValid,
+          externalState:
+              sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
+        ),
+      },
       'esp32HealthScore': espHealth,
       'esp32HealthConfidence': espConfidence,
       'waterScore': _asDouble(first([
@@ -334,6 +585,92 @@ class Esp32Client {
   static Map<String, dynamic> _map(dynamic value) => value is Map
       ? Map<String, dynamic>.from(value)
       : <String, dynamic>{};
+
+  static bool _channelValid(
+    Map<String, dynamic> channel, {
+    dynamic explicitValid,
+    dynamic externalState,
+  }) {
+    if (_asBool(explicitValid) == false) return false;
+    final state = '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
+        .trim()
+        .toUpperCase();
+    return !const <String>{
+      'UNAVAILABLE',
+      'NOT_AVAILABLE',
+      'INVALID',
+      'BAD_DATA',
+      'SIGNAL_NOISY',
+      'CHECK_CONTACT',
+      'SATURATED',
+      'AMP_HIGH_RAIL',
+      'AMP_LOW_RAIL',
+      'FAILED',
+      'ERROR',
+    }.contains(state);
+  }
+
+  static String _channelState(
+    Map<String, dynamic> channel,
+    bool valid, {
+    dynamic externalState,
+  }) {
+    final state = '${externalState ?? channel['state'] ?? channel['status'] ?? channel['quality'] ?? ''}'
+        .trim()
+        .toUpperCase();
+    if (state.isNotEmpty) return state;
+    return valid ? 'AVAILABLE' : 'UNAVAILABLE';
+  }
+
+  static String _normalizeReliability(dynamic value, {required bool degraded}) {
+    final raw = value is Map
+        ? '${value['mode'] ?? value['status'] ?? value['state'] ?? ''}'
+        : '$value';
+    final upper = raw.trim().toUpperCase();
+    if (upper.contains('RECOVER')) return 'RECOVERING';
+    if (upper.contains('DEGRADED')) return 'DEGRADED';
+    if (upper.contains('FULL')) return 'FULL';
+    return degraded ? 'DEGRADED' : 'FULL';
+  }
+
+  static List<String> _causeList(dynamic value) {
+    if (value is! List) return const <String>[];
+    return value
+        .map(_causeLabel)
+        .whereType<String>()
+        .where((cause) => cause.isNotEmpty)
+        .toList(growable: false);
+  }
+
+  static String? _causeLabel(dynamic value) {
+    if (value == null) return null;
+    if (value is Map) {
+      return _textValue(value['label'] ??
+          value['cause'] ??
+          value['name'] ??
+          value['title'] ??
+          value['id']);
+    }
+    return _textValue(value);
+  }
+
+  static String? _textValue(dynamic value) {
+    if (value == null) return null;
+    final text = '$value'.trim();
+    return text.isEmpty || text == '{}' ? null : text;
+  }
+
+  static bool? _asBool(dynamic value) {
+    if (value is bool) return value;
+    final normalized = '$value'.trim().toLowerCase();
+    if (normalized == 'true' || normalized == '1' || normalized == 'yes') {
+      return true;
+    }
+    if (normalized == 'false' || normalized == '0' || normalized == 'no') {
+      return false;
+    }
+    return null;
+  }
 
   static double? _asDouble(dynamic value) {
     if (value == null) return null;

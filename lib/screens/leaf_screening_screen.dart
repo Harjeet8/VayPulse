@@ -16,10 +16,12 @@ import '../widgets/page_frame.dart';
 
 class LeafScreeningScreen extends StatefulWidget {
   final bool sensorPrompt;
+  final String? initialCrop;
 
   const LeafScreeningScreen({
     super.key,
     this.sensorPrompt = false,
+    this.initialCrop,
   });
 
   @override
@@ -49,11 +51,14 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     if (cropInitialized) return;
     final scope = AppScope.of(context);
     final fieldCrop = scope.farms.selectedField.crop;
-    selectedCrop = scope.sensors.source == SensorDataSource.esp32
-        ? 'Tomato'
-        : CropCatalog.supports(fieldCrop)
-            ? CropCatalog.normalize(fieldCrop)
-            : CropCatalog.supported.first.name;
+    final hardwareCrop = scope.sensors.current?.crop;
+    final requestedCrop = widget.initialCrop ??
+        (scope.sensors.source == SensorDataSource.esp32
+            ? hardwareCrop
+            : fieldCrop);
+    selectedCrop = requestedCrop != null && CropCatalog.supports(requestedCrop)
+        ? CropCatalog.normalize(requestedCrop)
+        : 'Universal';
     cropInitialized = true;
   }
 
@@ -747,7 +752,7 @@ class _MultimodalContextCard extends StatelessWidget {
                 ),
                 Chip(
                   avatar: const Icon(Icons.sensors_outlined, size: 17),
-                  label: Text(reading == null
+                  label: Text(reading == null || !reading!.plantSignalAvailable
                       ? context.tr('disease_context_no_sensor')
                       : '${context.tr('plant_signal')}: '
                           '${reading!.plantSignal.toStringAsFixed(0)}%'),

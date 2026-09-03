@@ -253,13 +253,14 @@ class _PresentationSnapshot extends StatelessWidget {
             ),
           );
         }
-        final analysis = AiAnalysisService.analyze(
-          reading,
-          scope.sensors.historyFor(reading.nodeId),
-          crop: scope.sensors.source == SensorDataSource.esp32
-              ? 'Tomato'
-              : scope.farms.selectedField.crop,
-        );
+        final hardwareMode = scope.sensors.source == SensorDataSource.esp32;
+        final analysis = hardwareMode
+            ? null
+            : AiAnalysisService.analyze(
+                reading,
+                scope.sensors.historyFor(reading.nodeId),
+                crop: scope.farms.selectedField.crop,
+              );
         return Card(
           child: Padding(
             padding: const EdgeInsets.all(18),
@@ -295,19 +296,27 @@ class _PresentationSnapshot extends StatelessWidget {
                   children: [
                     _SnapshotMetric(
                       label: context.tr('health_score'),
-                      value: '${reading.healthScore.round()}%',
+                      value: reading.edgeAnalysisAvailable || !hardwareMode
+                          ? '${reading.healthScore.round()}%'
+                          : '—',
                     ),
                     _SnapshotMetric(
                       label: context.tr('soil_moisture'),
-                      value: '${reading.soilMoisture.round()}%',
+                      value: reading.soilMoistureAvailable
+                          ? '${reading.soilMoisture.round()}%'
+                          : '—',
                     ),
                     _SnapshotMetric(
                       label: context.tr('temperature'),
-                      value: '${reading.temperature.toStringAsFixed(1)}°C',
+                      value: reading.temperatureAvailable
+                          ? '${reading.temperature.toStringAsFixed(1)}°C'
+                          : '—',
                     ),
                     _SnapshotMetric(
                       label: context.tr('plant_signal'),
-                      value: '${reading.plantSignal.round()}%',
+                      value: reading.plantSignalAvailable
+                          ? '${reading.plantSignal.round()}%'
+                          : '—',
                     ),
                   ],
                 ),
@@ -323,11 +332,17 @@ class _PresentationSnapshot extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        context.tr(analysis.headlineKey),
+                        hardwareMode
+                            ? reading.healthStatus.replaceAll('_', ' ')
+                            : context.tr(analysis!.headlineKey),
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 4),
-                      Text(context.tr(analysis.evidenceKey)),
+                      Text(hardwareMode
+                          ? (reading.primaryRootCause.isEmpty
+                              ? 'ESP32 analysis unavailable'
+                              : reading.primaryRootCause.replaceAll('_', ' '))
+                          : context.tr(analysis!.evidenceKey)),
                     ],
                   ),
                 ),

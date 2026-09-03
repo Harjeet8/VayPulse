@@ -4,6 +4,7 @@ import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
 import '../services/irrigation_advisor.dart';
+import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
 
 class IrrigationAdvisorScreen extends StatelessWidget {
@@ -16,20 +17,44 @@ class IrrigationAdvisorScreen extends StatelessWidget {
       animation: Listenable.merge([scope.sensors, scope.weather]),
       builder: (context, _) {
         final reading = scope.sensors.current;
-        final weather = scope.weather.isFresh ? scope.weather.snapshot : null;
-        final cropStage = scope.farms.selectedZone.cropStage;
-        final advice = IrrigationAdvisor.advise(
-          reading,
-          weather,
-          cropStage: cropStage,
-          crop: scope.farms.selectedField.crop,
-        );
-        final color = switch (advice.priority) {
-          IrrigationPriority.none => phytoLeaf,
-          IrrigationPriority.watch => phytoAmber,
-          IrrigationPriority.irrigate => const Color(0xFF2775B6),
-          IrrigationPriority.urgent => phytoTerracotta,
-        };
+        final hardwareMode = scope.sensors.source == SensorDataSource.esp32;
+        final weather = !hardwareMode && scope.weather.isFresh
+            ? scope.weather.snapshot
+            : null;
+        final cropStage = hardwareMode
+            ? reading?.growthStage ?? 'Vegetative'
+            : scope.farms.selectedZone.cropStage;
+        final advice = hardwareMode
+            ? null
+            : IrrigationAdvisor.advise(
+                reading,
+                weather,
+                cropStage: cropStage,
+                crop: scope.farms.selectedField.crop,
+              );
+        final color = hardwareMode
+            ? (reading?.healthStatus.toUpperCase() == 'CRITICAL'
+                ? phytoTerracotta
+                : phytoLeaf)
+            : switch (advice!.priority) {
+                IrrigationPriority.none => phytoLeaf,
+                IrrigationPriority.watch => phytoAmber,
+                IrrigationPriority.irrigate => const Color(0xFF2775B6),
+                IrrigationPriority.urgent => phytoTerracotta,
+              };
+        final title = hardwareMode
+            ? 'ESP32 farmer guidance'
+            : context.tr(advice!.titleKey);
+        final body = hardwareMode
+            ? (reading?.primaryRootCause.isNotEmpty == true
+                ? reading!.primaryRootCause.replaceAll('_', ' ')
+                : 'The ESP32 has not reported a root cause.')
+            : context.tr(advice!.bodyKey);
+        final action = hardwareMode
+            ? (reading?.farmerAction.isNotEmpty == true
+                ? reading!.farmerAction
+                : 'Awaiting ESP32 guidance.')
+            : context.tr(advice!.actionKey);
         return Scaffold(
           appBar: AppBar(title: Text(context.tr('irrigation_advisor'))),
           body: PageFrame(
@@ -88,7 +113,7 @@ class IrrigationAdvisorScreen extends StatelessWidget {
                           const SizedBox(width: 10),
                           Expanded(
                             child: Text(
-                              context.tr(advice.titleKey),
+                              title,
                               style: const TextStyle(
                                 fontSize: 19,
                                 fontWeight: FontWeight.w900,
@@ -98,11 +123,11 @@ class IrrigationAdvisorScreen extends StatelessWidget {
                         ],
                       ),
                       const SizedBox(height: 10),
-                      Text(context.tr(advice.bodyKey)),
+                      Text(body),
                       const SizedBox(height: 14),
                       _EvidenceRow(
                         icon: Icons.sensors_outlined,
-                        text: reading == null
+                        text: reading == null || !reading.soilMoistureAvailable
                             ? context.tr('waiting')
                             : '${context.tr('soil_moisture')}: ${reading.soilMoisture.round()}%',
                       ),
@@ -119,16 +144,18 @@ class IrrigationAdvisorScreen extends StatelessWidget {
                       ),
                       _EvidenceRow(
                         icon: Icons.rule_rounded,
-                        text: context.tr(advice.evidenceKey),
+                        text: hardwareMode
+                            ? 'ESP32 reliability: ${reading?.reliabilityMode ?? 'unavailable'}'
+                            : context.tr(advice!.evidenceKey),
                       ),
                       const SizedBox(height: 12),
                       Text(
-                        '${context.tr('recommended_action')}: ${context.tr(advice.actionKey)}',
+                        '${context.tr('recommended_action')}: $action',
                         style: const TextStyle(fontWeight: FontWeight.w900),
                       ),
                       const SizedBox(height: 12),
                       OutlinedButton.icon(
-                        onPressed: () => _speak(context, advice),
+                        onPressed: () => _speak(context, title, body, action),
                         icon: const Icon(Icons.volume_up_outlined),
                         label: Text(context.tr('listen_guidance')),
                       ),
@@ -162,12 +189,13 @@ class IrrigationAdvisorScreen extends StatelessWidget {
 
   Future<void> _speak(
     BuildContext context,
-    IrrigationAdvice advice,
+    String title,
+    String body,
+    String action,
   ) async {
     final scope = AppScope.of(context);
     final spoken = await scope.voice.speak(
-      text:
-          '${context.tr(advice.titleKey)}. ${context.tr(advice.bodyKey)}. ${context.tr(advice.actionKey)}',
+      text: '$title. $body. $action',
       languageCode: scope.settings.value.languageCode,
     );
     if (!spoken && context.mounted) {
