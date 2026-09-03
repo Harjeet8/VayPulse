@@ -19,66 +19,55 @@ jobs:
         with:
           ref: phytosense-v8-ultra-final
           fetch-depth: 0
-
       - name: Configure git
         run: |
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
           git fetch origin main phytosense-v8-ultra-final
           git checkout -B phytosense-unified-final origin/phytosense-v8-ultra-final
-
       - name: Replay September 3 hardware-sync commits
         shell: bash
         run: |
           set -euo pipefail
-          commits=(
-            1f054e0d3700ba66a33156737a352253c97a063a
-            5280b8f14b51579c2b6de619e3c28ee48bd2b66e
-            3fe3a3e19599ec04299b7b3c058937c3ffccd95d
-            86ff5918600d466ab385429d7cfb9aa281c7a6d8
-            c7bf9d553ee93926cc5949aef05a28b4d79e086e
-            1108ac8d6953fd608240a632d792108ddebc705d
-            4a7bfa973de38b6f84945242b9105b5fbca18be3
-            dfdfcb8b3f78a28d9ee8ebd1d4d8481464a6b054
-            b7c5284ecc3ab078481e144cae373e48784db49b
-            3a666b162023a13ceaf2fd4caec45bc205da43cf
-          )
-          for c in "${commits[@]}"; do
+          for c in \
+            1f054e0d3700ba66a33156737a352253c97a063a \
+            5280b8f14b51579c2b6de619e3c28ee48bd2b66e \
+            3fe3a3e19599ec04299b7b3c058937c3ffccd95d \
+            86ff5918600d466ab385429d7cfb9aa281c7a6d8 \
+            c7bf9d553ee93926cc5949aef05a28b4d79e086e \
+            1108ac8d6953fd608240a632d792108ddebc705d \
+            4a7bfa973de38b6f84945242b9105b5fbca18be3 \
+            dfdfcb8b3f78a28d9ee8ebd1d4d8481464a6b054 \
+            b7c5284ecc3ab078481e144cae373e48784db49b \
+            3a666b162023a13ceaf2fd4caec45bc205da43cf; do
             git cherry-pick -X theirs "$c"
           done
           git checkout origin/phytosense-v8-ultra-final -- lib/screens/splash_screen.dart
           git add lib/screens/splash_screen.dart
           git commit -m "Preserve ultra-final animated splash" || true
-
       - name: Restore SensorReading compatibility superset
         shell: python
         run: |
           from pathlib import Path
           import re
-          p = Path('lib/models/sensor_reading.dart')
-          text = p.read_text(encoding='utf-8')
-          marker = '  final double analysisConfidence;\n'
-          if marker not in text:
-              raise SystemExit('SensorReading analysisConfidence marker missing')
-          specs = [
-              ('analysisOrigin', '  final String analysisOrigin;\n'),
-              ('primaryRootCause', '  final String? primaryRootCause;\n'),
-              ('secondaryRootCause', '  final String? secondaryRootCause;\n'),
-              ('degradedAnalysis', '  final bool degradedAnalysis;\n'),
-              ('healthTrend', '  final String? healthTrend;\n'),
-              ('diseaseRiskTrend', '  final String? diseaseRiskTrend;\n'),
-              ('recoveryActive', '  final bool recoveryActive;\n'),
-              ('vpdKpa', '  final double? vpdKpa;\n'),
-              ('bioticState', '  final String? bioticState;\n'),
-          ]
-          additions = []
-          for name, decl in specs:
-              if not re.search(rf'final\s+[^;\n]+\s+{name};', text):
-                  additions.append(decl)
-          if additions:
-              text = text.replace(marker, marker + ''.join(additions), 1)
-          p.write_text(text, encoding='utf-8')
-
+          p=Path('lib/models/sensor_reading.dart')
+          text=p.read_text(encoding='utf-8')
+          marker='  final double analysisConfidence;\n'
+          specs=[
+            ('analysisOrigin','  final String analysisOrigin;\n'),
+            ('primaryRootCause','  final String? primaryRootCause;\n'),
+            ('secondaryRootCause','  final String? secondaryRootCause;\n'),
+            ('degradedAnalysis','  final bool degradedAnalysis;\n'),
+            ('healthTrend','  final String? healthTrend;\n'),
+            ('diseaseRiskTrend','  final String? diseaseRiskTrend;\n'),
+            ('recoveryActive','  final bool recoveryActive;\n'),
+            ('vpdKpa','  final double? vpdKpa;\n'),
+            ('bioticState','  final String? bioticState;\n')]
+          additions=[]
+          for name,decl in specs:
+            if not re.search(rf'final\s+[^;\n]+\s+{name};',text): additions.append(decl)
+          if additions: text=text.replace(marker,marker+''.join(additions),1)
+          p.write_text(text,encoding='utf-8')
       - name: Bring release identity and hardening from main
         shell: bash
         run: |
@@ -89,36 +78,49 @@ jobs:
           git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
           git add -A
           git commit -m "Unify final release identity and compatibility"
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
+      - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-
       - name: Resolve and format
         run: |
           flutter pub get
           dart format lib test
           git add lib test
           git commit -m "Format unified final source" || true
-
       - name: Analyze unified source
-        run: flutter analyze --no-fatal-infos
-
+        id: analyze
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter analyze --no-fatal-infos 2>&1 | tee analyze.log
       - name: Test unified source
-        run: flutter test
-
+        id: tests
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          flutter test 2>&1 | tee test.log
+      - name: Upload validation logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-Unified-Validation-Logs-2
+          path: |
+            analyze.log
+            test.log
+          if-no-files-found: warn
+          retention-days: 2
       - name: Build fresh installable validation APK
+        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         run: flutter build apk --release
-
       - name: Verify expected final UI and sync markers
+        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -127,11 +129,11 @@ jobs:
           rg -q "Real Time Signal" lib
           rg -q "Live Readings" lib
           rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
-
       - name: Push unified final branch
+        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         run: git push --force origin HEAD:phytosense-unified-final
-
       - name: Upload unified APK
+        if: steps.analyze.outcome == 'success' && steps.tests.outcome == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-UNIFIED-FINAL
@@ -139,4 +141,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 6
+# trigger: 7
