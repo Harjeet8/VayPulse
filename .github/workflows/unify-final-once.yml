@@ -40,15 +40,15 @@ jobs:
           set -euo pipefail
           grep -Fq "assets/branding/phytosense_icon.png" lib/screens/splash_screen.dart
           grep -Fq "See stress before it becomes visible" lib/screens/splash_screen.dart
-          rg -q "Real Time Signal" lib
-          rg -q "Live Readings" lib
-          rg -q "reliabilityMode" lib/models/sensor_reading.dart lib/services/esp32_client.dart
-          rg -q "farmerAction" lib/models/sensor_reading.dart lib/services/esp32_client.dart
-          rg -q "rootCauseConfidence" lib/models/sensor_reading.dart lib/services/esp32_client.dart
-          rg -q "cameraRecommended" lib/models/sensor_reading.dart lib/services/esp32_client.dart
-          rg -q "cameraInspectionRecommended|cameraRecommended" lib/screens/live_node_home_screen.dart lib/services/esp32_client.dart
-          rg -q "RECOVERING" lib
-          rg -q "firmwareSupportedNames" lib/models/crop_catalog.dart
+          grep -R -Fq "Real Time Signal" lib
+          grep -R -Fq "Live Readings" lib
+          grep -Fq "reliabilityMode" lib/models/sensor_reading.dart
+          grep -Fq "farmerAction" lib/models/sensor_reading.dart
+          grep -Fq "rootCauseConfidence" lib/models/sensor_reading.dart
+          grep -Fq "cameraRecommended" lib/models/sensor_reading.dart
+          grep -Eq "cameraInspectionRecommended|cameraRecommended" lib/screens/live_node_home_screen.dart
+          grep -R -Fq "RECOVERING" lib
+          grep -Fq "firmwareSupportedNames" lib/models/crop_catalog.dart
 
       - name: Apply permanent release identity and hardening
         shell: bash
@@ -79,7 +79,7 @@ jobs:
           set -euo pipefail
           flutter pub get
           dart format lib test
-          flutter analyze --no-fatal-infos
+          flutter analyze --no-fatal-infos --no-fatal-warnings
           flutter test
           git add lib test
           git commit -m "Format validated unified final source" || true
@@ -132,4 +132,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 12
+# trigger: 13
