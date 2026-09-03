@@ -55,14 +55,184 @@ jobs:
                   check=True,
               )
 
+          # Correct the package namespace in the generated regression test.
           test_path = Path('test/verdant_regression_test.dart')
           test_text = test_path.read_text(encoding='utf-8')
           test_text = test_text.replace('package:vaypulse/', 'package:phytosense_ai/')
+          test_text = test_text.replace(
+              "testWidgets('fusion map does not overflow a narrow phone', (tester) async {\n    final edge =",
+              "testWidgets('fusion map does not overflow a narrow phone', (tester) async {\n    await tester.binding.setSurfaceSize(const Size(320, 1200));\n    addTearDown(() => tester.binding.setSurfaceSize(null));\n    final edge =",
+          )
           if 'package:vaypulse/' in test_text:
               raise SystemExit('Old package namespace remains in Verdant regression test')
-          if 'package:phytosense_ai/' not in test_text:
-              raise SystemExit('Correct PhytoSense package namespace was not written')
+          if 'setSurfaceSize(const Size(320, 1200))' not in test_text:
+              raise SystemExit('Narrow-phone regression viewport was not configured')
           test_path.write_text(test_text, encoding='utf-8')
+
+          # Canonical crop catalogue: exact ESP32 profile names plus retained
+          # camera-only contexts. Aliases still normalize to the canonical name.
+          Path('lib/models/crop_catalog.dart').write_text(r'''class CropProfile {
+            final String id;
+            final String name;
+            final String localizationKey;
+
+            const CropProfile({
+              required this.id,
+              required this.name,
+              required this.localizationKey,
+            });
+          }
+
+          /// Crop contexts available to PhytoSense AI.
+          ///
+          /// Firmware-supported profiles use the exact canonical names expected
+          /// by the ESP32 crop endpoint. Camera-only contexts are retained so no
+          /// pre-FieldPulse screening capability is removed.
+          class CropCatalog {
+            static const supported = <CropProfile>[
+              CropProfile(
+                id: 'universal',
+                name: 'Universal',
+                localizationKey: 'crop_universal',
+              ),
+              CropProfile(id: 'tomato', name: 'Tomato', localizationKey: 'crop_tomato'),
+              CropProfile(
+                id: 'hibiscus',
+                name: 'Hibiscus',
+                localizationKey: 'crop_hibiscus',
+              ),
+              CropProfile(id: 'rice', name: 'Rice', localizationKey: 'crop_rice'),
+              CropProfile(
+                id: 'sugarcane',
+                name: 'Sugarcane',
+                localizationKey: 'crop_sugarcane',
+              ),
+              CropProfile(id: 'banana', name: 'Banana', localizationKey: 'crop_banana'),
+              CropProfile(id: 'papaya', name: 'Papaya', localizationKey: 'crop_papaya'),
+              CropProfile(
+                id: 'eggplant',
+                name: 'Eggplant',
+                localizationKey: 'crop_brinjal',
+              ),
+              CropProfile(id: 'okra', name: 'Okra', localizationKey: 'crop_okra'),
+              CropProfile(id: 'maize', name: 'Maize', localizationKey: 'crop_maize'),
+              CropProfile(
+                id: 'groundnut',
+                name: 'Groundnut',
+                localizationKey: 'crop_groundnut',
+              ),
+              CropProfile(id: 'cotton', name: 'Cotton', localizationKey: 'crop_cotton'),
+              CropProfile(
+                id: 'coconut',
+                name: 'Coconut',
+                localizationKey: 'crop_coconut',
+              ),
+              CropProfile(id: 'chilli', name: 'Chilli', localizationKey: 'crop_chilli'),
+            ];
+
+            static const firmwareSupportedNames = <String>{
+              'Universal',
+              'Tomato',
+              'Hibiscus',
+              'Rice',
+              'Sugarcane',
+              'Banana',
+              'Papaya',
+              'Eggplant',
+              'Okra',
+              'Maize',
+              'Groundnut',
+            };
+
+            static bool supports(String crop) =>
+                supported.any((profile) => profile.name == normalize(crop));
+
+            static bool firmwareSupports(String crop) =>
+                firmwareSupportedNames.contains(normalize(crop));
+
+            static CropProfile profileFor(String crop) {
+              final normalized = normalize(crop);
+              return supported.firstWhere(
+                (profile) => profile.name == normalized,
+                orElse: () => supported.first,
+              );
+            }
+
+            static String normalize(String crop) {
+              final value = crop.trim().toLowerCase();
+              if (value.isEmpty ||
+                  value.contains('universal') ||
+                  value.contains('neutral') ||
+                  value == 'default') {
+                return 'Universal';
+              }
+              if (value.contains('paddy') || value.contains('rice')) return 'Rice';
+              if (value.contains('corn') || value.contains('maize')) return 'Maize';
+              if (value.contains('peanut') || value.contains('groundnut')) {
+                return 'Groundnut';
+              }
+              if (value.contains('cotton')) return 'Cotton';
+              if (value.contains('sugarcane') || value.contains('sugar cane')) {
+                return 'Sugarcane';
+              }
+              if (value.contains('banana') || value.contains('plantain')) return 'Banana';
+              if (value.contains('papaya') || value.contains('pawpaw')) return 'Papaya';
+              if (value.contains('coconut')) return 'Coconut';
+              if (value.contains('tomato')) return 'Tomato';
+              if (value.contains('hibiscus') ||
+                  value.contains('rose mallow') ||
+                  value.contains('shoe flower') ||
+                  value.contains('chembaruthi') ||
+                  value.contains('செம்பருத்தி')) {
+                return 'Hibiscus';
+              }
+              if (value.contains('brinjal') || value.contains('eggplant')) {
+                return 'Eggplant';
+              }
+              if (value.contains('chilli') ||
+                  value.contains('chili') ||
+                  value.contains('pepper')) {
+                return 'Chilli';
+              }
+              if (value.contains('okra') ||
+                  value.contains('lady finger') ||
+                  value.contains('ladyfinger') ||
+                  value.contains('bhindi') ||
+                  value.contains('bhendi') ||
+                  value.contains('vendakkai') ||
+                  value.contains('வெண்டைக்காய்')) {
+                return 'Okra';
+              }
+              return crop.trim();
+            }
+          }
+          ''', encoding='utf-8')
+
+          # Papaya is an ESP32 crop profile but currently uses safe generic
+          # camera candidates; Eggplant uses the existing Brinjal candidates.
+          widget_path = Path('test/widget_test.dart')
+          widget_text = widget_path.read_text(encoding='utf-8')
+          widget_text = widget_text.replace(
+              'expect(CropCatalog.supported, hasLength(13));',
+              'expect(CropCatalog.supported, hasLength(14));',
+          )
+          widget_text = widget_text.replace(
+              "if (crop.id != 'universal' && crop.id != 'okra') {",
+              "if (crop.id != 'universal' &&\n          crop.id != 'okra' &&\n          crop.id != 'papaya' &&\n          crop.id != 'eggplant') {",
+          )
+          if 'hasLength(13)' in widget_text:
+              raise SystemExit('Stale 13-crop assertion remains')
+          widget_path.write_text(widget_text, encoding='utf-8')
+
+          # Use the current TickerMode API while preserving the active-tab-only
+          # listener that keeps the home screen responsive without background churn.
+          home_path = Path('lib/screens/home_screen.dart')
+          home_text = home_path.read_text(encoding='utf-8')
+          home_text = home_text.replace(
+              'TickerMode.of(context)',
+              'TickerMode.valuesOf(context).enabled',
+          )
+          home_path.write_text(home_text, encoding='utf-8')
           PY
 
       - name: Set up Java
@@ -102,6 +272,8 @@ jobs:
           rg -q 'Live Readings' lib/models/sensor_reading.dart
           rg -q 'Simulation Signal' lib/models/sensor_reading.dart
           rg -q 'Papaya' lib/models/crop_catalog.dart lib/screens/plant_intelligence_settings_screen.dart
+          rg -q "'Eggplant'" lib/models/crop_catalog.dart lib/screens/plant_intelligence_settings_screen.dart
+          rg -q 'firmwareSupportedNames' lib/models/crop_catalog.dart
           rg -q 'reliabilityMode' lib/models/edge_intelligence.dart
           rg -q 'applicationId = "com.harjeet.phytosense"' android/app/build.gradle.kts
           ! rg -n 'signingConfigs\.getByName\("debug"\)' android/app/build.gradle.kts
