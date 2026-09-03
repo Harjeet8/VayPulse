@@ -17,30 +17,40 @@ class Esp32ControlClient {
 
   Future<Esp32Config?> setCrop(String cropId) async {
     final requested = _normalizeCrop(cropId);
-    final ok = await _postJson(
+    final response = await _postJson(
       '/api/config/crop',
       {'crop': _firmwareCropName(requested)},
     );
-    if (!ok) return null;
+    if (response == null || response['ok'] == false) return null;
+
+    final responseCrop = _normalizeCrop(
+      '${response['crop'] ?? response['cropName'] ?? ''}',
+    );
+    final baselineReset = response['baselineReset'] == true;
     final confirmed = await getConfig();
     if (confirmed == null) return null;
 
     final confirmedId = _normalizeCrop(confirmed.cropId);
     final confirmedName = _normalizeCrop(confirmed.cropName);
-    if (confirmedId != requested && confirmedName != requested) return null;
-    return confirmed;
+    final responseMatches = responseCrop.isEmpty || responseCrop == requested;
+    if (!responseMatches ||
+        (confirmedId != requested && confirmedName != requested)) {
+      return null;
+    }
+    return confirmed.copyWith(baselineReset: baselineReset);
   }
 
   Future<Esp32Config?> setStage(String stageId) async {
-    final ok = await _postJson('/api/config/stage', {'stage': stageId});
-    if (!ok) return null;
+    final response = await _postJson('/api/config/stage', {'stage': stageId});
+    if (response == null || response['ok'] == false) return null;
     return getConfig();
   }
 
   Future<Esp32Config?> resetBaseline() async {
-    final ok = await _postJson('/api/config/baseline/reset', const {});
-    if (!ok) return null;
-    return getConfig();
+    final response = await _postJson('/api/config/baseline/reset', const {});
+    if (response == null || response['ok'] == false) return null;
+    final confirmed = await getConfig();
+    return confirmed?.copyWith(baselineReset: true);
   }
 
   Future<Esp32Diagnostics?> getDiagnostics() async {
@@ -64,7 +74,10 @@ class Esp32ControlClient {
     }
   }
 
-  Future<bool> _postJson(String path, Map<String, dynamic> body) async {
+  Future<Map<String, dynamic>?> _postJson(
+    String path,
+    Map<String, dynamic> body,
+  ) async {
     try {
       final response = await http
           .post(
@@ -76,9 +89,14 @@ class Esp32ControlClient {
             body: jsonEncode(body),
           )
           .timeout(const Duration(seconds: 5));
-      return response.statusCode >= 200 && response.statusCode < 300;
+      if (response.statusCode < 200 || response.statusCode >= 300) return null;
+      if (response.body.trim().isEmpty) return <String, dynamic>{};
+      final decoded = jsonDecode(response.body);
+      return decoded is Map
+          ? Map<String, dynamic>.from(decoded)
+          : <String, dynamic>{};
     } catch (_) {
-      return false;
+      return null;
     }
   }
 
@@ -95,18 +113,7 @@ class Esp32ControlClient {
   }
 
   static String _firmwareCropName(String cropId) {
-    const names = <String, String>{
-      'universal': 'Universal',
-      'tomato': 'Tomato',
-      'hibiscus': 'Hibiscus',
-      'rice': 'Rice',
-      'sugarcane': 'Sugarcane',
-      'banana': 'Banana',
-      'eggplant': 'Eggplant',
-      'okra': 'Okra',
-      'maize': 'Maize',
-      'groundnut': 'Groundnut',
-    };
-    return names[cropId] ?? cropId;
+    if (cropId.isEmpty) return 'Universal';
+    return '${cropId[0].toUpperCase()}${cropId.substring(1)}';
   }
 }

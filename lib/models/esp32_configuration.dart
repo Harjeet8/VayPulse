@@ -5,6 +5,7 @@ class Esp32Config {
   final String baselineStatus;
   final List<String> supportedCrops;
   final List<String> supportedStages;
+  final bool baselineReset;
 
   const Esp32Config({
     required this.cropId,
@@ -13,7 +14,27 @@ class Esp32Config {
     required this.baselineStatus,
     this.supportedCrops = const [],
     this.supportedStages = const [],
+    this.baselineReset = false,
   });
+
+  Esp32Config copyWith({
+    String? cropId,
+    String? cropName,
+    String? growthStage,
+    String? baselineStatus,
+    List<String>? supportedCrops,
+    List<String>? supportedStages,
+    bool? baselineReset,
+  }) =>
+      Esp32Config(
+        cropId: cropId ?? this.cropId,
+        cropName: cropName ?? this.cropName,
+        growthStage: growthStage ?? this.growthStage,
+        baselineStatus: baselineStatus ?? this.baselineStatus,
+        supportedCrops: supportedCrops ?? this.supportedCrops,
+        supportedStages: supportedStages ?? this.supportedStages,
+        baselineReset: baselineReset ?? this.baselineReset,
+      );
 
   factory Esp32Config.fromJson(Map<String, dynamic> root) {
     final data = _map(root['data']).isNotEmpty ? _map(root['data']) : root;
@@ -58,8 +79,10 @@ class Esp32Config {
           ])) ??
           'UNKNOWN',
       supportedCrops: _strings(_first([
+        crop['availableCrops'],
         crop['supportedProfiles'],
         crop['supportedCrops'],
+        data['availableCrops'],
         data['supportedCropProfiles'],
         data['supportedCrops'],
       ])),
@@ -68,6 +91,11 @@ class Esp32Config {
         data['supportedGrowthStages'],
         data['supportedStages'],
       ])),
+      baselineReset: _bool(_first([
+            data['baselineReset'],
+            baseline['reset'],
+          ])) ==
+          true,
     );
   }
 }
@@ -266,16 +294,11 @@ String _normalId(String value) => value
     .replaceAll(RegExp(r'^_+|_+$'), '');
 
 String _displayCrop(String id) {
-  switch (_normalId(id)) {
-    case 'tomato': return 'Tomato';
-    case 'hibiscus': return 'Hibiscus';
-    case 'rice': return 'Rice';
-    case 'sugarcane': return 'Sugarcane';
-    case 'banana': return 'Banana';
-    case 'eggplant': return 'Eggplant';
-    case 'okra': return 'Okra';
-    case 'maize': return 'Maize';
-    case 'groundnut': return 'Groundnut';
-    default: return 'Universal';
-  }
+  final normalized = _normalId(id);
+  if (normalized.isEmpty) return 'Universal';
+  return normalized
+      .split('_')
+      .where((part) => part.isNotEmpty)
+      .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+      .join(' ');
 }

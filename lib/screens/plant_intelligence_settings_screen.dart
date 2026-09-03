@@ -4,6 +4,7 @@ import '../models/esp32_configuration.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
+import '../widgets/live_icon.dart';
 
 class PlantIntelligenceSettingsScreen extends StatefulWidget {
   const PlantIntelligenceSettingsScreen({super.key});
@@ -15,19 +16,6 @@ class PlantIntelligenceSettingsScreen extends StatefulWidget {
 
 class _PlantIntelligenceSettingsScreenState
     extends State<PlantIntelligenceSettingsScreen> {
-  static const _crops = <String, String>{
-    'universal': 'Universal',
-    'tomato': 'Tomato',
-    'hibiscus': 'Hibiscus',
-    'rice': 'Rice',
-    'sugarcane': 'Sugarcane',
-    'banana': 'Banana',
-    'eggplant': 'Eggplant',
-    'okra': 'Okra',
-    'maize': 'Maize',
-    'groundnut': 'Groundnut',
-  };
-
   static const _stages = <String, String>{
     'general': 'General',
     'young': 'Young',
@@ -80,11 +68,15 @@ class _PlantIntelligenceSettingsScreenState
       _saving = false;
       _message = confirmed == null
           ? (FarmerLanguage.isTamil(context)
-              ? 'CROP PROFILE ஒத்திசைக்கப்படவில்லை. PhytoSense node-ஐ மீண்டும் இணைத்து முயற்சிக்கவும்.'
-              : 'CROP PROFILE NOT SYNCED. Reconnect to the PhytoSense node and try again.')
-          : (FarmerLanguage.isTamil(context)
-              ? 'Active crop: ${confirmed.cropName}'
-              : 'Active Crop: ${confirmed.cropName}');
+              ? 'CROP PROFILE ஒத்திசைக்கப்படவில்லை. PhytoSense AI node-ஐ மீண்டும் இணைத்து முயற்சிக்கவும்.'
+              : 'CROP PROFILE NOT SYNCED. Reconnect to the PhytoSense AI node and try again.')
+          : confirmed.baselineReset
+              ? (FarmerLanguage.isTamil(context)
+                  ? '${confirmed.cropName} profile PhytoSense AI node உடன் ஒத்திசைக்கப்பட்டது. செடியின் இயல்பான மின்சார pattern மீண்டும் கற்றுக்கொள்ளப்படுகிறது.'
+                  : '${confirmed.cropName} profile synchronized with the PhytoSense AI node. Learning this plant’s normal electrical pattern.')
+              : (FarmerLanguage.isTamil(context)
+                  ? 'Active crop: ${confirmed.cropName}'
+                  : 'Active Crop: ${confirmed.cropName}');
     });
   }
 
@@ -169,6 +161,18 @@ class _PlantIntelligenceSettingsScreenState
     final baselineStatus = _config?.baselineStatus ??
         edge?.baseline.status ??
         (edge?.baseline.ready == true ? 'READY' : 'UNKNOWN');
+    final cropOptions = _availableCropOptions(
+      _config,
+      cropId,
+      edge?.cropProfile.profile,
+    );
+    final activeCropName = cropOptions[cropId] ??
+        _config?.cropName ??
+        _displayId(cropId);
+    final baselineSamples = edge?.bioelectric.baselineSamples;
+    final baselineTarget = edge?.bioelectric.baselineTarget;
+    final learningBaseline = _config?.baselineReset == true ||
+        edge?.bioelectric.learningBaseline == true;
 
     return Scaffold(
       appBar: AppBar(
@@ -220,12 +224,14 @@ class _PlantIntelligenceSettingsScreenState
                   else ...[
                     DropdownButtonFormField<String>(
                       key: ValueKey('crop-$cropId'),
-                      initialValue: _crops.containsKey(cropId) ? cropId : 'universal',
+                      initialValue: cropOptions.containsKey(cropId)
+                          ? cropId
+                          : cropOptions.keys.first,
                       decoration: InputDecoration(
                         labelText: tamil ? 'Crop Profile' : 'Crop Profile',
                         prefixIcon: const Icon(Icons.eco_outlined),
                       ),
-                      items: _crops.entries
+                      items: cropOptions.entries
                           .map(
                             (entry) => DropdownMenuItem(
                               value: entry.key,
@@ -265,7 +271,7 @@ class _PlantIntelligenceSettingsScreenState
                 ListTile(
                   leading: const Icon(Icons.check_circle_outline_rounded),
                   title: Text(tamil ? 'Active Crop' : 'Active Crop'),
-                  subtitle: Text(_crops[cropId] ?? _config?.cropName ?? 'Universal'),
+                  subtitle: Text(activeCropName),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -292,6 +298,60 @@ class _PlantIntelligenceSettingsScreenState
               ],
             ),
           ),
+          if (learningBaseline) ...[
+            const SizedBox(height: 12),
+            Card(
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    LiveIcon(
+                      icon: Icons.electric_bolt_rounded,
+                      color: Theme.of(context).colorScheme.primary,
+                      kind: LiveIconKind.bioelectric,
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            tamil
+                                ? 'Plant baseline learning'
+                                : 'Learning plant baseline',
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            tamil
+                                ? 'இந்த செடியின் இயல்பான மின்சார pattern கற்றுக்கொள்ளப்படுகிறது.'
+                                : 'Learning this plant’s normal electrical pattern.',
+                          ),
+                          if (baselineSamples != null) ...[
+                            const SizedBox(height: 9),
+                            Text(
+                              baselineTarget == null
+                                  ? '$baselineSamples samples'
+                                  : '$baselineSamples / $baselineTarget',
+                              style: const TextStyle(fontWeight: FontWeight.w900),
+                            ),
+                            if (baselineTarget != null && baselineTarget > 0) ...[
+                              const SizedBox(height: 6),
+                              LinearProgressIndicator(
+                                value: (baselineSamples / baselineTarget)
+                                    .clamp(0.0, 1.0),
+                              ),
+                            ],
+                          ],
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
           if (_saving) ...[
             const SizedBox(height: 12),
             const LinearProgressIndicator(),
@@ -318,4 +378,33 @@ String? _normalId(String? value) {
       .toLowerCase()
       .replaceAll(RegExp(r'[^a-z0-9]+'), '_')
       .replaceAll(RegExp(r'^_+|_+$'), '');
+}
+
+Map<String, String> _availableCropOptions(
+  Esp32Config? config,
+  String currentId,
+  String? edgeCrop,
+) {
+  final options = <String, String>{};
+  for (final crop in config?.supportedCrops ?? const <String>[]) {
+    final id = _normalId(crop);
+    if (id != null) options[id] = _displayId(id);
+  }
+  final normalizedCurrent = _normalId(currentId) ?? 'universal';
+  options.putIfAbsent(
+    normalizedCurrent,
+    () => config?.cropName.trim().isNotEmpty == true
+        ? config!.cropName
+        : _displayId(edgeCrop ?? normalizedCurrent),
+  );
+  return options;
+}
+
+String _displayId(String value) {
+  final id = _normalId(value) ?? 'universal';
+  return id
+      .split('_')
+      .where((part) => part.isNotEmpty)
+      .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+      .join(' ');
 }

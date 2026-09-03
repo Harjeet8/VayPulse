@@ -1,7 +1,5 @@
 name: PhytoSense AI Competition CI
-# Final lock validation gate for the calibre + modern simulation competition build.
-# Validates the polished UI, motion system and Simulation Lab release.
-# Revalidation after simulation counter-evidence model cleanup.
+# Final validation gate for the PhytoSense AI FieldPulse farm-scale build.
 
 on:
   push:
@@ -39,6 +37,8 @@ jobs:
           grep -q "ObservationTimelineScreen" lib/screens/shell_screen.dart
           grep -q "LeafScreeningScreen" lib/screens/shell_screen.dart
           grep -q "SettingsScreen" lib/screens/shell_screen.dart
+          test -f lib/screens/practice_farm_home_screen.dart
+          test -f lib/widgets/live_icon.dart
           ! grep -R "experienceMode\|setExperienceMode\|onboardingComplete" lib --include='*.dart'
 
       - name: Setup Flutter
@@ -65,22 +65,22 @@ jobs:
       - name: Android release APK
         run: flutter build apk --release
 
-      - name: Package final competition build
+      - name: Package PhytoSense FieldPulse build
         shell: bash
         run: |
           set -euo pipefail
-          zip -r "PhytoSense-AI-Competition-Source.zip" . \
+          zip -r "PhytoSense-FieldPulse-Source.zip" . \
             -x ".git/*" ".dart_tool/*" "build/*" "android/.gradle/*" \
                ".flutter-plugins" ".flutter-plugins-dependencies" "*.zip" \
                ".github/v8-validation-trigger.txt"
-          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-AI-Competition.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "PhytoSense-FieldPulse.apk"
 
-      - name: Upload final competition artifact
+      - name: Upload PhytoSense FieldPulse artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-Competition
+          name: PhytoSense-FieldPulse
           path: |
-            PhytoSense-AI-Competition-Source.zip
-            PhytoSense-AI-Competition.apk
+            PhytoSense-FieldPulse-Source.zip
+            PhytoSense-FieldPulse.apk
           if-no-files-found: error
           retention-days: 30

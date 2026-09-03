@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'live_icon.dart';
 import 'phyto_ui.dart';
 
 class SensorCard extends StatelessWidget {
@@ -52,9 +53,11 @@ class SensorCard extends StatelessWidget {
                         .withValues(alpha: 0.12),
                     borderRadius: BorderRadius.circular(14),
                   ),
-                  child: Icon(
-                    icon,
+                  child: LiveIcon(
+                    icon: icon,
                     color: accent ?? Theme.of(context).colorScheme.primary,
+                    kind: liveIconKindFor(icon),
+                    active: fresh,
                   ),
                 ),
                 const SizedBox(width: 8),

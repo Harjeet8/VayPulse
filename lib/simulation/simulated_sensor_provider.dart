@@ -10,7 +10,77 @@ import '../services/sensor_data_provider.dart';
 import 'demo_mode.dart';
 import 'simulation_intelligence_v2.dart';
 
+class _PracticeNodeProfile {
+  final String crop;
+  final String growthStage;
+  final double moistureOffset;
+  final double temperatureOffset;
+  final double humidityOffset;
+  final double lightOffset;
+
+  const _PracticeNodeProfile({
+    required this.crop,
+    required this.growthStage,
+    this.moistureOffset = 0,
+    this.temperatureOffset = 0,
+    this.humidityOffset = 0,
+    this.lightOffset = 0,
+  });
+}
+
 class SimulationSensorProvider extends SensorDataProvider {
+  static const _scenarioNodeId = 'node-sugarcane-east';
+  static const _profiles = <String, _PracticeNodeProfile>{
+    'node-sugarcane-east': _PracticeNodeProfile(
+      crop: 'Sugarcane',
+      growthStage: 'vegetative',
+      moistureOffset: -2,
+      temperatureOffset: 0.8,
+      humidityOffset: -2,
+      lightOffset: 4,
+    ),
+    'node-sugarcane-north': _PracticeNodeProfile(
+      crop: 'Sugarcane',
+      growthStage: 'vegetative',
+      moistureOffset: 4,
+      temperatureOffset: -0.3,
+      humidityOffset: 2,
+      lightOffset: -2,
+    ),
+    'node-rice-delta': _PracticeNodeProfile(
+      crop: 'Rice',
+      growthStage: 'tillering',
+      moistureOffset: 10,
+      temperatureOffset: 0.2,
+      humidityOffset: 7,
+      lightOffset: -5,
+    ),
+    'node-banana-south': _PracticeNodeProfile(
+      crop: 'Banana',
+      growthStage: 'vegetative',
+      moistureOffset: 5,
+      temperatureOffset: 1.2,
+      humidityOffset: 5,
+      lightOffset: -1,
+    ),
+    'node-groundnut-dryland': _PracticeNodeProfile(
+      crop: 'Groundnut',
+      growthStage: 'flowering',
+      moistureOffset: -6,
+      temperatureOffset: 1.5,
+      humidityOffset: -5,
+      lightOffset: 5,
+    ),
+    'node-maize-trial': _PracticeNodeProfile(
+      crop: 'Maize',
+      growthStage: 'vegetative',
+      moistureOffset: -3,
+      temperatureOffset: 0.7,
+      humidityOffset: -3,
+      lightOffset: 3,
+    ),
+  };
+
   final _controller = StreamController<SensorReading>.broadcast();
   final _random = Random(42);
   final Map<String, List<SensorReading>> _history = {};
@@ -18,7 +88,7 @@ class SimulationSensorProvider extends SensorDataProvider {
   late List<SensorNode> _nodes;
   Timer? _timer;
   DemoMode _mode = DemoMode.healthy;
-  String _selectedNodeId = 'node-tomato-a1';
+  String _selectedNodeId = _scenarioNodeId;
   SensorConnectionStatus _status = SensorConnectionStatus.loading;
   String? _errorMessage;
 
@@ -26,46 +96,68 @@ class SimulationSensorProvider extends SensorDataProvider {
     final now = DateTime.now();
     _nodes = [
       SensorNode(
-        id: 'node-tomato-a1',
-        name: 'Tomato East Zone',
-        farmId: 'green-valley',
-        fieldId: 'tomato-field',
-        zoneId: 'tomato-east',
+        id: 'node-sugarcane-east',
+        name: 'Trichy East Block · Sugarcane',
+        farmId: 'tn-practice-farm',
+        fieldId: 'trichy-east',
+        zoneId: 'east-a',
         batteryPercent: 94,
         signalPercent: 92,
         lastSeen: now,
         isOnline: true,
       ),
       SensorNode(
-        id: 'node-tomato-a2',
-        name: 'Tomato Centre Zone',
-        farmId: 'green-valley',
-        fieldId: 'tomato-field',
-        zoneId: 'tomato-east',
-        batteryPercent: 89,
-        signalPercent: 82,
-        lastSeen: now,
-        isOnline: true,
-      ),
-      SensorNode(
-        id: 'node-tomato-b1',
-        name: 'Tomato West Zone',
-        farmId: 'green-valley',
-        fieldId: 'tomato-field',
-        zoneId: 'tomato-west',
-        batteryPercent: 79,
-        signalPercent: 74,
-        lastSeen: now,
-        isOnline: true,
-      ),
-      SensorNode(
-        id: 'node-rice-a1',
-        name: 'Rice North Zone',
-        farmId: 'green-valley',
-        fieldId: 'rice-field',
-        zoneId: 'rice-north',
+        id: 'node-sugarcane-north',
+        name: 'Trichy North Block · Sugarcane',
+        farmId: 'tn-practice-farm',
+        fieldId: 'trichy-north',
+        zoneId: 'north-b',
         batteryPercent: 91,
         signalPercent: 88,
+        lastSeen: now,
+        isOnline: true,
+      ),
+      SensorNode(
+        id: 'node-rice-delta',
+        name: 'Thanjavur Delta A · Rice',
+        farmId: 'tn-practice-farm',
+        fieldId: 'thanjavur-delta',
+        zoneId: 'delta-a',
+        batteryPercent: 89,
+        signalPercent: 86,
+        lastSeen: now,
+        isOnline: true,
+      ),
+      SensorNode(
+        id: 'node-banana-south',
+        name: 'Trichy South Block · Banana',
+        farmId: 'tn-practice-farm',
+        fieldId: 'trichy-south',
+        zoneId: 'south-c',
+        batteryPercent: 87,
+        signalPercent: 83,
+        lastSeen: now,
+        isOnline: true,
+      ),
+      SensorNode(
+        id: 'node-groundnut-dryland',
+        name: 'Thanjavur Dryland B · Groundnut',
+        farmId: 'tn-practice-farm',
+        fieldId: 'thanjavur-dryland',
+        zoneId: 'dryland-b',
+        batteryPercent: 84,
+        signalPercent: 79,
+        lastSeen: now,
+        isOnline: true,
+      ),
+      SensorNode(
+        id: 'node-maize-trial',
+        name: 'Trichy Trial Plot · Maize',
+        farmId: 'tn-practice-farm',
+        fieldId: 'trichy-trial',
+        zoneId: 'trial-f',
+        batteryPercent: 82,
+        signalPercent: 76,
         lastSeen: now,
         isOnline: true,
       ),
@@ -122,14 +214,13 @@ class SimulationSensorProvider extends SensorDataProvider {
     final reading = current;
     if (reading == null) return null;
     final history = _history[_selectedNodeId] ?? const <SensorReading>[];
-    final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
-    final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
+    final profile = _profileFor(_selectedNodeId);
     return SimulationIntelligenceV2.build(
       reading: reading,
       history: history,
-      mode: _mode,
-      crop: crop,
-      growthStage: stage,
+      mode: _effectiveMode(_selectedNodeId),
+      crop: profile.crop,
+      growthStage: profile.growthStage,
     );
   }
 
@@ -138,14 +229,13 @@ class SimulationSensorProvider extends SensorDataProvider {
     final reading = current;
     if (reading == null) return null;
     final history = _history[_selectedNodeId] ?? const <SensorReading>[];
-    final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
-    final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
+    final profile = _profileFor(_selectedNodeId);
     return SimulationIntelligenceV2.buildTelemetry(
       reading: reading,
       history: history,
-      mode: _mode,
-      crop: crop,
-      growthStage: stage,
+      mode: _effectiveMode(_selectedNodeId),
+      crop: profile.crop,
+      growthStage: profile.growthStage,
     );
   }
 
@@ -154,6 +244,7 @@ class SimulationSensorProvider extends SensorDataProvider {
     if (_timer != null) return;
     _seedHistory();
     _applyConnectionState();
+    if (_status == SensorConnectionStatus.ready) _tick();
     _timer = Timer.periodic(const Duration(seconds: 3), (_) => _tick());
   }
 
@@ -201,28 +292,42 @@ class SimulationSensorProvider extends SensorDataProvider {
     DateTime timestamp, {
     double historicalWave = 0,
   }) {
-    final target = DemoModeTargets.values[_mode]!;
-    final zoneOffset = (_nodes.indexOf(node) - 1.5) * 0.8;
+    final mode = _effectiveMode(node.id);
+    final target = DemoModeTargets.values[mode]!;
+    final profile = _profileFor(node.id);
+    final zoneOffset = (_nodes.indexOf(node) - 2.5) * 0.45;
     double noise(double amount) => (_random.nextDouble() - 0.5) * amount;
 
-    final soil = (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
+    final soil = (target.soilMoisture +
+            profile.moistureOffset +
+            zoneOffset +
+            historicalWave +
+            noise(3.2))
         .clamp(0, 100)
         .toDouble();
-    final temperature = (target.temperature + zoneOffset * 0.10 + noise(0.7))
+    final temperature = (target.temperature +
+            profile.temperatureOffset +
+            zoneOffset * 0.08 +
+            noise(0.7))
         .clamp(-10, 60)
         .toDouble();
-    final humidity = (target.humidity - zoneOffset * 0.2 + noise(3))
+    final humidity = (target.humidity +
+            profile.humidityOffset -
+            zoneOffset * 0.2 +
+            noise(3))
         .clamp(0, 100)
         .toDouble();
     final daytime = timestamp.hour >= 6 && timestamp.hour < 19;
     final lightPercent = daytime
-        ? (target.light + zoneOffset + noise(4)).clamp(0, 100).toDouble()
+        ? (target.light + profile.lightOffset + zoneOffset + noise(4))
+            .clamp(0, 100)
+            .toDouble()
         : 0.0;
     final lightLux = daytime ? lightPercent * 700 : 0.0;
     final rootTemperature =
         (temperature - 1.5 + noise(0.5)).clamp(-10, 60).toDouble();
 
-    final leafWetness = switch (_mode) {
+    final leafWetness = switch (mode) {
       DemoMode.overwatered => (82 + noise(5)).clamp(0, 100).toDouble(),
       DemoMode.bioticRisk => (90 + noise(4)).clamp(0, 100).toDouble(),
       DemoMode.recovery => (30 + noise(5)).clamp(0, 100).toDouble(),
@@ -235,7 +340,7 @@ class SimulationSensorProvider extends SensorDataProvider {
           .toDouble(),
     };
     final wetSeconds = leafWetness >= 60
-        ? switch (_mode) {
+        ? switch (mode) {
             DemoMode.overwatered => 5.5 * 3600,
             DemoMode.bioticRisk => 9.0 * 3600,
             DemoMode.critical => 8.0 * 3600,
@@ -244,7 +349,7 @@ class SimulationSensorProvider extends SensorDataProvider {
           }
         : 0.0;
 
-    final bioStability = switch (_mode) {
+    final bioStability = switch (mode) {
       DemoMode.baselineLearning => (96 + noise(2)).clamp(0, 100).toDouble(),
       DemoMode.atmosphericDrying => (63 + noise(5)).clamp(0, 100).toDouble(),
       DemoMode.heatStress => (57 + noise(6)).clamp(0, 100).toDouble(),
@@ -256,9 +361,10 @@ class SimulationSensorProvider extends SensorDataProvider {
       _ => (90 + noise(5)).clamp(0, 100).toDouble(),
     };
     const baselineMv = 1500.0;
-    final plantVoltageMv = baselineMv + (100 - bioStability) * 0.7 + noise(4);
+    final plantVoltageMv =
+        baselineMv + (100 - bioStability) * 0.7 + noise(4);
 
-    final sensorFault = _mode == DemoMode.sensorFault;
+    final sensorFault = mode == DemoMode.sensorFault;
     final raw = SensorReading(
       nodeId: node.id,
       timestamp: timestamp,
@@ -275,28 +381,26 @@ class SimulationSensorProvider extends SensorDataProvider {
       stressScore: 25,
       healthStatus: 'starting',
       analysisOrigin: 'simulation',
-      recoveryActive: _mode == DemoMode.recovery,
+      recoveryActive: mode == DemoMode.recovery,
       vpdKpa: _calculateVpd(temperature, humidity),
-      bioticState: _mode == DemoMode.bioticRisk
-          ? 'POSSIBLE_BIOTIC_STRESS'
-          : 'NONE',
+      bioticState:
+          mode == DemoMode.bioticRisk ? 'POSSIBLE_BIOTIC_STRESS' : 'NONE',
       soilRaw: (3200 - soil * 18.5).round().clamp(0, 4095).toInt(),
-      leafRaw: (3900 - leafWetness * 27).round().clamp(0, 4095).toInt(),
+      leafRaw:
+          (3900 - leafWetness * 27).round().clamp(0, 4095).toInt(),
       soilCalibrated: true,
       leafCalibrated: true,
       daytime: daytime,
       leafWetDurationSeconds: wetSeconds,
       recentWetExposureSeconds: wetSeconds,
-      bioBaselineReady:
-          !sensorFault && _mode != DemoMode.baselineLearning,
-      bioBaselineSamples:
-          _mode == DemoMode.baselineLearning ? 28 : 60,
+      bioBaselineReady: !sensorFault && mode != DemoMode.baselineLearning,
+      bioBaselineSamples: mode == DemoMode.baselineLearning ? 28 : 60,
       bioBaselineMv: baselineMv,
       bioDeviationMv: plantVoltageMv - baselineMv,
       bioNoiseMv: 2.2,
       bioSignalQuality: sensorFault
           ? 20
-          : _mode == DemoMode.baselineLearning
+          : mode == DemoMode.baselineLearning
               ? 88
               : 93,
       bioelectricStability: bioStability,
@@ -312,9 +416,21 @@ class SimulationSensorProvider extends SensorDataProvider {
     return HealthAnalysisEngine.apply(
       raw,
       _history[node.id] ?? const <SensorReading>[],
-      crop: node.id.startsWith('node-rice') ? 'Rice' : 'Tomato',
-      growthStage: node.id.startsWith('node-rice') ? 'tillering' : 'vegetative',
+      crop: profile.crop,
+      growthStage: profile.growthStage,
     );
+  }
+
+  _PracticeNodeProfile _profileFor(String nodeId) =>
+      _profiles[nodeId] ??
+      const _PracticeNodeProfile(
+        crop: 'Universal',
+        growthStage: 'general',
+      );
+
+  DemoMode _effectiveMode(String nodeId) {
+    if (_mode == DemoMode.offline) return DemoMode.offline;
+    return nodeId == _scenarioNodeId ? _mode : DemoMode.healthy;
   }
 
   double _max(double a, double b) => a > b ? a : b;
@@ -362,8 +478,7 @@ class SimulationSensorProvider extends SensorDataProvider {
 
   @override
   void retry() {
-    // Refresh the selected practice condition. A pull-to-refresh must never
-    // silently replace a critical or recovery demonstration with "healthy".
+    // Refresh the selected Practice Farm condition without resetting it.
     _applyConnectionState();
     if (_status == SensorConnectionStatus.ready) {
       _tick();

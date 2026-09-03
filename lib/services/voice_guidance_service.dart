@@ -121,8 +121,9 @@ class VoiceGuidanceService {
 
   String _speechFriendly(String value) {
     var text = value.trim();
+    text = text.replaceAll('VayPulse', 'Phyto Sense A I');
+    text = text.replaceAll('Vay Pulse', 'Phyto Sense A I');
     text = text.replaceAll('PhytoSense AI', 'Phyto Sense A I');
-    text = text.replaceAll('VayPulse', 'Vay Pulse');
     text = text.replaceAll('ESP32', 'E S P thirty two');
     text = text.replaceAll('•', ', ');
     text = text.replaceAll('°C', ' degrees Celsius');
