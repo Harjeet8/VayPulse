@@ -1,33 +1,25 @@
 import 'dart:async';
 
-import '../models/edge_intelligence.dart';
-import '../models/esp32_configuration.dart';
-import '../models/hardware_telemetry.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import 'esp32_client.dart';
-import 'esp32_control_client.dart';
 import 'hardware_sensor_provider.dart';
-import 'health_analysis_engine.dart';
 import 'sensor_data_provider.dart';
 
 class Esp32SensorProvider extends HardwareSensorProvider {
-  static const _nodeId = 'phytosense-live-01';
+  static const _fallbackNodeId = 'PHYTO-NODE-001';
 
   final Duration pollInterval;
-  late final Esp32ControlClient _controlClient;
   final _controller = StreamController<SensorReading>.broadcast();
   final List<SensorReading> _history = [];
   SensorReading? _current;
-  EdgeIntelligence? _edgeIntelligence;
-  HardwareTelemetry? _hardwareTelemetry;
   Timer? _timer;
   bool _polling = false;
   SensorConnectionStatus _status = SensorConnectionStatus.offline;
   String? _errorMessage;
   int _consecutiveFailures = 0;
   SensorNode _node = SensorNode(
-    id: _nodeId,
+    id: _fallbackNodeId,
     name: 'PhytoSense Node 01',
     farmId: '',
     fieldId: '',
@@ -40,10 +32,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
   Esp32SensorProvider({
     required Esp32Client client,
-    this.pollInterval = const Duration(seconds: 2),
-  }) : super(client) {
-    _controlClient = Esp32ControlClient(client.baseUrl);
-  }
+    this.pollInterval = const Duration(seconds: 3),
+  }) : super(client);
 
   String get endpoint => client.baseUrl;
 
@@ -51,25 +41,19 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   SensorReading? get current => _current;
 
   @override
-  EdgeIntelligence? get edgeIntelligence => _edgeIntelligence;
-
-  @override
-  HardwareTelemetry? get hardwareTelemetry => _hardwareTelemetry;
-
-  @override
   Map<String, SensorReading> get latestReadings => _current == null
       ? const <String, SensorReading>{}
-      : <String, SensorReading>{_nodeId: _current!};
+      : <String, SensorReading>{_current!.nodeId: _current!};
 
   @override
   List<SensorNode> get nodes => <SensorNode>[_node];
 
   @override
-  String get selectedNodeId => _nodeId;
+  String get selectedNodeId => _current?.nodeId ?? _node.id;
 
   @override
   List<SensorReading> historyFor(String nodeId) =>
-      nodeId == _nodeId ? List.unmodifiable(_history) : const [];
+      nodeId == selectedNodeId ? List.unmodifiable(_history) : const [];
 
   @override
   bool get connected => _status == SensorConnectionStatus.ready;
@@ -82,34 +66,6 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
   @override
   Stream<SensorReading> get stream => _controller.stream;
-
-  @override
-  Future<Esp32Config?> fetchHardwareConfig() => _controlClient.getConfig();
-
-  @override
-  Future<Esp32Config?> setCropProfile(String cropId) async {
-    final confirmed = await _controlClient.setCrop(cropId);
-    if (confirmed != null) await _poll();
-    return confirmed;
-  }
-
-  @override
-  Future<Esp32Config?> setGrowthStage(String stageId) async {
-    final confirmed = await _controlClient.setStage(stageId);
-    if (confirmed != null) await _poll();
-    return confirmed;
-  }
-
-  @override
-  Future<Esp32Config?> resetAdaptiveBaseline() async {
-    final confirmed = await _controlClient.resetBaseline();
-    if (confirmed != null) await _poll();
-    return confirmed;
-  }
-
-  @override
-  Future<Esp32Diagnostics?> fetchHardwareDiagnostics() =>
-      _controlClient.getDiagnostics();
 
   @override
   void start() {
@@ -128,80 +84,22 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _polling = true;
     try {
       final snapshot = await client.getSnapshot();
-      final edge = snapshot.edgeIntelligence;
-      if (!edge.firmwareCompatible) {
-        _edgeIntelligence = edge;
-        _hardwareTelemetry = snapshot.telemetry;
-        _status = SensorConnectionStatus.error;
-        _errorMessage = 'firmware_compatibility';
-        _node = _node.copyWith(isOnline: false);
-        return;
-      }
-      final raw = snapshot.reading.copyWith(
-        nodeId: _nodeId,
-        timestamp: DateTime.now(),
-      );
-      _validate(raw);
+      final reading = snapshot.reading;
+      _validate(reading);
 
-      final SensorReading reading;
-      if (edge.hasAuthoritativeAnalysis) {
-        final firmwareHealth = edge.healthScore ?? raw.esp32HealthScore;
-        final health = firmwareHealth ?? 50.0;
-        final confidence = edge.overallConfidence ??
-            raw.esp32HealthConfidence ??
-            0.0;
-        final stress = edge.bioelectric.excludedByFirmware
-            ? (firmwareHealth == null
-                ? 50.0
-                : (100.0 - health).clamp(0.0, 100.0).toDouble())
-            : edge.bioelectric.stressScore ??
-                (firmwareHealth == null
-                    ? 50.0
-                    : (100.0 - health).clamp(0.0, 100.0).toDouble());
-
-        // ESP32 WINS in hardware mode. Flutter only normalizes explicit
-        // firmware intelligence into the existing SensorReading contract.
-        // When firmware omits health, a neutral internal placeholder keeps the
-        // legacy non-null model valid; hardware UI never presents it as a
-        // measured or inferred score.
-        reading = raw.copyWith(
-          healthScore: health,
-          stressScore: stress,
-          healthStatus: edge.plantState ?? raw.healthStatus,
-          analysisConfidence: confidence,
-          analysisOrigin: 'esp32',
-          primaryRootCause: edge.rootCause.primary,
-          secondaryRootCause: edge.rootCause.secondary,
-          degradedAnalysis: edge.degradedAnalysis,
-          healthTrend: _trendFor(edge, const ['health', 'healthScore', 'plantHealth']),
-          diseaseRiskTrend: _trendFor(
-            edge,
-            const ['diseaseRisk', 'environmentalDiseaseRisk'],
-          ),
-          recoveryActive: edge.recovery.active,
-          vpdKpa: edge.derivedEnvironment.vpdKpa,
-          bioticState: edge.bioticStress.state,
-          esp32HealthScore: firmwareHealth,
-          esp32HealthConfidence: edge.overallConfidence ?? raw.esp32HealthConfidence,
-          diseaseRisk: edge.diseaseRiskScore ?? raw.diseaseRisk,
-        );
-      } else {
-        // Compatibility fallback for older firmware that only provides raw
-        // sensor channels and no authoritative edge decision.
-        reading = HealthAnalysisEngine.apply(
-          raw,
-          _history,
-          crop: edge.cropProfile.profile ?? 'Universal',
-          growthStage: edge.cropProfile.growthStage ?? 'vegetative',
-        ).copyWith(analysisOrigin: 'flutterFallback');
-      }
-
-      _edgeIntelligence = edge;
-      _hardwareTelemetry = snapshot.telemetry;
+      // Hardware mode uses the ESP32 edge-intelligence result as the source of
+      // truth. Flutter must not run a second crop/health engine over the same
+      // packet, because that can contradict the node and previously hard-coded
+      // Tomato even when another crop profile was active on the ESP32.
       _current = reading;
       _history.add(reading);
       if (_history.length > 600) _history.removeAt(0);
-      _node = _node.copyWith(
+      _node = SensorNode(
+        id: reading.nodeId,
+        name: reading.nodeId,
+        farmId: _node.farmId,
+        fieldId: _node.fieldId,
+        zoneId: _node.zoneId,
         batteryPercent: snapshot.batteryPercent,
         signalPercent: snapshot.signalPercent,
         lastSeen: reading.timestamp,
@@ -257,19 +155,6 @@ class Esp32SensorProvider extends HardwareSensorProvider {
                 between(reading.plantVoltageMv!, 0, 5000))) &&
         between(reading.bioSignalQuality, 0, 100);
     if (!valid) throw const FormatException('Out-of-range sensor data');
-  }
-
-  String? _trendFor(EdgeIntelligence edge, List<String> aliases) {
-    final normalized = aliases
-        .map((value) => value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ''))
-        .toSet();
-    for (final trend in edge.trends) {
-      final channel = trend.channel
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9]'), '');
-      if (normalized.contains(channel)) return trend.state;
-    }
-    return null;
   }
 
   @override

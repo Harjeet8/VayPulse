@@ -17,27 +17,31 @@ class SensorReading {
   /// bioelectric stability, not raw electrode voltage.
   final double plantSignal;
   final double? plantVoltageMv;
+  final String bioSource;
 
-  /// Main app-side decision-support index.
+  /// Main decision-support index. In ESP32 hardware mode this comes from the
+  /// edge firmware; simulation can continue using its own provider engine.
   final double healthScore;
   final double stressScore;
   final String healthStatus;
   final double analysisConfidence;
+  final bool edgeAnalysisAvailable;
+  final String crop;
+  final String growthStage;
+  final String reliabilityMode;
+  final String systemStatus;
+  final String recoveryStatus;
+  final String primaryRootCause;
+  final String farmerAction;
+  final double? rootCauseConfidence;
+  final List<String> rankedRootCauses;
+  final String bioticState;
+  final String bioState;
+  final bool cameraRecommended;
+  final String cameraReason;
+  final Map<String, String> sensorStates;
 
-  /// Internal provenance marker: esp32, flutterFallback, simulation, or
-  /// persisted. It prevents legacy fallback analysis being mistaken for an
-  /// authoritative firmware decision.
-  final String analysisOrigin;
-  final String? primaryRootCause;
-  final String? secondaryRootCause;
-  final bool degradedAnalysis;
-  final String? healthTrend;
-  final String? diseaseRiskTrend;
-  final bool recoveryActive;
-  final double? vpdKpa;
-  final String? bioticState;
-
-  /// Embedded firmware result retained only for diagnostics/comparison.
+  /// Embedded firmware result retained for diagnostics/comparison.
   final double? esp32HealthScore;
   final double? esp32HealthConfidence;
 
@@ -83,19 +87,26 @@ class SensorReading {
     this.leafWetness,
     this.plantSignal = 50,
     this.plantVoltageMv,
+    this.bioSource = 'real',
     required this.healthScore,
     required this.stressScore,
     required this.healthStatus,
     this.analysisConfidence = 0,
-    this.analysisOrigin = 'persisted',
-    this.primaryRootCause,
-    this.secondaryRootCause,
-    this.degradedAnalysis = false,
-    this.healthTrend,
-    this.diseaseRiskTrend,
-    this.recoveryActive = false,
-    this.vpdKpa,
-    this.bioticState,
+    this.edgeAnalysisAvailable = true,
+    this.crop = 'Universal',
+    this.growthStage = 'Vegetative',
+    this.reliabilityMode = 'FULL',
+    this.systemStatus = '',
+    this.recoveryStatus = '',
+    this.primaryRootCause = '',
+    this.farmerAction = '',
+    this.rootCauseConfidence,
+    this.rankedRootCauses = const <String>[],
+    this.bioticState = '',
+    this.bioState = '',
+    this.cameraRecommended = false,
+    this.cameraReason = '',
+    this.sensorStates = const <String, String>{},
     this.esp32HealthScore,
     this.esp32HealthConfidence,
     this.waterScore,
@@ -133,6 +144,23 @@ class SensorReading {
       humidityAvailable &&
       lightAvailable;
 
+  bool get bioIsRealtime => bioSource.toLowerCase() == 'realtime';
+
+  bool get bioIsLiveReading => bioSource.toLowerCase() == 'real';
+
+  String get bioSourceLabel => bioIsRealtime
+      ? 'Real Time Signal'
+      : bioIsLiveReading
+          ? 'Live Readings'
+          : bioSource;
+
+  bool get isReliabilityFull => reliabilityMode.toUpperCase() == 'FULL';
+
+  bool get isReliabilityDegraded => reliabilityMode.toUpperCase() == 'DEGRADED';
+
+  bool get isReliabilityRecovering =>
+      reliabilityMode.toUpperCase() == 'RECOVERING';
+
   int get availableChannelCount => <bool>[
         soilMoistureAvailable,
         temperatureAvailable,
@@ -155,19 +183,26 @@ class SensorReading {
         'leafWetness': leafWetnessAvailable ? leafWetness : null,
         'plantSignal': plantSignalAvailable ? plantSignal : null,
         'plantVoltageMv': plantSignalAvailable ? plantVoltageMv : null,
+        'bioSource': bioSource,
         'healthScore': healthScore,
         'stressScore': stressScore,
         'healthStatus': healthStatus,
         'analysisConfidence': analysisConfidence,
-        'analysisOrigin': analysisOrigin,
+        'edgeAnalysisAvailable': edgeAnalysisAvailable,
+        'crop': crop,
+        'growthStage': growthStage,
+        'reliabilityMode': reliabilityMode,
+        'systemStatus': systemStatus,
+        'recoveryStatus': recoveryStatus,
         'primaryRootCause': primaryRootCause,
-        'secondaryRootCause': secondaryRootCause,
-        'degradedAnalysis': degradedAnalysis,
-        'healthTrend': healthTrend,
-        'diseaseRiskTrend': diseaseRiskTrend,
-        'recoveryActive': recoveryActive,
-        'vpdKpa': vpdKpa,
+        'farmerAction': farmerAction,
+        'rootCauseConfidence': rootCauseConfidence,
+        'rankedRootCauses': rankedRootCauses,
         'bioticState': bioticState,
+        'bioState': bioState,
+        'cameraRecommended': cameraRecommended,
+        'cameraReason': cameraReason,
+        'sensorStates': sensorStates,
         'esp32HealthScore': esp32HealthScore,
         'esp32HealthConfidence': esp32HealthConfidence,
         'waterScore': waterScore,
@@ -203,8 +238,7 @@ class SensorReading {
         _available(json, 'plantSignal') || _available(json, 'plantVoltageMv');
 
     final soil = soilAvailable ? _num(json['soilMoisture']) : 62.0;
-    final temperature =
-        temperatureAvailable ? _num(json['temperature']) : 25.0;
+    final temperature = temperatureAvailable ? _num(json['temperature']) : 25.0;
     final humidity = humidityAvailable ? _num(json['humidity']) : 58.0;
     final light = lightAvailable ? _num(json['light']) : 68.0;
     final plantSignal = _available(json, 'plantSignal')
@@ -231,7 +265,7 @@ class SensorReading {
         : _bounded(_num(json['stressScore']));
 
     return SensorReading(
-      nodeId: '${json['nodeId'] ?? 'phytosense-live-01'}',
+      nodeId: '${json['nodeId'] ?? 'PHYTO-NODE-001'}',
       timestamp: DateTime.tryParse('${json['timestamp']}') ?? DateTime.now(),
       soilMoisture: soil,
       temperature: temperature,
@@ -242,20 +276,28 @@ class SensorReading {
       leafWetness: _nullableNum(json['leafWetness']),
       plantSignal: _bounded(plantSignal),
       plantVoltageMv: _nullableNum(json['plantVoltageMv']),
+      bioSource: '${json['bioSource'] ?? 'real'}',
       healthScore: health,
       stressScore: stress,
       healthStatus: '${json['healthStatus'] ?? statusForHealth(health)}',
-      analysisConfidence:
-          _bounded(_nullableNum(json['analysisConfidence']) ?? 0),
-      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',
-      primaryRootCause: json['primaryRootCause']?.toString(),
-      secondaryRootCause: json['secondaryRootCause']?.toString(),
-      degradedAnalysis: json['degradedAnalysis'] == true,
-      healthTrend: json['healthTrend']?.toString(),
-      diseaseRiskTrend: json['diseaseRiskTrend']?.toString(),
-      recoveryActive: json['recoveryActive'] == true,
-      vpdKpa: _nullableNum(json['vpdKpa']),
-      bioticState: json['bioticState']?.toString(),
+      analysisConfidence: _bounded(
+        _nullableNum(json['analysisConfidence']) ?? 0,
+      ),
+      edgeAnalysisAvailable: json['edgeAnalysisAvailable'] != false,
+      crop: '${json['crop'] ?? 'Universal'}',
+      growthStage: '${json['growthStage'] ?? 'Vegetative'}',
+      reliabilityMode: '${json['reliabilityMode'] ?? 'FULL'}'.toUpperCase(),
+      systemStatus: '${json['systemStatus'] ?? ''}',
+      recoveryStatus: '${json['recoveryStatus'] ?? ''}',
+      primaryRootCause: '${json['primaryRootCause'] ?? ''}',
+      farmerAction: '${json['farmerAction'] ?? ''}',
+      rootCauseConfidence: _nullableNum(json['rootCauseConfidence']),
+      rankedRootCauses: _stringList(json['rankedRootCauses']),
+      bioticState: '${json['bioticState'] ?? ''}',
+      bioState: '${json['bioState'] ?? ''}',
+      cameraRecommended: json['cameraRecommended'] == true,
+      cameraReason: '${json['cameraReason'] ?? ''}',
+      sensorStates: _stringMap(json['sensorStates']),
       esp32HealthScore: _nullableNum(json['esp32HealthScore']),
       esp32HealthConfidence: _nullableNum(json['esp32HealthConfidence']),
       waterScore: _nullableNum(json['waterScore']),
@@ -270,8 +312,7 @@ class SensorReading {
       soilCalibrated: json['soilCalibrated'] == true,
       leafCalibrated: json['leafCalibrated'] == true,
       daytime: json['daytime'] != false,
-      leafWetDurationSeconds:
-          _nullableNum(json['leafWetDurationSeconds']) ?? 0,
+      leafWetDurationSeconds: _nullableNum(json['leafWetDurationSeconds']) ?? 0,
       recentWetExposureSeconds:
           _nullableNum(json['recentWetExposureSeconds']) ?? 0,
       bioBaselineReady: json['bioBaselineReady'] == true,
@@ -279,8 +320,7 @@ class SensorReading {
       bioBaselineMv: _nullableNum(json['bioBaselineMv']),
       bioDeviationMv: _nullableNum(json['bioDeviationMv']),
       bioNoiseMv: _nullableNum(json['bioNoiseMv']),
-      bioSignalQuality:
-          _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
+      bioSignalQuality: _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
       soilMoistureAvailable: soilAvailable,
       temperatureAvailable: temperatureAvailable,
       humidityAvailable: humidityAvailable,
@@ -304,8 +344,7 @@ class SensorReading {
 
   static double? _nullableNum(dynamic value) {
     if (value == null) return null;
-    final parsed =
-        value is num ? value.toDouble() : double.tryParse('$value');
+    final parsed = value is num ? value.toDouble() : double.tryParse('$value');
     return parsed?.isFinite == true ? parsed : null;
   }
 
@@ -314,10 +353,19 @@ class SensorReading {
     return value is num ? value.toInt() : int.tryParse('$value');
   }
 
+  static List<String> _stringList(dynamic value) => value is List
+      ? value.map((item) => '$item').where((item) => item.isNotEmpty).toList()
+      : const <String>[];
+
+  static Map<String, String> _stringMap(dynamic value) {
+    if (value is! Map) return const <String, String>{};
+    return value.map((key, item) => MapEntry('$key', '$item'));
+  }
+
   static double _bounded(double value) => value.clamp(0.0, 100.0).toDouble();
 
-  /// Compatibility fallback for old persisted data. New live and simulation
-  /// values are re-analysed by HealthAnalysisEngine.
+  /// Compatibility fallback for old persisted data. Current ESP32 hardware
+  /// values already include the edge-computed health score.
   static double calculateHealth({
     required double soilMoisture,
     required double temperature,
@@ -337,10 +385,8 @@ class SensorReading {
       usedWeight += weight;
     }
 
-    add(100 - (soilMoisture - 62).abs() * 1.2, 0.4,
-        soilMoistureAvailable);
-    add(100 - (temperature - 25).abs() * 4.0, 0.3,
-        temperatureAvailable);
+    add(100 - (soilMoisture - 62).abs() * 1.2, 0.4, soilMoistureAvailable);
+    add(100 - (temperature - 25).abs() * 4.0, 0.3, temperatureAvailable);
     add(100 - (humidity - 60).abs() * 1.1, 0.2, humidityAvailable);
     add(100 - (light - 65).abs() * 0.8, 0.1, lightAvailable);
     return usedWeight == 0
@@ -368,19 +414,26 @@ class SensorReading {
     double? leafWetness,
     double? plantSignal,
     double? plantVoltageMv,
+    String? bioSource,
     double? healthScore,
     double? stressScore,
     String? healthStatus,
     double? analysisConfidence,
-    String? analysisOrigin,
+    bool? edgeAnalysisAvailable,
+    String? crop,
+    String? growthStage,
+    String? reliabilityMode,
+    String? systemStatus,
+    String? recoveryStatus,
     String? primaryRootCause,
-    String? secondaryRootCause,
-    bool? degradedAnalysis,
-    String? healthTrend,
-    String? diseaseRiskTrend,
-    bool? recoveryActive,
-    double? vpdKpa,
+    String? farmerAction,
+    double? rootCauseConfidence,
+    List<String>? rankedRootCauses,
     String? bioticState,
+    String? bioState,
+    bool? cameraRecommended,
+    String? cameraReason,
+    Map<String, String>? sensorStates,
     double? esp32HealthScore,
     double? esp32HealthConfidence,
     double? waterScore,
@@ -423,19 +476,27 @@ class SensorReading {
       leafWetness: leafWetness ?? this.leafWetness,
       plantSignal: plantSignal ?? this.plantSignal,
       plantVoltageMv: plantVoltageMv ?? this.plantVoltageMv,
+      bioSource: bioSource ?? this.bioSource,
       healthScore: healthScore ?? this.healthScore,
       stressScore: stressScore ?? this.stressScore,
       healthStatus: healthStatus ?? this.healthStatus,
       analysisConfidence: analysisConfidence ?? this.analysisConfidence,
-      analysisOrigin: analysisOrigin ?? this.analysisOrigin,
+      edgeAnalysisAvailable:
+          edgeAnalysisAvailable ?? this.edgeAnalysisAvailable,
+      crop: crop ?? this.crop,
+      growthStage: growthStage ?? this.growthStage,
+      reliabilityMode: reliabilityMode ?? this.reliabilityMode,
+      systemStatus: systemStatus ?? this.systemStatus,
+      recoveryStatus: recoveryStatus ?? this.recoveryStatus,
       primaryRootCause: primaryRootCause ?? this.primaryRootCause,
-      secondaryRootCause: secondaryRootCause ?? this.secondaryRootCause,
-      degradedAnalysis: degradedAnalysis ?? this.degradedAnalysis,
-      healthTrend: healthTrend ?? this.healthTrend,
-      diseaseRiskTrend: diseaseRiskTrend ?? this.diseaseRiskTrend,
-      recoveryActive: recoveryActive ?? this.recoveryActive,
-      vpdKpa: vpdKpa ?? this.vpdKpa,
+      farmerAction: farmerAction ?? this.farmerAction,
+      rootCauseConfidence: rootCauseConfidence ?? this.rootCauseConfidence,
+      rankedRootCauses: rankedRootCauses ?? this.rankedRootCauses,
       bioticState: bioticState ?? this.bioticState,
+      bioState: bioState ?? this.bioState,
+      cameraRecommended: cameraRecommended ?? this.cameraRecommended,
+      cameraReason: cameraReason ?? this.cameraReason,
+      sensorStates: sensorStates ?? this.sensorStates,
       esp32HealthScore: esp32HealthScore ?? this.esp32HealthScore,
       esp32HealthConfidence:
           esp32HealthConfidence ?? this.esp32HealthConfidence,
@@ -445,8 +506,7 @@ class SensorReading {
       atmosphericScore: atmosphericScore ?? this.atmosphericScore,
       lightScore: lightScore ?? this.lightScore,
       diseaseRisk: diseaseRisk ?? this.diseaseRisk,
-      bioelectricStability:
-          bioelectricStability ?? this.bioelectricStability,
+      bioelectricStability: bioelectricStability ?? this.bioelectricStability,
       soilRaw: soilRaw ?? this.soilRaw,
       leafRaw: leafRaw ?? this.leafRaw,
       soilCalibrated: soilCalibrated ?? this.soilCalibrated,
@@ -464,16 +524,13 @@ class SensorReading {
       bioSignalQuality: bioSignalQuality ?? this.bioSignalQuality,
       soilMoistureAvailable:
           soilMoistureAvailable ?? this.soilMoistureAvailable,
-      temperatureAvailable:
-          temperatureAvailable ?? this.temperatureAvailable,
+      temperatureAvailable: temperatureAvailable ?? this.temperatureAvailable,
       humidityAvailable: humidityAvailable ?? this.humidityAvailable,
       lightAvailable: lightAvailable ?? this.lightAvailable,
       soilTemperatureAvailable:
           soilTemperatureAvailable ?? this.soilTemperatureAvailable,
-      leafWetnessAvailable:
-          leafWetnessAvailable ?? this.leafWetnessAvailable,
-      plantSignalAvailable:
-          plantSignalAvailable ?? this.plantSignalAvailable,
+      leafWetnessAvailable: leafWetnessAvailable ?? this.leafWetnessAvailable,
+      plantSignalAvailable: plantSignalAvailable ?? this.plantSignalAvailable,
     );
   }
 

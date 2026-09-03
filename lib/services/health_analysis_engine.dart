@@ -13,16 +13,12 @@ class HealthAnalysisEngine {
   static PhytoSenseHealthResult analyze(
     SensorReading reading,
     List<SensorReading> history, {
-    String crop = 'Tomato',
+    String crop = 'Universal',
     String growthStage = 'vegetative',
   }) {
-    final profile = CropHealthProfile.forCrop(
-      crop,
-      growthStage: growthStage,
-    );
-    final recent = history.length <= 12
-        ? history
-        : history.sublist(history.length - 12);
+    final profile = CropHealthProfile.forCrop(crop, growthStage: growthStage);
+    final recent =
+        history.length <= 12 ? history : history.sublist(history.length - 12);
 
     final water = reading.soilMoistureAvailable
         ? _persistentRangeScore(
@@ -47,10 +43,10 @@ class HealthAnalysisEngine {
           )
         : null;
 
-    final rootZone = reading.soilTemperatureAvailable &&
-            reading.soilTemperature != null
-        ? _rangeScore(reading.soilTemperature!, profile.rootZoneTemperature)
-        : null;
+    final rootZone =
+        reading.soilTemperatureAvailable && reading.soilTemperature != null
+            ? _rangeScore(reading.soilTemperature!, profile.rootZoneTemperature)
+            : null;
 
     final atmospheric = reading.humidityAvailable
         ? _rangeScore(reading.humidity, profile.humidity)
@@ -106,7 +102,7 @@ class HealthAnalysisEngine {
           'Soil moisture has remained below the preferred calibrated range.',
         );
         recommendations.add(
-          'Check the tomato root zone and consider irrigation only after confirming the pot is actually dry.',
+          'Check the crop root zone and consider irrigation only after confirming the soil is actually dry.',
         );
       } else if (water < 60 &&
           reading.soilMoisture > profile.calibratedSoilMoisture.idealHigh) {
@@ -203,7 +199,7 @@ class HealthAnalysisEngine {
   static SensorReading apply(
     SensorReading reading,
     List<SensorReading> history, {
-    String crop = 'Tomato',
+    String crop = 'Universal',
     String growthStage = 'vegetative',
   }) {
     final result = analyze(
@@ -240,11 +236,7 @@ class HealthAnalysisEngine {
           _fraction(value, range.criticalLow, range.warningLow),
         );
       }
-      return _lerp(
-        65,
-        100,
-        _fraction(value, range.warningLow, range.idealLow),
-      );
+      return _lerp(65, 100, _fraction(value, range.warningLow, range.idealLow));
     }
     if (value >= range.warningHigh) {
       return _lerp(
@@ -253,11 +245,7 @@ class HealthAnalysisEngine {
         _fraction(value, range.warningHigh, range.criticalHigh),
       );
     }
-    return _lerp(
-      100,
-      65,
-      _fraction(value, range.idealHigh, range.warningHigh),
-    );
+    return _lerp(100, 65, _fraction(value, range.idealHigh, range.warningHigh));
   }
 
   static double _persistentRangeScore(
@@ -311,19 +299,15 @@ class HealthAnalysisEngine {
         reading.plantVoltageMv == null) {
       return null;
     }
-    final deviation =
-        (reading.plantVoltageMv! - reading.bioBaselineMv!).abs();
+    final deviation = (reading.plantVoltageMv! - reading.bioBaselineMv!).abs();
     final noise = math.max(1.0, reading.bioNoiseMv ?? 2.0).toDouble();
     final normalized = deviation / (noise * 4.0);
-    var score = (100.0 - normalized * 35.0)
-        .clamp(0.0, 100.0)
-        .toDouble();
+    var score = (100.0 - normalized * 35.0).clamp(0.0, 100.0).toDouble();
     final recentBio =
         history.where((r) => r.bioDeviationMv != null).toList(growable: false);
     if (recentBio.length >= 3) {
-      final repeated = recentBio
-          .where((r) => r.bioDeviationMv!.abs() > noise * 4.0)
-          .length;
+      final repeated =
+          recentBio.where((r) => r.bioDeviationMv!.abs() > noise * 4.0).length;
       if (repeated < 2) score = math.max(score, 70.0).toDouble();
     }
     return score;
@@ -346,7 +330,9 @@ class HealthAnalysisEngine {
     if (reading.soilMoistureAvailable) available += weights['soil']!;
     if (reading.temperatureAvailable) available += weights['airTemp']!;
     if (reading.humidityAvailable) available += weights['humidity']!;
-    if (!reading.daytime || reading.lightAvailable) available += weights['light']!;
+    if (!reading.daytime || reading.lightAvailable) {
+      available += weights['light']!;
+    }
     if (reading.soilTemperatureAvailable) available += weights['root']!;
     if (reading.leafWetnessAvailable) available += weights['leaf']!;
     if (reading.plantSignalAvailable && reading.bioBaselineReady) {

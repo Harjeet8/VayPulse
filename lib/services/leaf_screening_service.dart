@@ -48,10 +48,16 @@ class LeafScreeningService {
         if (brightness > 235) brightPixels++;
         if (brightness < 22 || brightness > 245) continue;
         usefulPixels++;
-        final maximum =
-            [red, greenChannel, blue].reduce((a, b) => a > b ? a : b);
-        final minimum =
-            [red, greenChannel, blue].reduce((a, b) => a < b ? a : b);
+        final maximum = [
+          red,
+          greenChannel,
+          blue,
+        ].reduce((a, b) => a > b ? a : b);
+        final minimum = [
+          red,
+          greenChannel,
+          blue,
+        ].reduce((a, b) => a < b ? a : b);
         final saturated = maximum - minimum > 24;
         var plantLike = false;
         if (saturated &&
