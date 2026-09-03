@@ -1,4 +1,4 @@
-name: Unify PhytoSense Final Once
+name: Build Repaired PhytoSense Unified Final
 
 on:
   push:
@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  unify:
+  build:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -19,115 +19,22 @@ jobs:
       ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
       ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
     steps:
-      - name: Checkout ultra-final base
+      - name: Checkout repaired polished app
         uses: actions/checkout@v4
         with:
           ref: phytosense-v8-ultra-final
           fetch-depth: 0
-      - name: Configure git
+
+      - name: Create frozen unified branch
+        shell: bash
         run: |
+          set -euo pipefail
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
           git fetch origin main phytosense-v8-ultra-final
           git checkout -B phytosense-unified-final origin/phytosense-v8-ultra-final
-      - name: Replay September 3 hardware-sync commits
-        shell: bash
-        run: |
-          set -euo pipefail
-          for c in \
-            1f054e0d3700ba66a33156737a352253c97a063a \
-            5280b8f14b51579c2b6de619e3c28ee48bd2b66e \
-            3fe3a3e19599ec04299b7b3c058937c3ffccd95d \
-            86ff5918600d466ab385429d7cfb9aa281c7a6d8 \
-            c7bf9d553ee93926cc5949aef05a28b4d79e086e \
-            1108ac8d6953fd608240a632d792108ddebc705d \
-            4a7bfa973de38b6f84945242b9105b5fbca18be3 \
-            dfdfcb8b3f78a28d9ee8ebd1d4d8481464a6b054 \
-            b7c5284ecc3ab078481e144cae373e48784db49b \
-            3a666b162023a13ceaf2fd4caec45bc205da43cf; do
-            git cherry-pick -X theirs "$c"
-          done
-      - name: Apply final edge-sync commit while keeping CI helpers
-        shell: bash
-        run: |
-          set -euo pipefail
-          if ! git cherry-pick -X theirs 7c4571b29d913795a3a1ffc3e23f8157b775057e; then
-            while IFS= read -r f; do
-              [ -n "$f" ] || continue
-              case "$f" in
-                .github/*)
-                  if git cat-file -e ":2:$f" 2>/dev/null; then
-                    git checkout --ours -- "$f"
-                    git add -- "$f"
-                  else
-                    git rm -f --ignore-unmatch -- "$f"
-                  fi
-                  ;;
-                *)
-                  echo "Unresolved app conflict: $f" >&2
-                  exit 1
-                  ;;
-              esac
-            done < <(git diff --name-only --diff-filter=U)
-            if git diff --name-only --diff-filter=U | grep -q .; then
-              git diff --name-only --diff-filter=U >&2
-              exit 1
-            fi
-            GIT_EDITOR=true git cherry-pick --continue
-          fi
-          git checkout origin/phytosense-v8-ultra-final -- lib/screens/splash_screen.dart
-          git add lib/screens/splash_screen.dart
-          git commit -m "Preserve ultra-final animated splash" || true
-      - name: Restore SensorReading compatibility superset
-        shell: python
-        run: |
-          from pathlib import Path
-          import re
-          p=Path('lib/models/sensor_reading.dart')
-          text=p.read_text(encoding='utf-8')
-          marker='  final double analysisConfidence;\n'
-          specs=[
-            ('analysisOrigin','  final String analysisOrigin;\n'),
-            ('secondaryRootCause','  final String? secondaryRootCause;\n'),
-            ('degradedAnalysis','  final bool degradedAnalysis;\n'),
-            ('healthTrend','  final String? healthTrend;\n'),
-            ('diseaseRiskTrend','  final String? diseaseRiskTrend;\n'),
-            ('recoveryActive','  final bool recoveryActive;\n'),
-            ('vpdKpa','  final double? vpdKpa;\n')]
-          additions=[]
-          for name,decl in specs:
-            if not re.search(rf'final\s+[^;\n]+\s+{name};',text): additions.append(decl)
-          if additions: text=text.replace(marker,marker+''.join(additions),1)
-          p.write_text(text,encoding='utf-8')
-      - name: Bring latest release identity and hardening from main
-        shell: bash
-        run: |
-          set -euo pipefail
-          git checkout origin/main -- .gitignore COPYRIGHT.md FREEZE.md android/app/build.gradle.kts android/app/proguard-rules.pro android/app/src/main/AndroidManifest.xml
-          rm -f android/app/src/main/kotlin/ai/phytosense/app/MainActivity.kt
-          mkdir -p android/app/src/main/kotlin/com/harjeet/phytosense
-          git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
-          git add -A
-          git commit -m "Unify final release identity and compatibility" || true
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: '17'
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - name: Resolve and format
-        run: |
-          flutter pub get
-          dart format lib test
-          git add lib test
-          git commit -m "Format unified final source" || true
-      - name: Analyze unified source
-        run: flutter analyze --no-fatal-infos
-      - name: Test unified source
-        run: flutter test
-      - name: Verify final synchronization contract
+
+      - name: Verify repaired app contains final synchronization
         shell: bash
         run: |
           set -euo pipefail
@@ -139,8 +46,44 @@ jobs:
           rg -q "farmerAction" lib/models/sensor_reading.dart lib/services/esp32_client.dart
           rg -q "rootCauseConfidence" lib/models/sensor_reading.dart lib/services/esp32_client.dart
           rg -q "cameraRecommended" lib/models/sensor_reading.dart lib/services/esp32_client.dart
+          rg -q "cameraInspectionRecommended|cameraRecommended" lib/screens/live_node_home_screen.dart lib/services/esp32_client.dart
           rg -q "RECOVERING" lib
-          rg -q "com.harjeet.phytosense" android/app/build.gradle.kts
+          rg -q "firmwareSupportedNames" lib/models/crop_catalog.dart
+
+      - name: Apply permanent release identity and hardening
+        shell: bash
+        run: |
+          set -euo pipefail
+          git checkout origin/main -- .gitignore COPYRIGHT.md FREEZE.md android/app/build.gradle.kts android/app/proguard-rules.pro android/app/src/main/AndroidManifest.xml
+          rm -f android/app/src/main/kotlin/ai/phytosense/app/MainActivity.kt
+          mkdir -p android/app/src/main/kotlin/com/harjeet/phytosense
+          git show origin/main:android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt > android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
+          git add -A
+          git commit -m "Freeze repaired ultra-final app with permanent release identity" || true
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          dart format lib test
+          flutter analyze --no-fatal-infos
+          flutter test
+          git add lib test
+          git commit -m "Format validated unified final source" || true
+
       - name: Configure permanent publisher signing
         shell: bash
         run: |
@@ -156,24 +99,32 @@ jobs:
           test -s "${keystore_path}"
           chmod 600 "${keystore_path}"
           echo "ANDROID_KEYSTORE_PATH=${keystore_path}" >> "${GITHUB_ENV}"
-      - name: Build hardened unified release APK
+
+      - name: Build optimized signed APK
         shell: bash
         run: |
           set -euo pipefail
-          symbol_dir="${RUNNER_TEMP}/phytosense-unified-symbols"
+          symbol_dir="${RUNNER_TEMP}/phytosense-dart-symbols"
           flutter build apk --release --obfuscate --split-debug-info="${symbol_dir}"
           test -s build/app/outputs/flutter-apk/app-release.apk
           cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI-UNIFIED-FINAL.apk
-      - name: Verify signed APK
+
+      - name: Inspect final APK
         shell: bash
         run: |
           set -euo pipefail
           sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
           build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
           "${build_tools}/apksigner" verify --verbose PhytoSense-AI-UNIFIED-FINAL.apk
-      - name: Push unified final branch
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-UNIFIED-FINAL.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          "${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable PhytoSense-AI-UNIFIED-FINAL.apk | grep -qx 'false'
+          ls -lh PhytoSense-AI-UNIFIED-FINAL.apk
+
+      - name: Push frozen unified branch
         run: git push --force origin HEAD:phytosense-unified-final
-      - name: Upload unified APK
+
+      - name: Upload final APK
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-UNIFIED-FINAL
@@ -181,4 +132,4 @@ jobs:
           if-no-files-found: error
           retention-days: 14
 
-# trigger: 11
+# trigger: 12
