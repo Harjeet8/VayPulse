@@ -28,6 +28,28 @@ jobs:
           cat .github/atlas_patch/part-* | base64 --decode | gzip --decompress > /tmp/phytosense-atlas.patch
           git apply --check /tmp/phytosense-atlas.patch
           git apply /tmp/phytosense-atlas.patch
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('lib/screens/live_node_home_screen.dart')
+          text = path.read_text()
+          old = """          child: Row(
+            children: [
+              const LiveBrandIcon(size: 28),
+              const SizedBox(width: 9),
+              const Flexible(child: Text('PhytoSense AI')),
+            ],
+          ),"""
+          new = """          child: const Row(
+            children: [
+              LiveBrandIcon(size: 28),
+              SizedBox(width: 9),
+              Flexible(child: Text('PhytoSense AI')),
+            ],
+          ),"""
+          if old not in text:
+              raise SystemExit('Expected Atlas Home title block not found')
+          path.write_text(text.replace(old, new, 1))
+          PY
           echo 'Atlas correction applied.'
 
       - name: Setup Flutter
