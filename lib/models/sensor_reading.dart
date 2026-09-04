@@ -157,13 +157,15 @@ class SensorReading {
     return source == 'simulation' || source == 'sim';
   }
 
-  String get bioSourceLabel => bioIsPresentation
-      ? 'Presentation Signal'
+  String get bioSourceLabel => bioIsRealtime
+      ? 'Real Time Signal'
       : bioIsLiveReading
           ? 'Live Readings'
-          : bioIsSimulation
-              ? 'Simulation Signal'
-              : bioSource;
+          : bioIsPresentation
+              ? 'Real Time Signal'
+              : bioIsSimulation
+                  ? 'Simulation Signal'
+                  : bioSource;
 
   int get availableChannelCount => <bool>[
         soilMoistureAvailable,
