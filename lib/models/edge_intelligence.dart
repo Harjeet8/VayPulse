@@ -1757,7 +1757,7 @@ class EdgeIntelligence {
       ready: explicitPlantModelReady == true ||
           normalizedPlantModelStatus == 'READY' ||
           normalizedPlantModelStatus == 'RESTORED',
-      confidence: _percent(_first([
+      confidence: _confidencePercent(_first([
         plantModelMap['confidence'],
         plantModelMap['modelConfidence'],
         edge['plantModelConfidence'],
@@ -1812,7 +1812,7 @@ class EdgeIntelligence {
         edge['temporalState'],
         data['temporalState'],
       ])),
-      confidence: _percent(_first([
+      confidence: _confidencePercent(_first([
         temporalReasoningMap['confidence'],
         edge['temporalConfidence'],
         data['temporalConfidence'],
@@ -2464,6 +2464,13 @@ int? _int(dynamic value) {
 double? _percent(dynamic value) {
   final parsed = _num(value);
   return parsed?.clamp(0.0, 100.0).toDouble();
+}
+
+double? _confidencePercent(dynamic value) {
+  final parsed = _num(value);
+  if (parsed == null) return null;
+  final scaled = parsed >= 0 && parsed <= 1 ? parsed * 100 : parsed;
+  return scaled.clamp(0.0, 100.0).toDouble();
 }
 
 double? _minutes(dynamic value) {
