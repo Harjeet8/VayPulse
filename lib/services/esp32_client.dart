@@ -272,7 +272,9 @@ class Esp32Client {
       ]),
       externalState: sensorStates['leafWetness'],
     );
-    final bioValid = _channelValid(
+    // Electrical measurement validity is intentionally separate from whether
+    // the firmware allows this channel to influence plant analysis.
+    final bioMeasurementValid = _channelValid(
       bio,
       explicitValid: first([
         bio['valid'],
@@ -282,6 +284,70 @@ class Esp32Client {
       ]),
       externalState: sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
     );
+
+    final rawBioContactState = first([
+      bio['contactState'],
+      bio['bioContactState'],
+      data['bioContactState'],
+      root['bioContactState'],
+    ]);
+    final bioContactState = rawBioContactState == null
+        ? ''
+        : '$rawBioContactState'
+            .trim()
+            .toUpperCase()
+            .replaceAll(' ', '_')
+            .replaceAll('-', '_');
+    final bioContactConfidence = _asDouble(first([
+      bio['contactConfidence'],
+      bio['bioContactConfidence'],
+      data['bioContactConfidence'],
+      root['bioContactConfidence'],
+    ]));
+    final bioSlowDriftMv = _asDouble(first([
+      bio['slowDriftMv'],
+      bio['bioSlowDriftMv'],
+      data['bioSlowDriftMv'],
+      root['bioSlowDriftMv'],
+    ]));
+    final bioContactPlausibleForPlantUse = _asBool(first([
+      bio['contactPlausibleForPlantUse'],
+      data['bioContactPlausibleForPlantUse'],
+      root['bioContactPlausibleForPlantUse'],
+    ]));
+    final bioAffectsHealth = _asBool(first([
+      bio['affectsHealth'],
+      data['bioAffectsHealth'],
+      root['bioAffectsHealth'],
+    ]));
+    final bioOpenLatched = _asBool(first([
+      bio['openLatched'],
+      data['bioOpenLatched'],
+      root['bioOpenLatched'],
+    ]));
+    final bioReconnectVerifying = _asBool(first([
+      bio['reconnectVerifying'],
+      data['bioReconnectVerifying'],
+      root['bioReconnectVerifying'],
+    ]));
+    final bioReconnectVerifySec = _asInt(first([
+      bio['reconnectVerifySec'],
+      data['bioReconnectVerifySec'],
+      root['bioReconnectVerifySec'],
+    ]));
+    final hasNewBioContactGate = rawBioContactState != null ||
+        bioContactConfidence != null ||
+        bioSlowDriftMv != null ||
+        bioContactPlausibleForPlantUse != null ||
+        bioAffectsHealth != null ||
+        bioOpenLatched != null ||
+        bioReconnectVerifying != null ||
+        bioReconnectVerifySec != null;
+    final bioPlantUseValid = bioMeasurementValid &&
+        (!hasNewBioContactGate ||
+            (bioContactPlausibleForPlantUse == true &&
+                bioAffectsHealth != false &&
+                (bioContactState.isEmpty || bioContactState == 'PLAUSIBLE')));
 
     final tempValue = temperatureValid ? _asDouble(temperature) : null;
     final humidityValue = humidityValid ? _asDouble(humidity) : null;
@@ -294,9 +360,13 @@ class Esp32Client {
             ? null
             : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
     final leafValue = leafValid ? _asDouble(leafWetness) : null;
-    final voltageValue = bioValid ? _asDouble(plantVoltageMv) : null;
-    final stabilityValue = bioValid ? _asDouble(bioStability) : null;
-    final qualityValue = bioValid ? _asDouble(bioQuality) : null;
+    // Keep the electrical measurement visible to technical diagnostics even
+    // when the plant-contact gate rejects it for health/baseline use.
+    final voltageValue =
+        bioMeasurementValid ? _asDouble(plantVoltageMv) : null;
+    final stabilityValue =
+        bioMeasurementValid ? _asDouble(bioStability) : null;
+    final qualityValue = bioMeasurementValid ? _asDouble(bioQuality) : null;
 
     if (tempValue == null &&
         humidityValue == null &&
@@ -378,7 +448,7 @@ class Esp32Client {
         rootValid,
         lightValid,
         leafValid,
-        bioValid,
+        bioPlantUseValid,
       ].contains(false),
     );
     final bioticState = '${first([
@@ -757,6 +827,28 @@ class Esp32Client {
       'bioDeviationMv': _asDouble(bio['deviationMv']),
       'bioNoiseMv': _asDouble(bio['noiseMv']),
       'bioSignalQuality': qualityValue ?? 0,
+      'bioContactState': bioContactState,
+      'bioContactConfidence': bioContactConfidence,
+      'bioSlowDriftMv': bioSlowDriftMv,
+      'bioContactPlausibleForPlantUse': bioContactPlausibleForPlantUse,
+      'bioAffectsHealth': bioAffectsHealth,
+      'bioOpenLatched': bioOpenLatched,
+      'bioReconnectVerifying': bioReconnectVerifying,
+      'bioReconnectVerifySec': bioReconnectVerifySec,
+      'firmwareName': '${first([
+            data['firmwareName'],
+            data['firmware'],
+            root['firmwareName'],
+            root['firmware'],
+            ''
+          ])}',
+      'firmwareBuildState': '${first([
+            data['buildState'],
+            data['firmwareBuildState'],
+            system['buildState'],
+            root['buildState'],
+            ''
+          ])}',
     };
 
     return Esp32Snapshot(
