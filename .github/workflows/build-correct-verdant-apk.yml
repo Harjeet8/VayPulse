@@ -1,0 +1,84 @@
+name: Build Correct Verdant PhytoSense APK
+
+on:
+  push:
+    branches: [phytosense-verdant-latest-apk]
+    paths: ['.github/workflows/build-correct-verdant-apk.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout polished Verdant source
+        uses: actions/checkout@v4
+      - name: Verify expected polished lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "TimePhaseCard" lib/screens/live_node_home_screen.dart
+          grep -Fq "Full plant intelligence" lib/screens/live_node_home_screen.dart
+          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
+          grep -Fq "Live Readings" lib/models/sensor_reading.dart
+          grep -Fq "Node reliability" lib/screens/judge_view_screen.dart
+          test -f assets/branding/phytosense_icon.png
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Resolve dependencies
+        run: flutter pub get
+      - name: Format
+        run: dart format lib test
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+      - name: Test
+        run: flutter test
+      - name: Create temporary install signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -noprompt \
+            -keystore "${RUNNER_TEMP}/phytosense-verdant-temp.jks" \
+            -storepass phytosense-verdant-20260904 \
+            -keypass phytosense-verdant-20260904 \
+            -alias phytosense-verdant \
+            -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=PhytoSense AI Verdant Build,O=PhytoSense AI,C=IN"
+          echo "ANDROID_KEYSTORE_PATH=${RUNNER_TEMP}/phytosense-verdant-temp.jks" >> "${GITHUB_ENV}"
+          echo "ANDROID_STORE_PASSWORD=phytosense-verdant-20260904" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_ALIAS=phytosense-verdant" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_PASSWORD=phytosense-verdant-20260904" >> "${GITHUB_ENV}"
+      - name: Build optimized release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --release --obfuscate --split-debug-info="${RUNNER_TEMP}/symbols"
+          cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI-VERDANT-LATEST-2026-09-04.apk
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "${build_tools}/apksigner" verify --verbose PhytoSense-AI-VERDANT-LATEST-2026-09-04.apk
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-VERDANT-LATEST-2026-09-04.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          "${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable PhytoSense-AI-VERDANT-LATEST-2026-09-04.apk | grep -qx 'false'
+          sha256sum PhytoSense-AI-VERDANT-LATEST-2026-09-04.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-VERDANT-LATEST-2026-09-04
+          path: PhytoSense-AI-VERDANT-LATEST-2026-09-04.apk
+          if-no-files-found: error
+          retention-days: 3
