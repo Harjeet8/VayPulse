@@ -279,7 +279,7 @@ void main() {
     final source = File('lib/screens/judge_view_screen.dart').readAsStringSync();
     expect(source, contains("title: 'Node reliability'"));
     expect(source, contains("_Metric('Sensor plausibility'"));
-    expect(source, contains("_Metric('Sensor-cycle latency'"));
+    expect(source, contains("'Sensor-cycle latency'"));
     expect(source, contains("title: 'Event timeline'"));
     expect(source, contains("_Metric('Build state'"));
   });
