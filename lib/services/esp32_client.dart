@@ -113,6 +113,47 @@ class Esp32Client {
       first([data['sensorStates'], data['sensorStatus']]),
     );
 
+    final plantModel = _map(first([
+      data['plantModel'],
+      data['adaptivePlantModel'],
+      analysis['plantModel'],
+    ]));
+    final temporalReasoning = _map(first([
+      data['temporalReasoning'],
+      data['causeResponse'],
+      analysis['temporalReasoning'],
+    ]));
+    final plausibility = _map(first([
+      data['plausibility'],
+      data['sensorPlausibility'],
+      analysis['plausibility'],
+    ]));
+    final anomaly = _map(first([
+      data['anomaly'],
+      data['anomalyDetection'],
+      analysis['anomaly'],
+    ]));
+    final prediction = _map(first([
+      data['prediction'],
+      data['stressPrediction'],
+      analysis['prediction'],
+    ]));
+    final sensorIntegrity = _map(first([
+      data['sensorIntegrity'],
+      system['sensorIntegrity'],
+      analysis['sensorIntegrity'],
+    ]));
+    final runtimeHealth = _map(first([
+      data['runtimeHealth'],
+      system['runtimeHealth'],
+      data['nodeHealth'],
+    ]));
+    final recentEvents = first([
+      data['recentEvents'],
+      data['events'],
+      analysis['recentEvents'],
+    ]);
+
     final temperature = first([
       data['airTemperatureC'],
       data['temperatureC'],
@@ -436,6 +477,203 @@ class Esp32Client {
             primaryRootCause
           ])}',
       'sensorStates': <String, String>{
+      'plantModelStatus': _normalizePlantModelStatus(first([
+        plantModel['status'],
+        plantModel['state'],
+        data['plantModelStatus'],
+      ])),
+      'plantModelReady': _plantModelReady(plantModel),
+      'plantModelConfidence': _asDouble(first([
+        plantModel['confidence'],
+        plantModel['modelConfidence'],
+        data['plantModelConfidence'],
+      ])),
+      'plantModelLearnedSamples': _asInt(first([
+        plantModel['learnedSamples'],
+        plantModel['samples'],
+        data['plantModelLearnedSamples'],
+      ])),
+      'plantModelAgeSec': _asInt(first([
+        plantModel['ageSec'],
+        plantModel['ageSeconds'],
+        data['plantModelAgeSec'],
+      ])),
+      'plantModelPersisted': _asBool(first([
+            plantModel['persisted'],
+            plantModel['restored'],
+            data['plantModelPersisted'],
+          ])) ==
+          true,
+      'plantModelBioBaselineMv': _asDouble(first([
+        plantModel['bioBaselineMv'],
+        plantModel['baselineMv'],
+        bio['baselineMv'],
+      ])),
+      'plantModelTypicalBioVariationMv': _asDouble(first([
+        plantModel['typicalBioVariationMv'],
+        plantModel['typicalVariationMv'],
+      ])),
+      'plantModelNormalNoiseMv': _asDouble(first([
+        plantModel['normalNoiseMv'],
+        plantModel['noiseMv'],
+      ])),
+      'plantModelNormalSoilRatePctPerHour': _asDouble(first([
+        plantModel['normalSoilRatePctPerHour'],
+        plantModel['soilRatePctPerHour'],
+      ])),
+      'temporalState': '${first([
+            temporalReasoning['state'],
+            temporalReasoning['status'],
+            ''
+          ])}',
+      'temporalConfidence': _asDouble(first([
+        temporalReasoning['confidence'],
+        data['temporalReasoningConfidence'],
+      ])),
+      'temporalPrimarySequence': '${first([
+            temporalReasoning['primarySequence'],
+            temporalReasoning['sequence'],
+            ''
+          ])}',
+      'environmentToBioLagSec': _asInt(first([
+        temporalReasoning['environmentToBioLagSec'],
+        temporalReasoning['envToBioLagSec'],
+      ])),
+      'actionToRecoveryLagSec': _asInt(first([
+        temporalReasoning['actionToRecoveryLagSec'],
+        recovery['actionToRecoveryLagSec'],
+      ])),
+      'temporalExplanation': '${first([
+            temporalReasoning['explanation'],
+            temporalReasoning['message'],
+            ''
+          ])}',
+      'plausibilityState': '${first([
+            plausibility['state'],
+            plausibility['status'],
+            ''
+          ])}',
+      'plausibilityConfidence': _asDouble(plausibility['confidence']),
+      'plausibilityPrimaryIssue': '${first([
+            plausibility['primaryIssue'],
+            plausibility['issue'],
+            ''
+          ])}',
+      'plausibilityRecommendation': '${first([
+            plausibility['recommendation'],
+            plausibility['action'],
+            ''
+          ])}',
+      'anomalyState': '${first([
+            anomaly['state'],
+            anomaly['status'],
+            ''
+          ])}',
+      'anomalyScore': _asDouble(anomaly['score']),
+      'anomalyConfidence': _asDouble(anomaly['confidence']),
+      'anomalyExplanation': '${first([
+            anomaly['explanation'],
+            anomaly['message'],
+            ''
+          ])}',
+      'anomalyAffectedChannel': '${first([
+            anomaly['affectedChannel'],
+            anomaly['channel'],
+            ''
+          ])}',
+      'predictionAvailable': _asBool(first([
+            prediction['available'],
+            data['predictionAvailable'],
+          ])) ==
+          true,
+      'predictionTarget': '${first([
+            prediction['target'],
+            prediction['metric'],
+            ''
+          ])}',
+      'predictionConfidence': _asDouble(first([
+        prediction['confidence'],
+        data['predictionConfidence'],
+      ])),
+      'predictionMinutesToWarning': _asInt(first([
+        prediction['minutesToWarning'],
+        prediction['etaMinutes'],
+        data['predictionMinutesToWarning'],
+      ])),
+      'predictionMessage': '${first([
+            prediction['message'],
+            prediction['explanation'],
+            ''
+          ])}',
+      'predictionDirection': '${first([
+            prediction['direction'],
+            prediction['trend'],
+            ''
+          ])}',
+      'recoveryProgressPct': _asDouble(first([
+        recovery['progressPct'],
+        recovery['progress'],
+        data['recoveryProgressPct'],
+      ])),
+      'recoveryConfidence': _asDouble(first([
+        recovery['confidence'],
+        data['recoveryConfidence'],
+      ])),
+      'recoveryEnvironmentImproved':
+          _asBool(recovery['environmentImproved']) == true,
+      'recoverySoilImproved': _asBool(recovery['soilImproved']) == true,
+      'recoveryStressEvidenceDecreasing':
+          _asBool(recovery['stressEvidenceDecreasing']) == true,
+      'recoveryBioResponseDecreasing':
+          _asBool(recovery['bioResponseDecreasing']) == true,
+      'recoveryVerified': _asBool(first([
+            recovery['verified'],
+            data['recoveryVerified'],
+          ])) ==
+          true,
+      'recoveryFarmerResult': '${first([
+            recovery['farmerResult'],
+            recovery['result'],
+            ''
+          ])}',
+      'recoveryActionToResponseLagSec': _asInt(first([
+        recovery['actionToResponseLagSec'],
+        recovery['responseLagSec'],
+      ])),
+      'sensorIntegrityState': '${first([
+            sensorIntegrity['state'],
+            sensorIntegrity['status'],
+            ''
+          ])}',
+      'sensorIntegrityPrimaryIssue': '${first([
+            sensorIntegrity['primaryIssue'],
+            sensorIntegrity['issue'],
+            ''
+          ])}',
+      'sensorIntegrityPrimaryAction': '${first([
+            sensorIntegrity['primaryAction'],
+            sensorIntegrity['recommendation'],
+            ''
+          ])}',
+      'sensorIntegrityChannels': _stateMap(sensorIntegrity['channels']),
+      'runtimeHealthState': '${first([
+            runtimeHealth['state'],
+            runtimeHealth['status'],
+            ''
+          ])}',
+      'runtimeFreeHeap': _asInt(runtimeHealth['freeHeap']),
+      'runtimeMinFreeHeap': _asInt(runtimeHealth['minFreeHeap']),
+      'runtimeLastLoopGapMs': _asInt(runtimeHealth['lastLoopGapMs']),
+      'runtimeMaxLoopGapMs': _asInt(runtimeHealth['maxLoopGapMs']),
+      'runtimeLastSensorCycleMs': _asInt(runtimeHealth['lastSensorCycleMs']),
+      'runtimeMaxSensorCycleMs': _asInt(runtimeHealth['maxSensorCycleMs']),
+      'runtimeOledI2cSkipTotal': _asInt(runtimeHealth['oledI2cSkipTotal']),
+      'runtimeHealthIssue': '${first([
+            runtimeHealth['issue'],
+            runtimeHealth['message'],
+            ''
+          ])}',
+      'recentEvents': recentEvents is List ? recentEvents : const <dynamic>[],
         'temperature': _channelState(
           air,
           temperatureValid,
@@ -587,6 +825,39 @@ class Esp32Client {
 
   static Map<String, dynamic> _map(dynamic value) =>
       value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
+
+  static Map<String, String> _stateMap(dynamic value) {
+    if (value is! Map) return const <String, String>{};
+    final result = <String, String>{};
+    for (final entry in value.entries) {
+      final item = entry.value;
+      if (item is Map) {
+        final map = Map<String, dynamic>.from(item);
+        final state = _textValue(
+          map['state'] ?? map['status'] ?? map['quality'] ?? map['issue'],
+        );
+        if (state != null) result['${entry.key}'] = state;
+      } else {
+        final state = _textValue(item);
+        if (state != null) result['${entry.key}'] = state;
+      }
+    }
+    return result;
+  }
+
+  static String _normalizePlantModelStatus(dynamic value) {
+    final upper = '${value ?? ''}'.trim().toUpperCase();
+    if (upper.contains('RESTOR') || upper == 'READY') return 'READY';
+    if (upper.contains('LEARN')) return 'LEARNING';
+    return upper;
+  }
+
+  static bool _plantModelReady(Map<String, dynamic> plantModel) {
+    if (_asBool(plantModel['ready']) == true) return true;
+    final state =
+        '${plantModel['status'] ?? plantModel['state'] ?? ''}'.toUpperCase();
+    return state.contains('READY') || state.contains('RESTOR');
+  }
 
   static bool _channelValid(
     Map<String, dynamic> channel, {
