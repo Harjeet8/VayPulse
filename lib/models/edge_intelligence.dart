@@ -1641,7 +1641,7 @@ class EdgeIntelligence {
         data['whatIfExplanation'],
       ])),
       message: _text(predictionMap['message']),
-      confidence: _percent(_first([
+      confidence: _confidencePercent(_first([
         predictionMap['confidence'],
         edge['predictionConfidence'],
         data['predictionConfidence'],
