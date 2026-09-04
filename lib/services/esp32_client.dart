@@ -155,7 +155,31 @@ class Esp32Client {
     final lightValid = light['valid'] != false;
     final leafValid = leaf['valid'] != false;
     final bioAvailable = bio['available'] != false;
-    final bioValid = bio['valid'] != false && bioAvailable;
+    final rawBioContactState = first([
+      bio['contactState'],
+      bio['bioContactState'],
+      data['bioContactState'],
+      root['bioContactState'],
+    ]);
+    final bioContactState = rawBioContactState == null
+        ? null
+        : '$rawBioContactState'
+            .trim()
+            .toUpperCase()
+            .replaceAll(' ', '_')
+            .replaceAll('-', '_');
+    final bioContactPlausibleForPlantUse = first([
+      bio['contactPlausibleForPlantUse'],
+      data['bioContactPlausibleForPlantUse'],
+      root['bioContactPlausibleForPlantUse'],
+    ]);
+    final contactTelemetryAvailable =
+        bioContactState != null || bioContactPlausibleForPlantUse != null;
+    final contactValidForPlantUse = !contactTelemetryAvailable ||
+        (bioContactState == 'PLAUSIBLE' &&
+            bioContactPlausibleForPlantUse != false);
+    final bioValid =
+        bio['valid'] != false && bioAvailable && contactValidForPlantUse;
 
     final tempValue = airValid ? _asDouble(temperature) : null;
     final humidityValue = airValid ? _asDouble(humidity) : null;
@@ -408,6 +432,16 @@ class Esp32Client {
       data['bioStressScore'] ??= bioTop['stressScore'];
       data['bioIncludedInFusion'] ??=
           _first([bioTop['includedInFusion'], bioTop['usedInFusion']]);
+      data['bioContactState'] ??=
+          _first([bioTop['contactState'], bioTop['bioContactState']]);
+      data['bioContactConfidence'] ??=
+          _first([bioTop['contactConfidence'], bioTop['bioContactConfidence']]);
+      data['bioSlowDriftMv'] ??=
+          _first([bioTop['slowDriftMv'], bioTop['bioSlowDriftMv']]);
+      data['bioContactPlausibleForPlantUse'] ??=
+          bioTop['contactPlausibleForPlantUse'];
+      data['bioOpenEvidence'] ??= bioTop['openEvidence'];
+      data['bioStaticEvidence'] ??= bioTop['staticEvidence'];
       data['adaptiveBaselineStatus'] ??= bioTop['baselineStatus'];
       if (!data.containsKey('baselineReady')) {
         data['baselineReady'] = '${bioTop['baselineStatus'] ?? ''}'.toUpperCase() == 'READY';
