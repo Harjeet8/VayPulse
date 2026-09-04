@@ -503,7 +503,10 @@ class Esp32Client {
             plantModel['restored'],
             data['plantModelPersisted'],
           ])) ==
-          true,
+          true ||
+          '${first([plantModel['status'], plantModel['state'], ''])}'
+              .toUpperCase()
+              .contains('RESTOR'),
       'plantModelBioBaselineMv': _asDouble(first([
         plantModel['bioBaselineMv'],
         plantModel['baselineMv'],
