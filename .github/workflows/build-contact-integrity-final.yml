@@ -1,0 +1,96 @@
+name: Validate Electrode Contact Integrity Final
+
+on:
+  push:
+    branches: [phytosense-verdant-contact-integrity-final]
+    paths: ['.github/workflows/build-contact-integrity-final.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  validate-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout polished contact-integrity source
+        uses: actions/checkout@v4
+
+      - name: Verify additive contact update only
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "contactState" lib/models/edge_intelligence.dart
+          grep -Fq "contactValidForPlantUse" lib/services/esp32_client.dart
+          grep -Fq "Electrodes open" lib/screens/live_node_home_screen.dart
+          grep -Fq "Electrical signal quality" lib/screens/judge_view_screen.dart
+          ! grep -Fq "class _ElectrodeContactCard" lib/screens/live_node_home_screen.dart
+          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
+          grep -Fq "Full plant intelligence" lib/screens/live_node_home_screen.dart
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Format
+        run: dart format lib test
+
+      - name: Analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
+
+      - name: Run all tests
+        run: flutter test
+
+      - name: Create temporary install signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -noprompt \
+            -keystore "${RUNNER_TEMP}/phytosense-contact-temp.jks" \
+            -storepass phytosense-contact-20260904 \
+            -keypass phytosense-contact-20260904 \
+            -alias phytosense-contact \
+            -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=PhytoSense AI Contact Build,O=PhytoSense AI,C=IN"
+          echo "ANDROID_KEYSTORE_PATH=${RUNNER_TEMP}/phytosense-contact-temp.jks" >> "${GITHUB_ENV}"
+          echo "ANDROID_STORE_PASSWORD=phytosense-contact-20260904" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_ALIAS=phytosense-contact" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_PASSWORD=phytosense-contact-20260904" >> "${GITHUB_ENV}"
+
+      - name: Build optimized release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --release --obfuscate --split-debug-info="${RUNNER_TEMP}/symbols"
+          cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI-CONTACT-INTEGRITY-FINAL.apk
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "${build_tools}/apksigner" verify --verbose PhytoSense-AI-CONTACT-INTEGRITY-FINAL.apk
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-CONTACT-INTEGRITY-FINAL.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          "${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable PhytoSense-AI-CONTACT-INTEGRITY-FINAL.apk | grep -qx 'false'
+          sha256sum PhytoSense-AI-CONTACT-INTEGRITY-FINAL.apk
+
+      - name: Upload verified APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-CONTACT-INTEGRITY-FINAL
+          path: PhytoSense-AI-CONTACT-INTEGRITY-FINAL.apk
+          if-no-files-found: error
+          retention-days: 3

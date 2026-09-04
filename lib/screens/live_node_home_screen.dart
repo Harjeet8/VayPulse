@@ -1199,6 +1199,62 @@ class _HomeSystemNotice {
     final integrity = edge.sensorIntegrity;
     final plausibility = edge.plausibility;
     final runtime = edge.runtimeHealth;
+    final bio = edge.bioelectric;
+    final contact = bio.normalizedContactState;
+
+    // Keep electrode integrity in the existing single Home warning slot.
+    // This prevents a clean electrical trace from being presented as valid
+    // plant bioelectric data when the firmware says plant contact is invalid.
+    if (!bio.presentationOnly && contact != null && contact != 'PLAUSIBLE') {
+      return switch (contact) {
+        'OPEN' => const _HomeSystemNotice(
+            title: 'Electrodes open',
+            issue: 'Check plant contact',
+            action: 'Re-seat both electrodes on the plant.',
+            severe: false,
+          ),
+        'VERIFY' => const _HomeSystemNotice(
+            title: 'Verify electrode contact',
+            issue: 'Plant contact is not confirmed yet.',
+            action: 'Check that both electrodes are firmly attached.',
+            severe: false,
+          ),
+        'STATIC' || 'SHORT_SUSPECTED' => const _HomeSystemNotice(
+            title: 'Static/test input',
+            issue: 'Not used for plant analysis',
+            action: null,
+            severe: false,
+          ),
+        'UNSTABLE' => const _HomeSystemNotice(
+            title: 'Electrode contact unstable',
+            issue: 'Plant contact is changing.',
+            action: 'Check electrode placement and movement.',
+            severe: false,
+          ),
+        'SATURATED' => const _HomeSystemNotice(
+            title: 'Bio sensor saturated',
+            issue: 'Sensor fault warning',
+            action: 'Check the electrode and amplifier connection.',
+            severe: true,
+          ),
+        _ => const _HomeSystemNotice(
+            title: 'Verify electrode contact',
+            issue: 'Plant contact is not plausible for analysis.',
+            action: 'Check electrode placement before relying on bio readings.',
+            severe: false,
+          ),
+      };
+    }
+    if (!bio.presentationOnly &&
+        bio.contactPlausibleForPlantUse == false &&
+        contact == null) {
+      return const _HomeSystemNotice(
+        title: 'Verify electrode contact',
+        issue: 'Plant contact is not plausible for analysis.',
+        action: 'Check electrode placement before relying on bio readings.',
+        severe: false,
+      );
+    }
 
     if (integrity.degraded) {
       return _HomeSystemNotice(
