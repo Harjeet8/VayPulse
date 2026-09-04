@@ -70,6 +70,14 @@ class JudgeViewScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _FusionCard(edge: edge),
               if (edge != null &&
+                  (edge.plantModel.hasData ||
+                      edge.temporalReasoning.hasData ||
+                      edge.prediction.hasData ||
+                      edge.responseLag.hasData)) ...[
+                const SizedBox(height: 12),
+                _AdaptiveEdgeIntelligenceCard(edge: edge),
+              ],
+              if (edge != null &&
                   (edge.sensorIntegrity.hasData ||
                       edge.plausibility.hasData ||
                       edge.runtimeHealth.hasData ||
@@ -305,6 +313,119 @@ class _BioCard extends StatelessWidget {
             'Protection',
             'Bad electrode/signal quality cannot create a plant-stress alert.',
           ),
+      ],
+    );
+  }
+}
+
+class _AdaptiveEdgeIntelligenceCard extends StatelessWidget {
+  final EdgeIntelligence edge;
+
+  const _AdaptiveEdgeIntelligenceCard({required this.edge});
+
+  @override
+  Widget build(BuildContext context) {
+    final model = edge.plantModel;
+    final temporal = edge.temporalReasoning;
+    final prediction = edge.prediction;
+    final responseLag = edge.responseLag;
+    final predictionEta =
+        prediction.minutesToWarning ?? prediction.minutesToWaterStressWarning;
+
+    return _TechnicalCard(
+      icon: Icons.psychology_alt_outlined,
+      title: 'Adaptive edge intelligence',
+      badge: model.displayStatus ?? temporal.state,
+      children: [
+        _Metric('Individual Plant Model', model.displayStatus),
+        if (model.confidence != null)
+          _Metric('Model confidence', '${model.confidence!.round()}%'),
+        if (model.learnedSamples != null)
+          _Metric('Learned samples', '${model.learnedSamples}'),
+        _Metric(
+          'Baseline retained',
+          model.persisted == null
+              ? null
+              : model.persisted!
+                  ? 'Yes'
+                  : 'No',
+        ),
+        if (model.bioBaselineMv != null)
+          _Metric(
+            'Learned bio baseline',
+            '${model.bioBaselineMv!.toStringAsFixed(1)} mV',
+          ),
+        if (model.typicalBioVariationMv != null)
+          _Metric(
+            'Typical bio variation',
+            '${model.typicalBioVariationMv!.toStringAsFixed(1)} mV',
+          ),
+        if (model.normalNoiseMv != null)
+          _Metric(
+            'Normal bio noise',
+            '${model.normalNoiseMv!.toStringAsFixed(1)} mV',
+          ),
+        if (model.normalSoilRatePctPerHour != null)
+          _Metric(
+            'Normal soil-moisture rate',
+            '${model.normalSoilRatePctPerHour!.toStringAsFixed(2)} %/h',
+          ),
+        _Metric('Cause-Response Intelligence', temporal.state),
+        if (temporal.confidence != null)
+          _Metric('Temporal confidence', '${temporal.confidence!.round()}%'),
+        _Metric('Primary sequence', temporal.primarySequence),
+        if (temporal.environmentToBioLagSec != null)
+          _Metric(
+            'Environment → bio lag',
+            _duration(Duration(
+              milliseconds:
+                  (temporal.environmentToBioLagSec! * 1000).round(),
+            )),
+          )
+        else if (responseLag.environmentToBioResponseSeconds != null)
+          _Metric(
+            'Environment → bio lag',
+            _duration(Duration(
+              milliseconds:
+                  (responseLag.environmentToBioResponseSeconds! * 1000)
+                      .round(),
+            )),
+          ),
+        if (temporal.actionToRecoveryLagSec != null)
+          _Metric(
+            'Action → recovery lag',
+            _duration(Duration(
+              milliseconds:
+                  (temporal.actionToRecoveryLagSec! * 1000).round(),
+            )),
+          )
+        else if (responseLag.irrigationToBioDecreaseSeconds != null)
+          _Metric(
+            'Action → bio-response lag',
+            _duration(Duration(
+              milliseconds:
+                  (responseLag.irrigationToBioDecreaseSeconds! * 1000)
+                      .round(),
+            )),
+          ),
+        _Metric('Temporal explanation', temporal.explanation),
+        _Metric(
+          'Prediction',
+          prediction.available == false
+              ? 'Not available'
+              : prediction.target ?? prediction.state,
+        ),
+        if (predictionEta != null)
+          _Metric('Prediction ETA', '${predictionEta.round()} min'),
+        if (prediction.confidence != null)
+          _Metric(
+            'Prediction confidence',
+            '${prediction.confidence!.round()}%',
+          ),
+        _Metric(
+          'Prediction message',
+          prediction.message ?? prediction.explanation,
+        ),
       ],
     );
   }
