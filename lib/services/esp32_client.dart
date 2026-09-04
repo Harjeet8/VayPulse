@@ -783,7 +783,7 @@ class Esp32Client {
         ),
         'plantSignal': _channelState(
           bio,
-          bioValid,
+          bioMeasurementValid,
           externalState:
               sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
         ),
