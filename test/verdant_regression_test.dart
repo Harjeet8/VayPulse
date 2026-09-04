@@ -197,7 +197,7 @@ void main() {
     expect(reading(bioSource: 'real').bioSourceLabel, 'Live Readings');
     expect(
       reading(bioSource: 'realtime').bioSourceLabel,
-      'Presentation Signal',
+      'Real Time Signal',
     );
     expect(
       reading(bioSource: 'simulation').bioSourceLabel,
