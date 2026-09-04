@@ -48,34 +48,35 @@ class BottomNav extends StatelessWidget {
           onDestinationSelected: onChanged,
           destinations: [
             NavigationDestination(
-              icon: const Icon(Icons.home_outlined),
+              icon: const LiveMotionIcon(icon: Icons.home_outlined),
               selectedIcon: const LiveMotionIcon(icon: Icons.home_rounded),
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.psychology_alt_outlined),
+              icon:
+                  const LiveMotionIcon(icon: Icons.psychology_alt_outlined),
               selectedIcon:
                   const LiveMotionIcon(icon: Icons.psychology_alt_rounded),
               label: FarmerLanguage.label(context, 'analysis'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.sensors_outlined),
+              icon: const LiveMotionIcon(icon: Icons.sensors_outlined),
               selectedIcon: const LiveMotionIcon(icon: Icons.sensors_rounded),
               label: FarmerLanguage.label(context, 'sensors'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.timeline_outlined),
+              icon: const LiveMotionIcon(icon: Icons.timeline_outlined),
               selectedIcon: const LiveMotionIcon(icon: Icons.timeline_rounded),
               label: FarmerLanguage.label(context, 'history'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.photo_camera_outlined),
+              icon: const LiveMotionIcon(icon: Icons.photo_camera_outlined),
               selectedIcon:
                   const LiveMotionIcon(icon: Icons.photo_camera_rounded),
               label: FarmerLanguage.label(context, 'camera'),
             ),
             NavigationDestination(
-              icon: const Icon(Icons.settings_outlined),
+              icon: const LiveMotionIcon(icon: Icons.settings_outlined),
               selectedIcon: const LiveMotionIcon(icon: Icons.settings_rounded),
               label: FarmerLanguage.label(context, 'settings'),
             ),

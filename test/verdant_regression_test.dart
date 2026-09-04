@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -9,6 +10,7 @@ import 'package:phytosense_ai/models/sensor_reading.dart';
 import 'package:phytosense_ai/screens/splash_screen.dart';
 import 'package:phytosense_ai/widgets/calibre_upgrade_panels.dart';
 import 'package:phytosense_ai/widgets/home_soil_presentation.dart';
+import 'package:phytosense_ai/widgets/live_motion.dart';
 import 'package:phytosense_ai/widgets/time_phase_card.dart';
 
 SensorReading reading({String bioSource = 'real'}) => SensorReading(
@@ -54,6 +56,71 @@ void main() {
     expect(clip.borderRadius, BorderRadius.circular(42));
     expect(clip.clipBehavior, Clip.antiAlias);
 
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('reduced motion still presents a branded boot before Home',
+      (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(
+        home: MediaQuery(
+          data: const MediaQueryData(disableAnimations: true),
+          child: SplashScreen(initialization: Future<void>.value()),
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 600));
+
+    expect(find.text('PhytoSense AI'), findsOneWidget);
+    expect(find.byKey(const Key('boot-logo-clip')), findsOneWidget);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  test('Android launch window matches the animated boot handoff', () {
+    final colors = File(
+      'android/app/src/main/res/values/colors.xml',
+    ).readAsStringSync();
+    final android12Theme = File(
+      'android/app/src/main/res/values-v31/styles.xml',
+    ).readAsStringSync();
+
+    expect(colors, contains('#04120E'));
+    expect(android12Theme, contains('@drawable/ic_launcher_nova'));
+    expect(android12Theme, contains('@style/NormalTheme'));
+  });
+
+  testWidgets('live icons have clearly changing individual motion',
+      (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Center(
+          child: LiveMotionIcon(
+            key: Key('motion-probe'),
+            icon: Icons.electric_bolt_rounded,
+            style: LiveMotionStyle.spark,
+          ),
+        ),
+      ),
+    );
+    await tester.pump();
+    final motionFinder = find.descendant(
+      of: find.byKey(const Key('motion-probe')),
+      matching: find.byType(Transform),
+    );
+    final before = tester
+        .widgetList<Transform>(motionFinder)
+        .map((widget) => widget.transform.storage.join(','))
+        .join('|');
+
+    await tester.pump(const Duration(milliseconds: 480));
+    final after = tester
+        .widgetList<Transform>(motionFinder)
+        .map((widget) => widget.transform.storage.join(','))
+        .join('|');
+
+    expect(after, isNot(before));
     await tester.pumpWidget(const SizedBox.shrink());
   });
 

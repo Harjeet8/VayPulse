@@ -83,7 +83,7 @@ class LiveNodeHomeScreen extends StatelessWidget {
                   builder: (_) => const PlantIntelligenceSettingsScreen(),
                 ),
               ),
-              icon: const Icon(Icons.tune_rounded),
+              icon: const LiveMotionIcon(icon: Icons.tune_rounded),
             ),
           Badge(
             isLabelVisible: scope.alerts.unreadCount > 0,
@@ -91,7 +91,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
             child: IconButton(
               tooltip: context.tr('alerts_title'),
               onPressed: onOpenAlerts,
-              icon: const Icon(Icons.notifications_none_rounded),
+              icon: const LiveMotionIcon(
+                icon: Icons.notifications_none_rounded,
+                style: LiveMotionStyle.sway,
+              ),
             ),
           ),
           const SizedBox(width: 6),
@@ -1064,7 +1067,9 @@ class _CameraHandoffCard extends StatelessWidget {
                 width: double.infinity,
                 child: FilledButton.icon(
                   onPressed: onScan,
-                  icon: const Icon(Icons.camera_alt_outlined),
+                  icon: const LiveMotionIcon(
+                    icon: Icons.camera_alt_outlined,
+                  ),
                   label: Text(
                     FarmerLanguage.label(context, 'scan_plant_camera'),
                   ),
@@ -1101,7 +1106,11 @@ class _WhatChangedCard extends StatelessWidget {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(Icons.arrow_right_rounded, size: 20),
+                      const LiveMotionIcon(
+                        icon: Icons.arrow_right_rounded,
+                        size: 20,
+                        style: LiveMotionStyle.drift,
+                      ),
                       const SizedBox(width: 5),
                       Expanded(child: Text(item)),
                     ],
@@ -1190,9 +1199,10 @@ class _AdvancedHomeIntelligence extends StatelessWidget {
               color: colors.primaryContainer,
               borderRadius: BorderRadius.circular(13),
             ),
-            child: Icon(
-              Icons.auto_awesome_rounded,
+            child: LiveMotionIcon(
+              icon: Icons.auto_awesome_rounded,
               color: colors.onPrimaryContainer,
+              style: LiveMotionStyle.spark,
             ),
           ),
           title: Text(

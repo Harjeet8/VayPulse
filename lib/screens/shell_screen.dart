@@ -51,33 +51,33 @@ class _ShellScreenState extends State<ShellScreen> {
 
     final railDestinations = [
       NavigationRailDestination(
-        icon: const Icon(Icons.home_outlined),
+        icon: const LiveMotionIcon(icon: Icons.home_outlined),
         selectedIcon: const LiveMotionIcon(icon: Icons.home_rounded),
         label: Text(context.tr('nav_home')),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.psychology_alt_outlined),
+        icon: const LiveMotionIcon(icon: Icons.psychology_alt_outlined),
         selectedIcon:
             const LiveMotionIcon(icon: Icons.psychology_alt_rounded),
         label: Text(FarmerLanguage.label(context, 'analysis')),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.sensors_outlined),
+        icon: const LiveMotionIcon(icon: Icons.sensors_outlined),
         selectedIcon: const LiveMotionIcon(icon: Icons.sensors_rounded),
         label: Text(FarmerLanguage.label(context, 'sensors')),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.timeline_outlined),
+        icon: const LiveMotionIcon(icon: Icons.timeline_outlined),
         selectedIcon: const LiveMotionIcon(icon: Icons.timeline_rounded),
         label: Text(FarmerLanguage.label(context, 'history')),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.photo_camera_outlined),
+        icon: const LiveMotionIcon(icon: Icons.photo_camera_outlined),
         selectedIcon: const LiveMotionIcon(icon: Icons.photo_camera_rounded),
         label: Text(FarmerLanguage.label(context, 'camera')),
       ),
       NavigationRailDestination(
-        icon: const Icon(Icons.settings_outlined),
+        icon: const LiveMotionIcon(icon: Icons.settings_outlined),
         selectedIcon: const LiveMotionIcon(icon: Icons.settings_rounded),
         label: Text(FarmerLanguage.label(context, 'settings')),
       ),
@@ -148,9 +148,10 @@ class _ShellScreenState extends State<ShellScreen> {
                                   ),
                                   borderRadius: BorderRadius.circular(16),
                                 ),
-                                child: const Icon(
-                                  Icons.eco_rounded,
+                                child: const LiveMotionIcon(
+                                  icon: Icons.eco_rounded,
                                   color: Colors.white,
+                                  style: LiveMotionStyle.sway,
                                 ),
                               ),
                             ),

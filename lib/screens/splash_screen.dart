@@ -23,6 +23,7 @@ class _SplashScreenState extends State<SplashScreen>
     with TickerProviderStateMixin {
   late final AnimationController _sequence;
   late final AnimationController _ambient;
+  Timer? _reducedMotionHold;
   bool _started = false;
   bool _reducedMotion = false;
   bool _initializationDone = false;
@@ -69,9 +70,14 @@ class _SplashScreenState extends State<SplashScreen>
     _started = true;
     _reducedMotion = MediaQuery.disableAnimationsOf(context);
     if (_reducedMotion) {
-      _sequence.value = 1;
-      _sequenceDone = true;
-      _openWhenReady();
+      // Reduced motion still presents the complete branded boot instead of
+      // skipping directly from Android's launch window to Home.
+      _sequence.value = 0.999;
+      _reducedMotionHold = Timer(const Duration(milliseconds: 1200), () {
+        if (!mounted) return;
+        _sequenceDone = true;
+        _openWhenReady();
+      });
     } else {
       _ambient.repeat();
       _sequence.forward();
@@ -120,6 +126,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _reducedMotionHold?.cancel();
     _sequence.dispose();
     _ambient.dispose();
     super.dispose();

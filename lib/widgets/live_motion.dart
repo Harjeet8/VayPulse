@@ -12,7 +12,7 @@ enum LiveMotionStyle {
   spark,
 }
 
-/// Small, context-aware motion for live icons without changing their layout.
+/// Visible, context-aware motion for live icons without changing their layout.
 /// Motion automatically stops when reduced motion is enabled.
 class LiveMotion extends StatefulWidget {
   final Widget child;
@@ -86,38 +86,42 @@ class _LiveMotionState extends State<LiveMotion>
         var scale = 1.0;
         var angle = 0.0;
         var offset = Offset.zero;
+        final opacity = 0.90 + ((math.sin(phase) + 1) / 2) * 0.10;
 
         switch (widget.style) {
           case LiveMotionStyle.signal:
-            scale = 1 + math.sin(phase) * 0.055;
+            scale = 1 + math.sin(phase) * 0.075;
             break;
           case LiveMotionStyle.sway:
-            angle = math.sin(phase) * 0.055;
-            offset = Offset(0, math.cos(phase) * 0.6);
+            angle = math.sin(phase) * 0.09;
+            offset = Offset(0, math.cos(phase) * 1.2);
             break;
           case LiveMotionStyle.drift:
-            offset = Offset(math.sin(phase) * 1.6, math.cos(phase) * 0.8);
+            offset = Offset(math.sin(phase) * 2.8, math.cos(phase) * 1.4);
             break;
           case LiveMotionStyle.orbit:
             angle = phase;
-            scale = 1 + math.sin(phase * 2) * 0.018;
+            scale = 1 + math.sin(phase * 2) * 0.045;
             break;
           case LiveMotionStyle.spark:
             scale =
-                1 + math.pow(math.max(0, math.sin(phase)), 5).toDouble() * 0.11;
-            angle = math.sin(phase * 2) * 0.018;
+                1 + math.pow(math.max(0, math.sin(phase)), 5).toDouble() * 0.16;
+            angle = math.sin(phase * 2) * 0.035;
             break;
           case LiveMotionStyle.breathe:
-            scale = 1 + (math.sin(phase) + 1) * 0.018;
-            offset = Offset(0, math.sin(phase) * 0.7);
+            scale = 1 + (math.sin(phase) + 1) * 0.032;
+            offset = Offset(0, math.sin(phase) * 1.1);
             break;
         }
 
-        return Transform.translate(
-          offset: offset,
-          child: Transform.rotate(
-            angle: angle,
-            child: Transform.scale(scale: scale, child: child),
+        return Opacity(
+          opacity: opacity,
+          child: Transform.translate(
+            offset: offset,
+            child: Transform.rotate(
+              angle: angle,
+              child: Transform.scale(scale: scale, child: child),
+            ),
           ),
         );
       },
@@ -131,6 +135,7 @@ class LiveMotionIcon extends StatelessWidget {
   final double? size;
   final bool animate;
   final LiveMotionStyle? style;
+  final Duration? duration;
 
   const LiveMotionIcon({
     super.key,
@@ -139,17 +144,23 @@ class LiveMotionIcon extends StatelessWidget {
     this.size,
     this.animate = true,
     this.style,
+    this.duration,
   });
 
   @override
   Widget build(BuildContext context) => LiveMotion(
         animate: animate,
         style: style ?? _styleFor(icon),
+        duration: duration ??
+            Duration(milliseconds: 1850 + (icon.codePoint % 7) * 170),
         child: Icon(icon, color: color, size: size),
       );
 
   static LiveMotionStyle _styleFor(IconData icon) {
     if (icon == Icons.wb_sunny_outlined || icon == Icons.refresh_rounded) {
+      return LiveMotionStyle.orbit;
+    }
+    if (icon == Icons.settings_outlined || icon == Icons.settings_rounded) {
       return LiveMotionStyle.orbit;
     }
     if (icon == Icons.air_rounded || icon == Icons.cloud_outlined) {
