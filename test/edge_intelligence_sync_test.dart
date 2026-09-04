@@ -9,7 +9,11 @@ Future<Esp32Snapshot> _snapshot(Map<String, dynamic> payload) {
   final client = Esp32Client(
     'http://192.168.4.1',
     httpClient: MockClient(
-      (_) async => http.Response(jsonEncode(payload), 200),
+      (_) async => http.Response(
+        jsonEncode(payload),
+        200,
+        headers: const {'content-type': 'application/json; charset=utf-8'},
+      ),
     ),
   );
   return client.getSnapshot();
