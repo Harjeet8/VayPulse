@@ -603,6 +603,91 @@ class PlantBaselineInfo {
   bool get hasData => status != null || ready != null || learnedNormal != null || deviation != null || anomalyDetected || changePointDetected;
 }
 
+class PlantModelInfo {
+  final String? status;
+  final bool? ready;
+  final double? confidence;
+  final int? learnedSamples;
+  final double? ageSeconds;
+  final bool? persisted;
+  final double? bioBaselineMv;
+  final double? typicalBioVariationMv;
+  final double? normalNoiseMv;
+  final double? normalSoilRatePctPerHour;
+
+  const PlantModelInfo({
+    this.status,
+    this.ready,
+    this.confidence,
+    this.learnedSamples,
+    this.ageSeconds,
+    this.persisted,
+    this.bioBaselineMv,
+    this.typicalBioVariationMv,
+    this.normalNoiseMv,
+    this.normalSoilRatePctPerHour,
+  });
+
+  String? get normalizedStatus {
+    final value = status?.trim().toUpperCase().replaceAll(' ', '_');
+    return value == null || value.isEmpty ? null : value;
+  }
+
+  bool get restored => normalizedStatus == 'RESTORED' || persisted == true;
+
+  bool get modelReady =>
+      ready == true || restored || normalizedStatus == 'READY';
+
+  bool get learning =>
+      !modelReady &&
+      (normalizedStatus == 'LEARNING' ||
+          normalizedStatus == 'BUILDING' ||
+          normalizedStatus == 'CALIBRATING');
+
+  String? get displayStatus {
+    if (modelReady) return 'READY';
+    return normalizedStatus;
+  }
+
+  bool get hasData =>
+      status != null ||
+      ready != null ||
+      confidence != null ||
+      learnedSamples != null ||
+      ageSeconds != null ||
+      persisted != null ||
+      bioBaselineMv != null ||
+      typicalBioVariationMv != null ||
+      normalNoiseMv != null ||
+      normalSoilRatePctPerHour != null;
+}
+
+class TemporalReasoningInfo {
+  final String? state;
+  final double? confidence;
+  final String? primarySequence;
+  final double? environmentToBioLagSec;
+  final double? actionToRecoveryLagSec;
+  final String? explanation;
+
+  const TemporalReasoningInfo({
+    this.state,
+    this.confidence,
+    this.primarySequence,
+    this.environmentToBioLagSec,
+    this.actionToRecoveryLagSec,
+    this.explanation,
+  });
+
+  bool get hasData =>
+      state != null ||
+      confidence != null ||
+      primarySequence != null ||
+      environmentToBioLagSec != null ||
+      actionToRecoveryLagSec != null ||
+      explanation != null;
+}
+
 class StressEvidence {
   final double? water;
   final double? heat;
@@ -793,6 +878,8 @@ class EdgeIntelligence {
   final ResponseLagInfo responseLag;
   final AnomalyInfo anomaly;
   final PlantBaselineInfo baseline;
+  final PlantModelInfo plantModel;
+  final TemporalReasoningInfo temporalReasoning;
   final StressEvidence stressEvidence;
   final DerivedEnvironmentInfo derivedEnvironment;
   final WaterBalanceInfo waterBalance;
@@ -841,6 +928,8 @@ class EdgeIntelligence {
     this.responseLag = const ResponseLagInfo(),
     this.anomaly = const AnomalyInfo(),
     this.baseline = const PlantBaselineInfo(),
+    this.plantModel = const PlantModelInfo(),
+    this.temporalReasoning = const TemporalReasoningInfo(),
     this.stressEvidence = const StressEvidence(),
     this.derivedEnvironment = const DerivedEnvironmentInfo(),
     this.waterBalance = const WaterBalanceInfo(),
@@ -988,6 +1077,24 @@ class EdgeIntelligence {
       data['baseline'],
       data['adaptiveBaseline'],
       plantHealth['baseline'],
+    ]);
+    final plantModelMap = _firstMap([
+      edge['plantModel'],
+      edge['adaptivePlantModel'],
+      data['plantModel'],
+      data['adaptivePlantModel'],
+      plantHealth['plantModel'],
+      root['plantModel'],
+      root['adaptivePlantModel'],
+    ]);
+    final temporalReasoningMap = _firstMap([
+      edge['temporalReasoning'],
+      edge['causeResponse'],
+      data['temporalReasoning'],
+      data['causeResponse'],
+      plantHealth['temporalReasoning'],
+      root['temporalReasoning'],
+      root['causeResponse'],
     ]);
     final evidenceMap = _firstMap([
       edge['stressEvidence'],
@@ -1618,6 +1725,127 @@ class EdgeIntelligence {
           true,
     );
 
+    final rawPlantModelStatus = _text(_first([
+      plantModelMap['status'],
+      plantModelMap['modelStatus'],
+      plantModelMap['state'],
+      edge['plantModelStatus'],
+      data['plantModelStatus'],
+    ]));
+    final normalizedPlantModelStatus = rawPlantModelStatus
+        ?.trim()
+        .toUpperCase()
+        .replaceAll(' ', '_')
+        .replaceAll('-', '_');
+    final explicitPlantModelReady = _bool(_first([
+      plantModelMap['ready'],
+      plantModelMap['modelReady'],
+      edge['plantModelReady'],
+      data['plantModelReady'],
+    ]));
+    final explicitPlantModelPersisted = _bool(_first([
+      plantModelMap['persisted'],
+      plantModelMap['baselinePersisted'],
+      edge['plantModelPersisted'],
+      data['plantModelPersisted'],
+    ]));
+
+    final plantModel = PlantModelInfo(
+      status: normalizedPlantModelStatus == 'RESTORED'
+          ? 'READY'
+          : rawPlantModelStatus,
+      ready: explicitPlantModelReady == true ||
+          normalizedPlantModelStatus == 'READY' ||
+          normalizedPlantModelStatus == 'RESTORED',
+      confidence: _percent(_first([
+        plantModelMap['confidence'],
+        plantModelMap['modelConfidence'],
+        edge['plantModelConfidence'],
+        data['plantModelConfidence'],
+      ])),
+      learnedSamples: _int(_first([
+        plantModelMap['learnedSamples'],
+        plantModelMap['samples'],
+        plantModelMap['sampleCount'],
+        edge['plantModelLearnedSamples'],
+        data['plantModelLearnedSamples'],
+      ])),
+      ageSeconds: _num(_first([
+        plantModelMap['ageSec'],
+        plantModelMap['ageSeconds'],
+        plantModelMap['modelAgeSec'],
+        edge['plantModelAgeSec'],
+        data['plantModelAgeSec'],
+      ])),
+      persisted: explicitPlantModelPersisted ??
+          (normalizedPlantModelStatus == 'RESTORED' ? true : null),
+      bioBaselineMv: _num(_first([
+        plantModelMap['bioBaselineMv'],
+        plantModelMap['baselineMv'],
+        edge['plantModelBioBaselineMv'],
+        data['plantModelBioBaselineMv'],
+      ])),
+      typicalBioVariationMv: _num(_first([
+        plantModelMap['typicalBioVariationMv'],
+        plantModelMap['bioVariationMv'],
+        edge['plantModelTypicalBioVariationMv'],
+        data['plantModelTypicalBioVariationMv'],
+      ])),
+      normalNoiseMv: _num(_first([
+        plantModelMap['normalNoiseMv'],
+        plantModelMap['bioNoiseMv'],
+        edge['plantModelNormalNoiseMv'],
+        data['plantModelNormalNoiseMv'],
+      ])),
+      normalSoilRatePctPerHour: _num(_first([
+        plantModelMap['normalSoilRatePctPerHour'],
+        plantModelMap['soilRatePctPerHour'],
+        edge['plantModelNormalSoilRatePctPerHour'],
+        data['plantModelNormalSoilRatePctPerHour'],
+      ])),
+    );
+
+    final temporalReasoning = TemporalReasoningInfo(
+      state: _text(_first([
+        temporalReasoningMap['state'],
+        temporalReasoningMap['status'],
+        edge['temporalState'],
+        data['temporalState'],
+      ])),
+      confidence: _percent(_first([
+        temporalReasoningMap['confidence'],
+        edge['temporalConfidence'],
+        data['temporalConfidence'],
+      ])),
+      primarySequence: _text(_first([
+        temporalReasoningMap['primarySequence'],
+        temporalReasoningMap['sequence'],
+        temporalReasoningMap['causeResponseSequence'],
+        edge['temporalPrimarySequence'],
+        data['temporalPrimarySequence'],
+      ])),
+      environmentToBioLagSec: _num(_first([
+        temporalReasoningMap['environmentToBioLagSec'],
+        temporalReasoningMap['environmentToBioResponseSeconds'],
+        responseLagMap['environmentToBioResponseSeconds'],
+        edge['environmentToBioLagSec'],
+        data['environmentToBioLagSec'],
+      ])),
+      actionToRecoveryLagSec: _num(_first([
+        temporalReasoningMap['actionToRecoveryLagSec'],
+        temporalReasoningMap['actionToResponseLagSec'],
+        responseLagMap['irrigationToBioDecreaseSeconds'],
+        edge['actionToRecoveryLagSec'],
+        data['actionToRecoveryLagSec'],
+      ])),
+      explanation: _text(_first([
+        temporalReasoningMap['explanation'],
+        temporalReasoningMap['reasoning'],
+        edge['temporalExplanation'],
+        data['temporalExplanation'],
+      ])),
+    );
+
     final stressEvidence = StressEvidence(
       water: _percent(_first([
         evidenceMap['waterStress'],
@@ -1960,6 +2188,8 @@ class EdgeIntelligence {
       responseLag: responseLag,
       anomaly: anomaly,
       baseline: baseline,
+      plantModel: plantModel,
+      temporalReasoning: temporalReasoning,
       stressEvidence: stressEvidence,
       derivedEnvironment: derived,
       waterBalance: waterBalance,
