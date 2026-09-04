@@ -153,6 +153,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 telemetry: telemetry,
                 live: live,
               ),
+              if (live && _FarmerEdgeSignals.visible(edge)) ...[
+                const SizedBox(height: 10),
+                _FarmerEdgeSignals(edge: edge!),
+              ],
               if (live && edge?.recovery.visibleOnHome == true) ...[
                 const SizedBox(height: 12),
                 _RecoveryStatusCard(recovery: edge!.recovery),
@@ -1295,6 +1299,134 @@ class _SystemQualityCard extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _FarmerEdgeSignals extends StatelessWidget {
+  final EdgeIntelligence edge;
+
+  const _FarmerEdgeSignals({required this.edge});
+
+  static bool visible(EdgeIntelligence? edge) {
+    if (edge == null) return false;
+    return edge.plantModel.learning || _predictionVisible(edge.prediction);
+  }
+
+  static bool _predictionVisible(PredictionInfo prediction) {
+    final confidence = prediction.confidence ?? 0;
+    final eta =
+        prediction.minutesToWarning ?? prediction.minutesToWaterStressWarning;
+    final hasMessage =
+        (prediction.message ?? prediction.explanation)?.trim().isNotEmpty ==
+            true;
+    final hasTargetEta =
+        prediction.target?.trim().isNotEmpty == true && eta != null;
+    return prediction.available == true &&
+        confidence >= 65 &&
+        (hasMessage || hasTargetEta);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <Widget>[];
+    if (edge.plantModel.learning) {
+      items.add(
+        _FarmerEdgeSignalRow(
+          icon: Icons.psychology_alt_outlined,
+          title: _competitionText(
+            context,
+            'Learning this plant',
+            'இந்த தாவரத்தை கற்றுக்கொள்கிறது',
+          ),
+          detail: _competitionText(
+            context,
+            'Building its normal baseline from live readings.',
+            'நேரடி அளவீடுகளில் இருந்து இயல்பான அடிப்படை கற்றுக்கொள்ளப்படுகிறது.',
+          ),
+        ),
+      );
+    }
+
+    final prediction = edge.prediction;
+    if (_predictionVisible(prediction)) {
+      final eta =
+          prediction.minutesToWarning ?? prediction.minutesToWaterStressWarning;
+      final firmwareText = (prediction.message ?? prediction.explanation)?.trim();
+      final fallback = eta == null
+          ? (prediction.target ?? 'A stress change may be developing.')
+          : '${prediction.target ?? 'Stress warning'} in about ${eta.round()} min';
+      items.add(
+        _FarmerEdgeSignalRow(
+          icon: Icons.schedule_outlined,
+          title: _competitionText(
+            context,
+            'Early warning',
+            'முன்கூட்டிய எச்சரிக்கை',
+          ),
+          detail: FarmerLanguage.firmware(
+            context,
+            firmwareText,
+            fallback: fallback,
+          ),
+        ),
+      );
+    }
+
+    if (items.isEmpty) return const SizedBox.shrink();
+    return Column(
+      children: [
+        for (var index = 0; index < items.length; index++) ...[
+          items[index],
+          if (index != items.length - 1) const SizedBox(height: 7),
+        ],
+      ],
+    );
+  }
+}
+
+class _FarmerEdgeSignalRow extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String detail;
+
+  const _FarmerEdgeSignalRow({
+    required this.icon,
+    required this.title,
+    required this.detail,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 10),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer.withValues(alpha: 0.28),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 19, color: scheme.primary),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text.rich(
+              TextSpan(
+                children: [
+                  TextSpan(
+                    text: '$title  ',
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  TextSpan(text: detail),
+                ],
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
       ),
     );
   }
