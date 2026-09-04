@@ -845,22 +845,30 @@ class _FarmerEdgeSignals extends StatelessWidget {
       (reading.predictionMessage.trim().isNotEmpty ||
           reading.predictionMinutesToWarning != null);
 
-  static String _recoveryText(SensorReading reading) {
+  static bool _hasRecoveryState(SensorReading reading) {
+    final state = reading.recoveryStatus.trim().toUpperCase();
+    return (state.isNotEmpty && state != 'NONE') || reading.recoveryVerified;
+  }
+
+  static String _recoveryText(BuildContext context, SensorReading reading) {
     final state = reading.recoveryStatus.trim().toUpperCase();
     if (state.isEmpty || state == 'NONE') return '';
     if (reading.recoveryVerified || state == 'RECOVERY_VERIFIED' || state == 'VERIFIED') {
       return reading.recoveryFarmerResult.trim().isNotEmpty
           ? reading.recoveryFarmerResult.trim()
-          : 'Recovery verified.';
+          : context.tr('edge_recovery_verified');
     }
     if (state == 'CONDITIONS_IMPROVING' || state == 'IMPROVING') {
-      return 'Conditions are improving.';
+      return context.tr('edge_recovery_improving');
     }
     if (state == 'RECOVERING') {
       final progress = reading.recoveryProgressPct;
       return progress == null
-          ? 'Recovery is in progress.'
-          : 'Recovery is in progress • ${progress.clamp(0, 100).round()}%';
+          ? context.tr('edge_recovery_in_progress')
+          : context.tr(
+              'edge_recovery_progress',
+              {'value': progress.clamp(0, 100).round()},
+            );
     }
     return '';
   }
@@ -907,13 +915,13 @@ class _FarmerEdgeSignals extends StatelessWidget {
       (!reading.plantModelReady &&
           reading.plantModelStatus.trim().toUpperCase() == 'LEARNING') ||
       _predictionVisible(reading) ||
-      _recoveryText(reading).isNotEmpty ||
+      _hasRecoveryState(reading) ||
       _systemWarning(reading).isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     final predictionVisible = _predictionVisible(reading);
-    final recovery = _recoveryText(reading);
+    final recovery = _recoveryText(context, reading);
     final warning = _systemWarning(reading);
     final learning = !reading.plantModelReady &&
         reading.plantModelStatus.trim().toUpperCase() == 'LEARNING';
@@ -926,14 +934,20 @@ class _FarmerEdgeSignals extends StatelessWidget {
           if (learning)
             const _CompactEdgeLine(
               icon: Icons.auto_awesome_outlined,
-              text: 'Learning this plant',
+              text: context.tr('edge_learning_plant'),
             ),
           if (predictionVisible)
             _CompactEdgeLine(
               icon: Icons.trending_up_rounded,
               text: reading.predictionMessage.trim().isNotEmpty
                   ? reading.predictionMessage.trim()
-                  : '${_edgeText(reading.predictionTarget)} may reach the warning range in ~${reading.predictionMinutesToWarning} min if the current trend continues.',
+                  : context.tr(
+                      'edge_prediction_fallback',
+                      {
+                        'target': _edgeText(reading.predictionTarget),
+                        'minutes': reading.predictionMinutesToWarning ?? '—',
+                      },
+                    ),
             ),
           if (recovery.isNotEmpty)
             _CompactEdgeLine(
