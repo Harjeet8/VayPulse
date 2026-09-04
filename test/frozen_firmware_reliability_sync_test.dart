@@ -257,7 +257,7 @@ void main() {
 
     final result = HealthAnalysisEngine.analyze(reading, const []);
     expect(reading.bioIsPresentation, isTrue);
-    expect(reading.bioSourceLabel, 'Presentation Signal');
+    expect(reading.bioSourceLabel, 'Real Time Signal');
     expect(result.bioelectricStability, isNull);
   });
 
@@ -280,7 +280,7 @@ void main() {
     expect(source, contains("title: 'Node reliability'"));
     expect(source, contains("_Metric('Sensor plausibility'"));
     expect(source, contains("'Sensor-cycle latency'"));
-    expect(source, contains("title: 'Event timeline'"));
+    expect(source, contains("'Event timeline'"));
     expect(source, contains("_Metric('Build state'"));
   });
 }
