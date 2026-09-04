@@ -74,6 +74,13 @@ class AppStrings {
       'recommended_action': 'Recommended action',
       'why_this': 'Why this insight',
       'confidence': '{value}% confidence',
+      'edge_learning_plant': 'Learning this plant',
+      'edge_recovery_improving': 'Conditions are improving.',
+      'edge_recovery_in_progress': 'Recovery is in progress.',
+      'edge_recovery_progress': 'Recovery is in progress • {value}%',
+      'edge_recovery_verified': 'Recovery verified.',
+      'edge_prediction_fallback':
+          '{target} may reach the warning range in ~{minutes} min if the current trend continues.',
       'decision_support_note':
           'Decision support only • Inspect the crop before taking action.',
       'zones_to_watch': 'Zones to watch',
@@ -1333,6 +1340,13 @@ class AppStrings {
       'recommended_action': 'பரிந்துரைக்கப்பட்ட செயல்',
       'why_this': 'இந்த தகவலுக்கான காரணம்',
       'confidence': '{value}% நம்பகத்தன்மை',
+      'edge_learning_plant': 'இந்தச் செடியை கற்றுக்கொள்கிறது',
+      'edge_recovery_improving': 'நிலைகள் மேம்பட்டு வருகின்றன.',
+      'edge_recovery_in_progress': 'மீட்பு நடைபெற்று வருகிறது.',
+      'edge_recovery_progress': 'மீட்பு நடைபெற்று வருகிறது • {value}%',
+      'edge_recovery_verified': 'மீட்பு உறுதிப்படுத்தப்பட்டது.',
+      'edge_prediction_fallback':
+          '{target} தற்போதைய போக்கு தொடர்ந்தால் சுமார் {minutes} நிமிடங்களில் எச்சரிக்கை வரம்பை அடையலாம்.',
       'decision_support_note':
           'முடிவு உதவி மட்டும் • செயல்படுவதற்கு முன் பயிரை நேரில் பாருங்கள்.',
       'zones_to_watch': 'கவனிக்க வேண்டிய மண்டலங்கள்',
