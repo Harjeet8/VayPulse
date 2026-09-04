@@ -317,6 +317,12 @@ class BioelectricIntelligence {
   final double? noiseMv;
   final double? signalQuality;
   final String? signalQualityState;
+  final String? contactState;
+  final double? contactConfidence;
+  final double? slowDriftMv;
+  final bool? contactPlausibleForPlantUse;
+  final String? openEvidence;
+  final String? staticEvidence;
   final double? confidence;
   final String? trend;
   final double? stressScore;
@@ -348,6 +354,12 @@ class BioelectricIntelligence {
     this.noiseMv,
     this.signalQuality,
     this.signalQualityState,
+    this.contactState,
+    this.contactConfidence,
+    this.slowDriftMv,
+    this.contactPlausibleForPlantUse,
+    this.openEvidence,
+    this.staticEvidence,
     this.confidence,
     this.trend,
     this.stressScore,
@@ -374,6 +386,12 @@ class BioelectricIntelligence {
       available != null ||
       voltageMv != null ||
       baselineMv != null ||
+      contactState != null ||
+      contactConfidence != null ||
+      slowDriftMv != null ||
+      contactPlausibleForPlantUse != null ||
+      openEvidence != null ||
+      staticEvidence != null ||
       stressScore != null ||
       stressState != null ||
       stressLoad != null ||
@@ -384,11 +402,27 @@ class BioelectricIntelligence {
       interpretation != null ||
       farmerResult != null;
 
+  String? get normalizedContactState => _normalizedState(contactState);
+
+  bool get contactTelemetryAvailable =>
+      contactState != null ||
+      contactConfidence != null ||
+      slowDriftMv != null ||
+      contactPlausibleForPlantUse != null ||
+      openEvidence != null ||
+      staticEvidence != null;
+
+  bool get plantContactPlausible =>
+      !presentationOnly &&
+      normalizedContactState == 'PLAUSIBLE' &&
+      contactPlausibleForPlantUse != false;
+
   bool get learningBaseline =>
-      baselineReady == false ||
-      (baselineTarget != null &&
-          baselineSamples != null &&
-          baselineSamples! < baselineTarget!);
+      !excludedByFirmware &&
+      (baselineReady == false ||
+          (baselineTarget != null &&
+              baselineSamples != null &&
+              baselineSamples! < baselineTarget!));
 
   static bool isPresentationSource(String? value) {
     final source = _normalizedState(value);
@@ -409,6 +443,18 @@ class BioelectricIntelligence {
     if (presentationOnly || includedInFusion == false || available == false) {
       return true;
     }
+
+    // Electrical cleanliness is not proof of plant contact. When the new
+    // firmware contact classifier is present, only PLAUSIBLE contact may
+    // participate in baseline learning or plant analysis.
+    final contact = normalizedContactState;
+    if (contact != null && contact != 'PLAUSIBLE') {
+      return true;
+    }
+    if (contactPlausibleForPlantUse == false) {
+      return true;
+    }
+
     final value = (signalQualityState ?? stressState ?? '')
         .trim()
         .toUpperCase()
@@ -1471,6 +1517,45 @@ class EdgeIntelligence {
         bioelectricMap['qualityState'],
         edge['bioSignalQualityState'],
         data['bioSignalQualityState'],
+      ])),
+      contactState: _text(_first([
+        bioelectricMap['contactState'],
+        bioelectricMap['bioContactState'],
+        edge['bioContactState'],
+        data['bioContactState'],
+        root['bioContactState'],
+      ])),
+      contactConfidence: _confidencePercent(_first([
+        bioelectricMap['contactConfidence'],
+        bioelectricMap['bioContactConfidence'],
+        edge['bioContactConfidence'],
+        data['bioContactConfidence'],
+        root['bioContactConfidence'],
+      ])),
+      slowDriftMv: _num(_first([
+        bioelectricMap['slowDriftMv'],
+        bioelectricMap['bioSlowDriftMv'],
+        edge['bioSlowDriftMv'],
+        data['bioSlowDriftMv'],
+        root['bioSlowDriftMv'],
+      ])),
+      contactPlausibleForPlantUse: _bool(_first([
+        bioelectricMap['contactPlausibleForPlantUse'],
+        edge['bioContactPlausibleForPlantUse'],
+        data['bioContactPlausibleForPlantUse'],
+        root['bioContactPlausibleForPlantUse'],
+      ])),
+      openEvidence: _text(_first([
+        bioelectricMap['openEvidence'],
+        edge['bioOpenEvidence'],
+        data['bioOpenEvidence'],
+        root['bioOpenEvidence'],
+      ])),
+      staticEvidence: _text(_first([
+        bioelectricMap['staticEvidence'],
+        edge['bioStaticEvidence'],
+        data['bioStaticEvidence'],
+        root['bioStaticEvidence'],
       ])),
       confidence: _percent(_first([
         bioelectricMap['confidence'],
