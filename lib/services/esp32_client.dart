@@ -476,7 +476,6 @@ class Esp32Client {
             analysis['cameraReason'],
             primaryRootCause
           ])}',
-      'sensorStates': <String, String>{
       'plantModelStatus': _normalizePlantModelStatus(first([
         plantModel['status'],
         plantModel['state'],
