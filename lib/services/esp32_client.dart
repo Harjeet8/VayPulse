@@ -677,6 +677,7 @@ class Esp32Client {
             ''
           ])}',
       'recentEvents': recentEvents is List ? recentEvents : const <dynamic>[],
+      'sensorStates': <String, String>{
         'temperature': _channelState(
           air,
           temperatureValid,
