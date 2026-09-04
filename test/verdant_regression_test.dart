@@ -85,10 +85,14 @@ void main() {
     final android12Theme = File(
       'android/app/src/main/res/values-v31/styles.xml',
     ).readAsStringSync();
+    final manifest = File(
+      'android/app/src/main/AndroidManifest.xml',
+    ).readAsStringSync();
 
     expect(colors, contains('#04120E'));
     expect(android12Theme, contains('@drawable/ic_launcher_nova'));
-    expect(android12Theme, contains('@style/NormalTheme'));
+    expect(android12Theme, isNot(contains('@mipmap/ic_launcher')));
+    expect(manifest, contains('io.flutter.embedding.android.NormalTheme'));
   });
 
   testWidgets('live icons have clearly changing individual motion',
