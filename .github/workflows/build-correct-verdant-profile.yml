@@ -1,0 +1,50 @@
+name: Build Correct Verdant Profile APK
+
+on:
+  push:
+    branches: [phytosense-verdant-latest-apk]
+    paths: ['.github/workflows/build-correct-verdant-profile.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout corrected Verdant source
+        uses: actions/checkout@v4
+      - name: Verify final UI lineage
+        run: |
+          grep -Fq "TimePhaseCard" lib/screens/live_node_home_screen.dart
+          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
+          grep -Fq "Node reliability" lib/screens/judge_view_screen.dart
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build profile APK
+        run: |
+          flutter pub get
+          flutter build apk --profile
+          cp build/app/outputs/flutter-apk/app-profile.apk PhytoSense-AI-VERDANT-LATEST-PROFILE.apk
+      - name: Verify package
+        run: |
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-VERDANT-LATEST-PROFILE.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          sha256sum PhytoSense-AI-VERDANT-LATEST-PROFILE.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-VERDANT-LATEST-PROFILE
+          path: PhytoSense-AI-VERDANT-LATEST-PROFILE.apk
+          if-no-files-found: error
+          retention-days: 3
