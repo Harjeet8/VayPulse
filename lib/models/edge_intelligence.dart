@@ -448,7 +448,7 @@ class BioelectricIntelligence {
     // firmware contact classifier is present, only PLAUSIBLE contact may
     // participate in baseline learning or plant analysis.
     final contact = normalizedContactState;
-    if (contact != null && contact != 'PLAUSIBLE') {
+    if (contactTelemetryAvailable && contact != 'PLAUSIBLE') {
       return true;
     }
     if (contactPlausibleForPlantUse == false) {
