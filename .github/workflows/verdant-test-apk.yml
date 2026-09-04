@@ -1,4 +1,4 @@
-name: Verdant Crown Phone Test APK
+name: Verdant Crown Compact Phone Test APK
 
 on:
   push:
@@ -49,25 +49,25 @@ jobs:
       - name: Run regression tests
         run: flutter test
 
-      - name: Build phone-test APK
+      - name: Build compact ARM64 phone-test APK
         run: |
           set -euo pipefail
-          flutter build apk --debug
-          test -s build/app/outputs/flutter-apk/app-debug.apk
-          cp build/app/outputs/flutter-apk/app-debug.apk PhytoSense_AI_VERDANT_CROWN_TEST.apk
+          flutter build apk --profile --split-per-abi
+          test -s build/app/outputs/flutter-apk/app-arm64-v8a-profile.apk
+          cp build/app/outputs/flutter-apk/app-arm64-v8a-profile.apk PhytoSense_AI_VERDANT_CROWN_STARTUP_FIXED_ARM64.apk
 
       - name: Verify package identity
         shell: bash
         run: |
           set -euo pipefail
           sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
-          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense_AI_VERDANT_CROWN_TEST.apk)"
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense_AI_VERDANT_CROWN_STARTUP_FIXED_ARM64.apk)"
           test "${app_id}" = "com.harjeet.phytosense"
 
-      - name: Upload phone-test APK
+      - name: Upload compact phone-test APK
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-VERDANT-CROWN-TEST-APK
-          path: PhytoSense_AI_VERDANT_CROWN_TEST.apk
+          name: PhytoSense-AI-VERDANT-CROWN-STARTUP-FIXED-ARM64
+          path: PhytoSense_AI_VERDANT_CROWN_STARTUP_FIXED_ARM64.apk
           if-no-files-found: error
           retention-days: 14
