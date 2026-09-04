@@ -98,6 +98,21 @@ void main() {
     expect(edge.bioelectric.excludedByFirmware, isTrue);
   });
 
+  test('new contact telemetry requires an explicit PLAUSIBLE state', () {
+    final edge = _edge(<String, dynamic>{
+      'bioelectric': <String, dynamic>{
+        'contactConfidence': 94,
+        'contactPlausibleForPlantUse': true,
+        'signalQuality': 100,
+        'includedInFusion': true,
+      },
+    });
+
+    expect(edge.bioelectric.contactTelemetryAvailable, isTrue);
+    expect(edge.bioelectric.normalizedContactState, isNull);
+    expect(edge.bioelectric.excludedByFirmware, isTrue);
+  });
+
   test('older firmware without contact telemetry keeps legacy behavior', () {
     final edge = _edge(<String, dynamic>{
       'bioelectric': <String, dynamic>{
@@ -126,6 +141,16 @@ void main() {
     expect(source, contains("title: 'Bio sensor saturated'"));
     expect(source, contains('static _HomeSystemNotice? fromEdge'));
     expect(source, isNot(contains('class _ElectrodeContactCard')));
+  });
+
+  test('ESP32 fallback sensor normalization gates invalid plant contact', () {
+    final source = File('lib/services/esp32_client.dart').readAsStringSync();
+
+    expect(source, contains('contactValidForPlantUse'));
+    expect(source, contains("bioContactState == 'PLAUSIBLE'"));
+    expect(source, contains('bioContactPlausibleForPlantUse != false'));
+    expect(source, contains("data['bioContactState']"));
+    expect(source, contains("data['bioSlowDriftMv']"));
   });
 
   test('Engineering View distinguishes electrical quality from plant contact',
