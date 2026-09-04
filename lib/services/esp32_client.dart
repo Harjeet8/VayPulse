@@ -24,24 +24,17 @@ class Esp32Client {
   /// earlier bring-up builds. No internet or router is required: this is a
   /// direct HTTP request to the ESP32 access point at 192.168.4.1.
   Future<Esp32Snapshot> getSnapshot() async {
-    FormatException? lastFormatError;
     for (final path in _sensorPaths) {
       final response = await _tryGet(path);
       if (response == null) continue;
       try {
         return _decodeSnapshot(response, endpoint: path);
-      } on FormatException catch (error) {
-        lastFormatError = error;
+      } on FormatException {
         // A compatibility endpoint may exist but expose an older shape. Keep
         // trying the remaining aliases before declaring the node invalid.
       }
     }
-    final detail = lastFormatError?.message;
-    throw Exception(
-      detail == null
-          ? 'PhytoSense ESP32 did not return a valid sensor payload'
-          : 'PhytoSense ESP32 did not return a valid sensor payload: $detail',
-    );
+    throw Exception('PhytoSense ESP32 did not return a valid sensor payload');
   }
 
   Future<bool> ping() async {
