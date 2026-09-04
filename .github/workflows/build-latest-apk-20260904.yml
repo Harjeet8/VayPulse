@@ -15,6 +15,8 @@ jobs:
     steps:
       - name: Checkout exact frozen source
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Verify frozen commit ancestry
         shell: bash
