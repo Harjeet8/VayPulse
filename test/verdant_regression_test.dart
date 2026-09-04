@@ -79,20 +79,65 @@ void main() {
   });
 
   test('Android launch window matches the animated boot handoff', () {
-    final colors = File(
+    final lightColors = File(
       'android/app/src/main/res/values/colors.xml',
     ).readAsStringSync();
-    final android12Theme = File(
+    final darkColors = File(
+      'android/app/src/main/res/values-night/colors.xml',
+    ).readAsStringSync();
+    final android12LightTheme = File(
       'android/app/src/main/res/values-v31/styles.xml',
+    ).readAsStringSync();
+    final android12DarkTheme = File(
+      'android/app/src/main/res/values-night-v31/styles.xml',
     ).readAsStringSync();
     final manifest = File(
       'android/app/src/main/AndroidManifest.xml',
     ).readAsStringSync();
+    final nativeBadge = File(
+      'android/app/src/main/res/drawable-xhdpi/phytosense_boot_badge.png',
+    );
 
-    expect(colors, contains('#04120E'));
-    expect(android12Theme, contains('@drawable/ic_launcher_nova'));
-    expect(android12Theme, isNot(contains('@mipmap/ic_launcher')));
+    expect(lightColors, contains('#F3F8F5'));
+    expect(darkColors, contains('#04120E'));
+    expect(android12LightTheme, contains('@drawable/phytosense_boot_badge'));
+    expect(android12DarkTheme, contains('@drawable/phytosense_boot_badge'));
+    expect(android12LightTheme, isNot(contains('@mipmap/ic_launcher')));
+    expect(android12LightTheme, isNot(contains('@drawable/ic_launcher_nova')));
+    expect(nativeBadge.lengthSync(), greaterThan(10000));
     expect(manifest, contains('io.flutter.embedding.android.NormalTheme'));
+  });
+
+  testWidgets('animated boot follows the active light or dark theme',
+      (tester) async {
+    final stalled = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: ThemeData.light(),
+        themeMode: ThemeMode.light,
+        home: SplashScreen(initialization: stalled.future),
+      ),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
+      const Color(0xFFF3F8F5),
+    );
+
+    await tester.pumpWidget(
+      MaterialApp(
+        darkTheme: ThemeData.dark(),
+        themeMode: ThemeMode.dark,
+        home: SplashScreen(initialization: stalled.future),
+      ),
+    );
+    await tester.pump();
+    expect(
+      tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
+      const Color(0xFF04120E),
+    );
+
+    await tester.pumpWidget(const SizedBox.shrink());
   });
 
   testWidgets('live icons have clearly changing individual motion',

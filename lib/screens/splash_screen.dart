@@ -135,29 +135,43 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   Widget build(BuildContext context) {
     if (_startupError != null) return const _StartupErrorView();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final background = isDark
+        ? const Color(0xFF04120E)
+        : const Color(0xFFF3F8F5);
+    final systemStyle = (isDark
+            ? SystemUiOverlayStyle.light
+            : SystemUiOverlayStyle.dark)
+        .copyWith(
+      statusBarColor: Colors.transparent,
+      systemNavigationBarColor: background,
+    );
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: SystemUiOverlayStyle.light.copyWith(
-        statusBarColor: Colors.transparent,
-        systemNavigationBarColor: const Color(0xFF04120E),
-      ),
+      value: systemStyle,
       child: Scaffold(
-        backgroundColor: const Color(0xFF04120E),
+        backgroundColor: background,
         body: AnimatedBuilder(
           animation: Listenable.merge([_sequence, _ambient]),
           builder: (context, _) {
             final progress = _reducedMotion ? 1.0 : _sequence.value;
             final phase = _reducedMotion ? 0.18 : _ambient.value;
             return DecoratedBox(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: RadialGradient(
                   center: Alignment(0, -0.24),
                   radius: 1.02,
-                  colors: [
-                    Color(0xFF174936),
-                    Color(0xFF0A271E),
-                    Color(0xFF04120E),
-                  ],
+                  colors: isDark
+                      ? const [
+                          Color(0xFF174936),
+                          Color(0xFF0A271E),
+                          Color(0xFF04120E),
+                        ]
+                      : const [
+                          Color(0xFFE2F3EA),
+                          Color(0xFFEEF8F2),
+                          Color(0xFFF8FCF9),
+                        ],
                   stops: [0, 0.48, 1],
                 ),
               ),
@@ -168,12 +182,14 @@ class _SplashScreenState extends State<SplashScreen>
                     child: BootMotionPolish(
                       progress: progress,
                       phase: phase,
+                      dark: isDark,
                     ),
                   ),
                   IgnorePointer(
                     child: BootIntelligenceOverlay(
                       progress: progress,
                       phase: phase,
+                      dark: isDark,
                     ),
                   ),
                   SafeArea(
@@ -187,11 +203,13 @@ class _SplashScreenState extends State<SplashScreen>
                               progress: progress,
                               phase: phase,
                               reducedMotion: _reducedMotion,
+                              dark: isDark,
                             ),
                             const SizedBox(height: 31),
                             _BootCopy(
                               progress: progress,
                               segment: _segment,
+                              dark: isDark,
                             ),
                           ],
                         ),
@@ -212,11 +230,13 @@ class _AnimatedLogo extends StatelessWidget {
   final double progress;
   final double phase;
   final bool reducedMotion;
+  final bool dark;
 
   const _AnimatedLogo({
     required this.progress,
     required this.phase,
     required this.reducedMotion,
+    required this.dark,
   });
 
   double _segment(double begin, double end) {
@@ -227,6 +247,8 @@ class _AnimatedLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final accent = dark ? const Color(0xFF9EE9C8) : const Color(0xFF176B4D);
+    final glow = dark ? const Color(0xFF4BE39B) : const Color(0xFF31A36F);
     final reveal = Curves.easeOutBack.transform(_segment(0.05, 0.40));
     final lock = Curves.easeOutCubic.transform(_segment(0.67, 0.92));
     final breathe = reducedMotion ? 0.0 : math.sin(phase * math.pi * 2);
@@ -252,7 +274,7 @@ class _AnimatedLogo extends StatelessWidget {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: const Color(0xFF9EE9C8).withValues(
+                    color: accent.withValues(
                       alpha: (0.06 + lock * 0.09) / (ring + 1),
                     ),
                   ),
@@ -271,14 +293,16 @@ class _AnimatedLogo extends StatelessWidget {
                       borderRadius: BorderRadius.circular(42),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFF4BE39B).withValues(
+                          color: glow.withValues(
                             alpha: 0.10 + lock * 0.14 + pulse * 0.04,
                           ),
                           blurRadius: 32 + lock * 18,
                           spreadRadius: 1 + lock * 2,
                         ),
                         BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.24),
+                          color: Colors.black.withValues(
+                            alpha: dark ? 0.24 : 0.13,
+                          ),
                           blurRadius: 22,
                           offset: const Offset(0, 13),
                         ),
@@ -333,11 +357,21 @@ class _AnimatedLogo extends StatelessWidget {
 class _BootCopy extends StatelessWidget {
   final double progress;
   final double Function(double, double, double) segment;
+  final bool dark;
 
-  const _BootCopy({required this.progress, required this.segment});
+  const _BootCopy({
+    required this.progress,
+    required this.segment,
+    required this.dark,
+  });
 
   @override
   Widget build(BuildContext context) {
+    final titleColor = dark
+        ? const Color(0xFFF4FFF9)
+        : const Color(0xFF14251E);
+    final secondary = dark ? Colors.white : const Color(0xFF4C6256);
+    final accent = dark ? const Color(0xFF9EE9C8) : const Color(0xFF176B4D);
     final brand = Curves.easeOutCubic.transform(segment(progress, 0.27, 0.55));
     final quote = Curves.easeOutCubic.transform(segment(progress, 0.42, 0.72));
     final ready = Curves.easeOutCubic.transform(segment(progress, 0.76, 0.98));
@@ -347,11 +381,11 @@ class _BootCopy extends StatelessWidget {
           offset: Offset(0, (1 - brand) * 12),
           child: Opacity(
             opacity: brand,
-            child: const Text(
+            child: Text(
               'PhytoSense AI',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Color(0xFFF4FFF9),
+                color: titleColor,
                 fontSize: 31,
                 fontWeight: FontWeight.w900,
                 letterSpacing: -1.05,
@@ -368,7 +402,7 @@ class _BootCopy extends StatelessWidget {
               'See stress before it becomes visible',
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.68),
+                color: secondary.withValues(alpha: dark ? 0.68 : 0.78),
                 fontSize: 14.5,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.08,
@@ -382,16 +416,18 @@ class _BootCopy extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
             decoration: BoxDecoration(
-              color: const Color(0xFF9EE9C8).withValues(alpha: 0.08),
+              color: accent.withValues(alpha: 0.08),
               borderRadius: BorderRadius.circular(99),
               border: Border.all(
-                color: const Color(0xFF9EE9C8).withValues(alpha: 0.14),
+                color: accent.withValues(alpha: 0.14),
               ),
             ),
-            child: const Text(
+            child: Text(
               'EDGE INTELLIGENCE  •  SYNCHRONIZED',
               style: TextStyle(
-                color: Color(0xFFBFEFDB),
+                color: dark
+                    ? const Color(0xFFBFEFDB)
+                    : const Color(0xFF176B4D),
                 fontSize: 8.5,
                 fontWeight: FontWeight.w900,
                 letterSpacing: 1.25,

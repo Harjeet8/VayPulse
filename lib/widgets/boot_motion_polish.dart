@@ -7,11 +7,13 @@ import 'package:flutter/material.dart';
 class BootMotionPolish extends StatelessWidget {
   final double progress;
   final double phase;
+  final bool dark;
 
   const BootMotionPolish({
     super.key,
     required this.progress,
     required this.phase,
+    required this.dark,
   });
 
   @override
@@ -21,6 +23,7 @@ class BootMotionPolish extends StatelessWidget {
         painter: _BootMotionPainter(
           progress: progress,
           phase: phase,
+          dark: dark,
         ),
       ),
     );
@@ -30,10 +33,12 @@ class BootMotionPolish extends StatelessWidget {
 class _BootMotionPainter extends CustomPainter {
   final double progress;
   final double phase;
+  final bool dark;
 
   const _BootMotionPainter({
     required this.progress,
     required this.phase,
+    required this.dark,
   });
 
   @override
@@ -46,11 +51,15 @@ class _BootMotionPainter extends CustomPainter {
       ((progress - 0.42) / 0.5).clamp(0.0, 1.0).toDouble(),
     );
     final pulse = (math.sin(phase * math.pi * 2) + 1) / 2;
+    final haloColor = dark ? const Color(0xFFB9E7D4) : const Color(0xFF176B4D);
+    final routeColor = dark ? const Color(0xFF8BD7B5) : const Color(0xFF2B8D64);
+    final packetColor = dark ? const Color(0xFFD7F7E9) : const Color(0xFF176B4D);
+    final glowColor = dark ? const Color(0xFF8FE1BD) : const Color(0xFF31A36F);
 
     final haloPaint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.1
-      ..color = const Color(0xFFB9E7D4).withValues(
+      ..color = haloColor.withValues(
         alpha: (0.025 + pulse * 0.05) * reveal,
       );
     for (var i = 0; i < 3; i++) {
@@ -62,7 +71,7 @@ class _BootMotionPainter extends CustomPainter {
       ..style = PaintingStyle.stroke
       ..strokeWidth = 0.85
       ..strokeCap = StrokeCap.round
-      ..color = const Color(0xFF8BD7B5).withValues(alpha: 0.06 * reveal);
+      ..color = routeColor.withValues(alpha: 0.06 * reveal);
 
     final routes = <Path>[
       Path()
@@ -119,13 +128,13 @@ class _BootMotionPainter extends CustomPainter {
       final local = (phase + routeIndex * 0.19) % 1.0;
       final tangent = metric.getTangentForOffset(metric.length * local);
       if (tangent == null) continue;
-      packetPaint.color = const Color(0xFFD7F7E9).withValues(
+      packetPaint.color = packetColor.withValues(
         alpha: (0.18 + 0.55 * settle) * reveal,
       );
       canvas.drawCircle(tangent.position, 1.7 + settle * 0.8, packetPaint);
       final glowPaint = Paint()
         ..style = PaintingStyle.fill
-        ..color = const Color(0xFF8FE1BD).withValues(alpha: 0.055 * reveal);
+        ..color = glowColor.withValues(alpha: 0.055 * reveal);
       canvas.drawCircle(tangent.position, 6.5, glowPaint);
     }
 
@@ -134,7 +143,7 @@ class _BootMotionPainter extends CustomPainter {
         ..style = PaintingStyle.stroke
         ..strokeWidth = 1
         ..strokeCap = StrokeCap.round
-        ..color = const Color(0xFFB9E7D4).withValues(alpha: 0.09 * settle);
+        ..color = haloColor.withValues(alpha: 0.09 * settle);
       for (var i = 0; i < 20; i++) {
         final angle = i / 20 * math.pi * 2;
         final inner = center + Offset(math.cos(angle), math.sin(angle)) * 119;
@@ -147,5 +156,7 @@ class _BootMotionPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _BootMotionPainter oldDelegate) =>
-      oldDelegate.progress != progress || oldDelegate.phase != phase;
+      oldDelegate.progress != progress ||
+      oldDelegate.phase != phase ||
+      oldDelegate.dark != dark;
 }
