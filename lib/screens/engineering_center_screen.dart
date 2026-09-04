@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/app_strings.dart';
+import '../models/sensor_reading.dart';
 import '../services/ai_analysis_service.dart';
 import '../services/app_scope.dart';
 import '../services/engineering_evidence_service.dart';
@@ -110,6 +111,10 @@ class SystemXrayScreen extends StatelessWidget {
                 body: context.tr('xray_live_pipeline_body'),
                 live: sensors.source == SensorDataSource.esp32,
               ),
+              if (hardwareMode && reading != null) ...[
+                const SizedBox(height: 14),
+                _EdgeIntelligencePanel(reading: reading),
+              ],
               const SizedBox(height: 18),
               _PipelineStep(
                 number: '01',
@@ -880,6 +885,464 @@ class _StatusBanner extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _EdgeIntelligencePanel extends StatelessWidget {
+  final SensorReading reading;
+
+  const _EdgeIntelligencePanel({required this.reading});
+
+  static double _confidencePercent(double? value) {
+    if (value == null || !value.isFinite) return 0;
+    return value <= 1 ? value * 100 : value;
+  }
+
+  static String _confidence(double? value) =>
+      value == null ? '' : '${_confidencePercent(value).clamp(0, 100).round()}%';
+
+  static String _label(String value) =>
+      value.trim().replaceAll('_', ' ').toLowerCase().split(' ').where((part) => part.isNotEmpty).map((part) => '${part[0].toUpperCase()}${part.substring(1)}').join(' ');
+
+  bool get _hasPlantModel =>
+      reading.plantModelStatus.trim().isNotEmpty ||
+      reading.plantModelConfidence != null ||
+      reading.plantModelLearnedSamples != null ||
+      reading.plantModelBioBaselineMv != null;
+
+  bool get _hasTemporal =>
+      reading.temporalState.trim().isNotEmpty ||
+      reading.temporalPrimarySequence.trim().isNotEmpty ||
+      reading.temporalExplanation.trim().isNotEmpty ||
+      reading.environmentToBioLagSec != null ||
+      reading.actionToRecoveryLagSec != null;
+
+  bool get _hasReliability =>
+      reading.sensorIntegrityState.trim().isNotEmpty ||
+      reading.plausibilityState.trim().isNotEmpty ||
+      reading.anomalyState.trim().isNotEmpty ||
+      reading.bioState.trim().isNotEmpty ||
+      reading.bioSignalQuality > 0 ||
+      reading.reliabilityMode.trim().isNotEmpty;
+
+  bool get _hasRecovery {
+    final state = reading.recoveryStatus.trim().toUpperCase();
+    return (state.isNotEmpty && state != 'NONE') ||
+        reading.recoveryVerified ||
+        reading.recoveryProgressPct != null ||
+        reading.recoveryFarmerResult.trim().isNotEmpty;
+  }
+
+  bool get _hasRuntime =>
+      reading.runtimeHealthState.trim().isNotEmpty ||
+      reading.runtimeHealthIssue.trim().isNotEmpty ||
+      reading.runtimeFreeHeap != null ||
+      reading.runtimeLastLoopGapMs != null ||
+      reading.runtimeLastSensorCycleMs != null;
+
+  @override
+  Widget build(BuildContext context) {
+    final secondary = reading.rankedRootCauses.length > 1
+        ? reading.rankedRootCauses[1]
+        : '';
+    final events = [...reading.recentEvents]
+      ..sort((a, b) {
+        if (a.timestamp == null && b.timestamp == null) return 0;
+        if (a.timestamp == null) return 1;
+        if (b.timestamp == null) return -1;
+        return b.timestamp!.compareTo(a.timestamp!);
+      });
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.psychology_alt_rounded,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(width: 9),
+                Expanded(
+                  child: Text(
+                    'ESP32 Edge Intelligence',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                ),
+                Chip(
+                  visualDensity: VisualDensity.compact,
+                  label: Text(_label(reading.reliabilityMode)),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            _EdgeSection(
+              title: 'Edge Analysis',
+              children: [
+                _EdgeDetailRow(
+                  label: 'Plant state',
+                  value: _label(reading.healthStatus),
+                ),
+                if (reading.primaryRootCause.trim().isNotEmpty)
+                  _EdgeDetailRow(
+                    label: 'Root cause',
+                    value: _label(reading.primaryRootCause),
+                  ),
+                if (secondary.trim().isNotEmpty)
+                  _EdgeDetailRow(
+                    label: 'Secondary cause',
+                    value: _label(secondary),
+                  ),
+                if (reading.analysisConfidence > 0)
+                  _EdgeDetailRow(
+                    label: 'Analysis confidence',
+                    value: _confidence(reading.analysisConfidence),
+                  ),
+              ],
+            ),
+            if (_hasPlantModel)
+              _EdgeSection(
+                title: 'Individual Plant Model',
+                children: [
+                  _EdgeDetailRow(
+                    label: 'Model status',
+                    value: reading.plantModelReady
+                        ? 'Ready'
+                        : _label(reading.plantModelStatus.isEmpty
+                            ? 'LEARNING'
+                            : reading.plantModelStatus),
+                  ),
+                  if (reading.plantModelConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Confidence',
+                      value: _confidence(reading.plantModelConfidence),
+                    ),
+                  if (reading.plantModelLearnedSamples != null)
+                    _EdgeDetailRow(
+                      label: 'Learned samples',
+                      value: '${reading.plantModelLearnedSamples}',
+                    ),
+                  _EdgeDetailRow(
+                    label: 'Baseline retained',
+                    value: reading.plantModelPersisted ? 'Yes' : 'No',
+                  ),
+                  if (reading.plantModelBioBaselineMv != null)
+                    _EdgeDetailRow(
+                      label: 'Bio baseline',
+                      value:
+                          '${reading.plantModelBioBaselineMv!.toStringAsFixed(1)} mV',
+                    ),
+                  if (reading.plantModelTypicalBioVariationMv != null)
+                    _EdgeDetailRow(
+                      label: 'Typical variation',
+                      value:
+                          '${reading.plantModelTypicalBioVariationMv!.toStringAsFixed(1)} mV',
+                    ),
+                ],
+              ),
+            if (_hasTemporal)
+              _EdgeSection(
+                title: 'Cause-Response Intelligence',
+                children: [
+                  if (reading.temporalPrimarySequence.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Main sequence',
+                      value: reading.temporalPrimarySequence.trim(),
+                    )
+                  else if (reading.temporalExplanation.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Main sequence',
+                      value: reading.temporalExplanation.trim(),
+                    ),
+                  if (reading.environmentToBioLagSec != null)
+                    _EdgeDetailRow(
+                      label: 'Environment → bio lag',
+                      value: '${reading.environmentToBioLagSec} s',
+                    ),
+                  if (reading.actionToRecoveryLagSec != null)
+                    _EdgeDetailRow(
+                      label: 'Action → recovery lag',
+                      value: '${reading.actionToRecoveryLagSec} s',
+                    ),
+                  if (reading.temporalConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Confidence',
+                      value: _confidence(reading.temporalConfidence),
+                    ),
+                ],
+              ),
+            if (reading.predictionAvailable)
+              _EdgeSection(
+                title: 'Prediction',
+                children: [
+                  if (reading.predictionTarget.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Target',
+                      value: _label(reading.predictionTarget),
+                    ),
+                  if (reading.predictionMinutesToWarning != null)
+                    _EdgeDetailRow(
+                      label: 'Estimated time',
+                      value: '~${reading.predictionMinutesToWarning} min',
+                    ),
+                  if (reading.predictionConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Confidence',
+                      value: _confidence(reading.predictionConfidence),
+                    ),
+                  if (reading.predictionDirection.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Trend',
+                      value: _label(reading.predictionDirection),
+                    ),
+                  if (reading.predictionMessage.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Outlook',
+                      value: reading.predictionMessage.trim(),
+                    ),
+                ],
+              ),
+            if (_hasReliability)
+              _EdgeSection(
+                title: 'Signal & Sensor Reliability',
+                children: [
+                  if (reading.sensorIntegrityState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Sensor integrity',
+                      value: _label(reading.sensorIntegrityState),
+                    ),
+                  if (reading.sensorIntegrityPrimaryIssue.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Primary issue',
+                      value: reading.sensorIntegrityPrimaryIssue.trim(),
+                    ),
+                  if (reading.plausibilityState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Plausibility',
+                      value: _label(reading.plausibilityState),
+                    ),
+                  if (reading.anomalyState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Anomaly',
+                      value: _label(reading.anomalyState),
+                    ),
+                  if (reading.anomalyAffectedChannel.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Affected channel',
+                      value: _label(reading.anomalyAffectedChannel),
+                    ),
+                  if (reading.plantSignalAvailable)
+                    _EdgeDetailRow(
+                      label: 'Bio signal quality',
+                      value: '${reading.bioSignalQuality.round()}%',
+                    ),
+                  _EdgeDetailRow(
+                    label: 'Analysis reliability',
+                    value: _label(reading.reliabilityMode),
+                  ),
+                ],
+              ),
+            if (_hasRecovery)
+              _EdgeSection(
+                title: 'Recovery',
+                children: [
+                  _EdgeDetailRow(
+                    label: 'State',
+                    value: reading.recoveryVerified
+                        ? 'Recovery verified'
+                        : _label(reading.recoveryStatus),
+                  ),
+                  if (reading.recoveryProgressPct != null)
+                    _EdgeDetailRow(
+                      label: 'Progress',
+                      value:
+                          '${reading.recoveryProgressPct!.clamp(0, 100).round()}%',
+                    ),
+                  if (reading.recoveryConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Confidence',
+                      value: _confidence(reading.recoveryConfidence),
+                    ),
+                  if (reading.recoveryActionToResponseLagSec != null)
+                    _EdgeDetailRow(
+                      label: 'Action → response lag',
+                      value: '${reading.recoveryActionToResponseLagSec} s',
+                    ),
+                  if (reading.recoveryFarmerResult.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Result',
+                      value: reading.recoveryFarmerResult.trim(),
+                    ),
+                ],
+              ),
+            if (events.isNotEmpty)
+              _EdgeSection(
+                title: 'Recent Edge Events',
+                children: [
+                  for (final event in events.take(6))
+                    _EdgeEventRow(event: event),
+                ],
+              ),
+            if (_hasRuntime)
+              ExpansionTile(
+                tilePadding: EdgeInsets.zero,
+                childrenPadding: const EdgeInsets.only(bottom: 4),
+                title: const Text(
+                  'Node Health',
+                  style: TextStyle(fontWeight: FontWeight.w900),
+                ),
+                subtitle: reading.runtimeHealthState.trim().isEmpty
+                    ? null
+                    : Text(_label(reading.runtimeHealthState)),
+                children: [
+                  if (reading.runtimeHealthIssue.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Issue',
+                      value: reading.runtimeHealthIssue.trim(),
+                    ),
+                  if (reading.runtimeFreeHeap != null)
+                    _EdgeDetailRow(
+                      label: 'Free heap',
+                      value: '${reading.runtimeFreeHeap} B',
+                    ),
+                  if (reading.runtimeMinFreeHeap != null)
+                    _EdgeDetailRow(
+                      label: 'Minimum heap',
+                      value: '${reading.runtimeMinFreeHeap} B',
+                    ),
+                  if (reading.runtimeLastLoopGapMs != null)
+                    _EdgeDetailRow(
+                      label: 'Last loop gap',
+                      value: '${reading.runtimeLastLoopGapMs} ms',
+                    ),
+                  if (reading.runtimeMaxLoopGapMs != null)
+                    _EdgeDetailRow(
+                      label: 'Maximum loop gap',
+                      value: '${reading.runtimeMaxLoopGapMs} ms',
+                    ),
+                  if (reading.runtimeLastSensorCycleMs != null)
+                    _EdgeDetailRow(
+                      label: 'Last sensor cycle',
+                      value: '${reading.runtimeLastSensorCycleMs} ms',
+                    ),
+                  if (reading.runtimeMaxSensorCycleMs != null)
+                    _EdgeDetailRow(
+                      label: 'Maximum sensor cycle',
+                      value: '${reading.runtimeMaxSensorCycleMs} ms',
+                    ),
+                  if (reading.runtimeOledI2cSkipTotal != null)
+                    _EdgeDetailRow(
+                      label: 'OLED I²C skips',
+                      value: '${reading.runtimeOledI2cSkipTotal}',
+                    ),
+                ],
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _EdgeSection extends StatelessWidget {
+  final String title;
+  final List<Widget> children;
+
+  const _EdgeSection({required this.title, required this.children});
+
+  @override
+  Widget build(BuildContext context) {
+    if (children.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 10, bottom: 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Divider(color: Theme.of(context).dividerColor.withValues(alpha: 0.7)),
+          const SizedBox(height: 5),
+          Text(
+            title,
+            style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                ),
+          ),
+          const SizedBox(height: 5),
+          ...children,
+        ],
+      ),
+    );
+  }
+}
+
+class _EdgeDetailRow extends StatelessWidget {
+  final String label;
+  final String value;
+
+  const _EdgeDetailRow({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 138,
+              child: Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
+        ),
+      );
+}
+
+class _EdgeEventRow extends StatelessWidget {
+  final EdgeEvent event;
+
+  const _EdgeEventRow({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final label = event.message.trim().isNotEmpty
+        ? event.message.trim()
+        : _EdgeIntelligencePanel._label(event.type);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.circle,
+            size: 9,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+          const SizedBox(width: 9),
+          Expanded(child: Text(label)),
+          if (event.timestamp != null) ...[
+            const SizedBox(width: 8),
+            Text(
+              '${event.timestamp!.hour.toString().padLeft(2, '0')}:${event.timestamp!.minute.toString().padLeft(2, '0')}',
+              style: Theme.of(context).textTheme.labelSmall,
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 }
 
 class _PipelineStep extends StatelessWidget {
