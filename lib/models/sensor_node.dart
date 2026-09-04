@@ -26,15 +26,16 @@ class SensorNode {
     int? signalPercent,
     DateTime? lastSeen,
     bool? isOnline,
-  }) => SensorNode(
-    id: id,
-    name: name,
-    farmId: farmId,
-    fieldId: fieldId,
-    zoneId: zoneId,
-    batteryPercent: batteryPercent ?? this.batteryPercent,
-    signalPercent: signalPercent ?? this.signalPercent,
-    lastSeen: lastSeen ?? this.lastSeen,
-    isOnline: isOnline ?? this.isOnline,
-  );
+  }) =>
+      SensorNode(
+        id: id,
+        name: name,
+        farmId: farmId,
+        fieldId: fieldId,
+        zoneId: zoneId,
+        batteryPercent: batteryPercent ?? this.batteryPercent,
+        signalPercent: signalPercent ?? this.signalPercent,
+        lastSeen: lastSeen ?? this.lastSeen,
+        isOnline: isOnline ?? this.isOnline,
+      );
 }

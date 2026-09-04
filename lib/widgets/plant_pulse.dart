@@ -8,10 +8,10 @@ class PlantPulse extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: double.infinity,
-    height: height,
-    child: CustomPaint(painter: _PlantPulsePainter(color)),
-  );
+        width: double.infinity,
+        height: height,
+        child: CustomPaint(painter: _PlantPulsePainter(color)),
+      );
 }
 
 class _PlantPulsePainter extends CustomPainter {

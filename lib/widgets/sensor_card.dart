@@ -107,7 +107,9 @@ class SensorCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                style: Theme.of(context).textTheme.headlineSmall
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
             if (previousValue != null && numericValue != null) ...[
@@ -136,8 +138,8 @@ class SensorCard extends StatelessWidget {
               Text(
                 preferredRange!,
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
               ),
             ],
             if (caption != null) ...[

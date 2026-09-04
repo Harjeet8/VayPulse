@@ -15,60 +15,60 @@ class EngineeringCenterScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(context.tr('engineering_center'))),
-    body: PageFrame(
-      children: [
-        const _EngineeringHero(),
-        const SizedBox(height: 18),
-        Text(
-          context.tr('engineering_center_body'),
-          style: Theme.of(context).textTheme.bodyLarge,
+        appBar: AppBar(title: Text(context.tr('engineering_center'))),
+        body: PageFrame(
+          children: [
+            const _EngineeringHero(),
+            const SizedBox(height: 18),
+            Text(
+              context.tr('engineering_center_body'),
+              style: Theme.of(context).textTheme.bodyLarge,
+            ),
+            const SizedBox(height: 16),
+            _ToolCard(
+              icon: Icons.account_tree_outlined,
+              title: context.tr('system_xray'),
+              body: context.tr('system_xray_body'),
+              onTap: () => _open(context, const SystemXrayScreen()),
+            ),
+            const SizedBox(height: 10),
+            _ToolCard(
+              icon: Icons.science_outlined,
+              title: context.tr('experiment_lab'),
+              body: context.tr('experiment_lab_body'),
+              onTap: () => _open(context, const ExperimentLabScreen()),
+            ),
+            const SizedBox(height: 10),
+            _ToolCard(
+              icon: Icons.tune_rounded,
+              title: context.tr('calibration_wizard'),
+              body: context.tr('calibration_wizard_body'),
+              onTap: () => _open(context, const CalibrationWizardScreen()),
+            ),
+            const SizedBox(height: 10),
+            _ToolCard(
+              icon: Icons.description_outlined,
+              title: context.tr('judge_report'),
+              body: context.tr('judge_report_body'),
+              onTap: () => _open(context, const JudgeReportScreen()),
+            ),
+            const SizedBox(height: 10),
+            _ToolCard(
+              icon: Icons.how_to_reg_outlined,
+              title: context.tr('feedback_evidence'),
+              body: context.tr('feedback_evidence_body'),
+              onTap: () => _open(context, const FeedbackSummaryScreen()),
+            ),
+            const SizedBox(height: 10),
+            _ToolCard(
+              icon: Icons.policy_outlined,
+              title: context.tr('responsible_ai_card'),
+              body: context.tr('responsible_ai_card_body'),
+              onTap: () => _open(context, const ResponsibleAiModelCardScreen()),
+            ),
+          ],
         ),
-        const SizedBox(height: 16),
-        _ToolCard(
-          icon: Icons.account_tree_outlined,
-          title: context.tr('system_xray'),
-          body: context.tr('system_xray_body'),
-          onTap: () => _open(context, const SystemXrayScreen()),
-        ),
-        const SizedBox(height: 10),
-        _ToolCard(
-          icon: Icons.science_outlined,
-          title: context.tr('experiment_lab'),
-          body: context.tr('experiment_lab_body'),
-          onTap: () => _open(context, const ExperimentLabScreen()),
-        ),
-        const SizedBox(height: 10),
-        _ToolCard(
-          icon: Icons.tune_rounded,
-          title: context.tr('calibration_wizard'),
-          body: context.tr('calibration_wizard_body'),
-          onTap: () => _open(context, const CalibrationWizardScreen()),
-        ),
-        const SizedBox(height: 10),
-        _ToolCard(
-          icon: Icons.description_outlined,
-          title: context.tr('judge_report'),
-          body: context.tr('judge_report_body'),
-          onTap: () => _open(context, const JudgeReportScreen()),
-        ),
-        const SizedBox(height: 10),
-        _ToolCard(
-          icon: Icons.how_to_reg_outlined,
-          title: context.tr('feedback_evidence'),
-          body: context.tr('feedback_evidence_body'),
-          onTap: () => _open(context, const FeedbackSummaryScreen()),
-        ),
-        const SizedBox(height: 10),
-        _ToolCard(
-          icon: Icons.policy_outlined,
-          title: context.tr('responsible_ai_card'),
-          body: context.tr('responsible_ai_card_body'),
-          onTap: () => _open(context, const ResponsibleAiModelCardScreen()),
-        ),
-      ],
-    ),
-  );
+      );
 
   static void _open(BuildContext context, Widget screen) =>
       Navigator.push(context, MaterialPageRoute(builder: (_) => screen));
@@ -156,10 +156,10 @@ class SystemXrayScreen extends StatelessWidget {
                 detail: !analysisAvailable
                     ? context.tr('no_data')
                     : hardwareMode
-                    ? (reading!.primaryRootCause.isEmpty
-                          ? reading.healthStatus.replaceAll('_', ' ')
-                          : reading.primaryRootCause.replaceAll('_', ' '))
-                    : context.tr(analysis!.headlineKey),
+                        ? (reading!.primaryRootCause.isEmpty
+                            ? reading.healthStatus.replaceAll('_', ' ')
+                            : reading.primaryRootCause.replaceAll('_', ' '))
+                        : context.tr(analysis!.headlineKey),
                 complete: analysisAvailable,
               ),
               _PipelineStep(
@@ -168,8 +168,8 @@ class SystemXrayScreen extends StatelessWidget {
                 title: context.tr('xray_action'),
                 detail: hardwareMode && reading != null
                     ? (reading.farmerAction.isEmpty
-                          ? context.tr('xray_no_alert')
-                          : reading.farmerAction)
+                        ? context.tr('xray_no_alert')
+                        : reading.farmerAction)
                     : context.tr(
                         scope.alerts.alerts.isEmpty
                             ? 'xray_no_alert'
@@ -189,8 +189,7 @@ class SystemXrayScreen extends StatelessWidget {
                       ? scope.offlineSync.historyCount
                       : 0,
                 }),
-                complete:
-                    scope.engineeringEvidence
+                complete: scope.engineeringEvidence
                         .trialsForSource(sensors.source.name)
                         .isNotEmpty ||
                     (sensors.source == SensorDataSource.esp32 &&
@@ -301,7 +300,9 @@ class _ExperimentLabScreenState extends State<ExperimentLabScreen> {
               const SizedBox(height: 20),
               Text(
                 context.tr('recorded_trials'),
-                style: Theme.of(context).textTheme.titleMedium
+                style: Theme.of(context)
+                    .textTheme
+                    .titleMedium
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 10),
@@ -434,22 +435,22 @@ class CalibrationWizardScreen extends StatelessWidget {
                               onPressed: samples < 3
                                   ? null
                                   : () async {
-                                      final saved = await service
-                                          .saveCalibration();
+                                      final saved =
+                                          await service.saveCalibration();
                                       if (!context.mounted || saved == null) {
                                         return;
                                       }
                                       ScaffoldMessenger.of(context)
                                           .showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                context.tr(
-                                                  'calibration_saved',
-                                                  {'value': saved.trustScore},
-                                                ),
-                                              ),
+                                        SnackBar(
+                                          content: Text(
+                                            context.tr(
+                                              'calibration_saved',
+                                              {'value': saved.trustScore},
                                             ),
-                                          );
+                                          ),
+                                        ),
+                                      );
                                     },
                               icon: const Icon(Icons.verified_rounded),
                               label: Text(context.tr('save_calibration')),
@@ -513,7 +514,9 @@ class JudgeReportScreen extends StatelessWidget {
                   padding: const EdgeInsets.all(18),
                   child: SelectableText(
                     report,
-                    style: Theme.of(context).textTheme.bodyMedium
+                    style: Theme.of(context)
+                        .textTheme
+                        .bodyMedium
                         ?.copyWith(height: 1.55, fontFamily: 'monospace'),
                   ),
                 ),
@@ -691,54 +694,54 @@ class ResponsibleAiModelCardScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    appBar: AppBar(title: Text(context.tr('responsible_ai_card'))),
-    body: PageFrame(
-      children: [
-        _StatusBanner(
-          icon: Icons.policy_rounded,
-          title: context.tr('model_card_title'),
-          body: context.tr('model_card_intro'),
-          live: false,
+        appBar: AppBar(title: Text(context.tr('responsible_ai_card'))),
+        body: PageFrame(
+          children: [
+            _StatusBanner(
+              icon: Icons.policy_rounded,
+              title: context.tr('model_card_title'),
+              body: context.tr('model_card_intro'),
+              live: false,
+            ),
+            const SizedBox(height: 14),
+            _SectionCard(
+              icon: Icons.flag_outlined,
+              title: context.tr('model_intended_use'),
+              body: context.tr('model_intended_use_body'),
+            ),
+            const SizedBox(height: 10),
+            _SectionCard(
+              icon: Icons.dataset_outlined,
+              title: context.tr('model_inputs'),
+              body: context.tr('model_inputs_body'),
+            ),
+            const SizedBox(height: 10),
+            _SectionCard(
+              icon: Icons.psychology_alt_outlined,
+              title: context.tr('model_method'),
+              body: context.tr('model_method_body'),
+            ),
+            const SizedBox(height: 10),
+            _SectionCard(
+              icon: Icons.warning_amber_outlined,
+              title: context.tr('model_limitations'),
+              body: context.tr('model_limitations_body'),
+            ),
+            const SizedBox(height: 10),
+            _SectionCard(
+              icon: Icons.privacy_tip_outlined,
+              title: context.tr('model_privacy'),
+              body: context.tr('model_privacy_body'),
+            ),
+            const SizedBox(height: 10),
+            _SectionCard(
+              icon: Icons.rule_folder_outlined,
+              title: context.tr('model_validation'),
+              body: context.tr('model_validation_body'),
+            ),
+          ],
         ),
-        const SizedBox(height: 14),
-        _SectionCard(
-          icon: Icons.flag_outlined,
-          title: context.tr('model_intended_use'),
-          body: context.tr('model_intended_use_body'),
-        ),
-        const SizedBox(height: 10),
-        _SectionCard(
-          icon: Icons.dataset_outlined,
-          title: context.tr('model_inputs'),
-          body: context.tr('model_inputs_body'),
-        ),
-        const SizedBox(height: 10),
-        _SectionCard(
-          icon: Icons.psychology_alt_outlined,
-          title: context.tr('model_method'),
-          body: context.tr('model_method_body'),
-        ),
-        const SizedBox(height: 10),
-        _SectionCard(
-          icon: Icons.warning_amber_outlined,
-          title: context.tr('model_limitations'),
-          body: context.tr('model_limitations_body'),
-        ),
-        const SizedBox(height: 10),
-        _SectionCard(
-          icon: Icons.privacy_tip_outlined,
-          title: context.tr('model_privacy'),
-          body: context.tr('model_privacy_body'),
-        ),
-        const SizedBox(height: 10),
-        _SectionCard(
-          icon: Icons.rule_folder_outlined,
-          title: context.tr('model_validation'),
-          body: context.tr('model_validation_body'),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 class _EngineeringHero extends StatelessWidget {
@@ -746,51 +749,52 @@ class _EngineeringHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.all(22),
-    decoration: BoxDecoration(
-      gradient: const LinearGradient(
-        colors: [Color(0xFF0D4934), Color(0xFF267B5B)],
-      ),
-      borderRadius: BorderRadius.circular(28),
-    ),
-    child: Row(
-      children: [
-        Container(
-          width: 58,
-          height: 58,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.14),
-            borderRadius: BorderRadius.circular(19),
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF0D4934), Color(0xFF267B5B)],
           ),
-          child: const Icon(
-            Icons.engineering_rounded,
-            color: Colors.white,
-            size: 31,
-          ),
+          borderRadius: BorderRadius.circular(28),
         ),
-        const SizedBox(width: 14),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                context.tr('engineering_evidence'),
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w900,
-                ),
+        child: Row(
+          children: [
+            Container(
+              width: 58,
+              height: 58,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.14),
+                borderRadius: BorderRadius.circular(19),
               ),
-              const SizedBox(height: 4),
-              Text(
-                context.tr('engineering_evidence_subtitle'),
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+              child: const Icon(
+                Icons.engineering_rounded,
+                color: Colors.white,
+                size: 31,
               ),
-            ],
-          ),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('engineering_evidence'),
+                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    context.tr('engineering_evidence_subtitle'),
+                    style:
+                        TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
-      ],
-    ),
-  );
+      );
 }
 
 class _ToolCard extends StatelessWidget {
@@ -808,26 +812,27 @@ class _ToolCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: ListTile(
-      contentPadding: const EdgeInsets.all(16),
-      leading: Container(
-        width: 48,
-        height: 48,
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primaryContainer,
-          borderRadius: BorderRadius.circular(16),
+        child: ListTile(
+          contentPadding: const EdgeInsets.all(16),
+          leading: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+          ),
+          title:
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(body),
+          ),
+          trailing: const Icon(Icons.chevron_right_rounded),
+          onTap: onTap,
         ),
-        child: Icon(icon, color: Theme.of(context).colorScheme.primary),
-      ),
-      title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-      subtitle: Padding(
-        padding: const EdgeInsets.only(top: 4),
-        child: Text(body),
-      ),
-      trailing: const Icon(Icons.chevron_right_rounded),
-      onTap: onTap,
-    ),
-  );
+      );
 }
 
 class _StatusBanner extends StatelessWidget {
@@ -845,42 +850,43 @@ class _StatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.primaryContainer,
-    child: Padding(
-      padding: const EdgeInsets.all(18),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.primary, size: 30),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
+        color: Theme.of(context).colorScheme.primaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon,
+                  color: Theme.of(context).colorScheme.primary, size: 30),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            title,
+                            style: const TextStyle(fontWeight: FontWeight.w900),
+                          ),
+                        ),
+                        if (live)
+                          Chip(
+                            visualDensity: VisualDensity.compact,
+                            label: Text(context.tr('source_live_badge')),
+                          ),
+                      ],
                     ),
-                    if (live)
-                      Chip(
-                        visualDensity: VisualDensity.compact,
-                        label: Text(context.tr('source_live_badge')),
-                      ),
+                    const SizedBox(height: 5),
+                    Text(body),
                   ],
                 ),
-                const SizedBox(height: 5),
-                Text(body),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _EdgeIntelligencePanel extends StatelessWidget {
@@ -975,11 +981,9 @@ class _EdgeIntelligencePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondary = reading.rankedRootCauses.length > 1
-        ? reading.rankedRootCauses[1]
-        : '';
-    final events = [...reading.recentEvents]
-      ..sort((a, b) {
+    final secondary =
+        reading.rankedRootCauses.length > 1 ? reading.rankedRootCauses[1] : '';
+    final events = [...reading.recentEvents]..sort((a, b) {
         if (a.timestamp == null && b.timestamp == null) return 0;
         if (a.timestamp == null) return 1;
         if (b.timestamp == null) return -1;
@@ -1002,7 +1006,9 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'ESP32 Edge Intelligence',
-                    style: Theme.of(context).textTheme.titleMedium
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
                         ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
@@ -1213,9 +1219,8 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                   if (reading.hasBioContactTelemetry)
                     _EdgeDetailRow(
                       label: 'Plant-analysis use',
-                      value: reading.bioPlantUseAllowed
-                          ? 'Enabled'
-                          : 'Disabled',
+                      value:
+                          reading.bioPlantUseAllowed ? 'Enabled' : 'Disabled',
                     ),
                   if (reading.bioOpenLatched == true)
                     const _EdgeDetailRow(
@@ -1364,7 +1369,9 @@ class _EdgeSection extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleSmall
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
                 ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 5),
@@ -1383,25 +1390,25 @@ class _EdgeDetailRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 138,
-          child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 138,
+              child: Text(label, style: Theme.of(context).textTheme.bodySmall),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                style: const TextStyle(fontWeight: FontWeight.w800),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 10),
-        Expanded(
-          child: Text(
-            value,
-            textAlign: TextAlign.right,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 class _EdgeEventRow extends StatelessWidget {
@@ -1530,67 +1537,67 @@ class _ActiveTrialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    color: Theme.of(context).colorScheme.tertiaryContainer,
-    child: Padding(
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        color: Theme.of(context).colorScheme.tertiaryContainer,
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.radio_button_checked_rounded),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  context.tr('trial_recording'),
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
+              Row(
+                children: [
+                  const Icon(Icons.radio_button_checked_rounded),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      context.tr('trial_recording'),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  Chip(label: Text(context.tr('active'))),
+                ],
               ),
-              Chip(label: Text(context.tr('active'))),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 10,
+                runSpacing: 10,
+                children: [
+                  _SmallMetric(
+                    label: context.tr('samples'),
+                    value: '${service.activeSampleCount}',
+                  ),
+                  _SmallMetric(
+                    label: context.tr('minimum_health'),
+                    value: '${service.activeMinimumHealth.toStringAsFixed(0)}%',
+                  ),
+                  _SmallMetric(
+                    label: context.tr('maximum_stress'),
+                    value: '${service.activeMaximumStress.toStringAsFixed(0)}%',
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton(
+                      onPressed: service.cancelTrial,
+                      child: Text(context.tr('cancel_trial')),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () => _showFinishTrial(context, service),
+                      icon: const Icon(Icons.stop_rounded),
+                      label: Text(context.tr('finish_trial')),
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _SmallMetric(
-                label: context.tr('samples'),
-                value: '${service.activeSampleCount}',
-              ),
-              _SmallMetric(
-                label: context.tr('minimum_health'),
-                value: '${service.activeMinimumHealth.toStringAsFixed(0)}%',
-              ),
-              _SmallMetric(
-                label: context.tr('maximum_stress'),
-                value: '${service.activeMaximumStress.toStringAsFixed(0)}%',
-              ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: service.cancelTrial,
-                  child: Text(context.tr('cancel_trial')),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: () => _showFinishTrial(context, service),
-                  icon: const Icon(Icons.stop_rounded),
-                  label: Text(context.tr('finish_trial')),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 Future<void> _showFinishTrial(
@@ -1617,7 +1624,9 @@ Future<void> _showFinishTrial(
             children: [
               Text(
                 context.tr('finish_trial'),
-                style: Theme.of(context).textTheme.titleLarge
+                style: Theme.of(context)
+                    .textTheme
+                    .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 14),
@@ -1676,55 +1685,56 @@ class _TrialCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(17),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+        child: Padding(
+          padding: const EdgeInsets.all(17),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(
-                child: Text(
-                  trial.title,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      trial.title,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                  ),
+                  Chip(label: Text(context.tr('outcome_${trial.outcome}'))),
+                ],
               ),
-              Chip(label: Text(context.tr('outcome_${trial.outcome}'))),
+              const SizedBox(height: 6),
+              Text(
+                '${trial.crop} • ${trial.nodeId} • ${trial.source.toUpperCase()}',
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 12,
+                runSpacing: 7,
+                children: [
+                  _InlineMetric(
+                    icon: Icons.timer_outlined,
+                    text: context.tr('trial_minutes', {
+                      'value': trial.duration.inMinutes,
+                    }),
+                  ),
+                  _InlineMetric(
+                    icon: Icons.data_usage_rounded,
+                    text: context
+                        .tr('trial_samples', {'value': trial.sampleCount}),
+                  ),
+                  _InlineMetric(
+                    icon: Icons.monitor_heart_outlined,
+                    text: '${trial.minimumHealth.toStringAsFixed(0)}%',
+                  ),
+                ],
+              ),
+              if (trial.notes.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                Text(trial.notes),
+              ],
             ],
           ),
-          const SizedBox(height: 6),
-          Text(
-            '${trial.crop} • ${trial.nodeId} • ${trial.source.toUpperCase()}',
-          ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 12,
-            runSpacing: 7,
-            children: [
-              _InlineMetric(
-                icon: Icons.timer_outlined,
-                text: context.tr('trial_minutes', {
-                  'value': trial.duration.inMinutes,
-                }),
-              ),
-              _InlineMetric(
-                icon: Icons.data_usage_rounded,
-                text: context.tr('trial_samples', {'value': trial.sampleCount}),
-              ),
-              _InlineMetric(
-                icon: Icons.monitor_heart_outlined,
-                text: '${trial.minimumHealth.toStringAsFixed(0)}%',
-              ),
-            ],
-          ),
-          if (trial.notes.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(trial.notes),
-          ],
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _CalibrationStep extends StatelessWidget {
@@ -1744,36 +1754,37 @@ class _CalibrationStep extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: EdgeInsets.only(bottom: last ? 0 : 14),
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        CircleAvatar(
-          radius: 17,
-          backgroundColor: complete
-              ? Theme.of(context).colorScheme.primary
-              : Theme.of(context).colorScheme.surfaceContainerHighest,
-          foregroundColor: complete
-              ? Theme.of(context).colorScheme.onPrimary
-              : Theme.of(context).colorScheme.onSurfaceVariant,
-          child: complete
-              ? const Icon(Icons.check_rounded, size: 18)
-              : Text(number),
+        padding: EdgeInsets.only(bottom: last ? 0 : 14),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            CircleAvatar(
+              radius: 17,
+              backgroundColor: complete
+                  ? Theme.of(context).colorScheme.primary
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
+              foregroundColor: complete
+                  ? Theme.of(context).colorScheme.onPrimary
+                  : Theme.of(context).colorScheme.onSurfaceVariant,
+              child: complete
+                  ? const Icon(Icons.check_rounded, size: 18)
+                  : Text(number),
+            ),
+            const SizedBox(width: 11),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
+                  const SizedBox(height: 3),
+                  Text(body),
+                ],
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 11),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 3),
-              Text(body),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+      );
 }
 
 class _SectionCard extends StatelessWidget {
@@ -1789,30 +1800,30 @@ class _SectionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(18),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: Theme.of(context).colorScheme.primary),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(icon, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 5),
+                    Text(body),
+                  ],
                 ),
-                const SizedBox(height: 5),
-                Text(body),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 }
 
 class _MetricCard extends StatelessWidget {
@@ -1830,25 +1841,27 @@ class _MetricCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-    width: width,
-    child: Card(
-      child: Padding(
-        padding: const EdgeInsets.all(17),
-        child: Row(
-          children: [
-            Icon(icon, color: Theme.of(context).colorScheme.primary),
-            const SizedBox(width: 12),
-            Expanded(child: Text(label)),
-            Text(
-              value,
-              style: Theme.of(context).textTheme.headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
+        width: width,
+        child: Card(
+          child: Padding(
+            padding: const EdgeInsets.all(17),
+            child: Row(
+              children: [
+                Icon(icon, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                Expanded(child: Text(label)),
+                Text(
+                  value,
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ],
             ),
-          ],
+          ),
         ),
-      ),
-    ),
-  );
+      );
 }
 
 class _SmallMetric extends StatelessWidget {
@@ -1859,19 +1872,19 @@ class _SmallMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
-    decoration: BoxDecoration(
-      color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
-      borderRadius: BorderRadius.circular(14),
-    ),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: Theme.of(context).textTheme.labelSmall),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(14),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(label, style: Theme.of(context).textTheme.labelSmall),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+          ],
+        ),
+      );
 }
 
 class _InlineMetric extends StatelessWidget {
@@ -1882,9 +1895,9 @@ class _InlineMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-    mainAxisSize: MainAxisSize.min,
-    children: [Icon(icon, size: 16), const SizedBox(width: 5), Text(text)],
-  );
+        mainAxisSize: MainAxisSize.min,
+        children: [Icon(icon, size: 16), const SizedBox(width: 5), Text(text)],
+      );
 }
 
 class _InfoRow extends StatelessWidget {
@@ -1895,14 +1908,14 @@ class _InfoRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 5),
-    child: Row(
-      children: [
-        Expanded(child: Text(label)),
-        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-      ],
-    ),
-  );
+        padding: const EdgeInsets.symmetric(vertical: 5),
+        child: Row(
+          children: [
+            Expanded(child: Text(label)),
+            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+          ],
+        ),
+      );
 }
 
 class _EmptyEvidence extends StatelessWidget {
@@ -1912,9 +1925,9 @@ class _EmptyEvidence extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-    child: Padding(
-      padding: const EdgeInsets.all(24),
-      child: Center(child: Text(message, textAlign: TextAlign.center)),
-    ),
-  );
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Center(child: Text(message, textAlign: TextAlign.center)),
+        ),
+      );
 }

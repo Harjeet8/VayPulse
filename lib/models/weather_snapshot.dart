@@ -16,22 +16,22 @@ class WeatherDay {
   });
 
   Map<String, dynamic> toJson() => {
-    'date': date.toIso8601String(),
-    'minimumTemperature': minimumTemperature,
-    'maximumTemperature': maximumTemperature,
-    'precipitationProbability': precipitationProbability,
-    'precipitationMillimetres': precipitationMillimetres,
-    'weatherCode': weatherCode,
-  };
+        'date': date.toIso8601String(),
+        'minimumTemperature': minimumTemperature,
+        'maximumTemperature': maximumTemperature,
+        'precipitationProbability': precipitationProbability,
+        'precipitationMillimetres': precipitationMillimetres,
+        'weatherCode': weatherCode,
+      };
 
   factory WeatherDay.fromJson(Map<String, dynamic> json) => WeatherDay(
-    date: DateTime.tryParse('${json['date']}') ?? DateTime.now(),
-    minimumTemperature: _number(json['minimumTemperature']),
-    maximumTemperature: _number(json['maximumTemperature']),
-    precipitationProbability: _number(json['precipitationProbability']),
-    precipitationMillimetres: _number(json['precipitationMillimetres']),
-    weatherCode: _number(json['weatherCode']).round(),
-  );
+        date: DateTime.tryParse('${json['date']}') ?? DateTime.now(),
+        minimumTemperature: _number(json['minimumTemperature']),
+        maximumTemperature: _number(json['maximumTemperature']),
+        precipitationProbability: _number(json['precipitationProbability']),
+        precipitationMillimetres: _number(json['precipitationMillimetres']),
+        weatherCode: _number(json['weatherCode']).round(),
+      );
 
   static double _number(dynamic value) =>
       value is num ? value.toDouble() : double.tryParse('$value') ?? 0;
@@ -58,40 +58,35 @@ class WeatherSnapshot {
 
   WeatherDay? get today => forecast.isEmpty ? null : forecast.first;
 
-  bool get heavyRainRisk => forecast
-      .take(2)
-      .any(
+  bool get heavyRainRisk => forecast.take(2).any(
         (day) =>
             day.precipitationMillimetres >= 30 ||
             day.precipitationProbability >= 90,
       );
 
   bool get diseaseRisk {
-    final rain = forecast
-        .take(2)
-        .any((day) => day.precipitationMillimetres >= 4);
+    final rain =
+        forecast.take(2).any((day) => day.precipitationMillimetres >= 4);
     return humidity >= 82 && rain && temperature >= 18 && temperature <= 33;
   }
 
   bool get drySpellRisk =>
       forecast.length >= 4 &&
-      forecast
-          .take(4)
-          .every(
+      forecast.take(4).every(
             (day) =>
                 day.precipitationProbability < 25 &&
                 day.precipitationMillimetres < 1,
           );
 
   Map<String, dynamic> toJson() => {
-    'location': location,
-    'updatedAt': updatedAt.toIso8601String(),
-    'temperature': temperature,
-    'humidity': humidity,
-    'windSpeed': windSpeed,
-    'weatherCode': weatherCode,
-    'forecast': forecast.map((day) => day.toJson()).toList(),
-  };
+        'location': location,
+        'updatedAt': updatedAt.toIso8601String(),
+        'temperature': temperature,
+        'humidity': humidity,
+        'windSpeed': windSpeed,
+        'weatherCode': weatherCode,
+        'forecast': forecast.map((day) => day.toJson()).toList(),
+      };
 
   factory WeatherSnapshot.fromJson(Map<String, dynamic> json) =>
       WeatherSnapshot(

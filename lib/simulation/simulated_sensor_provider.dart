@@ -168,9 +168,8 @@ class SimulationSensorProvider extends SensorDataProvider {
         ? (target.light + zoneOffset + noise(4)).clamp(0, 100).toDouble()
         : 0.0;
     final lightLux = daytime ? lightPercent * 700 : 0.0;
-    final rootTemperature = (temperature - 1.5 + noise(0.5))
-        .clamp(-10, 60)
-        .toDouble();
+    final rootTemperature =
+        (temperature - 1.5 + noise(0.5)).clamp(-10, 60).toDouble();
 
     final leafWetness = switch (_mode) {
       DemoMode.overwatered => (82 + noise(5)).clamp(0, 100).toDouble(),

@@ -31,18 +31,19 @@ void main() {
     double light = 68,
     double plantSignal = 50,
     double health = 90,
-  }) => SensorReading(
-    nodeId: 'test-node',
-    timestamp: DateTime(2026, 8, 23),
-    soilMoisture: soil,
-    temperature: temperature,
-    humidity: humidity,
-    light: light,
-    plantSignal: plantSignal,
-    healthScore: health,
-    stressScore: 100 - health,
-    healthStatus: SensorReading.statusForHealth(health),
-  );
+  }) =>
+      SensorReading(
+        nodeId: 'test-node',
+        timestamp: DateTime(2026, 8, 23),
+        soilMoisture: soil,
+        temperature: temperature,
+        humidity: humidity,
+        light: light,
+        plantSignal: plantSignal,
+        healthScore: health,
+        stressScore: 100 - health,
+        healthStatus: SensorReading.statusForHealth(health),
+      );
 
   test('healthy readings produce a balanced insight', () {
     final current = reading();
@@ -352,7 +353,9 @@ void main() {
     expect(assessment.candidates.first.nameKey, 'disease_tomato_leaf_curl');
   });
 
-  test('crop-specific camera contexts stay specific and other profiles stay generic', () {
+  test(
+      'crop-specific camera contexts stay specific and other profiles stay generic',
+      () {
     final visual = LeafScreeningResult(
       riskKey: 'leaf_result_spot_risk',
       explanationKey: 'leaf_result_spot_risk_body',
@@ -424,12 +427,18 @@ void main() {
     expect(ricePrompt.reasonKeys, isNot(contains('disease_trigger_wet_soil')));
     expect(tomatoPrompt.reasonKeys, contains('disease_trigger_wet_soil'));
 
-    final riceInsight = AiAnalysisService.analyze(reading(soil: 94), [
-      reading(soil: 94),
-    ], crop: 'Rice');
-    final tomatoInsight = AiAnalysisService.analyze(reading(soil: 94), [
-      reading(soil: 94),
-    ], crop: 'Tomato');
+    final riceInsight = AiAnalysisService.analyze(
+        reading(soil: 94),
+        [
+          reading(soil: 94),
+        ],
+        crop: 'Rice');
+    final tomatoInsight = AiAnalysisService.analyze(
+        reading(soil: 94),
+        [
+          reading(soil: 94),
+        ],
+        crop: 'Tomato');
     expect(riceInsight.headlineKey, 'ai_paddy_water_expected');
     expect(tomatoInsight.headlineKey, 'ai_overwatering');
 

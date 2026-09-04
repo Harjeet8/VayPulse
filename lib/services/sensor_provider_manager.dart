@@ -47,9 +47,8 @@ class SensorProviderManager extends SensorDataProvider {
       oldHardware.dispose();
     }
 
-    final target = source == SensorDataSource.simulation
-        ? simulation
-        : _hardware;
+    final target =
+        source == SensorDataSource.simulation ? simulation : _hardware;
     if (!identical(target, _active)) {
       _active.stop();
       _detach();
