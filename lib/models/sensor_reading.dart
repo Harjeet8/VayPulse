@@ -1,5 +1,39 @@
 import 'dart:math' as math;
 
+class EdgeEvent {
+  final String id;
+  final DateTime? timestamp;
+  final String type;
+  final String message;
+
+  const EdgeEvent({
+    this.id = '',
+    this.timestamp,
+    this.type = '',
+    this.message = '',
+  });
+
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'timestamp': timestamp?.toIso8601String(),
+        'type': type,
+        'message': message,
+      };
+
+  factory EdgeEvent.fromJson(dynamic value) {
+    if (value is String) return EdgeEvent(message: value);
+    if (value is! Map) return const EdgeEvent();
+    final map = Map<String, dynamic>.from(value);
+    final rawTimestamp = map['timestamp'] ?? map['time'] ?? map['createdAt'];
+    return EdgeEvent(
+      id: '${map['id'] ?? map['eventId'] ?? ''}',
+      timestamp: rawTimestamp == null ? null : DateTime.tryParse('$rawTimestamp'),
+      type: '${map['type'] ?? map['event'] ?? map['kind'] ?? ''}',
+      message: '${map['message'] ?? map['label'] ?? map['description'] ?? map['type'] ?? ''}',
+    );
+  }
+}
+
 class SensorReading {
   final String nodeId;
   final DateTime timestamp;
@@ -40,6 +74,71 @@ class SensorReading {
   final bool cameraRecommended;
   final String cameraReason;
   final Map<String, String> sensorStates;
+
+
+  // Optional ESP32 edge-intelligence telemetry. These values are never
+  // manufactured by Flutter in hardware mode.
+  final String plantModelStatus;
+  final bool plantModelReady;
+  final double? plantModelConfidence;
+  final int? plantModelLearnedSamples;
+  final int? plantModelAgeSec;
+  final bool plantModelPersisted;
+  final double? plantModelBioBaselineMv;
+  final double? plantModelTypicalBioVariationMv;
+  final double? plantModelNormalNoiseMv;
+  final double? plantModelNormalSoilRatePctPerHour;
+
+  final String temporalState;
+  final double? temporalConfidence;
+  final String temporalPrimarySequence;
+  final int? environmentToBioLagSec;
+  final int? actionToRecoveryLagSec;
+  final String temporalExplanation;
+
+  final String plausibilityState;
+  final double? plausibilityConfidence;
+  final String plausibilityPrimaryIssue;
+  final String plausibilityRecommendation;
+  final String anomalyState;
+  final double? anomalyScore;
+  final double? anomalyConfidence;
+  final String anomalyExplanation;
+  final String anomalyAffectedChannel;
+
+  final bool predictionAvailable;
+  final String predictionTarget;
+  final double? predictionConfidence;
+  final int? predictionMinutesToWarning;
+  final String predictionMessage;
+  final String predictionDirection;
+
+  final double? recoveryProgressPct;
+  final double? recoveryConfidence;
+  final bool recoveryEnvironmentImproved;
+  final bool recoverySoilImproved;
+  final bool recoveryStressEvidenceDecreasing;
+  final bool recoveryBioResponseDecreasing;
+  final bool recoveryVerified;
+  final String recoveryFarmerResult;
+  final int? recoveryActionToResponseLagSec;
+
+  final String sensorIntegrityState;
+  final String sensorIntegrityPrimaryIssue;
+  final String sensorIntegrityPrimaryAction;
+  final Map<String, String> sensorIntegrityChannels;
+
+  final String runtimeHealthState;
+  final int? runtimeFreeHeap;
+  final int? runtimeMinFreeHeap;
+  final int? runtimeLastLoopGapMs;
+  final int? runtimeMaxLoopGapMs;
+  final int? runtimeLastSensorCycleMs;
+  final int? runtimeMaxSensorCycleMs;
+  final int? runtimeOledI2cSkipTotal;
+  final String runtimeHealthIssue;
+
+  final List<EdgeEvent> recentEvents;
 
   /// Embedded firmware result retained for diagnostics/comparison.
   final double? esp32HealthScore;
@@ -107,6 +206,61 @@ class SensorReading {
     this.cameraRecommended = false,
     this.cameraReason = '',
     this.sensorStates = const <String, String>{},
+
+    this.plantModelStatus = '',
+    this.plantModelReady = false,
+    this.plantModelConfidence,
+    this.plantModelLearnedSamples,
+    this.plantModelAgeSec,
+    this.plantModelPersisted = false,
+    this.plantModelBioBaselineMv,
+    this.plantModelTypicalBioVariationMv,
+    this.plantModelNormalNoiseMv,
+    this.plantModelNormalSoilRatePctPerHour,
+    this.temporalState = '',
+    this.temporalConfidence,
+    this.temporalPrimarySequence = '',
+    this.environmentToBioLagSec,
+    this.actionToRecoveryLagSec,
+    this.temporalExplanation = '',
+    this.plausibilityState = '',
+    this.plausibilityConfidence,
+    this.plausibilityPrimaryIssue = '',
+    this.plausibilityRecommendation = '',
+    this.anomalyState = '',
+    this.anomalyScore,
+    this.anomalyConfidence,
+    this.anomalyExplanation = '',
+    this.anomalyAffectedChannel = '',
+    this.predictionAvailable = false,
+    this.predictionTarget = '',
+    this.predictionConfidence,
+    this.predictionMinutesToWarning,
+    this.predictionMessage = '',
+    this.predictionDirection = '',
+    this.recoveryProgressPct,
+    this.recoveryConfidence,
+    this.recoveryEnvironmentImproved = false,
+    this.recoverySoilImproved = false,
+    this.recoveryStressEvidenceDecreasing = false,
+    this.recoveryBioResponseDecreasing = false,
+    this.recoveryVerified = false,
+    this.recoveryFarmerResult = '',
+    this.recoveryActionToResponseLagSec,
+    this.sensorIntegrityState = '',
+    this.sensorIntegrityPrimaryIssue = '',
+    this.sensorIntegrityPrimaryAction = '',
+    this.sensorIntegrityChannels = const <String, String>{},
+    this.runtimeHealthState = '',
+    this.runtimeFreeHeap,
+    this.runtimeMinFreeHeap,
+    this.runtimeLastLoopGapMs,
+    this.runtimeMaxLoopGapMs,
+    this.runtimeLastSensorCycleMs,
+    this.runtimeMaxSensorCycleMs,
+    this.runtimeOledI2cSkipTotal,
+    this.runtimeHealthIssue = '',
+    this.recentEvents = const <EdgeEvent>[],
     this.esp32HealthScore,
     this.esp32HealthConfidence,
     this.waterScore,
@@ -203,6 +357,61 @@ class SensorReading {
         'cameraRecommended': cameraRecommended,
         'cameraReason': cameraReason,
         'sensorStates': sensorStates,
+
+        'plantModelStatus': plantModelStatus,
+        'plantModelReady': plantModelReady,
+        'plantModelConfidence': plantModelConfidence,
+        'plantModelLearnedSamples': plantModelLearnedSamples,
+        'plantModelAgeSec': plantModelAgeSec,
+        'plantModelPersisted': plantModelPersisted,
+        'plantModelBioBaselineMv': plantModelBioBaselineMv,
+        'plantModelTypicalBioVariationMv': plantModelTypicalBioVariationMv,
+        'plantModelNormalNoiseMv': plantModelNormalNoiseMv,
+        'plantModelNormalSoilRatePctPerHour': plantModelNormalSoilRatePctPerHour,
+        'temporalState': temporalState,
+        'temporalConfidence': temporalConfidence,
+        'temporalPrimarySequence': temporalPrimarySequence,
+        'environmentToBioLagSec': environmentToBioLagSec,
+        'actionToRecoveryLagSec': actionToRecoveryLagSec,
+        'temporalExplanation': temporalExplanation,
+        'plausibilityState': plausibilityState,
+        'plausibilityConfidence': plausibilityConfidence,
+        'plausibilityPrimaryIssue': plausibilityPrimaryIssue,
+        'plausibilityRecommendation': plausibilityRecommendation,
+        'anomalyState': anomalyState,
+        'anomalyScore': anomalyScore,
+        'anomalyConfidence': anomalyConfidence,
+        'anomalyExplanation': anomalyExplanation,
+        'anomalyAffectedChannel': anomalyAffectedChannel,
+        'predictionAvailable': predictionAvailable,
+        'predictionTarget': predictionTarget,
+        'predictionConfidence': predictionConfidence,
+        'predictionMinutesToWarning': predictionMinutesToWarning,
+        'predictionMessage': predictionMessage,
+        'predictionDirection': predictionDirection,
+        'recoveryProgressPct': recoveryProgressPct,
+        'recoveryConfidence': recoveryConfidence,
+        'recoveryEnvironmentImproved': recoveryEnvironmentImproved,
+        'recoverySoilImproved': recoverySoilImproved,
+        'recoveryStressEvidenceDecreasing': recoveryStressEvidenceDecreasing,
+        'recoveryBioResponseDecreasing': recoveryBioResponseDecreasing,
+        'recoveryVerified': recoveryVerified,
+        'recoveryFarmerResult': recoveryFarmerResult,
+        'recoveryActionToResponseLagSec': recoveryActionToResponseLagSec,
+        'sensorIntegrityState': sensorIntegrityState,
+        'sensorIntegrityPrimaryIssue': sensorIntegrityPrimaryIssue,
+        'sensorIntegrityPrimaryAction': sensorIntegrityPrimaryAction,
+        'sensorIntegrityChannels': sensorIntegrityChannels,
+        'runtimeHealthState': runtimeHealthState,
+        'runtimeFreeHeap': runtimeFreeHeap,
+        'runtimeMinFreeHeap': runtimeMinFreeHeap,
+        'runtimeLastLoopGapMs': runtimeLastLoopGapMs,
+        'runtimeMaxLoopGapMs': runtimeMaxLoopGapMs,
+        'runtimeLastSensorCycleMs': runtimeLastSensorCycleMs,
+        'runtimeMaxSensorCycleMs': runtimeMaxSensorCycleMs,
+        'runtimeOledI2cSkipTotal': runtimeOledI2cSkipTotal,
+        'runtimeHealthIssue': runtimeHealthIssue,
+        'recentEvents': recentEvents.map((event) => event.toJson()).toList(),
         'esp32HealthScore': esp32HealthScore,
         'esp32HealthConfidence': esp32HealthConfidence,
         'waterScore': waterScore,
@@ -298,6 +507,70 @@ class SensorReading {
       cameraRecommended: json['cameraRecommended'] == true,
       cameraReason: '${json['cameraReason'] ?? ''}',
       sensorStates: _stringMap(json['sensorStates']),
+
+      plantModelStatus: '${json['plantModelStatus'] ?? ''}',
+      plantModelReady: json['plantModelReady'] == true,
+      plantModelConfidence: _nullableNum(json['plantModelConfidence']),
+      plantModelLearnedSamples: _nullableInt(json['plantModelLearnedSamples']),
+      plantModelAgeSec: _nullableInt(json['plantModelAgeSec']),
+      plantModelPersisted: json['plantModelPersisted'] == true,
+      plantModelBioBaselineMv: _nullableNum(json['plantModelBioBaselineMv']),
+      plantModelTypicalBioVariationMv:
+          _nullableNum(json['plantModelTypicalBioVariationMv']),
+      plantModelNormalNoiseMv: _nullableNum(json['plantModelNormalNoiseMv']),
+      plantModelNormalSoilRatePctPerHour:
+          _nullableNum(json['plantModelNormalSoilRatePctPerHour']),
+      temporalState: '${json['temporalState'] ?? ''}',
+      temporalConfidence: _nullableNum(json['temporalConfidence']),
+      temporalPrimarySequence: '${json['temporalPrimarySequence'] ?? ''}',
+      environmentToBioLagSec: _nullableInt(json['environmentToBioLagSec']),
+      actionToRecoveryLagSec: _nullableInt(json['actionToRecoveryLagSec']),
+      temporalExplanation: '${json['temporalExplanation'] ?? ''}',
+      plausibilityState: '${json['plausibilityState'] ?? ''}',
+      plausibilityConfidence: _nullableNum(json['plausibilityConfidence']),
+      plausibilityPrimaryIssue: '${json['plausibilityPrimaryIssue'] ?? ''}',
+      plausibilityRecommendation:
+          '${json['plausibilityRecommendation'] ?? ''}',
+      anomalyState: '${json['anomalyState'] ?? ''}',
+      anomalyScore: _nullableNum(json['anomalyScore']),
+      anomalyConfidence: _nullableNum(json['anomalyConfidence']),
+      anomalyExplanation: '${json['anomalyExplanation'] ?? ''}',
+      anomalyAffectedChannel: '${json['anomalyAffectedChannel'] ?? ''}',
+      predictionAvailable: json['predictionAvailable'] == true,
+      predictionTarget: '${json['predictionTarget'] ?? ''}',
+      predictionConfidence: _nullableNum(json['predictionConfidence']),
+      predictionMinutesToWarning:
+          _nullableInt(json['predictionMinutesToWarning']),
+      predictionMessage: '${json['predictionMessage'] ?? ''}',
+      predictionDirection: '${json['predictionDirection'] ?? ''}',
+      recoveryProgressPct: _nullableNum(json['recoveryProgressPct']),
+      recoveryConfidence: _nullableNum(json['recoveryConfidence']),
+      recoveryEnvironmentImproved: json['recoveryEnvironmentImproved'] == true,
+      recoverySoilImproved: json['recoverySoilImproved'] == true,
+      recoveryStressEvidenceDecreasing:
+          json['recoveryStressEvidenceDecreasing'] == true,
+      recoveryBioResponseDecreasing:
+          json['recoveryBioResponseDecreasing'] == true,
+      recoveryVerified: json['recoveryVerified'] == true,
+      recoveryFarmerResult: '${json['recoveryFarmerResult'] ?? ''}',
+      recoveryActionToResponseLagSec:
+          _nullableInt(json['recoveryActionToResponseLagSec']),
+      sensorIntegrityState: '${json['sensorIntegrityState'] ?? ''}',
+      sensorIntegrityPrimaryIssue:
+          '${json['sensorIntegrityPrimaryIssue'] ?? ''}',
+      sensorIntegrityPrimaryAction:
+          '${json['sensorIntegrityPrimaryAction'] ?? ''}',
+      sensorIntegrityChannels: _stringMap(json['sensorIntegrityChannels']),
+      runtimeHealthState: '${json['runtimeHealthState'] ?? ''}',
+      runtimeFreeHeap: _nullableInt(json['runtimeFreeHeap']),
+      runtimeMinFreeHeap: _nullableInt(json['runtimeMinFreeHeap']),
+      runtimeLastLoopGapMs: _nullableInt(json['runtimeLastLoopGapMs']),
+      runtimeMaxLoopGapMs: _nullableInt(json['runtimeMaxLoopGapMs']),
+      runtimeLastSensorCycleMs: _nullableInt(json['runtimeLastSensorCycleMs']),
+      runtimeMaxSensorCycleMs: _nullableInt(json['runtimeMaxSensorCycleMs']),
+      runtimeOledI2cSkipTotal: _nullableInt(json['runtimeOledI2cSkipTotal']),
+      runtimeHealthIssue: '${json['runtimeHealthIssue'] ?? ''}',
+      recentEvents: _edgeEvents(json['recentEvents']),
       esp32HealthScore: _nullableNum(json['esp32HealthScore']),
       esp32HealthConfidence: _nullableNum(json['esp32HealthConfidence']),
       waterScore: _nullableNum(json['waterScore']),
@@ -360,6 +633,22 @@ class SensorReading {
   static Map<String, String> _stringMap(dynamic value) {
     if (value is! Map) return const <String, String>{};
     return value.map((key, item) => MapEntry('$key', '$item'));
+  }
+
+
+  static List<EdgeEvent> _edgeEvents(dynamic value) {
+    if (value is! List) return const <EdgeEvent>[];
+    final seen = <String>{};
+    final events = <EdgeEvent>[];
+    for (final item in value) {
+      final event = EdgeEvent.fromJson(item);
+      if (event.message.trim().isEmpty && event.type.trim().isEmpty) continue;
+      final key = event.id.isNotEmpty
+          ? 'id:${event.id}'
+          : '${event.timestamp?.toIso8601String() ?? ''}|${event.type}|${event.message}';
+      if (seen.add(key)) events.add(event);
+    }
+    return events;
   }
 
   static double _bounded(double value) => value.clamp(0.0, 100.0).toDouble();
@@ -434,6 +723,61 @@ class SensorReading {
     bool? cameraRecommended,
     String? cameraReason,
     Map<String, String>? sensorStates,
+
+    String? plantModelStatus,
+    bool? plantModelReady,
+    double? plantModelConfidence,
+    int? plantModelLearnedSamples,
+    int? plantModelAgeSec,
+    bool? plantModelPersisted,
+    double? plantModelBioBaselineMv,
+    double? plantModelTypicalBioVariationMv,
+    double? plantModelNormalNoiseMv,
+    double? plantModelNormalSoilRatePctPerHour,
+    String? temporalState,
+    double? temporalConfidence,
+    String? temporalPrimarySequence,
+    int? environmentToBioLagSec,
+    int? actionToRecoveryLagSec,
+    String? temporalExplanation,
+    String? plausibilityState,
+    double? plausibilityConfidence,
+    String? plausibilityPrimaryIssue,
+    String? plausibilityRecommendation,
+    String? anomalyState,
+    double? anomalyScore,
+    double? anomalyConfidence,
+    String? anomalyExplanation,
+    String? anomalyAffectedChannel,
+    bool? predictionAvailable,
+    String? predictionTarget,
+    double? predictionConfidence,
+    int? predictionMinutesToWarning,
+    String? predictionMessage,
+    String? predictionDirection,
+    double? recoveryProgressPct,
+    double? recoveryConfidence,
+    bool? recoveryEnvironmentImproved,
+    bool? recoverySoilImproved,
+    bool? recoveryStressEvidenceDecreasing,
+    bool? recoveryBioResponseDecreasing,
+    bool? recoveryVerified,
+    String? recoveryFarmerResult,
+    int? recoveryActionToResponseLagSec,
+    String? sensorIntegrityState,
+    String? sensorIntegrityPrimaryIssue,
+    String? sensorIntegrityPrimaryAction,
+    Map<String, String>? sensorIntegrityChannels,
+    String? runtimeHealthState,
+    int? runtimeFreeHeap,
+    int? runtimeMinFreeHeap,
+    int? runtimeLastLoopGapMs,
+    int? runtimeMaxLoopGapMs,
+    int? runtimeLastSensorCycleMs,
+    int? runtimeMaxSensorCycleMs,
+    int? runtimeOledI2cSkipTotal,
+    String? runtimeHealthIssue,
+    List<EdgeEvent>? recentEvents,
     double? esp32HealthScore,
     double? esp32HealthConfidence,
     double? waterScore,
@@ -497,6 +841,89 @@ class SensorReading {
       cameraRecommended: cameraRecommended ?? this.cameraRecommended,
       cameraReason: cameraReason ?? this.cameraReason,
       sensorStates: sensorStates ?? this.sensorStates,
+
+      plantModelStatus: plantModelStatus ?? this.plantModelStatus,
+      plantModelReady: plantModelReady ?? this.plantModelReady,
+      plantModelConfidence: plantModelConfidence ?? this.plantModelConfidence,
+      plantModelLearnedSamples:
+          plantModelLearnedSamples ?? this.plantModelLearnedSamples,
+      plantModelAgeSec: plantModelAgeSec ?? this.plantModelAgeSec,
+      plantModelPersisted: plantModelPersisted ?? this.plantModelPersisted,
+      plantModelBioBaselineMv:
+          plantModelBioBaselineMv ?? this.plantModelBioBaselineMv,
+      plantModelTypicalBioVariationMv: plantModelTypicalBioVariationMv ??
+          this.plantModelTypicalBioVariationMv,
+      plantModelNormalNoiseMv:
+          plantModelNormalNoiseMv ?? this.plantModelNormalNoiseMv,
+      plantModelNormalSoilRatePctPerHour: plantModelNormalSoilRatePctPerHour ??
+          this.plantModelNormalSoilRatePctPerHour,
+      temporalState: temporalState ?? this.temporalState,
+      temporalConfidence: temporalConfidence ?? this.temporalConfidence,
+      temporalPrimarySequence:
+          temporalPrimarySequence ?? this.temporalPrimarySequence,
+      environmentToBioLagSec:
+          environmentToBioLagSec ?? this.environmentToBioLagSec,
+      actionToRecoveryLagSec:
+          actionToRecoveryLagSec ?? this.actionToRecoveryLagSec,
+      temporalExplanation: temporalExplanation ?? this.temporalExplanation,
+      plausibilityState: plausibilityState ?? this.plausibilityState,
+      plausibilityConfidence:
+          plausibilityConfidence ?? this.plausibilityConfidence,
+      plausibilityPrimaryIssue:
+          plausibilityPrimaryIssue ?? this.plausibilityPrimaryIssue,
+      plausibilityRecommendation:
+          plausibilityRecommendation ?? this.plausibilityRecommendation,
+      anomalyState: anomalyState ?? this.anomalyState,
+      anomalyScore: anomalyScore ?? this.anomalyScore,
+      anomalyConfidence: anomalyConfidence ?? this.anomalyConfidence,
+      anomalyExplanation: anomalyExplanation ?? this.anomalyExplanation,
+      anomalyAffectedChannel:
+          anomalyAffectedChannel ?? this.anomalyAffectedChannel,
+      predictionAvailable: predictionAvailable ?? this.predictionAvailable,
+      predictionTarget: predictionTarget ?? this.predictionTarget,
+      predictionConfidence:
+          predictionConfidence ?? this.predictionConfidence,
+      predictionMinutesToWarning:
+          predictionMinutesToWarning ?? this.predictionMinutesToWarning,
+      predictionMessage: predictionMessage ?? this.predictionMessage,
+      predictionDirection: predictionDirection ?? this.predictionDirection,
+      recoveryProgressPct: recoveryProgressPct ?? this.recoveryProgressPct,
+      recoveryConfidence: recoveryConfidence ?? this.recoveryConfidence,
+      recoveryEnvironmentImproved:
+          recoveryEnvironmentImproved ?? this.recoveryEnvironmentImproved,
+      recoverySoilImproved:
+          recoverySoilImproved ?? this.recoverySoilImproved,
+      recoveryStressEvidenceDecreasing: recoveryStressEvidenceDecreasing ??
+          this.recoveryStressEvidenceDecreasing,
+      recoveryBioResponseDecreasing: recoveryBioResponseDecreasing ??
+          this.recoveryBioResponseDecreasing,
+      recoveryVerified: recoveryVerified ?? this.recoveryVerified,
+      recoveryFarmerResult:
+          recoveryFarmerResult ?? this.recoveryFarmerResult,
+      recoveryActionToResponseLagSec: recoveryActionToResponseLagSec ??
+          this.recoveryActionToResponseLagSec,
+      sensorIntegrityState:
+          sensorIntegrityState ?? this.sensorIntegrityState,
+      sensorIntegrityPrimaryIssue:
+          sensorIntegrityPrimaryIssue ?? this.sensorIntegrityPrimaryIssue,
+      sensorIntegrityPrimaryAction:
+          sensorIntegrityPrimaryAction ?? this.sensorIntegrityPrimaryAction,
+      sensorIntegrityChannels:
+          sensorIntegrityChannels ?? this.sensorIntegrityChannels,
+      runtimeHealthState: runtimeHealthState ?? this.runtimeHealthState,
+      runtimeFreeHeap: runtimeFreeHeap ?? this.runtimeFreeHeap,
+      runtimeMinFreeHeap: runtimeMinFreeHeap ?? this.runtimeMinFreeHeap,
+      runtimeLastLoopGapMs:
+          runtimeLastLoopGapMs ?? this.runtimeLastLoopGapMs,
+      runtimeMaxLoopGapMs: runtimeMaxLoopGapMs ?? this.runtimeMaxLoopGapMs,
+      runtimeLastSensorCycleMs:
+          runtimeLastSensorCycleMs ?? this.runtimeLastSensorCycleMs,
+      runtimeMaxSensorCycleMs:
+          runtimeMaxSensorCycleMs ?? this.runtimeMaxSensorCycleMs,
+      runtimeOledI2cSkipTotal:
+          runtimeOledI2cSkipTotal ?? this.runtimeOledI2cSkipTotal,
+      runtimeHealthIssue: runtimeHealthIssue ?? this.runtimeHealthIssue,
+      recentEvents: recentEvents ?? this.recentEvents,
       esp32HealthScore: esp32HealthScore ?? this.esp32HealthScore,
       esp32HealthConfidence:
           esp32HealthConfidence ?? this.esp32HealthConfidence,
