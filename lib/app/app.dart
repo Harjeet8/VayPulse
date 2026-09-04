@@ -17,6 +17,22 @@ import '../services/voice_guidance_service.dart';
 import '../services/weather_service.dart';
 import 'theme.dart';
 
+const startupLoadTimeout = Duration(seconds: 5);
+
+/// Local caches improve continuity, but they must never hold the app on its
+/// boot screen. Services keep safe in-memory defaults if a platform-backed
+/// read is slow or unavailable and may finish loading after Home has opened.
+Future<void> waitForStartupServices(
+  Iterable<Future<void>> loads, {
+  Duration timeout = startupLoadTimeout,
+}) async {
+  try {
+    await Future.wait(loads).timeout(timeout);
+  } catch (_) {
+    // Startup remains usable with the services' safe defaults.
+  }
+}
+
 class VayPulseApp extends StatefulWidget {
   const VayPulseApp({super.key});
   @override
@@ -53,7 +69,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
   }
 
   Future<void> _initialize() async {
-    await Future.wait([
+    await waitForStartupServices([
       settings.load(),
       farms.load(),
       offlineSync.load(),

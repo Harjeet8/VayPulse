@@ -11,6 +11,12 @@ class FarmRepository extends ChangeNotifier {
   bool isLoaded = false;
   String? errorMessage;
 
+  FarmRepository() {
+    // Home must always have a valid local hierarchy, even if Android's
+    // preferences service is slow during first launch.
+    farms.add(_demoFarm);
+  }
+
   Farm get selectedFarm => farms.firstWhere(
         (farm) => farm.id == selectedFarmId,
         orElse: () => farms.first,
@@ -37,8 +43,15 @@ class FarmRepository extends ChangeNotifier {
       final raw = preferences.getString('farmHierarchy');
       if (raw != null) {
         final decoded = jsonDecode(raw) as List;
-        farms.addAll(decoded.map(
-            (item) => Farm.fromJson(Map<String, dynamic>.from(item as Map))));
+        final restored = decoded
+            .map((item) =>
+                Farm.fromJson(Map<String, dynamic>.from(item as Map)))
+            .toList(growable: false);
+        if (restored.isNotEmpty) {
+          farms
+            ..clear()
+            ..addAll(restored);
+        }
       }
       if (farms.isEmpty) farms.add(_demoFarm);
       selectedFarmId =

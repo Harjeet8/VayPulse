@@ -261,7 +261,7 @@ class _AnimatedLogo extends StatelessWidget {
                     width: 132,
                     height: 132,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(31),
+                      borderRadius: BorderRadius.circular(42),
                       boxShadow: [
                         BoxShadow(
                           color: const Color(0xFF4BE39B).withValues(
@@ -278,13 +278,17 @@ class _AnimatedLogo extends StatelessWidget {
                       ],
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(31),
+                      key: const Key('boot-logo-clip'),
+                      borderRadius: BorderRadius.circular(42),
+                      clipBehavior: Clip.antiAlias,
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
                           Image.asset(
                             'assets/branding/phytosense_icon.png',
                             fit: BoxFit.cover,
+                            filterQuality: FilterQuality.high,
+                            gaplessPlayback: true,
                           ),
                           if (!reducedMotion)
                             Transform.translate(

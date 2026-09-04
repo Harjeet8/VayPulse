@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:phytosense_ai/app/app.dart';
 import 'package:phytosense_ai/models/crop_catalog.dart';
 import 'package:phytosense_ai/models/edge_intelligence.dart';
 import 'package:phytosense_ai/models/sensor_reading.dart';
+import 'package:phytosense_ai/screens/splash_screen.dart';
 import 'package:phytosense_ai/widgets/calibre_upgrade_panels.dart';
 import 'package:phytosense_ai/widgets/home_soil_presentation.dart';
 import 'package:phytosense_ai/widgets/time_phase_card.dart';
@@ -26,6 +30,33 @@ SensorReading reading({String bioSource = 'real'}) => SensorReading(
     );
 
 void main() {
+  test('startup cannot remain trapped behind a stalled local cache', () async {
+    final stalled = Completer<void>();
+    await waitForStartupServices(
+      [stalled.future],
+      timeout: const Duration(milliseconds: 5),
+    );
+
+    expect(stalled.isCompleted, isFalse);
+  });
+
+  testWidgets('boot presents the approved logo as a smooth squircle',
+      (tester) async {
+    final stalled = Completer<void>();
+    await tester.pumpWidget(
+      MaterialApp(home: SplashScreen(initialization: stalled.future)),
+    );
+    await tester.pump();
+
+    final clip = tester.widget<ClipRRect>(
+      find.byKey(const Key('boot-logo-clip')),
+    );
+    expect(clip.borderRadius, BorderRadius.circular(42));
+    expect(clip.clipBehavior, Clip.antiAlias);
+
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
   test('final firmware crop profiles are present', () {
     final names = CropCatalog.supported.map((crop) => crop.name).toSet();
     for (final crop in const [
