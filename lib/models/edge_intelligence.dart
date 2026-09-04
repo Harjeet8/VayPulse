@@ -1754,9 +1754,11 @@ class EdgeIntelligence {
       status: normalizedPlantModelStatus == 'RESTORED'
           ? 'READY'
           : rawPlantModelStatus,
-      ready: explicitPlantModelReady == true ||
-          normalizedPlantModelStatus == 'READY' ||
-          normalizedPlantModelStatus == 'RESTORED',
+      ready: explicitPlantModelReady ??
+          (normalizedPlantModelStatus == null
+              ? null
+              : normalizedPlantModelStatus == 'READY' ||
+                  normalizedPlantModelStatus == 'RESTORED'),
       confidence: _confidencePercent(_first([
         plantModelMap['confidence'],
         plantModelMap['modelConfidence'],
