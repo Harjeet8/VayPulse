@@ -124,9 +124,9 @@ class HomeScreen extends StatelessWidget {
                 Text(
                   _greeting(context),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.6,
-                      ),
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.6,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(context.tr('farm_status_subtitle')),
@@ -139,10 +139,10 @@ class HomeScreen extends StatelessWidget {
                   onSpeak: analysis == null
                       ? null
                       : () => scope.voice.speak(
-                            text:
-                                '${context.tr(analysis.headlineKey)}. ${context.tr(analysis.recommendationKey)}',
-                            languageCode: scope.settings.value.languageCode,
-                          ),
+                          text:
+                              '${context.tr(analysis.headlineKey)}. ${context.tr(analysis.recommendationKey)}',
+                          languageCode: scope.settings.value.languageCode,
+                        ),
                 ),
                 const SizedBox(height: 18),
                 _FarmSelector(
@@ -252,8 +252,9 @@ class HomeScreen extends StatelessWidget {
                                   context.tr('confidence', {
                                     'value': analysis.confidence,
                                   }),
-                                  style:
-                                      Theme.of(context).textTheme.labelMedium,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .labelMedium,
                                 ),
                               ],
                             ),
@@ -267,9 +268,7 @@ class HomeScreen extends StatelessWidget {
                             const SizedBox(height: 6),
                             Text(
                               context.tr('analysis_method_note'),
-                              style: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
+                              style: Theme.of(context).textTheme.bodySmall
                                   ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ],
@@ -485,9 +484,7 @@ class _DailyBriefing extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     context.tr('daily_alert_count', {'value': unreadAlerts}),
-                    style: Theme.of(context)
-                        .textTheme
-                        .labelMedium
+                    style: Theme.of(context).textTheme.labelMedium
                         ?.copyWith(color: color, fontWeight: FontWeight.w900),
                   ),
                 ],
@@ -512,64 +509,63 @@ class _FarmerTools extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final width = constraints.maxWidth >= 700
-              ? (constraints.maxWidth - 24) / 4
-              : (constraints.maxWidth - 8) / 2;
-          return Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              SizedBox(
-                width: width,
-                child: _ToolButton(
-                  icon: Icons.document_scanner_outlined,
-                  label: context.tr('scan_leaf'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (_) => const LeafScreeningScreen()),
-                  ),
+    builder: (context, constraints) {
+      final width = constraints.maxWidth >= 700
+          ? (constraints.maxWidth - 24) / 4
+          : (constraints.maxWidth - 8) / 2;
+      return Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          SizedBox(
+            width: width,
+            child: _ToolButton(
+              icon: Icons.document_scanner_outlined,
+              label: context.tr('scan_leaf'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LeafScreeningScreen()),
+              ),
+            ),
+          ),
+          SizedBox(
+            width: width,
+            child: _ToolButton(
+              icon: Icons.water_drop_outlined,
+              label: context.tr('irrigation_short'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const IrrigationAdvisorScreen(),
                 ),
               ),
-              SizedBox(
-                width: width,
-                child: _ToolButton(
-                  icon: Icons.water_drop_outlined,
-                  label: context.tr('irrigation_short'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const IrrigationAdvisorScreen(),
-                    ),
-                  ),
+            ),
+          ),
+          SizedBox(
+            width: width,
+            child: _ToolButton(
+              icon: Icons.notifications_active_outlined,
+              label: context.tr('nav_alerts'),
+              onTap: onOpenAlerts ?? () {},
+            ),
+          ),
+          SizedBox(
+            width: width,
+            child: _ToolButton(
+              icon: Icons.timeline_rounded,
+              label: context.tr('history'),
+              onTap: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const ObservationTimelineScreen(),
                 ),
               ),
-              SizedBox(
-                width: width,
-                child: _ToolButton(
-                  icon: Icons.notifications_active_outlined,
-                  label: context.tr('nav_alerts'),
-                  onTap: onOpenAlerts ?? () {},
-                ),
-              ),
-              SizedBox(
-                width: width,
-                child: _ToolButton(
-                  icon: Icons.timeline_rounded,
-                  label: context.tr('history'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ObservationTimelineScreen(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
+            ),
+          ),
+        ],
       );
+    },
+  );
 }
 
 class _ToolButton extends StatelessWidget {
@@ -585,26 +581,25 @@ class _ToolButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
-            child: Column(
-              children: [
-                Icon(icon, color: Theme.of(context).colorScheme.primary),
-                const SizedBox(height: 6),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                      fontSize: 12, fontWeight: FontWeight.w800),
-                ),
-              ],
+    child: InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+        child: Column(
+          children: [
+            Icon(icon, color: Theme.of(context).colorScheme.primary),
+            const SizedBox(height: 6),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w800),
             ),
-          ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _IrrigationSummary extends StatelessWidget {
@@ -688,9 +683,7 @@ class _FarmSelector extends StatelessWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Theme.of(context)
-                    .colorScheme
-                    .primaryContainer
+                color: Theme.of(context).colorScheme.primaryContainer
                     .withValues(alpha: 0.7),
                 borderRadius: BorderRadius.circular(14),
               ),
@@ -754,114 +747,113 @@ class _HealthHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF0F5A40), Color(0xFF21845D)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+    decoration: BoxDecoration(
+      gradient: const LinearGradient(
+        colors: [Color(0xFF0F5A40), Color(0xFF21845D)],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ),
+      borderRadius: BorderRadius.circular(28),
+      boxShadow: [
+        BoxShadow(
+          color: phytoGreen.withValues(alpha: 0.24),
+          blurRadius: 28,
+          offset: const Offset(0, 14),
+        ),
+      ],
+    ),
+    clipBehavior: Clip.antiAlias,
+    child: Stack(
+      children: [
+        Positioned.fill(
+          child: Opacity(
+            opacity: 0.42,
+            child: PlantPulse(color: Colors.white.withValues(alpha: 0.32)),
           ),
-          borderRadius: BorderRadius.circular(28),
-          boxShadow: [
-            BoxShadow(
-              color: phytoGreen.withValues(alpha: 0.24),
-              blurRadius: 28,
-              offset: const Offset(0, 14),
-            ),
-          ],
         ),
-        clipBehavior: Clip.antiAlias,
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: Opacity(
-                opacity: 0.42,
-                child: PlantPulse(color: Colors.white.withValues(alpha: 0.32)),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(22),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final details = Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr('zone_health'),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.76),
-                          fontWeight: FontWeight.w700,
-                        ),
+        Padding(
+          padding: const EdgeInsets.all(22),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final details = Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.tr('zone_health'),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.76),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    zoneName,
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    '$fieldName • $farmName',
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.78),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 11,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.14),
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      score >= 75
+                          ? context.tr('stable')
+                          : score >= 45
+                          ? context.tr('needs_attention')
+                          : context.tr('urgent_check'),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        zoneName,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        '$fieldName • $farmName',
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.78),
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 11,
-                          vertical: 7,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.14),
-                          borderRadius: BorderRadius.circular(99),
-                        ),
-                        child: Text(
-                          score >= 75
-                              ? context.tr('stable')
-                              : score >= 45
-                                  ? context.tr('needs_attention')
-                                  : context.tr('urgent_check'),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w800,
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                  final ring = HealthRing(
-                    score: score,
-                    size: 112,
-                    label: context.tr('health_score'),
-                    color: Colors.white,
-                    textColor: Colors.white,
-                  );
-                  if (constraints.maxWidth < 430) {
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Align(alignment: Alignment.center, child: ring),
-                        const SizedBox(height: 18),
-                        details,
-                      ],
-                    );
-                  }
-                  return Row(
-                    children: [
-                      Expanded(child: details),
-                      const SizedBox(width: 16),
-                      ring,
-                    ],
-                  );
-                },
-              ),
-            ),
-          ],
+                    ),
+                  ),
+                ],
+              );
+              final ring = HealthRing(
+                score: score,
+                size: 112,
+                label: context.tr('health_score'),
+                color: Colors.white,
+                textColor: Colors.white,
+              );
+              if (constraints.maxWidth < 430) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Align(alignment: Alignment.center, child: ring),
+                    const SizedBox(height: 18),
+                    details,
+                  ],
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(child: details),
+                  const SizedBox(width: 16),
+                  ring,
+                ],
+              );
+            },
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 class _SensorGrid extends StatelessWidget {
@@ -876,8 +868,9 @@ class _SensorGrid extends StatelessWidget {
     final animate = !scope.settings.value.reducedMotion;
     final history = scope.sensors.historyFor(reading.nodeId);
     final previous = history.length > 1 ? history[history.length - 2] : null;
-    final temperature =
-        metric ? reading.temperature : reading.temperature * 9 / 5 + 32;
+    final temperature = metric
+        ? reading.temperature
+        : reading.temperature * 9 / 5 + 32;
     final unit = metric ? '°C' : '°F';
     final textScale = MediaQuery.textScalerOf(context).scale(1.0);
     final cards = <Widget>[
@@ -893,8 +886,8 @@ class _SensorGrid extends StatelessWidget {
         status: reading.soilMoisture < 30
             ? context.tr('low')
             : reading.soilMoisture > 88
-                ? context.tr('high')
-                : context.tr('good'),
+            ? context.tr('high')
+            : context.tr('good'),
         accent: const Color(0xFF2F85C8),
       ),
       SensorCard(
@@ -905,8 +898,8 @@ class _SensorGrid extends StatelessWidget {
         previousValue: previous == null
             ? null
             : metric
-                ? previous.temperature
-                : previous.temperature * 9 / 5 + 32,
+            ? previous.temperature
+            : previous.temperature * 9 / 5 + 32,
         unit: unit,
         decimals: 1,
         preferredRange: context.tr('preferred_temperature_range'),
@@ -961,10 +954,10 @@ class _SensorGrid extends StatelessWidget {
         final columns = effectiveWidth >= 920
             ? 5
             : effectiveWidth >= 680
-                ? 3
-                : effectiveWidth >= 360
-                    ? 2
-                    : 1;
+            ? 3
+            : effectiveWidth >= 360
+            ? 2
+            : 1;
         const spacing = 10.0;
         final cardWidth =
             (constraints.maxWidth - spacing * (columns - 1)) / columns;
@@ -987,18 +980,18 @@ class _CollapsibleSensorDetails extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        clipBehavior: Clip.antiAlias,
-        child: ExpansionTile(
-          leading: const Icon(Icons.sensors_outlined),
-          title: Text(
-            context.tr('view_sensor_details'),
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-          subtitle: Text(context.tr('view_sensor_details_body')),
-          childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
-          children: [_SensorGrid(reading: reading)],
-        ),
-      );
+    clipBehavior: Clip.antiAlias,
+    child: ExpansionTile(
+      leading: const Icon(Icons.sensors_outlined),
+      title: Text(
+        context.tr('view_sensor_details'),
+        style: const TextStyle(fontWeight: FontWeight.w900),
+      ),
+      subtitle: Text(context.tr('view_sensor_details_body')),
+      childrenPadding: const EdgeInsets.fromLTRB(14, 0, 14, 16),
+      children: [_SensorGrid(reading: reading)],
+    ),
+  );
 }
 
 class _ConnectionPanel extends StatelessWidget {
@@ -1015,8 +1008,8 @@ class _ConnectionPanel extends StatelessWidget {
     final detailKey = loading
         ? 'connecting_sensor_body'
         : hardware
-            ? (scope.sensors.errorMessage ?? 'hardware_unreachable')
-            : (offline ? 'offline_message' : 'error_message');
+        ? (scope.sensors.errorMessage ?? 'hardware_unreachable')
+        : (offline ? 'offline_message' : 'error_message');
     final accent = loading
         ? const Color(0xFF2775B6)
         : (offline ? phytoAmber : phytoTerracotta);
@@ -1030,8 +1023,8 @@ class _ConnectionPanel extends StatelessWidget {
               loading
                   ? Icons.sync_rounded
                   : offline
-                      ? Icons.cloud_off_outlined
-                      : Icons.sensors_off_outlined,
+                  ? Icons.cloud_off_outlined
+                  : Icons.sensors_off_outlined,
               color: accent,
             ),
             const SizedBox(width: 12),
@@ -1044,8 +1037,8 @@ class _ConnectionPanel extends StatelessWidget {
                       loading
                           ? 'connecting_sensor'
                           : offline
-                              ? 'sensor_network_offline'
-                              : 'sensor_network_error',
+                          ? 'sensor_network_offline'
+                          : 'sensor_network_error',
                     ),
                     style: const TextStyle(fontWeight: FontWeight.w800),
                   ),
@@ -1112,7 +1105,9 @@ class _ZonesToWatch extends StatelessWidget {
             ),
           )
         else
-          ...flagged.take(3).map(
+          ...flagged
+              .take(3)
+              .map(
                 (entry) => Padding(
                   padding: const EdgeInsets.only(bottom: 9),
                   child: Card(
@@ -1154,12 +1149,10 @@ class _SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Text(
-        title,
-        style: Theme.of(context)
-            .textTheme
-            .titleLarge
-            ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.35),
-      );
+    title,
+    style: Theme.of(context).textTheme.titleLarge
+        ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.35),
+  );
 }
 
 class _EmptyCard extends StatelessWidget {
@@ -1169,9 +1162,9 @@ class _EmptyCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Center(child: Text(message)),
-        ),
-      );
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Center(child: Text(message)),
+    ),
+  );
 }

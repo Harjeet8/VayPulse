@@ -31,8 +31,9 @@ class ProfileScreen extends StatelessWidget {
       builder: (context, _) {
         final live = scope.sensors.source == SensorDataSource.esp32;
         final judge = scope.settings.value.experienceMode == 'judge';
-        final farm =
-            scope.farms.farms.isEmpty ? null : scope.farms.selectedFarm;
+        final farm = scope.farms.farms.isEmpty
+            ? null
+            : scope.farms.selectedFarm;
         return Scaffold(
           appBar: AppBar(
             title: Text(context.tr(live ? 'more_title_live' : 'more_title')),
@@ -93,9 +94,7 @@ class ProfileScreen extends StatelessWidget {
                             children: [
                               Text(
                                 context.tr('farmer_profile'),
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .titleLarge
+                                style: Theme.of(context).textTheme.titleLarge
                                     ?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w900,
@@ -330,22 +329,20 @@ class _MenuTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
-        leading: Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: Theme.of(context)
-                .colorScheme
-                .primaryContainer
-                .withValues(alpha: 0.55),
-            borderRadius: BorderRadius.circular(14),
-          ),
-          child: Icon(icon, color: Theme.of(context).colorScheme.primary),
-        ),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-        subtitle: Text(subtitle),
-        trailing: const Icon(Icons.chevron_right_rounded),
-        onTap: onTap,
-      );
+    contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 7),
+    leading: Container(
+      width: 42,
+      height: 42,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primaryContainer
+            .withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+    ),
+    title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+    subtitle: Text(subtitle),
+    trailing: const Icon(Icons.chevron_right_rounded),
+    onTap: onTap,
+  );
 }

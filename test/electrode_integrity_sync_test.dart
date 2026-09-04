@@ -63,8 +63,7 @@ void main() {
       'openLatched': true,
       'reconnectVerifying': false,
       'reconnectVerifySec': 0,
-    }))
-        .reading;
+    })).reading;
 
     expect(reading.plantSignalAvailable, isTrue);
     expect(reading.bioElectricalMeasurementAvailable, isTrue);
@@ -86,8 +85,7 @@ void main() {
       'openLatched': true,
       'reconnectVerifying': true,
       'reconnectVerifySec': 12,
-    }))
-        .reading;
+    })).reading;
 
     expect(reading.normalizedBioContactState, 'VERIFY');
     expect(reading.bioReconnectVerifying, isTrue);
@@ -104,8 +102,7 @@ void main() {
       'affectsHealth': true,
       'openLatched': false,
       'reconnectVerifying': false,
-    }))
-        .reading;
+    })).reading;
 
     expect(reading.bioSignalQuality, 100);
     expect(reading.bioPlantUseAllowed, isTrue);
@@ -119,20 +116,21 @@ void main() {
     'SHORT_SUSPECTED',
     'VERIFY',
   ]) {
-    test('$state is excluded from plant analysis despite clean signal',
-        () async {
-      final reading = (await _snapshot(<String, dynamic>{
-        'contactState': state,
-        'contactConfidence': 100,
-        'contactPlausibleForPlantUse': false,
-        'affectsHealth': false,
-      }))
-          .reading;
+    test(
+      '$state is excluded from plant analysis despite clean signal',
+      () async {
+        final reading = (await _snapshot(<String, dynamic>{
+          'contactState': state,
+          'contactConfidence': 100,
+          'contactPlausibleForPlantUse': false,
+          'affectsHealth': false,
+        })).reading;
 
-      expect(reading.bioElectricalMeasurementAvailable, isTrue);
-      expect(reading.bioSignalQuality, 100);
-      expect(reading.bioPlantUseAllowed, isFalse);
-    });
+        expect(reading.bioElectricalMeasurementAvailable, isTrue);
+        expect(reading.bioSignalQuality, 100);
+        expect(reading.bioPlantUseAllowed, isFalse);
+      },
+    );
   }
 
   test('older firmware without contact gate keeps compatibility', () async {
@@ -148,16 +146,15 @@ void main() {
       'contactState': 'PLAUSIBLE',
       'contactPlausibleForPlantUse': true,
       'affectsHealth': true,
-    }))
-        .reading;
+    })).reading;
 
     expect(reading.firmwareName, 'PhytoSense AI Edge Intelligence');
     expect(reading.firmwareBuildState, 'FROZEN_FINAL');
   });
 
   test('Home uses existing single system warning for contact gate', () {
-    final source =
-        File('lib/screens/live_node_home_screen.dart').readAsStringSync();
+    final source = File('lib/screens/live_node_home_screen.dart')
+        .readAsStringSync();
 
     expect(source, contains('Electrodes open — check plant contact'));
     expect(source, contains('Electrode contact unstable'));
@@ -171,8 +168,8 @@ void main() {
   });
 
   test('Engineering reliability shows contact and latch details only', () {
-    final source =
-        File('lib/screens/engineering_center_screen.dart').readAsStringSync();
+    final source = File('lib/screens/engineering_center_screen.dart')
+        .readAsStringSync();
 
     expect(source, contains("title: 'Signal & Sensor Reliability'"));
     expect(source, contains("'Electrical signal quality'"));

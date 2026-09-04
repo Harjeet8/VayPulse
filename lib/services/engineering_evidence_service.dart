@@ -42,20 +42,20 @@ class ExperimentTrial {
   double get healthChange => minimumHealth - baselineHealth;
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'title': title,
-        'crop': crop,
-        'source': source,
-        'nodeId': nodeId,
-        'startedAt': startedAt.toIso8601String(),
-        'endedAt': endedAt.toIso8601String(),
-        'baselineHealth': baselineHealth,
-        'minimumHealth': minimumHealth,
-        'maximumStress': maximumStress,
-        'sampleCount': sampleCount,
-        'outcome': outcome,
-        'notes': notes,
-      };
+    'id': id,
+    'title': title,
+    'crop': crop,
+    'source': source,
+    'nodeId': nodeId,
+    'startedAt': startedAt.toIso8601String(),
+    'endedAt': endedAt.toIso8601String(),
+    'baselineHealth': baselineHealth,
+    'minimumHealth': minimumHealth,
+    'maximumStress': maximumStress,
+    'sampleCount': sampleCount,
+    'outcome': outcome,
+    'notes': notes,
+  };
 
   factory ExperimentTrial.fromJson(Map<String, dynamic> json) =>
       ExperimentTrial(
@@ -101,17 +101,17 @@ class CalibrationProfile {
   });
 
   Map<String, dynamic> toJson() => {
-        'nodeId': nodeId,
-        'source': source,
-        'calibratedAt': calibratedAt.toIso8601String(),
-        'sampleCount': sampleCount,
-        'trustScore': trustScore,
-        'soilBaseline': soilBaseline,
-        'temperatureBaseline': temperatureBaseline,
-        'humidityBaseline': humidityBaseline,
-        'lightBaseline': lightBaseline,
-        'electrodeBaseline': electrodeBaseline,
-      };
+    'nodeId': nodeId,
+    'source': source,
+    'calibratedAt': calibratedAt.toIso8601String(),
+    'sampleCount': sampleCount,
+    'trustScore': trustScore,
+    'soilBaseline': soilBaseline,
+    'temperatureBaseline': temperatureBaseline,
+    'humidityBaseline': humidityBaseline,
+    'lightBaseline': lightBaseline,
+    'electrodeBaseline': electrodeBaseline,
+  };
 
   factory CalibrationProfile.fromJson(Map<String, dynamic> json) =>
       CalibrationProfile(
@@ -152,28 +152,28 @@ class FarmerFeedback {
   });
 
   Map<String, dynamic> toJson() => {
-        'alertId': alertId,
-        'source': source,
-        'nodeId': nodeId,
-        'recordedAt': recordedAt.toIso8601String(),
-        'conditionConfirmed': conditionConfirmed,
-        'recommendationUseful': recommendationUseful,
-        'plantRecovered': plantRecovered,
-        'falseAlert': falseAlert,
-        'notes': notes,
-      };
+    'alertId': alertId,
+    'source': source,
+    'nodeId': nodeId,
+    'recordedAt': recordedAt.toIso8601String(),
+    'conditionConfirmed': conditionConfirmed,
+    'recommendationUseful': recommendationUseful,
+    'plantRecovered': plantRecovered,
+    'falseAlert': falseAlert,
+    'notes': notes,
+  };
 
   factory FarmerFeedback.fromJson(Map<String, dynamic> json) => FarmerFeedback(
-        alertId: '${json['alertId']}',
-        source: '${json['source'] ?? 'legacy'}',
-        nodeId: '${json['nodeId'] ?? 'unknown'}',
-        recordedAt: DateTime.parse('${json['recordedAt']}'),
-        conditionConfirmed: json['conditionConfirmed'] == true,
-        recommendationUseful: json['recommendationUseful'] == true,
-        plantRecovered: json['plantRecovered'] == true,
-        falseAlert: json['falseAlert'] == true,
-        notes: '${json['notes'] ?? ''}',
-      );
+    alertId: '${json['alertId']}',
+    source: '${json['source'] ?? 'legacy'}',
+    nodeId: '${json['nodeId'] ?? 'unknown'}',
+    recordedAt: DateTime.parse('${json['recordedAt']}'),
+    conditionConfirmed: json['conditionConfirmed'] == true,
+    recommendationUseful: json['recommendationUseful'] == true,
+    plantRecovered: json['plantRecovered'] == true,
+    falseAlert: json['falseAlert'] == true,
+    notes: '${json['notes'] ?? ''}',
+  );
 }
 
 class EngineeringEvidenceService extends ChangeNotifier {
@@ -193,8 +193,8 @@ class EngineeringEvidenceService extends ChangeNotifier {
   List<ExperimentTrial> trialsForSource(String source) =>
       List.unmodifiable(_trials.where((item) => item.source == source));
   List<FarmerFeedback> feedbackForSource(String source) => List.unmodifiable(
-        _feedback.values.where((item) => item.source == source),
-      );
+    _feedback.values.where((item) => item.source == source),
+  );
   CalibrationProfile? get calibration => _calibrations[sensors.source.name];
   List<SensorReading> get calibrationSamples =>
       List.unmodifiable(_calibrationSamples);
@@ -203,15 +203,18 @@ class EngineeringEvidenceService extends ChangeNotifier {
   double get activeMinimumHealth => _active?.minimumHealth ?? 0;
   double get activeMaximumStress => _active?.maximumStress ?? 0;
 
-  int get confirmedFeedbackCount => feedbackForSource(sensors.source.name)
-      .where((item) => item.conditionConfirmed)
-      .length;
-  int get usefulFeedbackCount => feedbackForSource(sensors.source.name)
-      .where((item) => item.recommendationUseful)
-      .length;
-  int get falseAlertCount => feedbackForSource(sensors.source.name)
-      .where((item) => item.falseAlert)
-      .length;
+  int get confirmedFeedbackCount =>
+      feedbackForSource(sensors.source.name)
+          .where((item) => item.conditionConfirmed)
+          .length;
+  int get usefulFeedbackCount =>
+      feedbackForSource(sensors.source.name)
+          .where((item) => item.recommendationUseful)
+          .length;
+  int get falseAlertCount =>
+      feedbackForSource(sensors.source.name)
+          .where((item) => item.falseAlert)
+          .length;
 
   FarmerFeedback? feedbackFor(String alertId) {
     final value = _feedback[alertId];
@@ -354,7 +357,8 @@ class EngineeringEvidenceService extends ChangeNotifier {
     final humidity = average((item) => item.humidity);
     final light = average((item) => item.light);
     final electrode = average((item) => item.plantSignal);
-    final variation = <double>[
+    final variation =
+        <double>[
           _relativeSpread((item) => item.soilMoisture, soil),
           _relativeSpread((item) => item.temperature, temperature),
           _relativeSpread((item) => item.humidity, humidity),
@@ -387,7 +391,8 @@ class EngineeringEvidenceService extends ChangeNotifier {
     double average,
   ) {
     if (average.abs() < 0.001) return 1;
-    final difference = _calibrationSamples
+    final difference =
+        _calibrationSamples
             .map((item) => (select(item) - average).abs())
             .reduce((a, b) => a + b) /
         _calibrationSamples.length;

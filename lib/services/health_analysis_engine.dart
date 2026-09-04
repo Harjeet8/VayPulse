@@ -17,8 +17,9 @@ class HealthAnalysisEngine {
     String growthStage = 'vegetative',
   }) {
     final profile = CropHealthProfile.forCrop(crop, growthStage: growthStage);
-    final recent =
-        history.length <= 12 ? history : history.sublist(history.length - 12);
+    final recent = history.length <= 12
+        ? history
+        : history.sublist(history.length - 12);
 
     final water = reading.soilMoistureAvailable
         ? _persistentRangeScore(
@@ -45,8 +46,8 @@ class HealthAnalysisEngine {
 
     final rootZone =
         reading.soilTemperatureAvailable && reading.soilTemperature != null
-            ? _rangeScore(reading.soilTemperature!, profile.rootZoneTemperature)
-            : null;
+        ? _rangeScore(reading.soilTemperature!, profile.rootZoneTemperature)
+        : null;
 
     final atmospheric = reading.humidityAvailable
         ? _rangeScore(reading.humidity, profile.humidity)
@@ -55,14 +56,14 @@ class HealthAnalysisEngine {
     final light = !reading.daytime
         ? null
         : reading.lightAvailable && reading.lightLux != null
-            ? _persistentRangeScore(
-                reading.lightLux!,
-                profile.daylightLux,
-                recent
-                    .where((r) => r.lightAvailable && r.lightLux != null)
-                    .map((r) => r.lightLux!),
-              )
-            : null;
+        ? _persistentRangeScore(
+            reading.lightLux!,
+            profile.daylightLux,
+            recent
+                .where((r) => r.lightAvailable && r.lightLux != null)
+                .map((r) => r.lightLux!),
+          )
+        : null;
 
     final diseaseRisk = _diseaseRisk(reading);
     final bioelectric = _bioelectricStability(reading, recent);
@@ -303,11 +304,13 @@ class HealthAnalysisEngine {
     final noise = math.max(1.0, reading.bioNoiseMv ?? 2.0).toDouble();
     final normalized = deviation / (noise * 4.0);
     var score = (100.0 - normalized * 35.0).clamp(0.0, 100.0).toDouble();
-    final recentBio =
-        history.where((r) => r.bioDeviationMv != null).toList(growable: false);
+    final recentBio = history
+        .where((r) => r.bioDeviationMv != null)
+        .toList(growable: false);
     if (recentBio.length >= 3) {
-      final repeated =
-          recentBio.where((r) => r.bioDeviationMv!.abs() > noise * 4.0).length;
+      final repeated = recentBio
+          .where((r) => r.bioDeviationMv!.abs() > noise * 4.0)
+          .length;
       if (repeated < 2) score = math.max(score, 70.0).toDouble();
     }
     return score;
@@ -357,10 +360,10 @@ class HealthAnalysisEngine {
   static String _riskLabel(double risk) => risk < 25
       ? 'low'
       : risk < 50
-          ? 'moderate'
-          : risk < 75
-              ? 'elevated'
-              : 'high';
+      ? 'moderate'
+      : risk < 75
+      ? 'elevated'
+      : 'high';
 
   static double _fraction(double value, double low, double high) => high == low
       ? 0.0

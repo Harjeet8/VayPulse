@@ -17,27 +17,27 @@ class PhytoSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900, letterSpacing: -0.35),
-                ),
-                if (subtitle != null) ...[
-                  const SizedBox(height: 3),
-                  Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
-                ],
-              ],
+    crossAxisAlignment: CrossAxisAlignment.end,
+    children: [
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: Theme.of(context).textTheme.titleLarge
+                  ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: -0.35),
             ),
-          ),
-          if (action != null) action!,
-        ],
-      );
+            if (subtitle != null) ...[
+              const SizedBox(height: 3),
+              Text(subtitle!, style: Theme.of(context).textTheme.bodySmall),
+            ],
+          ],
+        ),
+      ),
+      if (action != null) action!,
+    ],
+  );
 }
 
 class PhytoStatusBadge extends StatelessWidget {
@@ -56,35 +56,35 @@ class PhytoStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: prominent ? 11 : 9,
-          vertical: prominent ? 7 : 5,
-        ),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.12),
-          borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: color.withValues(alpha: 0.32)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(icon, size: prominent ? 17 : 14, color: color),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                label,
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: color,
-                  fontSize: prominent ? 12 : 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.25,
-                ),
-              ),
+    padding: EdgeInsets.symmetric(
+      horizontal: prominent ? 11 : 9,
+      vertical: prominent ? 7 : 5,
+    ),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(99),
+      border: Border.all(color: color.withValues(alpha: 0.32)),
+    ),
+    child: Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, size: prominent ? 17 : 14, color: color),
+        const SizedBox(width: 6),
+        Flexible(
+          child: Text(
+            label,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: color,
+              fontSize: prominent ? 12 : 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.25,
             ),
-          ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 class LivePulseDot extends StatefulWidget {
@@ -132,44 +132,44 @@ class _LivePulseDotState extends State<LivePulseDot>
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: widget.size * 2.4,
-        height: widget.size * 2.4,
-        child: AnimatedBuilder(
-          animation: controller,
-          builder: (context, _) {
-            final progress = widget.animate ? controller.value : 0.0;
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: widget.size * (1 + progress * 1.3),
-                  height: widget.size * (1 + progress * 1.3),
-                  decoration: BoxDecoration(
-                    color: widget.color.withValues(
-                      alpha: (0.28 * (1 - progress)).clamp(0, 1).toDouble(),
-                    ),
-                    shape: BoxShape.circle,
-                  ),
+    width: widget.size * 2.4,
+    height: widget.size * 2.4,
+    child: AnimatedBuilder(
+      animation: controller,
+      builder: (context, _) {
+        final progress = widget.animate ? controller.value : 0.0;
+        return Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: widget.size * (1 + progress * 1.3),
+              height: widget.size * (1 + progress * 1.3),
+              decoration: BoxDecoration(
+                color: widget.color.withValues(
+                  alpha: (0.28 * (1 - progress)).clamp(0, 1).toDouble(),
                 ),
-                Container(
-                  width: widget.size,
-                  height: widget.size,
-                  decoration: BoxDecoration(
-                    color: widget.color,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: widget.color.withValues(alpha: 0.34),
-                        blurRadius: 8,
-                      ),
-                    ],
+                shape: BoxShape.circle,
+              ),
+            ),
+            Container(
+              width: widget.size,
+              height: widget.size,
+              decoration: BoxDecoration(
+                color: widget.color,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: widget.color.withValues(alpha: 0.34),
+                    blurRadius: 8,
                   ),
-                ),
-              ],
-            );
-          },
-        ),
-      );
+                ],
+              ),
+            ),
+          ],
+        );
+      },
+    ),
+  );
 }
 
 class AnimatedMetricText extends StatelessWidget {
@@ -190,10 +190,9 @@ class AnimatedMetricText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final resolvedStyle = style ??
-        Theme.of(context)
-            .textTheme
-            .headlineSmall
+    final resolvedStyle =
+        style ??
+        Theme.of(context).textTheme.headlineSmall
             ?.copyWith(fontWeight: FontWeight.w900);
     if (!animate) {
       return Text(
@@ -239,42 +238,40 @@ class PhytoEmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 34),
-          child: Column(
-            children: [
-              Container(
-                width: 68,
-                height: 68,
-                decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primaryContainer,
-                  borderRadius: BorderRadius.circular(22),
-                ),
-                child: Icon(
-                  icon,
-                  size: 32,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-              ),
-              const SizedBox(height: 15),
-              Text(
-                title,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              const SizedBox(height: 6),
-              Text(body, textAlign: TextAlign.center),
-              if (actionLabel != null && onAction != null) ...[
-                const SizedBox(height: 17),
-                FilledButton(onPressed: onAction, child: Text(actionLabel!)),
-              ],
-            ],
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 34),
+      child: Column(
+        children: [
+          Container(
+            width: 68,
+            height: 68,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(22),
+            ),
+            child: Icon(
+              icon,
+              size: 32,
+              color: Theme.of(context).colorScheme.primary,
+            ),
           ),
-        ),
-      );
+          const SizedBox(height: 15),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge
+                ?.copyWith(fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 6),
+          Text(body, textAlign: TextAlign.center),
+          if (actionLabel != null && onAction != null) ...[
+            const SizedBox(height: 17),
+            FilledButton(onPressed: onAction, child: Text(actionLabel!)),
+          ],
+        ],
+      ),
+    ),
+  );
 }
 
 class FarmerActionCard extends StatelessWidget {
@@ -335,9 +332,7 @@ class FarmerActionCard extends StatelessWidget {
                       const SizedBox(height: 3),
                       Text(
                         title,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
+                        style: Theme.of(context).textTheme.titleMedium
                             ?.copyWith(fontWeight: FontWeight.w900),
                       ),
                     ],
@@ -383,44 +378,44 @@ class ExperienceModeSelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final cards = [
-            _ExperienceOption(
-              icon: Icons.agriculture_rounded,
-              title: farmerTitle,
-              body: farmerBody,
-              selected: selected == 'farmer',
-              onTap: () async {
-                await HapticFeedback.selectionClick();
-                onChanged('farmer');
-              },
-            ),
-            _ExperienceOption(
-              icon: Icons.science_rounded,
-              title: judgeTitle,
-              body: judgeBody,
-              selected: selected == 'judge',
-              onTap: () async {
-                await HapticFeedback.selectionClick();
-                onChanged('judge');
-              },
-            ),
-          ];
-          if (constraints.maxWidth >= 640) {
-            return Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Expanded(child: cards.first),
-                const SizedBox(width: 10),
-                Expanded(child: cards.last),
-              ],
-            );
-          }
-          return Column(
-            children: [cards.first, const SizedBox(height: 10), cards.last],
-          );
-        },
+    builder: (context, constraints) {
+      final cards = [
+        _ExperienceOption(
+          icon: Icons.agriculture_rounded,
+          title: farmerTitle,
+          body: farmerBody,
+          selected: selected == 'farmer',
+          onTap: () async {
+            await HapticFeedback.selectionClick();
+            onChanged('farmer');
+          },
+        ),
+        _ExperienceOption(
+          icon: Icons.science_rounded,
+          title: judgeTitle,
+          body: judgeBody,
+          selected: selected == 'judge',
+          onTap: () async {
+            await HapticFeedback.selectionClick();
+            onChanged('judge');
+          },
+        ),
+      ];
+      if (constraints.maxWidth >= 640) {
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(child: cards.first),
+            const SizedBox(width: 10),
+            Expanded(child: cards.last),
+          ],
+        );
+      }
+      return Column(
+        children: [cards.first, const SizedBox(height: 10), cards.last],
       );
+    },
+  );
 }
 
 class _ExperienceOption extends StatelessWidget {

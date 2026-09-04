@@ -78,9 +78,7 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
                         const SizedBox(height: 22),
                         Text(
                           content.title,
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineMedium
+                          style: Theme.of(context).textTheme.headlineMedium
                               ?.copyWith(
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.7,
@@ -174,80 +172,80 @@ class _PresentationModeScreenState extends State<PresentationModeScreen> {
   }
 
   List<_PresentationContent> _content(BuildContext context) => [
-        _PresentationContent(
-          icon: Icons.agriculture_outlined,
-          color: phytoGreen,
-          title: context.tr('presentation_problem_title'),
-          body: context.tr('presentation_problem_body'),
-          points: [
-            context.tr('presentation_problem_1'),
-            context.tr('presentation_problem_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.hub_outlined,
-          color: const Color(0xFF2775B6),
-          title: context.tr('presentation_system_title'),
-          body: context.tr('presentation_system_body'),
-          points: [
-            context.tr('presentation_system_1'),
-            context.tr('presentation_system_2'),
-            context.tr('presentation_system_3'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.auto_awesome_outlined,
-          color: phytoLeaf,
-          title: context.tr('presentation_intelligence_title'),
-          body: context.tr('presentation_intelligence_body'),
-          points: [
-            context.tr('presentation_intelligence_1'),
-            context.tr('presentation_intelligence_2'),
-            context.tr('presentation_intelligence_3'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.science_outlined,
-          color: phytoAmber,
-          title: context.tr('presentation_demo_title'),
-          body: context.tr('presentation_demo_body'),
-          points: [
-            context.tr('presentation_demo_1'),
-            context.tr('presentation_demo_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.space_dashboard_outlined,
-          color: const Color(0xFF397FC0),
-          title: context.tr('presentation_dashboard_title'),
-          body: context.tr('presentation_dashboard_body'),
-          points: [
-            context.tr('presentation_dashboard_1'),
-            context.tr('presentation_dashboard_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.psychology_alt_outlined,
-          color: const Color(0xFF7A5CC7),
-          title: context.tr('presentation_ai_title'),
-          body: context.tr('presentation_ai_body'),
-          points: [
-            context.tr('presentation_ai_1'),
-            context.tr('presentation_ai_2'),
-          ],
-        ),
-        _PresentationContent(
-          icon: Icons.public_rounded,
-          color: phytoLeaf,
-          title: context.tr('presentation_impact_title'),
-          body: context.tr('presentation_impact_body'),
-          points: [
-            context.tr('presentation_impact_1'),
-            context.tr('presentation_impact_2'),
-            context.tr('presentation_impact_3'),
-          ],
-        ),
-      ];
+    _PresentationContent(
+      icon: Icons.agriculture_outlined,
+      color: phytoGreen,
+      title: context.tr('presentation_problem_title'),
+      body: context.tr('presentation_problem_body'),
+      points: [
+        context.tr('presentation_problem_1'),
+        context.tr('presentation_problem_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.hub_outlined,
+      color: const Color(0xFF2775B6),
+      title: context.tr('presentation_system_title'),
+      body: context.tr('presentation_system_body'),
+      points: [
+        context.tr('presentation_system_1'),
+        context.tr('presentation_system_2'),
+        context.tr('presentation_system_3'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.auto_awesome_outlined,
+      color: phytoLeaf,
+      title: context.tr('presentation_intelligence_title'),
+      body: context.tr('presentation_intelligence_body'),
+      points: [
+        context.tr('presentation_intelligence_1'),
+        context.tr('presentation_intelligence_2'),
+        context.tr('presentation_intelligence_3'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.science_outlined,
+      color: phytoAmber,
+      title: context.tr('presentation_demo_title'),
+      body: context.tr('presentation_demo_body'),
+      points: [
+        context.tr('presentation_demo_1'),
+        context.tr('presentation_demo_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.space_dashboard_outlined,
+      color: const Color(0xFF397FC0),
+      title: context.tr('presentation_dashboard_title'),
+      body: context.tr('presentation_dashboard_body'),
+      points: [
+        context.tr('presentation_dashboard_1'),
+        context.tr('presentation_dashboard_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.psychology_alt_outlined,
+      color: const Color(0xFF7A5CC7),
+      title: context.tr('presentation_ai_title'),
+      body: context.tr('presentation_ai_body'),
+      points: [
+        context.tr('presentation_ai_1'),
+        context.tr('presentation_ai_2'),
+      ],
+    ),
+    _PresentationContent(
+      icon: Icons.public_rounded,
+      color: phytoLeaf,
+      title: context.tr('presentation_impact_title'),
+      body: context.tr('presentation_impact_body'),
+      points: [
+        context.tr('presentation_impact_1'),
+        context.tr('presentation_impact_2'),
+        context.tr('presentation_impact_3'),
+      ],
+    ),
+  ];
 }
 
 class _PresentationSnapshot extends StatelessWidget {
@@ -359,11 +357,11 @@ class _PresentationSnapshot extends StatelessWidget {
                       Text(
                         hardwareMode
                             ? (reading.primaryRootCause.isEmpty
-                                ? 'ESP32 analysis unavailable'
-                                : reading.primaryRootCause.replaceAll(
-                                    '_',
-                                    ' ',
-                                  ))
+                                  ? 'ESP32 analysis unavailable'
+                                  : reading.primaryRootCause.replaceAll(
+                                      '_',
+                                      ' ',
+                                    ))
                             : context.tr(analysis!.evidenceKey),
                       ),
                     ],
@@ -386,27 +384,27 @@ class _SnapshotMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        width: 142,
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surfaceContainerLow,
-          borderRadius: BorderRadius.circular(15),
-          border: Border.all(color: Theme.of(context).dividerColor),
+    width: 142,
+    padding: const EdgeInsets.all(12),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surfaceContainerLow,
+      borderRadius: BorderRadius.circular(15),
+      border: Border.all(color: Theme.of(context).dividerColor),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelSmall,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-            const SizedBox(height: 3),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-          ],
-        ),
-      );
+        const SizedBox(height: 3),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ],
+    ),
+  );
 }
 
 class _DemoControls extends StatelessWidget {
@@ -513,9 +511,7 @@ class _DemoControls extends StatelessWidget {
                         width: double.infinity,
                         padding: const EdgeInsets.all(13),
                         decoration: BoxDecoration(
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primaryContainer
+                          color: Theme.of(context).colorScheme.primaryContainer
                               .withValues(alpha: 0.35),
                           borderRadius: BorderRadius.circular(14),
                         ),
@@ -544,26 +540,26 @@ class _MiniMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(11),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(13),
-          border: Border.all(color: Theme.of(context).dividerColor),
+    padding: const EdgeInsets.all(11),
+    decoration: BoxDecoration(
+      color: Theme.of(context).colorScheme.surface,
+      borderRadius: BorderRadius.circular(13),
+      border: Border.all(color: Theme.of(context).dividerColor),
+    ),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: Theme.of(context).textTheme.labelSmall,
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-            const SizedBox(height: 3),
-            Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
-          ],
-        ),
-      );
+        const SizedBox(height: 3),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w900)),
+      ],
+    ),
+  );
 }
 
 class _PresentationContent {

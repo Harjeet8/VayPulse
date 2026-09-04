@@ -14,24 +14,24 @@ class FarmRepository extends ChangeNotifier {
   String? errorMessage;
 
   Farm get selectedFarm => farms.firstWhere(
-        (farm) => farm.id == selectedFarmId,
-        orElse: () => farms.first,
-      );
+    (farm) => farm.id == selectedFarmId,
+    orElse: () => farms.first,
+  );
 
   FarmField get selectedField => selectedFarm.fields.firstWhere(
-        (field) => field.id == selectedFieldId,
-        orElse: () => selectedFarm.fields.first,
-      );
+    (field) => field.id == selectedFieldId,
+    orElse: () => selectedFarm.fields.first,
+  );
 
   FarmZone get selectedZone => selectedField.zones.firstWhere(
-        (zone) => zone.id == selectedZoneId,
-        orElse: () => selectedField.zones.first,
-      );
+    (zone) => zone.id == selectedZoneId,
+    orElse: () => selectedField.zones.first,
+  );
 
   List<FarmZone> get allZones => [
-        for (final farm in farms)
-          for (final field in farm.fields) ...field.zones,
-      ];
+    for (final farm in farms)
+      for (final field in farm.fields) ...field.zones,
+  ];
 
   Future<void> load() async {
     try {
@@ -48,9 +48,11 @@ class FarmRepository extends ChangeNotifier {
       if (farms.isEmpty) farms.add(_demoFarm);
       selectedFarmId =
           preferences.getString('selectedFarmId') ?? farms.first.id;
-      selectedFieldId = preferences.getString('selectedFieldId') ??
+      selectedFieldId =
+          preferences.getString('selectedFieldId') ??
           farms.first.fields.first.id;
-      selectedZoneId = preferences.getString('selectedZoneId') ??
+      selectedZoneId =
+          preferences.getString('selectedZoneId') ??
           farms.first.fields.first.zones.first.id;
     } catch (error) {
       farms

@@ -7,14 +7,16 @@ class Esp32ConfigClient {
   final http.Client _httpClient;
 
   Esp32ConfigClient(String baseUrl, {http.Client? httpClient})
-      : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
-        _httpClient = httpClient ?? http.Client();
+    : baseUrl = baseUrl.trim().replaceFirst(RegExp(r'/$'), ''),
+      _httpClient = httpClient ?? http.Client();
 
   Future<Esp32ConfigSnapshot> getConfig() async {
-    final response = await _httpClient.get(
-      Uri.parse('$baseUrl/api/config'),
-      headers: const {'Accept': 'application/json'},
-    ).timeout(const Duration(seconds: 4));
+    final response = await _httpClient
+        .get(
+          Uri.parse('$baseUrl/api/config'),
+          headers: const {'Accept': 'application/json'},
+        )
+        .timeout(const Duration(seconds: 4));
     if (response.statusCode != 200) {
       throw Exception('ESP32 config unavailable (${response.statusCode})');
     }

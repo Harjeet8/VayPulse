@@ -136,7 +136,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     bool between(double value, double low, double high) =>
         value.isFinite && value >= low && value <= high;
 
-    final valid = (!reading.soilMoistureAvailable ||
+    final valid =
+        (!reading.soilMoistureAvailable ||
             between(reading.soilMoisture, 0, 100)) &&
         (!reading.temperatureAvailable ||
             between(reading.temperature, -20, 70)) &&

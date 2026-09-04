@@ -61,7 +61,8 @@ class LocationNameResolver {
     double radians(double value) => value * math.pi / 180;
     final latitudeDelta = radians(latitudeB - latitudeA);
     final longitudeDelta = radians(longitudeB - longitudeA);
-    final a = math.sin(latitudeDelta / 2) * math.sin(latitudeDelta / 2) +
+    final a =
+        math.sin(latitudeDelta / 2) * math.sin(latitudeDelta / 2) +
         math.cos(radians(latitudeA)) *
             math.cos(radians(latitudeB)) *
             math.sin(longitudeDelta / 2) *

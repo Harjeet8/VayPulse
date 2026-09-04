@@ -34,8 +34,8 @@ class IrrigationAdvisorScreen extends StatelessWidget {
               );
         final color = hardwareMode
             ? (reading?.healthStatus.toUpperCase() == 'CRITICAL'
-                ? phytoTerracotta
-                : phytoLeaf)
+                  ? phytoTerracotta
+                  : phytoLeaf)
             : switch (advice!.priority) {
                 IrrigationPriority.none => phytoLeaf,
                 IrrigationPriority.watch => phytoAmber,
@@ -47,13 +47,13 @@ class IrrigationAdvisorScreen extends StatelessWidget {
             : context.tr(advice!.titleKey);
         final body = hardwareMode
             ? (reading?.primaryRootCause.isNotEmpty == true
-                ? reading!.primaryRootCause.replaceAll('_', ' ')
-                : 'The ESP32 has not reported a root cause.')
+                  ? reading!.primaryRootCause.replaceAll('_', ' ')
+                  : 'The ESP32 has not reported a root cause.')
             : context.tr(advice!.bodyKey);
         final action = hardwareMode
             ? (reading?.farmerAction.isNotEmpty == true
-                ? reading!.farmerAction
-                : 'Awaiting ESP32 guidance.')
+                  ? reading!.farmerAction
+                  : 'Awaiting ESP32 guidance.')
             : context.tr(advice!.actionKey);
         return Scaffold(
           appBar: AppBar(title: Text(context.tr('irrigation_advisor'))),
@@ -81,9 +81,7 @@ class IrrigationAdvisorScreen extends StatelessWidget {
                         children: [
                           Text(
                             context.tr('smart_irrigation'),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
+                            style: Theme.of(context).textTheme.titleLarge
                                 ?.copyWith(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w900,
@@ -210,14 +208,14 @@ class IrrigationAdvisorScreen extends StatelessWidget {
 }
 
 String _stageLabel(BuildContext context, String stage) => switch (stage) {
-      'Seedling' => context.tr('stage_seedling'),
-      'Vegetative' => context.tr('stage_vegetative'),
-      'Tillering' => context.tr('stage_tillering'),
-      'Flowering' => context.tr('stage_flowering'),
-      'Fruit set' => context.tr('stage_fruit_set'),
-      'Maturity' => context.tr('stage_maturity'),
-      _ => stage,
-    };
+  'Seedling' => context.tr('stage_seedling'),
+  'Vegetative' => context.tr('stage_vegetative'),
+  'Tillering' => context.tr('stage_tillering'),
+  'Flowering' => context.tr('stage_flowering'),
+  'Fruit set' => context.tr('stage_fruit_set'),
+  'Maturity' => context.tr('stage_maturity'),
+  _ => stage,
+};
 
 class _EvidenceRow extends StatelessWidget {
   final IconData icon;
@@ -227,13 +225,13 @@ class _EvidenceRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Row(
-          children: [
-            Icon(icon, size: 19),
-            const SizedBox(width: 9),
-            Expanded(child: Text(text)),
-          ],
-        ),
-      );
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Row(
+      children: [
+        Icon(icon, size: 19),
+        const SizedBox(width: 9),
+        Expanded(child: Text(text)),
+      ],
+    ),
+  );
 }

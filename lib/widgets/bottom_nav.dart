@@ -29,10 +29,10 @@ class BottomNav extends StatelessWidget {
           boxShadow: [
             BoxShadow(
               color: Theme.of(context).shadowColor.withValues(
-                    alpha: Theme.of(context).brightness == Brightness.dark
-                        ? 0.32
-                        : 0.08,
-                  ),
+                alpha: Theme.of(context).brightness == Brightness.dark
+                    ? 0.32
+                    : 0.08,
+              ),
               blurRadius: 24,
               offset: const Offset(0, 10),
             ),

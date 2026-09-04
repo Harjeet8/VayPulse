@@ -89,8 +89,9 @@ class AlertService extends ChangeNotifier {
       messageText: reading.farmerAction.isEmpty
           ? 'Open the live dashboard for the ESP32 recommendation.'
           : reading.farmerAction,
-      severity:
-          status == 'CRITICAL' ? AlertSeverity.critical : AlertSeverity.warning,
+      severity: status == 'CRITICAL'
+          ? AlertSeverity.critical
+          : AlertSeverity.warning,
     );
   }
 

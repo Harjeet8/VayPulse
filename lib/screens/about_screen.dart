@@ -14,171 +14,167 @@ class AboutVayPulseScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(context.tr('about'))),
-        body: PageFrame(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF0D4934), Color(0xFF23815C)],
+    appBar: AppBar(title: Text(context.tr('about'))),
+    body: PageFrame(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              colors: [Color(0xFF0D4934), Color(0xFF23815C)],
+            ),
+            borderRadius: BorderRadius.circular(28),
+          ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Opacity(
+                  opacity: 0.35,
+                  child: PlantPulse(
+                    color: Colors.white.withValues(alpha: 0.28),
+                  ),
                 ),
-                borderRadius: BorderRadius.circular(28),
               ),
-              clipBehavior: Clip.antiAlias,
-              child: Stack(
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Positioned.fill(
-                    child: Opacity(
-                      opacity: 0.35,
-                      child: PlantPulse(
-                        color: Colors.white.withValues(alpha: 0.28),
-                      ),
+                  Container(
+                    width: 58,
+                    height: 58,
+                    decoration: BoxDecoration(
+                      color: Colors.white.withValues(alpha: 0.16),
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: const Icon(
+                      Icons.eco_rounded,
+                      color: Colors.white,
+                      size: 32,
                     ),
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Container(
-                        width: 58,
-                        height: 58,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withValues(alpha: 0.16),
-                          borderRadius: BorderRadius.circular(18),
-                        ),
-                        child: const Icon(
-                          Icons.eco_rounded,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      const SizedBox(height: 18),
-                      Text(
-                        'PhytoSense AI',
-                        style: Theme.of(context)
-                            .textTheme
-                            .headlineMedium
-                            ?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        context.tr('tagline'),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.82),
-                          fontSize: 16,
-                        ),
-                      ),
-                      const SizedBox(height: 7),
-                      Text(
-                        context.tr('powered_by_vaypulse'),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.68),
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 18),
+                  Text(
+                    'PhytoSense AI',
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 5),
+                  Text(
+                    context.tr('tagline'),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.82),
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    context.tr('powered_by_vaypulse'),
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.68),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 16),
-            _AboutSection(
-              icon: Icons.flag_outlined,
-              title: context.tr('about_mission_title'),
-              body: context.tr('about_mission_body'),
-            ),
-            const SizedBox(height: 12),
-            const _FarmImpactEstimator(),
-            const SizedBox(height: 12),
-            _AboutSection(
-              icon: Icons.route_outlined,
-              title: context.tr('about_how_title'),
-              body: context.tr('about_how_body'),
-              bullets: [
-                context.tr('about_how_1'),
-                context.tr('about_how_2'),
-                context.tr('about_how_3'),
-                context.tr('about_how_4'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _AboutSection(
-              icon: Icons.engineering_outlined,
-              title: context.tr('about_engineering_title'),
-              body: context.tr('about_engineering_body'),
-              bullets: [
-                context.tr('about_engineering_1'),
-                context.tr('about_engineering_2'),
-                context.tr('about_engineering_3'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _AboutSection(
-              icon: Icons.auto_awesome_outlined,
-              title: context.tr('about_capabilities_title'),
-              body: context.tr('about_capabilities_body'),
-              bullets: [
-                context.tr('about_capabilities_1'),
-                context.tr('about_capabilities_2'),
-                context.tr('about_capabilities_3'),
-                context.tr('about_capabilities_4'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _AboutSection(
-              icon: Icons.people_alt_outlined,
-              title: context.tr('about_farmer_title'),
-              body: context.tr('about_farmer_body'),
-              bullets: [
-                context.tr('about_farmer_1'),
-                context.tr('about_farmer_2'),
-                context.tr('about_farmer_3'),
-              ],
-            ),
-            const SizedBox(height: 12),
-            _AboutSection(
-              icon: Icons.verified_user_outlined,
-              title: context.tr('about_responsible_title'),
-              body: context.tr('about_responsible_body'),
-            ),
-            const SizedBox(height: 12),
-            Card(
-              color:
-                  Theme.of(context).colorScheme.primary.withValues(alpha: 0.07),
-              child: ListTile(
-                contentPadding: const EdgeInsets.all(16),
-                leading: Icon(
-                  Icons.info_outline_rounded,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                title: Text(
-                  context.tr('version'),
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: Text(context.tr('about_build_status')),
-              ),
-            ),
-            const SizedBox(height: 12),
-            const Card(
-              child: ListTile(
-                contentPadding: EdgeInsets.all(16),
-                leading: Icon(Icons.copyright_rounded),
-                title: Text(
-                  'Copyright © 2026 Harjeet',
-                  style: TextStyle(fontWeight: FontWeight.w900),
-                ),
-                subtitle: Text(
-                  'PhytoSense AI. All rights reserved. Third-party packages retain their respective licenses.',
-                ),
-              ),
-            ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 16),
+        _AboutSection(
+          icon: Icons.flag_outlined,
+          title: context.tr('about_mission_title'),
+          body: context.tr('about_mission_body'),
+        ),
+        const SizedBox(height: 12),
+        const _FarmImpactEstimator(),
+        const SizedBox(height: 12),
+        _AboutSection(
+          icon: Icons.route_outlined,
+          title: context.tr('about_how_title'),
+          body: context.tr('about_how_body'),
+          bullets: [
+            context.tr('about_how_1'),
+            context.tr('about_how_2'),
+            context.tr('about_how_3'),
+            context.tr('about_how_4'),
           ],
         ),
-      );
+        const SizedBox(height: 12),
+        _AboutSection(
+          icon: Icons.engineering_outlined,
+          title: context.tr('about_engineering_title'),
+          body: context.tr('about_engineering_body'),
+          bullets: [
+            context.tr('about_engineering_1'),
+            context.tr('about_engineering_2'),
+            context.tr('about_engineering_3'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _AboutSection(
+          icon: Icons.auto_awesome_outlined,
+          title: context.tr('about_capabilities_title'),
+          body: context.tr('about_capabilities_body'),
+          bullets: [
+            context.tr('about_capabilities_1'),
+            context.tr('about_capabilities_2'),
+            context.tr('about_capabilities_3'),
+            context.tr('about_capabilities_4'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _AboutSection(
+          icon: Icons.people_alt_outlined,
+          title: context.tr('about_farmer_title'),
+          body: context.tr('about_farmer_body'),
+          bullets: [
+            context.tr('about_farmer_1'),
+            context.tr('about_farmer_2'),
+            context.tr('about_farmer_3'),
+          ],
+        ),
+        const SizedBox(height: 12),
+        _AboutSection(
+          icon: Icons.verified_user_outlined,
+          title: context.tr('about_responsible_title'),
+          body: context.tr('about_responsible_body'),
+        ),
+        const SizedBox(height: 12),
+        Card(
+          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.07),
+          child: ListTile(
+            contentPadding: const EdgeInsets.all(16),
+            leading: Icon(
+              Icons.info_outline_rounded,
+              color: Theme.of(context).colorScheme.primary,
+            ),
+            title: Text(
+              context.tr('version'),
+              style: const TextStyle(fontWeight: FontWeight.w900),
+            ),
+            subtitle: Text(context.tr('about_build_status')),
+          ),
+        ),
+        const SizedBox(height: 12),
+        const Card(
+          child: ListTile(
+            contentPadding: EdgeInsets.all(16),
+            leading: Icon(Icons.copyright_rounded),
+            title: Text(
+              'Copyright © 2026 Harjeet',
+              style: TextStyle(fontWeight: FontWeight.w900),
+            ),
+            subtitle: Text(
+              'PhytoSense AI. All rights reserved. Third-party packages retain their respective licenses.',
+            ),
+          ),
+        ),
+      ],
+    ),
+  );
 }
 
 class _FarmImpactEstimator extends StatefulWidget {
@@ -233,10 +229,10 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
   }
 
   String _money(double value) => NumberFormat.currency(
-        locale: 'en_IN',
-        symbol: '₹',
-        decimalDigits: 0,
-      ).format(value);
+    locale: 'en_IN',
+    symbol: '₹',
+    decimalDigits: 0,
+  ).format(value);
 
   @override
   Widget build(BuildContext context) {
@@ -292,9 +288,9 @@ class _FarmImpactEstimatorState extends State<_FarmImpactEstimator> {
                       Text(
                         context.tr('impact_title'),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       const SizedBox(height: 3),
                       Text(
@@ -553,43 +549,41 @@ class _ImpactMetric extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.all(15),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(18),
-          border: Border.all(color: color.withValues(alpha: 0.22)),
+    padding: const EdgeInsets.all(15),
+    decoration: BoxDecoration(
+      color: color.withValues(alpha: 0.08),
+      borderRadius: BorderRadius.circular(18),
+      border: Border.all(color: color.withValues(alpha: 0.22)),
+    ),
+    child: Row(
+      children: [
+        Container(
+          width: 39,
+          height: 39,
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(13),
+          ),
+          child: Icon(icon, color: color, size: 21),
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 39,
-              height: 39,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(13),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: Theme.of(context).textTheme.bodySmall),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.w900, color: color),
               ),
-              child: Icon(icon, color: color, size: 21),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: Theme.of(context).textTheme.bodySmall),
-                  const SizedBox(height: 2),
-                  Text(
-                    value,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900, color: color),
-                  ),
-                ],
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
-      );
+      ],
+    ),
+  );
 }
 
 class _ImpactBreakdownRow extends StatelessWidget {
@@ -605,18 +599,18 @@ class _ImpactBreakdownRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Row(
-        children: [
-          Expanded(child: Text(label)),
-          const SizedBox(width: 10),
-          Text(
-            value,
-            style: TextStyle(
-              fontWeight: strong ? FontWeight.w900 : FontWeight.w700,
-              color: strong ? Theme.of(context).colorScheme.primary : null,
-            ),
-          ),
-        ],
-      );
+    children: [
+      Expanded(child: Text(label)),
+      const SizedBox(width: 10),
+      Text(
+        value,
+        style: TextStyle(
+          fontWeight: strong ? FontWeight.w900 : FontWeight.w700,
+          color: strong ? Theme.of(context).colorScheme.primary : null,
+        ),
+      ),
+    ],
+  );
 }
 
 class _ImpactSlider extends StatelessWidget {
@@ -640,38 +634,38 @@ class _ImpactSlider extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(top: 12),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+    padding: const EdgeInsets.only(top: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    label,
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                Text(
-                  valueText,
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.primary,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ],
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(fontWeight: FontWeight.w700),
+              ),
             ),
-            Slider(
-              value: value,
-              min: minimum,
-              max: maximum,
-              divisions: divisions,
-              label: valueText,
-              onChanged: onChanged,
+            Text(
+              valueText,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.primary,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ],
         ),
-      );
+        Slider(
+          value: value,
+          min: minimum,
+          max: maximum,
+          divisions: divisions,
+          label: valueText,
+          onChanged: onChanged,
+        ),
+      ],
+    ),
+  );
 }
 
 class _AboutSection extends StatelessWidget {
@@ -689,60 +683,55 @@ class _AboutSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(19),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+    child: Padding(
+      padding: const EdgeInsets.all(19),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 42,
-                    height: 42,
-                    decoration: BoxDecoration(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primaryContainer
-                          .withValues(alpha: 0.55),
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                    child: Icon(icon,
-                        color: Theme.of(context).colorScheme.primary),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      title,
-                      style: Theme.of(context)
-                          .textTheme
-                          .titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w900),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Text(body),
-              for (final bullet in bullets) ...[
-                const SizedBox(height: 10),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Padding(
-                      padding: EdgeInsets.only(top: 3),
-                      child: Icon(
-                        Icons.check_circle_rounded,
-                        size: 17,
-                        color: phytoLeaf,
-                      ),
-                    ),
-                    const SizedBox(width: 9),
-                    Expanded(child: Text(bullet)),
-                  ],
+              Container(
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primaryContainer
+                      .withValues(alpha: 0.55),
+                  borderRadius: BorderRadius.circular(14),
                 ),
-              ],
+                child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ),
             ],
           ),
-        ),
-      );
+          const SizedBox(height: 12),
+          Text(body),
+          for (final bullet in bullets) ...[
+            const SizedBox(height: 10),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Padding(
+                  padding: EdgeInsets.only(top: 3),
+                  child: Icon(
+                    Icons.check_circle_rounded,
+                    size: 17,
+                    color: phytoLeaf,
+                  ),
+                ),
+                const SizedBox(width: 9),
+                Expanded(child: Text(bullet)),
+              ],
+            ),
+          ],
+        ],
+      ),
+    ),
+  );
 }

@@ -51,14 +51,13 @@ class DiseaseSymptomAnswers {
     FieldObservation? yellowHalos,
     FieldObservation? leafCurling,
     FieldObservation? whitefliesPresent,
-  }) =>
-      DiseaseSymptomAnswers(
-        concentricRings: concentricRings ?? this.concentricRings,
-        waterSoakedLesions: waterSoakedLesions ?? this.waterSoakedLesions,
-        yellowHalos: yellowHalos ?? this.yellowHalos,
-        leafCurling: leafCurling ?? this.leafCurling,
-        whitefliesPresent: whitefliesPresent ?? this.whitefliesPresent,
-      );
+  }) => DiseaseSymptomAnswers(
+    concentricRings: concentricRings ?? this.concentricRings,
+    waterSoakedLesions: waterSoakedLesions ?? this.waterSoakedLesions,
+    yellowHalos: yellowHalos ?? this.yellowHalos,
+    leafCurling: leafCurling ?? this.leafCurling,
+    whitefliesPresent: whitefliesPresent ?? this.whitefliesPresent,
+  );
 }
 
 class DiseaseAssessment {

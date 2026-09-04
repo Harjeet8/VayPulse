@@ -55,8 +55,8 @@ class DataSourceCard extends StatelessWidget {
                         Text(
                           live
                               ? (connected
-                                  ? context.tr('live_data_connected')
-                                  : context.tr('live_data_waiting'))
+                                    ? context.tr('live_data_connected')
+                                    : context.tr('live_data_waiting'))
                               : context.tr('simulation_active_scenario', {
                                   'value': context.tr(
                                     'scenario_${scope.sensorManager.scenarioId}',
@@ -68,9 +68,7 @@ class DataSourceCard extends StatelessWidget {
                           const SizedBox(height: 3),
                           Text(
                             bioLabel,
-                            style: Theme.of(context)
-                                .textTheme
-                                .labelSmall
+                            style: Theme.of(context).textTheme.labelSmall
                                 ?.copyWith(
                                   color: Theme.of(context).colorScheme.tertiary,
                                   fontWeight: FontWeight.w800,
@@ -127,9 +125,7 @@ class DataSourceCard extends StatelessWidget {
             children: [
               Text(
                 context.tr('choose_data_source'),
-                style: Theme.of(context)
-                    .textTheme
-                    .titleLarge
+                style: Theme.of(context).textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 6),
@@ -165,8 +161,9 @@ class DataSourceCard extends StatelessWidget {
     if (selected == null || !context.mounted) return;
     if (selected == scope.sensorManager.source) return;
     await HapticFeedback.mediumImpact();
-    final sourceId =
-        selected == SensorDataSource.esp32 ? 'esp32' : 'simulation';
+    final sourceId = selected == SensorDataSource.esp32
+        ? 'esp32'
+        : 'simulation';
     await scope.settings.setDataSource(sourceId);
     scope.alerts.clear();
     scope.sensorManager.configure(
@@ -205,57 +202,51 @@ class _SourceOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Card(
-        color: selected
-            ? Theme.of(context)
-                .colorScheme
-                .primaryContainer
-                .withValues(alpha: 0.4)
-            : null,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 42,
-                  height: 42,
-                  decoration: BoxDecoration(
-                    color: Theme.of(context)
-                        .colorScheme
-                        .primary
-                        .withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(13),
-                  ),
-                  child: Icon(icon),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                      const SizedBox(height: 3),
-                      Text(body),
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Icon(
-                  selected
-                      ? Icons.check_circle_rounded
-                      : Icons.radio_button_unchecked_rounded,
-                  color:
-                      selected ? Theme.of(context).colorScheme.primary : null,
-                ),
-              ],
+    color: selected
+        ? Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.4)
+        : null,
+    child: InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: Theme.of(context).colorScheme.primary
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(13),
+              ),
+              child: Icon(icon),
             ),
-          ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
+                  ),
+                  const SizedBox(height: 3),
+                  Text(body),
+                ],
+              ),
+            ),
+            const SizedBox(width: 8),
+            Icon(
+              selected
+                  ? Icons.check_circle_rounded
+                  : Icons.radio_button_unchecked_rounded,
+              color: selected ? Theme.of(context).colorScheme.primary : null,
+            ),
+          ],
         ),
-      );
+      ),
+    ),
+  );
 }

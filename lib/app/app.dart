@@ -144,60 +144,59 @@ class _StartupLoading extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Center(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Padding(
-              padding: const EdgeInsets.all(28),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 78,
-                    height: 78,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0F5A40), Color(0xFF38A77A)],
-                      ),
-                      borderRadius: BorderRadius.circular(24),
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              const Color(0xFF0F5A40).withValues(alpha: 0.25),
-                          blurRadius: 28,
-                          offset: const Offset(0, 12),
-                        ),
-                      ],
+    body: Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 360),
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 78,
+                height: 78,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0F5A40), Color(0xFF38A77A)],
+                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0F5A40).withValues(alpha: 0.25),
+                      blurRadius: 28,
+                      offset: const Offset(0, 12),
                     ),
-                    child: const Icon(
-                      Icons.eco_rounded,
-                      color: Colors.white,
-                      size: 40,
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    'PhytoSense AI',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: -0.6,
-                        ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Preparing your farm intelligence dashboard…',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 22),
-                  const LinearProgressIndicator(
-                    borderRadius: BorderRadius.all(Radius.circular(99)),
-                  ),
-                ],
+                  ],
+                ),
+                child: const Icon(
+                  Icons.eco_rounded,
+                  color: Colors.white,
+                  size: 40,
+                ),
               ),
-            ),
+              const SizedBox(height: 20),
+              Text(
+                'PhytoSense AI',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.6,
+                ),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Preparing your farm intelligence dashboard…',
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 22),
+              const LinearProgressIndicator(
+                borderRadius: BorderRadius.all(Radius.circular(99)),
+              ),
+            ],
           ),
         ),
-      );
+      ),
+    ),
+  );
 }
 
 class _StartupError extends StatelessWidget {
@@ -205,35 +204,34 @@ class _StartupError extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(28),
-            child: Card(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 420),
-                child: const Padding(
-                  padding: EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.error_outline_rounded, size: 46),
-                      SizedBox(height: 14),
-                      Text(
-                        'PhytoSense AI could not start',
-                        style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w900),
-                      ),
-                      SizedBox(height: 8),
-                      Text(
-                        'Close and reopen the app. Your locally saved records remain safe.',
-                        textAlign: TextAlign.center,
-                      ),
-                    ],
+    body: Center(
+      child: Padding(
+        padding: const EdgeInsets.all(28),
+        child: Card(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420),
+            child: const Padding(
+              padding: EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(Icons.error_outline_rounded, size: 46),
+                  SizedBox(height: 14),
+                  Text(
+                    'PhytoSense AI could not start',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900),
                   ),
-                ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Close and reopen the app. Your locally saved records remain safe.',
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ),
             ),
           ),
         ),
-      );
+      ),
+    ),
+  );
 }

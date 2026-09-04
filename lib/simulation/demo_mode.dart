@@ -11,31 +11,31 @@ enum DemoMode {
 
 extension DemoModeLabel on DemoMode {
   String get label => switch (this) {
-        DemoMode.healthy => 'Healthy',
-        DemoMode.dry => 'Dry',
-        DemoMode.overwatered => 'Overwatered',
-        DemoMode.heatStress => 'Heat Stress',
-        DemoMode.lowLight => 'Low Light',
-        DemoMode.critical => 'Critical',
-        DemoMode.offline => 'Offline',
-        DemoMode.sensorFault => 'Sensor fault',
-      };
+    DemoMode.healthy => 'Healthy',
+    DemoMode.dry => 'Dry',
+    DemoMode.overwatered => 'Overwatered',
+    DemoMode.heatStress => 'Heat Stress',
+    DemoMode.lowLight => 'Low Light',
+    DemoMode.critical => 'Critical',
+    DemoMode.offline => 'Offline',
+    DemoMode.sensorFault => 'Sensor fault',
+  };
 
   String get id => switch (this) {
-        DemoMode.healthy => 'healthy',
-        DemoMode.dry => 'dry',
-        DemoMode.overwatered => 'overwatered',
-        DemoMode.heatStress => 'heat_stress',
-        DemoMode.lowLight => 'low_light',
-        DemoMode.critical => 'critical',
-        DemoMode.offline => 'offline',
-        DemoMode.sensorFault => 'sensor_fault',
-      };
+    DemoMode.healthy => 'healthy',
+    DemoMode.dry => 'dry',
+    DemoMode.overwatered => 'overwatered',
+    DemoMode.heatStress => 'heat_stress',
+    DemoMode.lowLight => 'low_light',
+    DemoMode.critical => 'critical',
+    DemoMode.offline => 'offline',
+    DemoMode.sensorFault => 'sensor_fault',
+  };
 
   static DemoMode fromId(String id) => DemoMode.values.firstWhere(
-        (mode) => mode.id == id,
-        orElse: () => DemoMode.healthy,
-      );
+    (mode) => mode.id == id,
+    orElse: () => DemoMode.healthy,
+  );
 }
 
 class DemoModeTargets {

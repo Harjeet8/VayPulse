@@ -14,11 +14,10 @@ class PageFrame extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Align(
-        alignment: Alignment.topCenter,
-        child: ConstrainedBox(
-          constraints: const BoxConstraints(maxWidth: 1100),
-          child:
-              ListView(padding: padding, physics: physics, children: children),
-        ),
-      );
+    alignment: Alignment.topCenter,
+    child: ConstrainedBox(
+      constraints: const BoxConstraints(maxWidth: 1100),
+      child: ListView(padding: padding, physics: physics, children: children),
+    ),
+  );
 }

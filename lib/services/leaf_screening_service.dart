@@ -80,7 +80,8 @@ class LeafScreeningService {
           brown++;
           plantLike = true;
         }
-        final inCenter = x >= image.width * 0.18 &&
+        final inCenter =
+            x >= image.width * 0.18 &&
             x <= image.width * 0.82 &&
             y >= image.height * 0.18 &&
             y <= image.height * 0.82;
@@ -94,7 +95,8 @@ class LeafScreeningService {
       throw const LeafScreeningException('leaf_image_no_detail');
     }
     final meanBrightness = brightnessTotal / sampledPixels;
-    final brightnessVariance = brightnessSquaredTotal / sampledPixels -
+    final brightnessVariance =
+        brightnessSquaredTotal / sampledPixels -
         meanBrightness * meanBrightness;
     if (darkPixels / sampledPixels > 0.72 || meanBrightness < 48) {
       throw const LeafScreeningException('leaf_image_too_dark');
@@ -109,8 +111,9 @@ class LeafScreeningService {
     final yellowRatio = yellow / usefulPixels;
     final brownRatio = brown / usefulPixels;
     final plantRatio = (green + yellow + brown) / usefulPixels;
-    final centerPlantRatio =
-        centerPixels == 0 ? 0 : centerPlantPixels / centerPixels;
+    final centerPlantRatio = centerPixels == 0
+        ? 0
+        : centerPlantPixels / centerPixels;
     if (plantRatio < 0.09 || centerPlantRatio < 0.1) {
       throw const LeafScreeningException('leaf_image_no_leaf');
     }
