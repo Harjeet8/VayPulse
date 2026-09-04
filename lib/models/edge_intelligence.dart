@@ -139,8 +139,14 @@ class RecoveryInfo {
   final bool active;
   final String? state;
   final double? confidence;
+  final double? progressPct;
+  final double? verificationSeconds;
+  final int? evidenceCount;
   final bool? environmentImproved;
+  final bool? soilImproved;
+  final bool? stressEvidenceDecreasing;
   final bool? bioResponseDecreasing;
+  final bool? verified;
   final String? farmerResult;
   final String? quality;
   final double? durationSeconds;
@@ -151,8 +157,14 @@ class RecoveryInfo {
     this.active = false,
     this.state,
     this.confidence,
+    this.progressPct,
+    this.verificationSeconds,
+    this.evidenceCount,
     this.environmentImproved,
+    this.soilImproved,
+    this.stressEvidenceDecreasing,
     this.bioResponseDecreasing,
+    this.verified,
     this.farmerResult,
     this.quality,
     this.durationSeconds,
@@ -164,16 +176,138 @@ class RecoveryInfo {
       active ||
       state != null ||
       confidence != null ||
+      progressPct != null ||
+      verificationSeconds != null ||
+      evidenceCount != null ||
       environmentImproved != null ||
+      soilImproved != null ||
+      stressEvidenceDecreasing != null ||
       bioResponseDecreasing != null ||
+      verified != null ||
       farmerResult != null ||
       quality != null ||
       improved != null ||
       remainingConcern != null;
+
+  String? get normalizedState => _normalizedState(state);
+
+  bool get conditionsImproving => normalizedState == 'CONDITIONS_IMPROVING';
+  bool get recovering => normalizedState == 'RECOVERING';
+  bool get recoveryVerified =>
+      normalizedState == 'RECOVERY_VERIFIED' || verified == true;
+
+  bool get visibleOnHome =>
+      active && normalizedState != 'NONE' ||
+      conditionsImproving ||
+      recovering ||
+      recoveryVerified;
+}
+
+class SensorIntegrityInfo {
+  final String? state;
+  final int? faultCount;
+  final int? verifyCount;
+  final String? primaryIssue;
+  final String? primaryAction;
+  final Map<String, String> channels;
+
+  const SensorIntegrityInfo({
+    this.state,
+    this.faultCount,
+    this.verifyCount,
+    this.primaryIssue,
+    this.primaryAction,
+    this.channels = const <String, String>{},
+  });
+
+  String? get normalizedState => _normalizedState(state);
+  bool get full => normalizedState == 'FULL';
+  bool get verify => normalizedState == 'VERIFY';
+  bool get degraded => normalizedState == 'DEGRADED';
+  bool get hasData =>
+      state != null ||
+      faultCount != null ||
+      verifyCount != null ||
+      primaryIssue != null ||
+      primaryAction != null ||
+      channels.isNotEmpty;
+}
+
+class PlausibilityInfo {
+  final String? state;
+  final int? issueCount;
+  final double? confidence;
+  final String? primaryIssue;
+  final String? recommendation;
+
+  const PlausibilityInfo({
+    this.state,
+    this.issueCount,
+    this.confidence,
+    this.primaryIssue,
+    this.recommendation,
+  });
+
+  String? get normalizedState => _normalizedState(state);
+  bool get clear => normalizedState == 'CLEAR';
+  bool get verify => normalizedState == 'VERIFY';
+  bool get hasData =>
+      state != null ||
+      issueCount != null ||
+      confidence != null ||
+      primaryIssue != null ||
+      recommendation != null;
+}
+
+class RuntimeHealthInfo {
+  final String? state;
+  final int? freeHeap;
+  final int? minFreeHeap;
+  final double? lastLoopGapMs;
+  final double? maxLoopGapMs;
+  final double? lastSensorCycleMs;
+  final double? maxSensorCycleMs;
+  final int? oledI2cSkipTotal;
+  final bool? heapWarning;
+  final bool? timingWarning;
+  final bool? i2cWarning;
+  final String? issue;
+
+  const RuntimeHealthInfo({
+    this.state,
+    this.freeHeap,
+    this.minFreeHeap,
+    this.lastLoopGapMs,
+    this.maxLoopGapMs,
+    this.lastSensorCycleMs,
+    this.maxSensorCycleMs,
+    this.oledI2cSkipTotal,
+    this.heapWarning,
+    this.timingWarning,
+    this.i2cWarning,
+    this.issue,
+  });
+
+  String? get normalizedState => _normalizedState(state);
+  bool get degraded => normalizedState == 'DEGRADED';
+  bool get hasData =>
+      state != null ||
+      freeHeap != null ||
+      minFreeHeap != null ||
+      lastLoopGapMs != null ||
+      maxLoopGapMs != null ||
+      lastSensorCycleMs != null ||
+      maxSensorCycleMs != null ||
+      oledI2cSkipTotal != null ||
+      heapWarning != null ||
+      timingWarning != null ||
+      i2cWarning != null ||
+      issue != null;
 }
 
 
 class BioelectricIntelligence {
+  final String? source;
   final bool? available;
   final double? voltageMv;
   final double? baselineMv;
@@ -204,6 +338,7 @@ class BioelectricIntelligence {
   final String? farmerResult;
 
   const BioelectricIntelligence({
+    this.source,
     this.available,
     this.voltageMv,
     this.baselineMv,
@@ -235,6 +370,7 @@ class BioelectricIntelligence {
   });
 
   bool get hasData =>
+      source != null ||
       available != null ||
       voltageMv != null ||
       baselineMv != null ||
@@ -254,11 +390,25 @@ class BioelectricIntelligence {
           baselineSamples != null &&
           baselineSamples! < baselineTarget!);
 
+  static bool isPresentationSource(String? value) {
+    final source = _normalizedState(value);
+    return source == 'REALTIME' ||
+        source == 'PRESENTATION' ||
+        source == 'PRESENTATION_MODE' ||
+        source == 'DEMO' ||
+        source == 'GENERATED' ||
+        source == 'SYNTHETIC';
+  }
+
+  bool get presentationOnly => isPresentationSource(source);
+
   /// True only when the firmware says the plant channel is unusable or its
   /// explicit state identifies a contact/noise/rail problem. A bad plant
   /// signal must never be converted into plant stress by Flutter.
   bool get excludedByFirmware {
-    if (includedInFusion == false || available == false) return true;
+    if (presentationOnly || includedInFusion == false || available == false) {
+      return true;
+    }
     final value = (signalQualityState ?? stressState ?? '')
         .trim()
         .toUpperCase()
@@ -535,17 +685,25 @@ class CameraHandoffInfo {
 }
 
 class PhytoEvent {
+  final String? id;
   final DateTime? timestamp;
+  final int? uptimeMs;
   final String type;
   final String message;
   final String? severity;
 
   const PhytoEvent({
+    this.id,
     this.timestamp,
+    this.uptimeMs,
     required this.type,
     required this.message,
     this.severity,
   });
+
+  String get stableKey => id?.trim().isNotEmpty == true
+      ? 'id:${id!.trim()}'
+      : 'event:$type|$message|${timestamp?.toIso8601String() ?? uptimeMs ?? ''}';
 }
 
 class IrrigationEvent {
@@ -625,6 +783,9 @@ class EdgeIntelligence {
   final String reliabilityMode;
   final RootCauseAnalysis rootCause;
   final RecoveryInfo recovery;
+  final SensorIntegrityInfo sensorIntegrity;
+  final PlausibilityInfo plausibility;
+  final RuntimeHealthInfo runtimeHealth;
   final BioelectricIntelligence bioelectric;
   final BioticStressInfo bioticStress;
   final PredictionInfo prediction;
@@ -648,6 +809,7 @@ class EdgeIntelligence {
   final double? diseaseRiskScore;
   final String? diseaseRiskLevel;
   final bool? confirmedDisease;
+  final String? buildState;
 
   const EdgeIntelligence({
     required this.firmwareVersion,
@@ -669,6 +831,9 @@ class EdgeIntelligence {
     this.reliabilityMode = 'FULL',
     this.rootCause = const RootCauseAnalysis(),
     this.recovery = const RecoveryInfo(),
+    this.sensorIntegrity = const SensorIntegrityInfo(),
+    this.plausibility = const PlausibilityInfo(),
+    this.runtimeHealth = const RuntimeHealthInfo(),
     this.bioelectric = const BioelectricIntelligence(),
     this.bioticStress = const BioticStressInfo(),
     this.prediction = const PredictionInfo(),
@@ -692,6 +857,7 @@ class EdgeIntelligence {
     this.diseaseRiskScore,
     this.diseaseRiskLevel,
     this.confirmedDisease,
+    this.buildState,
   });
 
   bool get hasAuthoritativeAnalysis =>
@@ -703,7 +869,7 @@ class EdgeIntelligence {
       decisionExplanation != null ||
       plantState != null ||
       rootCause.hasAny ||
-      bioelectric.farmerResult != null ||
+      (bioelectric.farmerResult != null && !bioelectric.presentationOnly) ||
       bioticStress.hasData ||
       cameraHandoff.hasData;
 
@@ -752,6 +918,23 @@ class EdgeIntelligence {
       data['recovery'],
       plantHealth['recovery'],
     ]);
+    final sensorIntegrityMap = _firstMap([
+      edge['sensorIntegrity'],
+      data['sensorIntegrity'],
+      plantHealth['sensorIntegrity'],
+      root['sensorIntegrity'],
+    ]);
+    final plausibilityMap = _firstMap([
+      edge['plausibility'],
+      data['plausibility'],
+      plantHealth['plausibility'],
+      root['plausibility'],
+    ]);
+    final runtimeHealthMap = _firstMap([
+      edge['runtimeHealth'],
+      data['runtimeHealth'],
+      root['runtimeHealth'],
+    ]);
     final bioelectricMap = _firstMap([
       edge['bioelectric'],
       data['bioelectric'],
@@ -760,6 +943,15 @@ class EdgeIntelligence {
       plantHealth['bioelectric'],
       _map(data['readings'])['bioelectric'],
     ]);
+    final bioSource = _text(_first([
+      bioelectricMap['source'],
+      bioelectricMap['bioSource'],
+      edge['bioSource'],
+      data['bioSource'],
+      data['bioelectricSource'],
+    ]));
+    final presentationBio =
+        BioelectricIntelligence.isPresentationSource(bioSource);
     final bioticStressMap = _firstMap([
       edge['bioticStress'],
       edge['bioticAnalysis'],
@@ -908,7 +1100,7 @@ class EdgeIntelligence {
       edge['mainFinding'],
       data['mainFinding'],
       data['primaryFinding'],
-      bioelectricMap['farmerResult'],
+      if (!presentationBio) bioelectricMap['farmerResult'],
       bioticStressMap['farmerResult'],
     ]));
 
@@ -1001,6 +1193,7 @@ class EdgeIntelligence {
       edge['recoveryState'],
       data['recoveryState'],
     ]));
+    final normalizedRecoveryState = _normalizedState(recoveryState);
     final recovery = RecoveryInfo(
       active: _bool(_first([
             recoveryMap['active'],
@@ -1009,22 +1202,55 @@ class EdgeIntelligence {
           ])) ==
           true ||
           (plantState?.toUpperCase() == 'RECOVERING') ||
-          (recoveryState?.toUpperCase() == 'RECOVERING'),
+          normalizedRecoveryState == 'CONDITIONS_IMPROVING' ||
+          normalizedRecoveryState == 'RECOVERING' ||
+          normalizedRecoveryState == 'RECOVERY_VERIFIED',
       state: recoveryState,
       confidence: _percent(_first([
         recoveryMap['confidence'],
         edge['recoveryConfidence'],
         data['recoveryConfidence'],
       ])),
+      progressPct: _percent(_first([
+        recoveryMap['progressPct'],
+        recoveryMap['progressPercent'],
+        edge['recoveryProgressPct'],
+        data['recoveryProgressPct'],
+      ])),
+      verificationSeconds: _num(_first([
+        recoveryMap['verificationSeconds'],
+        edge['recoveryVerificationSeconds'],
+        data['recoveryVerificationSeconds'],
+      ])),
+      evidenceCount: _int(_first([
+        recoveryMap['evidenceCount'],
+        edge['recoveryEvidenceCount'],
+        data['recoveryEvidenceCount'],
+      ])),
       environmentImproved: _bool(_first([
         recoveryMap['environmentImproved'],
         edge['environmentImproved'],
         data['environmentImproved'],
       ])),
+      soilImproved: _bool(_first([
+        recoveryMap['soilImproved'],
+        edge['soilImproved'],
+        data['soilImproved'],
+      ])),
+      stressEvidenceDecreasing: _bool(_first([
+        recoveryMap['stressEvidenceDecreasing'],
+        edge['stressEvidenceDecreasing'],
+        data['stressEvidenceDecreasing'],
+      ])),
       bioResponseDecreasing: _bool(_first([
         recoveryMap['bioResponseDecreasing'],
         edge['bioResponseDecreasing'],
         data['bioResponseDecreasing'],
+      ])),
+      verified: _bool(_first([
+        recoveryMap['verified'],
+        edge['recoveryVerified'],
+        data['recoveryVerified'],
       ])),
       farmerResult: _text(_first([
         recoveryMap['farmerResult'],
@@ -1054,8 +1280,39 @@ class EdgeIntelligence {
       ])),
     );
 
+    final sensorIntegrity = SensorIntegrityInfo(
+      state: _text(sensorIntegrityMap['state']),
+      faultCount: _int(sensorIntegrityMap['faultCount']),
+      verifyCount: _int(sensorIntegrityMap['verifyCount']),
+      primaryIssue: _text(sensorIntegrityMap['primaryIssue']),
+      primaryAction: _text(sensorIntegrityMap['primaryAction']),
+      channels: _parseChannelStates(sensorIntegrityMap['channels']),
+    );
+    final plausibility = PlausibilityInfo(
+      state: _text(plausibilityMap['state']),
+      issueCount: _int(plausibilityMap['issueCount']),
+      confidence: _percent(plausibilityMap['confidence']),
+      primaryIssue: _text(plausibilityMap['primaryIssue']),
+      recommendation: _text(plausibilityMap['recommendation']),
+    );
+    final runtimeHealth = RuntimeHealthInfo(
+      state: _text(runtimeHealthMap['state']),
+      freeHeap: _int(runtimeHealthMap['freeHeap']),
+      minFreeHeap: _int(runtimeHealthMap['minFreeHeap']),
+      lastLoopGapMs: _num(runtimeHealthMap['lastLoopGapMs']),
+      maxLoopGapMs: _num(runtimeHealthMap['maxLoopGapMs']),
+      lastSensorCycleMs: _num(runtimeHealthMap['lastSensorCycleMs']),
+      maxSensorCycleMs: _num(runtimeHealthMap['maxSensorCycleMs']),
+      oledI2cSkipTotal: _int(runtimeHealthMap['oledI2cSkipTotal']),
+      heapWarning: _bool(runtimeHealthMap['heapWarning']),
+      timingWarning: _bool(runtimeHealthMap['timingWarning']),
+      i2cWarning: _bool(runtimeHealthMap['i2cWarning']),
+      issue: _text(runtimeHealthMap['issue']),
+    );
+
 
     final bioelectric = BioelectricIntelligence(
+      source: bioSource,
       available: _bool(_first([
         bioelectricMap['available'],
         edge['bioAvailable'],
@@ -1640,7 +1897,8 @@ class EdgeIntelligence {
           recommendation != null ||
           explanation != null ||
           rootCause.hasAny ||
-          bioelectric.farmerResult != null ||
+          (bioelectric.farmerResult != null &&
+              !bioelectric.presentationOnly) ||
           bioticStress.hasData,
       plantState: plantState != null,
       sensorConfidence: sensorConfidence.isNotEmpty,
@@ -1692,6 +1950,9 @@ class EdgeIntelligence {
       reliabilityMode: reliabilityMode,
       rootCause: rootCause,
       recovery: recovery,
+      sensorIntegrity: sensorIntegrity,
+      plausibility: plausibility,
+      runtimeHealth: runtimeHealth,
       bioelectric: bioelectric,
       bioticStress: bioticStress,
       prediction: prediction,
@@ -1722,6 +1983,11 @@ class EdgeIntelligence {
         diseaseMap['level'],
         edge['diseaseRiskLevel'],
         data['diseaseRiskLevel'],
+      ])),
+      buildState: _text(_first([
+        edge['buildState'],
+        data['buildState'],
+        root['buildState'],
       ])),
       confirmedDisease: _bool(diseaseMap['confirmedDisease']),
     );
@@ -1863,26 +2129,77 @@ SensorFaultInfo _faultFromMap(Map<String, dynamic> details, {required String fal
 }
 
 List<PhytoEvent> _parseEvents(dynamic raw) {
-  final result = <PhytoEvent>[];
-  if (raw is! List) return result;
-  for (final item in raw) {
+  if (raw is! List) return <PhytoEvent>[];
+  final byStableKey = <String, _IndexedPhytoEvent>{};
+  for (var index = 0; index < raw.length; index++) {
+    final item = raw[index];
+    PhytoEvent? event;
     if (item is String) {
       final message = item.trim();
-      if (message.isNotEmpty) result.add(PhytoEvent(type: 'event', message: message));
-      continue;
+      if (message.isNotEmpty) {
+        event = PhytoEvent(type: 'event', message: message);
+      }
+    } else {
+      final details = _map(item);
+      if (details.isEmpty) continue;
+      final message = _text(_first([
+        details['message'],
+        details['description'],
+        details['event'],
+        details['type'],
+      ]));
+      if (message == null) continue;
+      event = PhytoEvent(
+        id: _text(details['id']),
+        timestamp: _date(_first([details['timestamp'], details['time']])),
+        uptimeMs: _int(details['uptimeMs']),
+        type:
+            _text(_first([details['type'], details['eventType']])) ?? 'event',
+        message: message,
+        severity: _text(_first([details['severity'], details['level']])),
+      );
     }
-    final details = _map(item);
-    if (details.isEmpty) continue;
-    final message = _text(_first([details['message'], details['description'], details['event'], details['type']]));
-    if (message == null) continue;
-    result.add(PhytoEvent(
-      timestamp: _date(_first([details['timestamp'], details['time']])),
-      type: _text(_first([details['type'], details['eventType']])) ?? 'event',
-      message: message,
-      severity: _text(_first([details['severity'], details['level']])),
-    ));
+    if (event != null) {
+      // A repeated firmware event id replaces its earlier copy. This keeps
+      // reconnects and overlapping event buffers from duplicating the row.
+      byStableKey[event.stableKey] = _IndexedPhytoEvent(event, index);
+    }
   }
-  return result;
+  final indexed = byStableKey.values.toList(growable: false)
+    ..sort((a, b) {
+      final aTime = a.event.timestamp?.millisecondsSinceEpoch;
+      final bTime = b.event.timestamp?.millisecondsSinceEpoch;
+      if (aTime != null && bTime != null && aTime != bTime) {
+        return bTime.compareTo(aTime);
+      }
+      final aUptime = a.event.uptimeMs;
+      final bUptime = b.event.uptimeMs;
+      if (aUptime != null && bUptime != null && aUptime != bUptime) {
+        return bUptime.compareTo(aUptime);
+      }
+      return b.inputIndex.compareTo(a.inputIndex);
+    });
+  return indexed.map((item) => item.event).toList(growable: false);
+}
+
+class _IndexedPhytoEvent {
+  final PhytoEvent event;
+  final int inputIndex;
+
+  const _IndexedPhytoEvent(this.event, this.inputIndex);
+}
+
+Map<String, String> _parseChannelStates(dynamic raw) {
+  if (raw is! Map) return const <String, String>{};
+  final states = <String, String>{};
+  for (final entry in raw.entries) {
+    final details = _map(entry.value);
+    final state = _text(details.isEmpty
+        ? entry.value
+        : _first([details['state'], details['status'], details['quality']]));
+    if (state != null) states['${entry.key}'] = state;
+  }
+  return Map<String, String>.unmodifiable(states);
 }
 
 Map<String, dynamic> _map(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
@@ -1938,6 +2255,11 @@ String? _text(dynamic value) {
   final text = '$value'.trim();
   return text.isEmpty || text.toLowerCase() == 'null' ? null : text;
 }
+
+String? _normalizedState(dynamic value) => _text(value)
+    ?.toUpperCase()
+    .replaceAll(' ', '_')
+    .replaceAll('-', '_');
 
 bool? _bool(dynamic value) {
   if (value is bool) return value;

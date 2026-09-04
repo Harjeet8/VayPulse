@@ -139,13 +139,26 @@ class SensorReading {
 
   bool get bioIsLiveReading => bioSource.trim().toLowerCase() == 'real';
 
-  bool get bioIsSimulation {
+  /// Firmware presentation sources remain visible for signal demonstrations
+  /// but must never be described as physical plant electrophysiology or used
+  /// by Flutter-side diagnosis fallbacks.
+  bool get bioIsPresentation {
     final source = bioSource.trim().toLowerCase();
-    return source == 'simulation' || source == 'sim' || source == 'demo';
+    return source == 'realtime' ||
+        source == 'presentation' ||
+        source == 'presentation_mode' ||
+        source == 'demo' ||
+        source == 'generated' ||
+        source == 'synthetic';
   }
 
-  String get bioSourceLabel => bioIsRealtime
-      ? 'Real Time Signal'
+  bool get bioIsSimulation {
+    final source = bioSource.trim().toLowerCase();
+    return source == 'simulation' || source == 'sim';
+  }
+
+  String get bioSourceLabel => bioIsPresentation
+      ? 'Presentation Signal'
       : bioIsLiveReading
           ? 'Live Readings'
           : bioIsSimulation

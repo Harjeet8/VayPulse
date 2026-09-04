@@ -66,9 +66,22 @@ class JudgeViewScreen extends StatelessWidget {
               const SizedBox(height: 12),
               _DecisionCard(edge: edge, analysisOrigin: reading?.analysisOrigin),
               const SizedBox(height: 12),
-              _BioCard(edge: edge),
+              _BioCard(edge: edge, bioSource: reading?.bioSource),
               const SizedBox(height: 12),
               _FusionCard(edge: edge),
+              if (edge != null &&
+                  (edge.sensorIntegrity.hasData ||
+                      edge.plausibility.hasData ||
+                      edge.runtimeHealth.hasData ||
+                      edge.recovery.hasData ||
+                      edge.buildState != null)) ...[
+                const SizedBox(height: 12),
+                _ReliabilityDiagnosticsCard(edge: edge),
+              ],
+              if (edge?.recentEvents.isNotEmpty == true) ...[
+                const SizedBox(height: 12),
+                _EventTimelineCard(events: edge!.recentEvents),
+              ],
               const SizedBox(height: 12),
               _SensorEvidenceCard(
                 telemetry: telemetry,
@@ -235,24 +248,30 @@ class _DecisionCard extends StatelessWidget {
 
 class _BioCard extends StatelessWidget {
   final EdgeIntelligence? edge;
+  final String? bioSource;
 
-  const _BioCard({required this.edge});
+  const _BioCard({required this.edge, required this.bioSource});
 
   @override
   Widget build(BuildContext context) {
     final bio = edge?.bioelectric;
     final excluded = bio?.excludedByFirmware == true;
+    final source = bio?.source ?? bioSource;
+    final presentation = BioelectricIntelligence.isPresentationSource(source);
     return _TechnicalCard(
       icon: Icons.electric_bolt_rounded,
       title: 'Bioelectric channel',
       badge: bio == null || !bio.hasData
           ? 'NO DATA'
-          : excluded
+          : presentation
+              ? 'PRESENTATION'
+              : excluded
               ? 'EXCLUDED'
               : bio.learningBaseline
                   ? 'LEARNING'
                   : 'IN FUSION',
       children: [
+        _Metric('Signal source', _bioSourceDescription(source)),
         _Metric('Signal state', bio?.signalQualityState),
         if (bio?.signalQuality != null)
           _Metric('Signal quality', '${bio!.signalQuality!.round()}%'),
@@ -268,18 +287,216 @@ class _BioCard extends StatelessWidget {
         _Metric('Trend', bio?.trend),
         _Metric(
           'Used by fusion',
-          bio?.includedInFusion == null
+          presentation
+              ? 'No — presentation source'
+              : bio?.includedInFusion == null
               ? null
               : bio!.includedInFusion!
                   ? 'Yes'
                   : 'No',
         ),
-        if (excluded)
+        if (presentation)
+          const _Metric(
+            'Integrity rule',
+            'Visible for presentation only; excluded from health, diagnosis, root cause, recovery and biotic inference.',
+          )
+        else if (excluded)
           const _Metric(
             'Protection',
             'Bad electrode/signal quality cannot create a plant-stress alert.',
           ),
       ],
+    );
+  }
+}
+
+class _ReliabilityDiagnosticsCard extends StatelessWidget {
+  final EdgeIntelligence edge;
+
+  const _ReliabilityDiagnosticsCard({required this.edge});
+
+  @override
+  Widget build(BuildContext context) {
+    final integrity = edge.sensorIntegrity;
+    final plausibility = edge.plausibility;
+    final runtime = edge.runtimeHealth;
+    final recovery = edge.recovery;
+    final channels = integrity.channels.entries.toList(growable: false)
+      ..sort((a, b) => a.key.compareTo(b.key));
+
+    return _TechnicalCard(
+      icon: Icons.admin_panel_settings_outlined,
+      title: 'Node reliability',
+      badge: integrity.normalizedState ?? runtime.normalizedState,
+      children: [
+        _Metric('Sensor integrity', integrity.state),
+        if (integrity.faultCount != null)
+          _Metric('Integrity faults', '${integrity.faultCount}'),
+        if (integrity.verifyCount != null)
+          _Metric('Channels to verify', '${integrity.verifyCount}'),
+        _Metric('Integrity issue', integrity.primaryIssue),
+        _Metric('Integrity action', integrity.primaryAction),
+        for (final channel in channels)
+          _Metric('${_pretty(channel.key)} channel', channel.value),
+        _Metric('Sensor plausibility', plausibility.state),
+        if (plausibility.issueCount != null)
+          _Metric('Plausibility issues', '${plausibility.issueCount}'),
+        if (plausibility.confidence != null)
+          _Metric(
+            'Plausibility confidence',
+            '${plausibility.confidence!.round()}%',
+          ),
+        _Metric('Plausibility issue', plausibility.primaryIssue),
+        _Metric('Plausibility recommendation', plausibility.recommendation),
+        _Metric('Runtime', runtime.state),
+        if (runtime.freeHeap != null)
+          _Metric('Free heap', _formatBytes(runtime.freeHeap!)),
+        if (runtime.minFreeHeap != null)
+          _Metric('Minimum heap', _formatBytes(runtime.minFreeHeap!)),
+        if (runtime.lastSensorCycleMs != null)
+          _Metric(
+            'Sensor-cycle latency',
+            '${runtime.lastSensorCycleMs!.toStringAsFixed(0)} ms',
+          ),
+        if (runtime.maxSensorCycleMs != null)
+          _Metric(
+            'Maximum cycle latency',
+            '${runtime.maxSensorCycleMs!.toStringAsFixed(0)} ms',
+          ),
+        if (runtime.lastLoopGapMs != null)
+          _Metric(
+            'Last loop gap',
+            '${runtime.lastLoopGapMs!.toStringAsFixed(0)} ms',
+          ),
+        if (runtime.maxLoopGapMs != null)
+          _Metric(
+            'Maximum loop gap',
+            '${runtime.maxLoopGapMs!.toStringAsFixed(0)} ms',
+          ),
+        if (runtime.oledI2cSkipTotal != null)
+          _Metric('OLED/I²C protection count', '${runtime.oledI2cSkipTotal}'),
+        _Metric('Runtime issue', runtime.issue),
+        _Metric('Recovery state', recovery.state),
+        if (recovery.confidence != null)
+          _Metric('Recovery confidence', '${recovery.confidence!.round()}%'),
+        if (recovery.progressPct != null)
+          _Metric('Recovery progress', '${recovery.progressPct!.round()}%'),
+        if (recovery.evidenceCount != null)
+          _Metric('Recovery evidence count', '${recovery.evidenceCount}'),
+        if (recovery.verificationSeconds != null)
+          _Metric(
+            'Recovery verification time',
+            _duration(Duration(
+              milliseconds: (recovery.verificationSeconds! * 1000).round(),
+            )),
+          ),
+        _Metric(
+          'Environment improved',
+          _yesNo(recovery.environmentImproved),
+        ),
+        _Metric('Soil improved', _yesNo(recovery.soilImproved)),
+        _Metric(
+          'Stress evidence decreasing',
+          _yesNo(recovery.stressEvidenceDecreasing),
+        ),
+        _Metric(
+          'Bio response decreasing',
+          _yesNo(recovery.bioResponseDecreasing),
+        ),
+        _Metric('Recovery verified', _yesNo(recovery.verified)),
+        _Metric('Firmware recovery result', recovery.farmerResult),
+        _Metric('Build state', edge.buildState),
+      ],
+    );
+  }
+}
+
+class _EventTimelineCard extends StatelessWidget {
+  final List<PhytoEvent> events;
+
+  const _EventTimelineCard({required this.events});
+
+  @override
+  Widget build(BuildContext context) {
+    final visible = events.take(8).toList(growable: false);
+    return Card(
+      clipBehavior: Clip.antiAlias,
+      child: ExpansionTile(
+        leading: const Icon(Icons.timeline_rounded),
+        title: const Text(
+          'Event timeline',
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        subtitle: Text('${events.length} deduplicated firmware event(s)'),
+        childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+        children: [
+          for (var index = 0; index < visible.length; index++) ...[
+            _TechnicalEventRow(event: visible[index]),
+            if (index != visible.length - 1) const Divider(height: 1),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _TechnicalEventRow extends StatelessWidget {
+  final PhytoEvent event;
+
+  const _TechnicalEventRow({required this.event});
+
+  @override
+  Widget build(BuildContext context) {
+    final severity = event.severity?.trim().toUpperCase() ?? 'INFO';
+    final warn = severity == 'WARN' || severity == 'WARNING';
+    final accent = warn
+        ? Theme.of(context).colorScheme.tertiary
+        : Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 11),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 5),
+            child: Container(
+              width: 8,
+              height: 8,
+              decoration: BoxDecoration(color: accent, shape: BoxShape.circle),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      _eventTime(event),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            fontWeight: FontWeight.w800,
+                          ),
+                    ),
+                    const Spacer(),
+                    Text(
+                      severity,
+                      style: TextStyle(
+                        color: accent,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(event.message),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -540,6 +757,43 @@ String _duration(Duration duration) {
     return '${duration.inMinutes}m ${duration.inSeconds.remainder(60)}s';
   }
   return '${duration.inSeconds}s';
+}
+
+String? _bioSourceDescription(String? source) {
+  if (source == null || source.trim().isEmpty) return null;
+  final normalized = source.trim().toUpperCase().replaceAll(' ', '_');
+  if (BioelectricIntelligence.isPresentationSource(source)) {
+    return 'Presentation/demo signal — not diagnostic';
+  }
+  if (normalized == 'REAL' || normalized == 'PHYSICAL') {
+    return 'Physical measurement';
+  }
+  if (normalized == 'SIMULATION' || normalized == 'SIM') {
+    return 'Simulation signal';
+  }
+  return _pretty(source);
+}
+
+String _formatBytes(int bytes) {
+  if (bytes >= 1024 * 1024) {
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MiB';
+  }
+  if (bytes >= 1024) return '${(bytes / 1024).toStringAsFixed(1)} KiB';
+  return '$bytes B';
+}
+
+String? _yesNo(bool? value) => value == null ? null : value ? 'Yes' : 'No';
+
+String _eventTime(PhytoEvent event) {
+  final time = event.timestamp?.toLocal();
+  if (time != null) {
+    String two(int value) => value.toString().padLeft(2, '0');
+    return '${two(time.hour)}:${two(time.minute)}:${two(time.second)}';
+  }
+  if (event.uptimeMs != null) {
+    return 'T+${_duration(Duration(milliseconds: event.uptimeMs!))}';
+  }
+  return 'Time unavailable';
 }
 
 String _pretty(String value) {

@@ -37,6 +37,8 @@ class LiveNodeHomeScreen extends StatelessWidget {
     final edge = sensors.edgeIntelligence;
     final telemetry = sensors.hardwareTelemetry;
     final live = sensors.source == SensorDataSource.esp32;
+    final homeSystemNotice =
+        live ? _HomeSystemNotice.fromEdge(edge) : null;
 
     Future<void> useSimulation() async {
       await scope.settings.setDataSource('simulation');
@@ -151,6 +153,14 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 telemetry: telemetry,
                 live: live,
               ),
+              if (live && edge?.recovery.visibleOnHome == true) ...[
+                const SizedBox(height: 12),
+                _RecoveryStatusCard(recovery: edge!.recovery),
+              ],
+              if (homeSystemNotice != null) ...[
+                const SizedBox(height: 12),
+                _SystemQualityCard(notice: homeSystemNotice),
+              ],
               const SizedBox(height: 12),
               const _WeatherHomeCard(),
               if (edge?.bioelectric.hasData == true) ...[
@@ -190,7 +200,9 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _WhatChangedCard(edge: edge),
               ],
-              if (edge?.degradedAnalysis == true || edge?.sensorFaults.isNotEmpty == true) ...[
+              if (!live &&
+                  (edge?.degradedAnalysis == true ||
+                      edge?.sensorFaults.isNotEmpty == true)) ...[
                 const SizedBox(height: 12),
                 _CoverageCard(edge: edge!),
               ],
@@ -268,8 +280,7 @@ class _ConditionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final rawState = edge?.plantState ?? reading.healthStatus;
-    final recovering =
-        edge?.recovery.active == true || rawState.toUpperCase() == 'RECOVERING';
+    final recovering = rawState.toUpperCase() == 'RECOVERING';
     final possibleBiotic = edge?.bioticStress.suspected == true;
     final score = (edge?.healthScore ??
             reading.esp32HealthScore ??
@@ -1166,6 +1177,216 @@ class _CoverageCard extends StatelessWidget {
   }
 }
 
+class _HomeSystemNotice {
+  final String title;
+  final String? issue;
+  final String? action;
+  final bool severe;
+
+  const _HomeSystemNotice({
+    required this.title,
+    required this.issue,
+    required this.action,
+    required this.severe,
+  });
+
+  static _HomeSystemNotice? fromEdge(EdgeIntelligence? edge) {
+    if (edge == null) return null;
+    final integrity = edge.sensorIntegrity;
+    final plausibility = edge.plausibility;
+    final runtime = edge.runtimeHealth;
+
+    if (integrity.degraded) {
+      return _HomeSystemNotice(
+        title: 'Sensor check needed',
+        issue: integrity.primaryIssue,
+        action: integrity.primaryAction ?? plausibility.recommendation,
+        severe: true,
+      );
+    }
+    if (runtime.degraded) {
+      return _HomeSystemNotice(
+        title: 'Sensor node needs attention',
+        issue: runtime.issue,
+        action: null,
+        severe: true,
+      );
+    }
+    if (integrity.verify || plausibility.verify) {
+      return _HomeSystemNotice(
+        title: 'Please verify one sensor',
+        issue: integrity.primaryIssue ?? plausibility.primaryIssue,
+        action: integrity.primaryAction ?? plausibility.recommendation,
+        severe: false,
+      );
+    }
+
+    // Older firmware has no sensorIntegrity object. Keep its existing single
+    // compact fallback instead of creating extra cards.
+    if (!integrity.hasData &&
+        (edge.degradedAnalysis || edge.sensorFaults.isNotEmpty)) {
+      final fault = edge.sensorFaults.isEmpty ? null : edge.sensorFaults.first;
+      return _HomeSystemNotice(
+        title: 'Sensor check needed',
+        issue: fault?.explanation ?? edge.degradedReason,
+        action: null,
+        severe: edge.degradedAnalysis,
+      );
+    }
+    return null;
+  }
+}
+
+class _SystemQualityCard extends StatelessWidget {
+  final _HomeSystemNotice notice;
+
+  const _SystemQualityCard({required this.notice});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final accent = notice.severe ? scheme.error : scheme.tertiary;
+    final issue = FarmerLanguage.firmware(
+      context,
+      notice.issue,
+      fallback: notice.severe
+          ? 'The sensor node needs a quick check.'
+          : 'One reading should be verified before relying on it.',
+    );
+    final action = notice.action == null
+        ? null
+        : FarmerLanguage.firmware(context, notice.action);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LiveMotionIcon(
+              icon: notice.severe
+                  ? Icons.sensors_off_outlined
+                  : Icons.fact_check_outlined,
+              color: accent,
+              style: LiveMotionStyle.signal,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    notice.title,
+                    style: TextStyle(
+                      color: accent,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(issue),
+                  if (action != null && action.trim().isNotEmpty) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      action,
+                      style: const TextStyle(fontWeight: FontWeight.w800),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RecoveryStatusCard extends StatelessWidget {
+  final RecoveryInfo recovery;
+
+  const _RecoveryStatusCard({required this.recovery});
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final verified = recovery.recoveryVerified;
+    final recovering = recovery.recovering;
+    final title = verified
+        ? 'Recovery verified'
+        : recovering
+            ? 'Plant recovering'
+            : 'Conditions improving';
+    final fallback = verified
+        ? 'The ESP32 has verified recovery across the available evidence.'
+        : recovering
+            ? 'Stress evidence is decreasing while the plant response is monitored.'
+            : 'Conditions are improving while the ESP32 verifies the plant response.';
+    final summary = FarmerLanguage.firmware(
+      context,
+      recovery.farmerResult,
+      fallback: fallback,
+    );
+    final progress = verified
+        ? 1.0
+        : recovery.progressPct == null
+            ? null
+            : (recovery.progressPct! / 100).clamp(0.0, 1.0).toDouble();
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            LiveMotionIcon(
+              icon: verified
+                  ? Icons.verified_rounded
+                  : Icons.eco_outlined,
+              color: scheme.primary,
+              style: LiveMotionStyle.sway,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: scheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(summary),
+                  if (recovering || verified) ...[
+                    const SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(99),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        minHeight: 7,
+                      ),
+                    ),
+                    if (progress != null) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        '${(progress * 100).round()}%',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                            ),
+                      ),
+                    ],
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _AdvancedHomeIntelligence extends StatelessWidget {
   final SensorReading current;
   final List<SensorReading> history;
@@ -1583,15 +1804,10 @@ class _Pill extends StatelessWidget {
 
 List<String> _changes(BuildContext context, EdgeIntelligence? edge) {
   if (edge == null) return const [];
-  if (edge.recovery.active || edge.plantState?.toUpperCase() == 'RECOVERING') {
-    return [
-      FarmerLanguage.firmware(
-        context,
-        edge.recovery.improved ?? edge.recovery.farmerResult,
-        fallback: FarmerLanguage.label(context, 'recovery_summary'),
-      )
-    ];
-  }
+  // Recovery already has one dedicated farmer card. Do not repeat the same
+  // firmware result in the generic change list.
+  if (edge.recovery.visibleOnHome ||
+      edge.plantState?.toUpperCase() == 'RECOVERING') return const [];
   return edge.trends
       .where((item) {
         final state = item.state?.toUpperCase() ?? '';

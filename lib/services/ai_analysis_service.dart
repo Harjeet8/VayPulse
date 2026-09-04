@@ -94,6 +94,7 @@ class AiAnalysisService {
 
     if (reading.plantSignalAvailable &&
         reading.bioBaselineReady &&
+        !reading.bioIsPresentation &&
         (reading.bioelectricStability ?? reading.plantSignal) < 55) {
       return AiAnalysisResult(
         headlineKey: 'ai_signal_stress',

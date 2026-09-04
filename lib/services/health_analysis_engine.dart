@@ -158,7 +158,7 @@ class HealthAnalysisEngine {
       }
     }
 
-    if (reading.plantSignalAvailable) {
+    if (reading.plantSignalAvailable && !reading.bioIsPresentation) {
       if (!reading.bioBaselineReady) {
         reasons.add(
           'Plant electrical baseline is still learning, so this channel has limited influence.',
@@ -297,7 +297,7 @@ class HealthAnalysisEngine {
     SensorReading reading,
     List<SensorReading> history,
   ) {
-    if (!reading.plantSignalAvailable) return null;
+    if (!reading.plantSignalAvailable || reading.bioIsPresentation) return null;
     if (reading.bioelectricStability != null &&
         reading.bioelectricStability!.isFinite) {
       final quality =
@@ -349,7 +349,9 @@ class HealthAnalysisEngine {
     if (!reading.daytime || reading.lightAvailable) available += weights['light']!;
     if (reading.soilTemperatureAvailable) available += weights['root']!;
     if (reading.leafWetnessAvailable) available += weights['leaf']!;
-    if (reading.plantSignalAvailable && reading.bioBaselineReady) {
+    if (reading.plantSignalAvailable &&
+        reading.bioBaselineReady &&
+        !reading.bioIsPresentation) {
       final quality =
           reading.bioSignalQuality.clamp(0.0, 100.0).toDouble() / 100.0;
       available += weights['bio']! * quality;
