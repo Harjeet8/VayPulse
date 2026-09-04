@@ -111,7 +111,9 @@ class SystemXrayScreen extends StatelessWidget {
                 body: context.tr('xray_live_pipeline_body'),
                 live: sensors.source == SensorDataSource.esp32,
               ),
-              if (hardwareMode && reading != null) ...[
+              if (hardwareMode &&
+                  reading != null &&
+                  _EdgeIntelligencePanel.hasTelemetry(reading)) ...[
                 const SizedBox(height: 14),
                 _EdgeIntelligencePanel(reading: reading),
               ],
@@ -892,6 +894,27 @@ class _EdgeIntelligencePanel extends StatelessWidget {
 
   const _EdgeIntelligencePanel({required this.reading});
 
+  static bool hasTelemetry(SensorReading reading) =>
+      reading.plantModelStatus.trim().isNotEmpty ||
+      reading.plantModelConfidence != null ||
+      reading.plantModelLearnedSamples != null ||
+      reading.temporalState.trim().isNotEmpty ||
+      reading.temporalPrimarySequence.trim().isNotEmpty ||
+      reading.temporalConfidence != null ||
+      reading.plausibilityState.trim().isNotEmpty ||
+      reading.anomalyState.trim().isNotEmpty ||
+      reading.predictionAvailable ||
+      reading.predictionTarget.trim().isNotEmpty ||
+      reading.predictionConfidence != null ||
+      reading.sensorIntegrityState.trim().isNotEmpty ||
+      reading.sensorIntegrityChannels.isNotEmpty ||
+      reading.runtimeHealthState.trim().isNotEmpty ||
+      reading.runtimeHealthIssue.trim().isNotEmpty ||
+      reading.recoveryProgressPct != null ||
+      reading.recoveryConfidence != null ||
+      reading.recoveryVerified ||
+      reading.recentEvents.isNotEmpty;
+
   static double _confidencePercent(double? value) {
     if (value == null || !value.isFinite) return 0;
     return value <= 1 ? value * 100 : value;
@@ -1120,15 +1143,35 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                       label: 'Primary issue',
                       value: reading.sensorIntegrityPrimaryIssue.trim(),
                     ),
+                  for (final entry in reading.sensorIntegrityChannels.entries)
+                    _EdgeDetailRow(
+                      label: _label(entry.key),
+                      value: _label(entry.value),
+                    ),
                   if (reading.plausibilityState.trim().isNotEmpty)
                     _EdgeDetailRow(
                       label: 'Plausibility',
                       value: _label(reading.plausibilityState),
                     ),
+                  if (reading.plausibilityConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Plausibility confidence',
+                      value: _confidence(reading.plausibilityConfidence),
+                    ),
                   if (reading.anomalyState.trim().isNotEmpty)
                     _EdgeDetailRow(
                       label: 'Anomaly',
                       value: _label(reading.anomalyState),
+                    ),
+                  if (reading.anomalyConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Anomaly confidence',
+                      value: _confidence(reading.anomalyConfidence),
+                    ),
+                  if (reading.anomalyExplanation.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Anomaly detail',
+                      value: reading.anomalyExplanation.trim(),
                     ),
                   if (reading.anomalyAffectedChannel.trim().isNotEmpty)
                     _EdgeDetailRow(
