@@ -697,8 +697,9 @@ class _VoicePreviewCardState extends State<_VoicePreviewCard> {
       voiceLanguage = language;
     });
     if (!spoken) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(unavailableText)));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(unavailableText)));
     }
   }
 
