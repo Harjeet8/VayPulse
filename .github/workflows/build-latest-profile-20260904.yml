@@ -1,0 +1,57 @@
+name: Build Exact Frozen PhytoSense Profile APK
+
+on:
+  push:
+    branches: [build-latest-profile-20260904]
+    paths: ['.github/workflows/build-latest-profile-20260904.yml']
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout exact frozen source
+        uses: actions/checkout@v4
+      - name: Verify frozen edge sync
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "plantModelStatus" lib/models/sensor_reading.dart
+          grep -Fq "ESP32 Edge Intelligence" lib/screens/engineering_center_screen.dart
+          grep -Fq "_FarmerEdgeSignals" lib/screens/live_node_home_screen.dart
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Build current installable APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          flutter build apk --profile
+          test -s build/app/outputs/flutter-apk/app-profile.apk
+          cp build/app/outputs/flutter-apk/app-profile.apk PhytoSense-AI-LATEST-PROFILE-2026-09-04.apk
+      - name: Verify package
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-LATEST-PROFILE-2026-09-04.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          sha256sum PhytoSense-AI-LATEST-PROFILE-2026-09-04.apk
+      - name: Upload latest profile APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-LATEST-PROFILE-2026-09-04
+          path: PhytoSense-AI-LATEST-PROFILE-2026-09-04.apk
+          if-no-files-found: error
+          retention-days: 3
