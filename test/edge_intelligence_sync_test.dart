@@ -204,24 +204,22 @@ void main() {
     expect(reading.recentEvents, hasLength(2));
   });
 
-  test(
-    'restored plant model is ready and retained without local invention',
-    () async {
-      final payload = _basePayload()
-        ..['plantModel'] = <String, dynamic>{
-          'status': 'RESTORED',
-          'confidence': 92,
-          'learnedSamples': 320,
-          'bioBaselineMv': 1640.5,
-        };
+  test('restored plant model is ready and retained without local invention',
+      () async {
+    final payload = _basePayload()
+      ..['plantModel'] = <String, dynamic>{
+        'status': 'RESTORED',
+        'confidence': 92,
+        'learnedSamples': 320,
+        'bioBaselineMv': 1640.5,
+      };
 
-      final reading = (await _snapshot(payload)).reading;
-      expect(reading.plantModelReady, isTrue);
-      expect(reading.plantModelStatus, 'READY');
-      expect(reading.plantModelPersisted, isTrue);
-      expect(reading.plantModelBioBaselineMv, 1640.5);
-    },
-  );
+    final reading = (await _snapshot(payload)).reading;
+    expect(reading.plantModelReady, isTrue);
+    expect(reading.plantModelStatus, 'READY');
+    expect(reading.plantModelPersisted, isTrue);
+    expect(reading.plantModelBioBaselineMv, 1640.5);
+  });
 
   test('plant model learning and missing optional objects are safe', () async {
     final payload = _basePayload()
@@ -279,22 +277,19 @@ void main() {
     expect(reading.plantSignalAvailable, isTrue);
   });
 
-  test(
-    'recovery NONE IMPROVING RECOVERING and VERIFIED are preserved',
-    () async {
-      for (final state in <String>[
-        'NONE',
-        'CONDITIONS_IMPROVING',
-        'RECOVERING',
-        'RECOVERY_VERIFIED',
-      ]) {
-        final reading =
-            (await _snapshot(_basePayload(recovery: state))).reading;
-        expect(reading.recoveryStatus, state);
-        expect(reading.recoveryVerified, state == 'RECOVERY_VERIFIED');
-      }
-    },
-  );
+  test('recovery NONE IMPROVING RECOVERING and VERIFIED are preserved',
+      () async {
+    for (final state in <String>[
+      'NONE',
+      'CONDITIONS_IMPROVING',
+      'RECOVERING',
+      'RECOVERY_VERIFIED',
+    ]) {
+      final reading = (await _snapshot(_basePayload(recovery: state))).reading;
+      expect(reading.recoveryStatus, state);
+      expect(reading.recoveryVerified, state == 'RECOVERY_VERIFIED');
+    }
+  });
 
   test('runtime GOOD WATCH and DEGRADED are preserved', () async {
     for (final state in <String>['GOOD', 'WATCH', 'DEGRADED']) {
