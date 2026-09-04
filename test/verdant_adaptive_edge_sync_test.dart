@@ -27,6 +27,7 @@ void main() {
     expect(edge.plantModel.modelReady, isTrue);
     expect(edge.plantModel.persisted, isTrue);
     expect(edge.plantModel.learnedSamples, 184);
+    expect(edge.plantModel.confidence, closeTo(91, 0.01));
     expect(edge.plantModel.bioBaselineMv, closeTo(1788.4, 0.01));
   });
 
@@ -34,6 +35,12 @@ void main() {
     final edge = EdgeIntelligence.fromPayload(
       root: const {},
       data: {
+        'prediction': {
+          'available': true,
+          'confidence': 0.82,
+          'target': 'water stress',
+          'minutesToWarning': 18,
+        },
         'causeResponse': {
           'state': 'TRACKING',
           'confidence': 84,
@@ -51,6 +58,7 @@ void main() {
     expect(edge.temporalReasoning.confidence, 84);
     expect(edge.temporalReasoning.environmentToBioLagSec, 52);
     expect(edge.temporalReasoning.actionToRecoveryLagSec, 133);
+    expect(edge.prediction.confidence, closeTo(82, 0.01));
     expect(
       edge.temporalReasoning.explanation,
       'Firmware-observed sequence',
