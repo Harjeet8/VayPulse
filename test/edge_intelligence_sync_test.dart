@@ -131,8 +131,7 @@ void main() {
       runtime: 'WATCH',
       anomaly: 'VERIFY',
       prediction: true,
-    )
-      ..addAll(<String, dynamic>{
+    )..addAll(<String, dynamic>{
         'healthScore': 42,
         'analysisConfidence': 91,
         'plantModel': <String, dynamic>{

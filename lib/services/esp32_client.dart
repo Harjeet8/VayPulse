@@ -498,11 +498,11 @@ class Esp32Client {
         data['plantModelAgeSec'],
       ])),
       'plantModelPersisted': _asBool(first([
-            plantModel['persisted'],
-            plantModel['restored'],
-            data['plantModelPersisted'],
-          ])) ==
-          true ||
+                plantModel['persisted'],
+                plantModel['restored'],
+                data['plantModelPersisted'],
+              ])) ==
+              true ||
           '${first([plantModel['status'], plantModel['state'], ''])}'
               .toUpperCase()
               .contains('RESTOR'),
@@ -550,49 +550,30 @@ class Esp32Client {
             temporalReasoning['message'],
             ''
           ])}',
-      'plausibilityState': '${first([
-            plausibility['state'],
-            plausibility['status'],
-            ''
-          ])}',
+      'plausibilityState':
+          '${first([plausibility['state'], plausibility['status'], ''])}',
       'plausibilityConfidence': _asDouble(plausibility['confidence']),
-      'plausibilityPrimaryIssue': '${first([
-            plausibility['primaryIssue'],
-            plausibility['issue'],
-            ''
-          ])}',
+      'plausibilityPrimaryIssue':
+          '${first([plausibility['primaryIssue'], plausibility['issue'], ''])}',
       'plausibilityRecommendation': '${first([
             plausibility['recommendation'],
             plausibility['action'],
             ''
           ])}',
-      'anomalyState': '${first([
-            anomaly['state'],
-            anomaly['status'],
-            ''
-          ])}',
+      'anomalyState': '${first([anomaly['state'], anomaly['status'], ''])}',
       'anomalyScore': _asDouble(anomaly['score']),
       'anomalyConfidence': _asDouble(anomaly['confidence']),
-      'anomalyExplanation': '${first([
-            anomaly['explanation'],
-            anomaly['message'],
-            ''
-          ])}',
-      'anomalyAffectedChannel': '${first([
-            anomaly['affectedChannel'],
-            anomaly['channel'],
-            ''
-          ])}',
+      'anomalyExplanation':
+          '${first([anomaly['explanation'], anomaly['message'], ''])}',
+      'anomalyAffectedChannel':
+          '${first([anomaly['affectedChannel'], anomaly['channel'], ''])}',
       'predictionAvailable': _asBool(first([
             prediction['available'],
             data['predictionAvailable'],
           ])) ==
           true,
-      'predictionTarget': '${first([
-            prediction['target'],
-            prediction['metric'],
-            ''
-          ])}',
+      'predictionTarget':
+          '${first([prediction['target'], prediction['metric'], ''])}',
       'predictionConfidence': _asDouble(first([
         prediction['confidence'],
         data['predictionConfidence'],
@@ -602,16 +583,10 @@ class Esp32Client {
         prediction['etaMinutes'],
         data['predictionMinutesToWarning'],
       ])),
-      'predictionMessage': '${first([
-            prediction['message'],
-            prediction['explanation'],
-            ''
-          ])}',
-      'predictionDirection': '${first([
-            prediction['direction'],
-            prediction['trend'],
-            ''
-          ])}',
+      'predictionMessage':
+          '${first([prediction['message'], prediction['explanation'], ''])}',
+      'predictionDirection':
+          '${first([prediction['direction'], prediction['trend'], ''])}',
       'recoveryProgressPct': _asDouble(first([
         recovery['progressPct'],
         recovery['progress'],
@@ -633,20 +608,14 @@ class Esp32Client {
             data['recoveryVerified'],
           ])) ==
           true,
-      'recoveryFarmerResult': '${first([
-            recovery['farmerResult'],
-            recovery['result'],
-            ''
-          ])}',
+      'recoveryFarmerResult':
+          '${first([recovery['farmerResult'], recovery['result'], ''])}',
       'recoveryActionToResponseLagSec': _asInt(first([
         recovery['actionToResponseLagSec'],
         recovery['responseLagSec'],
       ])),
-      'sensorIntegrityState': '${first([
-            sensorIntegrity['state'],
-            sensorIntegrity['status'],
-            ''
-          ])}',
+      'sensorIntegrityState':
+          '${first([sensorIntegrity['state'], sensorIntegrity['status'], ''])}',
       'sensorIntegrityPrimaryIssue': '${first([
             sensorIntegrity['primaryIssue'],
             sensorIntegrity['issue'],
@@ -658,11 +627,8 @@ class Esp32Client {
             ''
           ])}',
       'sensorIntegrityChannels': _stateMap(sensorIntegrity['channels']),
-      'runtimeHealthState': '${first([
-            runtimeHealth['state'],
-            runtimeHealth['status'],
-            ''
-          ])}',
+      'runtimeHealthState':
+          '${first([runtimeHealth['state'], runtimeHealth['status'], ''])}',
       'runtimeFreeHeap': _asInt(runtimeHealth['freeHeap']),
       'runtimeMinFreeHeap': _asInt(runtimeHealth['minFreeHeap']),
       'runtimeLastLoopGapMs': _asInt(runtimeHealth['lastLoopGapMs']),
@@ -670,11 +636,8 @@ class Esp32Client {
       'runtimeLastSensorCycleMs': _asInt(runtimeHealth['lastSensorCycleMs']),
       'runtimeMaxSensorCycleMs': _asInt(runtimeHealth['maxSensorCycleMs']),
       'runtimeOledI2cSkipTotal': _asInt(runtimeHealth['oledI2cSkipTotal']),
-      'runtimeHealthIssue': '${first([
-            runtimeHealth['issue'],
-            runtimeHealth['message'],
-            ''
-          ])}',
+      'runtimeHealthIssue':
+          '${first([runtimeHealth['issue'], runtimeHealth['message'], ''])}',
       'recentEvents': recentEvents is List ? recentEvents : const <dynamic>[],
       'sensorStates': <String, String>{
         'temperature': _channelState(

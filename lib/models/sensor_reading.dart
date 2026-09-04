@@ -27,9 +27,11 @@ class EdgeEvent {
     final rawTimestamp = map['timestamp'] ?? map['time'] ?? map['createdAt'];
     return EdgeEvent(
       id: '${map['id'] ?? map['eventId'] ?? ''}',
-      timestamp: rawTimestamp == null ? null : DateTime.tryParse('$rawTimestamp'),
+      timestamp:
+          rawTimestamp == null ? null : DateTime.tryParse('$rawTimestamp'),
       type: '${map['type'] ?? map['event'] ?? map['kind'] ?? ''}',
-      message: '${map['message'] ?? map['label'] ?? map['description'] ?? map['type'] ?? ''}',
+      message:
+          '${map['message'] ?? map['label'] ?? map['description'] ?? map['type'] ?? ''}',
     );
   }
 }
@@ -74,7 +76,6 @@ class SensorReading {
   final bool cameraRecommended;
   final String cameraReason;
   final Map<String, String> sensorStates;
-
 
   // Optional ESP32 edge-intelligence telemetry. These values are never
   // manufactured by Flutter in hardware mode.
@@ -206,7 +207,6 @@ class SensorReading {
     this.cameraRecommended = false,
     this.cameraReason = '',
     this.sensorStates = const <String, String>{},
-
     this.plantModelStatus = '',
     this.plantModelReady = false,
     this.plantModelConfidence,
@@ -357,7 +357,6 @@ class SensorReading {
         'cameraRecommended': cameraRecommended,
         'cameraReason': cameraReason,
         'sensorStates': sensorStates,
-
         'plantModelStatus': plantModelStatus,
         'plantModelReady': plantModelReady,
         'plantModelConfidence': plantModelConfidence,
@@ -367,7 +366,8 @@ class SensorReading {
         'plantModelBioBaselineMv': plantModelBioBaselineMv,
         'plantModelTypicalBioVariationMv': plantModelTypicalBioVariationMv,
         'plantModelNormalNoiseMv': plantModelNormalNoiseMv,
-        'plantModelNormalSoilRatePctPerHour': plantModelNormalSoilRatePctPerHour,
+        'plantModelNormalSoilRatePctPerHour':
+            plantModelNormalSoilRatePctPerHour,
         'temporalState': temporalState,
         'temporalConfidence': temporalConfidence,
         'temporalPrimarySequence': temporalPrimarySequence,
@@ -507,7 +507,6 @@ class SensorReading {
       cameraRecommended: json['cameraRecommended'] == true,
       cameraReason: '${json['cameraReason'] ?? ''}',
       sensorStates: _stringMap(json['sensorStates']),
-
       plantModelStatus: '${json['plantModelStatus'] ?? ''}',
       plantModelReady: json['plantModelReady'] == true,
       plantModelConfidence: _nullableNum(json['plantModelConfidence']),
@@ -529,8 +528,7 @@ class SensorReading {
       plausibilityState: '${json['plausibilityState'] ?? ''}',
       plausibilityConfidence: _nullableNum(json['plausibilityConfidence']),
       plausibilityPrimaryIssue: '${json['plausibilityPrimaryIssue'] ?? ''}',
-      plausibilityRecommendation:
-          '${json['plausibilityRecommendation'] ?? ''}',
+      plausibilityRecommendation: '${json['plausibilityRecommendation'] ?? ''}',
       anomalyState: '${json['anomalyState'] ?? ''}',
       anomalyScore: _nullableNum(json['anomalyScore']),
       anomalyConfidence: _nullableNum(json['anomalyConfidence']),
@@ -635,7 +633,6 @@ class SensorReading {
     return value.map((key, item) => MapEntry('$key', '$item'));
   }
 
-
   static List<EdgeEvent> _edgeEvents(dynamic value) {
     if (value is! List) return const <EdgeEvent>[];
     final seen = <String>{};
@@ -723,7 +720,6 @@ class SensorReading {
     bool? cameraRecommended,
     String? cameraReason,
     Map<String, String>? sensorStates,
-
     String? plantModelStatus,
     bool? plantModelReady,
     double? plantModelConfidence,
@@ -841,7 +837,6 @@ class SensorReading {
       cameraRecommended: cameraRecommended ?? this.cameraRecommended,
       cameraReason: cameraReason ?? this.cameraReason,
       sensorStates: sensorStates ?? this.sensorStates,
-
       plantModelStatus: plantModelStatus ?? this.plantModelStatus,
       plantModelReady: plantModelReady ?? this.plantModelReady,
       plantModelConfidence: plantModelConfidence ?? this.plantModelConfidence,
@@ -881,8 +876,7 @@ class SensorReading {
           anomalyAffectedChannel ?? this.anomalyAffectedChannel,
       predictionAvailable: predictionAvailable ?? this.predictionAvailable,
       predictionTarget: predictionTarget ?? this.predictionTarget,
-      predictionConfidence:
-          predictionConfidence ?? this.predictionConfidence,
+      predictionConfidence: predictionConfidence ?? this.predictionConfidence,
       predictionMinutesToWarning:
           predictionMinutesToWarning ?? this.predictionMinutesToWarning,
       predictionMessage: predictionMessage ?? this.predictionMessage,
@@ -891,19 +885,16 @@ class SensorReading {
       recoveryConfidence: recoveryConfidence ?? this.recoveryConfidence,
       recoveryEnvironmentImproved:
           recoveryEnvironmentImproved ?? this.recoveryEnvironmentImproved,
-      recoverySoilImproved:
-          recoverySoilImproved ?? this.recoverySoilImproved,
+      recoverySoilImproved: recoverySoilImproved ?? this.recoverySoilImproved,
       recoveryStressEvidenceDecreasing: recoveryStressEvidenceDecreasing ??
           this.recoveryStressEvidenceDecreasing,
-      recoveryBioResponseDecreasing: recoveryBioResponseDecreasing ??
-          this.recoveryBioResponseDecreasing,
+      recoveryBioResponseDecreasing:
+          recoveryBioResponseDecreasing ?? this.recoveryBioResponseDecreasing,
       recoveryVerified: recoveryVerified ?? this.recoveryVerified,
-      recoveryFarmerResult:
-          recoveryFarmerResult ?? this.recoveryFarmerResult,
-      recoveryActionToResponseLagSec: recoveryActionToResponseLagSec ??
-          this.recoveryActionToResponseLagSec,
-      sensorIntegrityState:
-          sensorIntegrityState ?? this.sensorIntegrityState,
+      recoveryFarmerResult: recoveryFarmerResult ?? this.recoveryFarmerResult,
+      recoveryActionToResponseLagSec:
+          recoveryActionToResponseLagSec ?? this.recoveryActionToResponseLagSec,
+      sensorIntegrityState: sensorIntegrityState ?? this.sensorIntegrityState,
       sensorIntegrityPrimaryIssue:
           sensorIntegrityPrimaryIssue ?? this.sensorIntegrityPrimaryIssue,
       sensorIntegrityPrimaryAction:
@@ -913,8 +904,7 @@ class SensorReading {
       runtimeHealthState: runtimeHealthState ?? this.runtimeHealthState,
       runtimeFreeHeap: runtimeFreeHeap ?? this.runtimeFreeHeap,
       runtimeMinFreeHeap: runtimeMinFreeHeap ?? this.runtimeMinFreeHeap,
-      runtimeLastLoopGapMs:
-          runtimeLastLoopGapMs ?? this.runtimeLastLoopGapMs,
+      runtimeLastLoopGapMs: runtimeLastLoopGapMs ?? this.runtimeLastLoopGapMs,
       runtimeMaxLoopGapMs: runtimeMaxLoopGapMs ?? this.runtimeMaxLoopGapMs,
       runtimeLastSensorCycleMs:
           runtimeLastSensorCycleMs ?? this.runtimeLastSensorCycleMs,

@@ -920,11 +920,18 @@ class _EdgeIntelligencePanel extends StatelessWidget {
     return value <= 1 ? value * 100 : value;
   }
 
-  static String _confidence(double? value) =>
-      value == null ? '' : '${_confidencePercent(value).clamp(0, 100).round()}%';
+  static String _confidence(double? value) => value == null
+      ? ''
+      : '${_confidencePercent(value).clamp(0, 100).round()}%';
 
-  static String _label(String value) =>
-      value.trim().replaceAll('_', ' ').toLowerCase().split(' ').where((part) => part.isNotEmpty).map((part) => '${part[0].toUpperCase()}${part.substring(1)}').join(' ');
+  static String _label(String value) => value
+      .trim()
+      .replaceAll('_', ' ')
+      .toLowerCase()
+      .split(' ')
+      .where((part) => part.isNotEmpty)
+      .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
+      .join(' ');
 
   bool get _hasPlantModel =>
       reading.plantModelStatus.trim().isNotEmpty ||
@@ -964,11 +971,9 @@ class _EdgeIntelligencePanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final secondary = reading.rankedRootCauses.length > 1
-        ? reading.rankedRootCauses[1]
-        : '';
-    final events = [...reading.recentEvents]
-      ..sort((a, b) {
+    final secondary =
+        reading.rankedRootCauses.length > 1 ? reading.rankedRootCauses[1] : '';
+    final events = [...reading.recentEvents]..sort((a, b) {
         if (a.timestamp == null && b.timestamp == null) return 0;
         if (a.timestamp == null) return 1;
         if (b.timestamp == null) return -1;
