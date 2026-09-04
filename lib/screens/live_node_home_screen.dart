@@ -121,6 +121,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 ),
               ] else
                 _PartialAnalysisCard(reading: reading),
+              if (_FarmerEdgeSignals.shouldShow(reading)) ...[
+                const SizedBox(height: 10),
+                _FarmerEdgeSignals(reading: reading),
+              ],
               if (reading.cameraRecommended) ...[
                 const SizedBox(height: 14),
                 _PhotoPrompt(
@@ -823,6 +827,168 @@ class _EvidenceCard extends StatelessWidget {
           ),
         ),
       );
+}
+
+class _FarmerEdgeSignals extends StatelessWidget {
+  final SensorReading reading;
+
+  const _FarmerEdgeSignals({required this.reading});
+
+  static double _confidencePercent(double? value) {
+    if (value == null || !value.isFinite) return 0;
+    return value <= 1 ? value * 100 : value;
+  }
+
+  static bool _predictionVisible(SensorReading reading) =>
+      reading.predictionAvailable &&
+      _confidencePercent(reading.predictionConfidence) >= 65 &&
+      (reading.predictionMessage.trim().isNotEmpty ||
+          reading.predictionMinutesToWarning != null);
+
+  static String _recoveryText(SensorReading reading) {
+    final state = reading.recoveryStatus.trim().toUpperCase();
+    if (state.isEmpty || state == 'NONE') return '';
+    if (reading.recoveryVerified || state == 'RECOVERY_VERIFIED' || state == 'VERIFIED') {
+      return reading.recoveryFarmerResult.trim().isNotEmpty
+          ? reading.recoveryFarmerResult.trim()
+          : 'Recovery verified.';
+    }
+    if (state == 'CONDITIONS_IMPROVING' || state == 'IMPROVING') {
+      return 'Conditions are improving.';
+    }
+    if (state == 'RECOVERING') {
+      final progress = reading.recoveryProgressPct;
+      return progress == null
+          ? 'Recovery is in progress.'
+          : 'Recovery is in progress • ${progress.clamp(0, 100).round()}%';
+    }
+    return '';
+  }
+
+  static String _systemWarning(SensorReading reading) {
+    final integrity = reading.sensorIntegrityState.trim().toUpperCase();
+    if (integrity.isNotEmpty &&
+        !const {'FULL', 'CLEAR', 'GOOD', 'OK'}.contains(integrity)) {
+      if (reading.sensorIntegrityPrimaryAction.trim().isNotEmpty) {
+        return reading.sensorIntegrityPrimaryAction.trim();
+      }
+      if (reading.sensorIntegrityPrimaryIssue.trim().isNotEmpty) {
+        return reading.sensorIntegrityPrimaryIssue.trim();
+      }
+    }
+
+    final plausibility = reading.plausibilityState.trim().toUpperCase();
+    if (plausibility.isNotEmpty &&
+        !const {'CLEAR', 'GOOD', 'NORMAL', 'OK'}.contains(plausibility)) {
+      if (reading.plausibilityRecommendation.trim().isNotEmpty) {
+        return reading.plausibilityRecommendation.trim();
+      }
+      if (reading.plausibilityPrimaryIssue.trim().isNotEmpty) {
+        return reading.plausibilityPrimaryIssue.trim();
+      }
+    }
+
+    final anomaly = reading.anomalyState.trim().toUpperCase();
+    if (const {'VERIFY', 'WATCH', 'ALERT', 'ANOMALY'}.contains(anomaly)) {
+      if (reading.anomalyExplanation.trim().isNotEmpty) {
+        return reading.anomalyExplanation.trim();
+      }
+    }
+
+    final runtime = reading.runtimeHealthState.trim().toUpperCase();
+    if (const {'WATCH', 'DEGRADED', 'FAULT'}.contains(runtime) &&
+        reading.runtimeHealthIssue.trim().isNotEmpty) {
+      return reading.runtimeHealthIssue.trim();
+    }
+    return '';
+  }
+
+  static bool shouldShow(SensorReading reading) =>
+      (!reading.plantModelReady &&
+          reading.plantModelStatus.trim().toUpperCase() == 'LEARNING') ||
+      _predictionVisible(reading) ||
+      _recoveryText(reading).isNotEmpty ||
+      _systemWarning(reading).isNotEmpty;
+
+  @override
+  Widget build(BuildContext context) {
+    final predictionVisible = _predictionVisible(reading);
+    final recovery = _recoveryText(reading);
+    final warning = _systemWarning(reading);
+    final learning = !reading.plantModelReady &&
+        reading.plantModelStatus.trim().toUpperCase() == 'LEARNING';
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (learning)
+            const _CompactEdgeLine(
+              icon: Icons.auto_awesome_outlined,
+              text: 'Learning this plant',
+            ),
+          if (predictionVisible)
+            _CompactEdgeLine(
+              icon: Icons.trending_up_rounded,
+              text: reading.predictionMessage.trim().isNotEmpty
+                  ? reading.predictionMessage.trim()
+                  : '${_edgeText(reading.predictionTarget)} may reach the warning range in ~${reading.predictionMinutesToWarning} min if the current trend continues.',
+            ),
+          if (recovery.isNotEmpty)
+            _CompactEdgeLine(
+              icon: reading.recoveryVerified
+                  ? Icons.verified_rounded
+                  : Icons.healing_rounded,
+              text: recovery,
+            ),
+          if (warning.isNotEmpty)
+            _CompactEdgeLine(
+              icon: Icons.build_circle_outlined,
+              text: warning,
+              warning: true,
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactEdgeLine extends StatelessWidget {
+  final IconData icon;
+  final String text;
+  final bool warning;
+
+  const _CompactEdgeLine({
+    required this.icon,
+    required this.text,
+    this.warning = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = warning
+        ? Theme.of(context).colorScheme.tertiary
+        : Theme.of(context).colorScheme.primary;
+    return Padding(
+      padding: const EdgeInsets.only(top: 7),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: color),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              text,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: warning ? FontWeight.w700 : FontWeight.w600,
+                  ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 class _PhotoPrompt extends StatelessWidget {
