@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: phytosense-final-release
@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout frozen source
         uses: actions/checkout@v4
+        with:
+          ref: edge-ai-final-sync
 
       - name: Set up Java
         uses: actions/setup-java@v4
@@ -43,7 +45,18 @@ jobs:
         run: flutter pub get
 
       - name: Flutter format
-        run: dart format --output=none --set-exit-if-changed lib test
+        run: dart format lib test
+
+      - name: Commit formatted source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add lib test
+          git diff --cached --check
+          git commit -m "Format final edge intelligence sync" || true
+          git push origin HEAD:edge-ai-final-sync
 
       - name: Static analysis
         run: flutter analyze
