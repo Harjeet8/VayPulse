@@ -354,10 +354,8 @@ class _ReliabilityDiagnosticsCard extends StatelessWidget {
         if (runtime.minFreeHeap != null)
           _Metric('Minimum heap', _formatBytes(runtime.minFreeHeap!)),
         if (runtime.lastSensorCycleMs != null)
-          _Metric(
-            'Sensor-cycle latency',
-            '${runtime.lastSensorCycleMs!.toStringAsFixed(0)} ms',
-          ),
+          _Metric('Sensor-cycle latency',
+              '${runtime.lastSensorCycleMs!.toStringAsFixed(0)} ms'),
         if (runtime.maxSensorCycleMs != null)
           _Metric(
             'Maximum cycle latency',
