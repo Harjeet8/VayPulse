@@ -852,12 +852,14 @@ class _FarmerEdgeSignals extends StatelessWidget {
 
   static String _recoveryText(BuildContext context, SensorReading reading) {
     final state = reading.recoveryStatus.trim().toUpperCase();
-    if (state.isEmpty || state == 'NONE') return '';
-    if (reading.recoveryVerified || state == 'RECOVERY_VERIFIED' || state == 'VERIFIED') {
+    if (reading.recoveryVerified ||
+        state == 'RECOVERY_VERIFIED' ||
+        state == 'VERIFIED') {
       return reading.recoveryFarmerResult.trim().isNotEmpty
           ? reading.recoveryFarmerResult.trim()
           : context.tr('edge_recovery_verified');
     }
+    if (state.isEmpty || state == 'NONE') return '';
     if (state == 'CONDITIONS_IMPROVING' || state == 'IMPROVING') {
       return context.tr('edge_recovery_improving');
     }
@@ -893,13 +895,6 @@ class _FarmerEdgeSignals extends StatelessWidget {
       }
       if (reading.plausibilityPrimaryIssue.trim().isNotEmpty) {
         return reading.plausibilityPrimaryIssue.trim();
-      }
-    }
-
-    final anomaly = reading.anomalyState.trim().toUpperCase();
-    if (const {'VERIFY', 'WATCH', 'ALERT', 'ANOMALY'}.contains(anomaly)) {
-      if (reading.anomalyExplanation.trim().isNotEmpty) {
-        return reading.anomalyExplanation.trim();
       }
     }
 
