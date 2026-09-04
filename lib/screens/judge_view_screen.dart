@@ -282,7 +282,31 @@ class _BioCard extends StatelessWidget {
         _Metric('Signal source', _bioSourceDescription(source)),
         _Metric('Signal state', bio?.signalQualityState),
         if (bio?.signalQuality != null)
-          _Metric('Signal quality', '${bio!.signalQuality!.round()}%'),
+          _Metric(
+            'Electrical signal quality',
+            '${bio!.signalQuality!.round()}%',
+          ),
+        _Metric('Electrode contact state', bio?.contactState),
+        if (bio?.contactConfidence != null)
+          _Metric(
+            'Contact confidence',
+            '${bio!.contactConfidence!.round()}%',
+          ),
+        if (bio?.slowDriftMv != null)
+          _Metric(
+            'Slow drift',
+            '${bio!.slowDriftMv!.toStringAsFixed(1)} mV',
+          ),
+        _Metric(
+          'Plausible for plant use',
+          bio?.contactPlausibleForPlantUse == null
+              ? null
+              : bio!.contactPlausibleForPlantUse!
+                  ? 'Yes'
+                  : 'No',
+        ),
+        _Metric('Open-contact evidence', bio?.openEvidence),
+        _Metric('Static/test evidence', bio?.staticEvidence),
         if (bio?.confidence != null)
           _Metric('Bio confidence', '${bio!.confidence!.round()}%'),
         _Metric('Stress state', bio?.stressState),
@@ -311,7 +335,7 @@ class _BioCard extends StatelessWidget {
         else if (excluded)
           const _Metric(
             'Protection',
-            'Bad electrode/signal quality cannot create a plant-stress alert.',
+            'Electrical signal quality alone is not treated as valid plant contact. Invalid contact is excluded from baseline learning and plant analysis.',
           ),
       ],
     );
