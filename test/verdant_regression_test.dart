@@ -119,6 +119,7 @@ void main() {
       ),
     );
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(
       tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
       const Color(0xFFF3F8F5),
@@ -132,6 +133,7 @@ void main() {
       ),
     );
     await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
     expect(
       tester.widget<Scaffold>(find.byType(Scaffold)).backgroundColor,
       const Color(0xFF04120E),
