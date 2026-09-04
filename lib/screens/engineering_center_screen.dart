@@ -913,6 +913,13 @@ class _EdgeIntelligencePanel extends StatelessWidget {
       reading.recoveryProgressPct != null ||
       reading.recoveryConfidence != null ||
       reading.recoveryVerified ||
+      reading.bioContactState.trim().isNotEmpty ||
+      reading.bioContactConfidence != null ||
+      reading.bioSlowDriftMv != null ||
+      reading.bioOpenLatched != null ||
+      reading.bioReconnectVerifying != null ||
+      reading.firmwareName.trim().isNotEmpty ||
+      reading.firmwareBuildState.trim().isNotEmpty ||
       reading.recentEvents.isNotEmpty;
 
   static double _confidencePercent(double? value) {
@@ -952,6 +959,9 @@ class _EdgeIntelligencePanel extends StatelessWidget {
       reading.anomalyState.trim().isNotEmpty ||
       reading.bioState.trim().isNotEmpty ||
       reading.bioSignalQuality > 0 ||
+      reading.hasBioContactTelemetry ||
+      reading.firmwareName.trim().isNotEmpty ||
+      reading.firmwareBuildState.trim().isNotEmpty ||
       reading.reliabilityMode.trim().isNotEmpty;
 
   bool get _hasRecovery {
@@ -1183,10 +1193,51 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                       label: 'Affected channel',
                       value: _label(reading.anomalyAffectedChannel),
                     ),
-                  if (reading.plantSignalAvailable)
+                  if (reading.bioElectricalMeasurementAvailable)
                     _EdgeDetailRow(
-                      label: 'Bio signal quality',
+                      label: 'Electrical signal quality',
                       value: '${reading.bioSignalQuality.round()}%',
+                    ),
+                  if (reading.bioContactState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Electrode contact state',
+                      value: _label(reading.bioContactState),
+                    ),
+                  if (reading.bioContactConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Contact confidence',
+                      value: _confidence(reading.bioContactConfidence),
+                    ),
+                  if (reading.bioSlowDriftMv != null)
+                    _EdgeDetailRow(
+                      label: 'Slow drift',
+                      value: '${reading.bioSlowDriftMv!.toStringAsFixed(1)} mV',
+                    ),
+                  if (reading.hasBioContactTelemetry)
+                    _EdgeDetailRow(
+                      label: 'Plant-analysis use',
+                      value: reading.bioPlantUseAllowed ? 'Enabled' : 'Disabled',
+                    ),
+                  if (reading.bioOpenLatched == true)
+                    const _EdgeDetailRow(
+                      label: 'Open-contact latch',
+                      value: 'Open-contact latch active',
+                    ),
+                  if (reading.bioReconnectVerifying == true &&
+                      reading.bioReconnectVerifySec != null)
+                    _EdgeDetailRow(
+                      label: 'Reconnect verification',
+                      value: '${reading.bioReconnectVerifySec} / 26 s',
+                    ),
+                  if (reading.firmwareName.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Firmware',
+                      value: reading.firmwareName.trim(),
+                    ),
+                  if (reading.firmwareBuildState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Build state',
+                      value: _label(reading.firmwareBuildState),
                     ),
                   _EdgeDetailRow(
                     label: 'Analysis reliability',
