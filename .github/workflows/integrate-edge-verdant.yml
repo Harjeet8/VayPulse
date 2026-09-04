@@ -1,0 +1,41 @@
+name: Integrate Edge AI Into Verdant Final
+
+on:
+  push:
+    branches: [phytosense-verdant-edge-final]
+    paths: ['.github/workflows/integrate-edge-verdant.yml']
+
+permissions:
+  contents: write
+
+jobs:
+  integrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout polished Verdant final
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Apply frozen edge intelligence commit
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name "PhytoSense Build Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git fetch origin main
+          git cherry-pick -m 1 1a080ee27ec56415dc1e24af3bd4a2b8633a1e38
+
+      - name: Verify both polished UI and edge sync survived
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -Fq "plantModelStatus" lib/models/sensor_reading.dart
+          grep -Fq "_FarmerEdgeSignals" lib/screens/live_node_home_screen.dart
+          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
+          grep -Fq "phytosense" lib/screens/splash_screen.dart || true
+          test -f assets/branding/phytosense_icon.png
+
+      - name: Push integrated final branch
+        run: git push origin HEAD:phytosense-verdant-edge-final
