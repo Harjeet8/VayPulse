@@ -200,6 +200,23 @@ void main() {
     expect(reading.recentEvents, hasLength(2));
   });
 
+  test('restored plant model is ready and retained without local invention',
+      () async {
+    final payload = _basePayload()
+      ..['plantModel'] = <String, dynamic>{
+        'status': 'RESTORED',
+        'confidence': 92,
+        'learnedSamples': 320,
+        'bioBaselineMv': 1640.5,
+      };
+
+    final reading = (await _snapshot(payload)).reading;
+    expect(reading.plantModelReady, isTrue);
+    expect(reading.plantModelStatus, 'READY');
+    expect(reading.plantModelPersisted, isTrue);
+    expect(reading.plantModelBioBaselineMv, 1640.5);
+  });
+
   test('plant model learning and missing optional objects are safe', () async {
     final payload = _basePayload()
       ..['plantModel'] = <String, dynamic>{
