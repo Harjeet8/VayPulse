@@ -932,7 +932,7 @@ class _FarmerEdgeSignals extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (learning)
-            const _CompactEdgeLine(
+            _CompactEdgeLine(
               icon: Icons.auto_awesome_outlined,
               text: context.tr('edge_learning_plant'),
             ),
