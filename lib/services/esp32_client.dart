@@ -113,41 +113,51 @@ class Esp32Client {
       first([data['sensorStates'], data['sensorStatus']]),
     );
 
-    final plantModel = _map(first([
-      data['plantModel'],
-      data['adaptivePlantModel'],
-      analysis['plantModel'],
-    ]));
-    final temporalReasoning = _map(first([
-      data['temporalReasoning'],
-      data['causeResponse'],
-      analysis['temporalReasoning'],
-    ]));
-    final plausibility = _map(first([
-      data['plausibility'],
-      data['sensorPlausibility'],
-      analysis['plausibility'],
-    ]));
-    final anomaly = _map(first([
-      data['anomaly'],
-      data['anomalyDetection'],
-      analysis['anomaly'],
-    ]));
-    final prediction = _map(first([
-      data['prediction'],
-      data['stressPrediction'],
-      analysis['prediction'],
-    ]));
-    final sensorIntegrity = _map(first([
-      data['sensorIntegrity'],
-      system['sensorIntegrity'],
-      analysis['sensorIntegrity'],
-    ]));
-    final runtimeHealth = _map(first([
-      data['runtimeHealth'],
-      system['runtimeHealth'],
-      data['nodeHealth'],
-    ]));
+    final plantModel = _map(
+      first([
+        data['plantModel'],
+        data['adaptivePlantModel'],
+        analysis['plantModel'],
+      ]),
+    );
+    final temporalReasoning = _map(
+      first([
+        data['temporalReasoning'],
+        data['causeResponse'],
+        analysis['temporalReasoning'],
+      ]),
+    );
+    final plausibility = _map(
+      first([
+        data['plausibility'],
+        data['sensorPlausibility'],
+        analysis['plausibility'],
+      ]),
+    );
+    final anomaly = _map(
+      first([data['anomaly'], data['anomalyDetection'], analysis['anomaly']]),
+    );
+    final prediction = _map(
+      first([
+        data['prediction'],
+        data['stressPrediction'],
+        analysis['prediction'],
+      ]),
+    );
+    final sensorIntegrity = _map(
+      first([
+        data['sensorIntegrity'],
+        system['sensorIntegrity'],
+        analysis['sensorIntegrity'],
+      ]),
+    );
+    final runtimeHealth = _map(
+      first([
+        data['runtimeHealth'],
+        system['runtimeHealth'],
+        data['nodeHealth'],
+      ]),
+    );
     final recentEvents = first([
       data['recentEvents'],
       data['events'],
@@ -272,7 +282,9 @@ class Esp32Client {
       ]),
       externalState: sensorStates['leafWetness'],
     );
-    final bioValid = _channelValid(
+    // Electrical measurement validity is intentionally separate from whether
+    // the firmware allows this channel to influence plant analysis.
+    final bioMeasurementValid = _channelValid(
       bio,
       explicitValid: first([
         bio['valid'],
@@ -282,6 +294,84 @@ class Esp32Client {
       ]),
       externalState: sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
     );
+
+    final rawBioContactState = first([
+      bio['contactState'],
+      bio['bioContactState'],
+      data['bioContactState'],
+      root['bioContactState'],
+    ]);
+    final bioContactState = rawBioContactState == null
+        ? ''
+        : '$rawBioContactState'
+            .trim()
+            .toUpperCase()
+            .replaceAll(' ', '_')
+            .replaceAll('-', '_');
+    final bioContactConfidence = _asDouble(
+      first([
+        bio['contactConfidence'],
+        bio['bioContactConfidence'],
+        data['bioContactConfidence'],
+        root['bioContactConfidence'],
+      ]),
+    );
+    final bioSlowDriftMv = _asDouble(
+      first([
+        bio['slowDriftMv'],
+        bio['bioSlowDriftMv'],
+        data['bioSlowDriftMv'],
+        root['bioSlowDriftMv'],
+      ]),
+    );
+    final bioContactPlausibleForPlantUse = _asBool(
+      first([
+        bio['contactPlausibleForPlantUse'],
+        data['bioContactPlausibleForPlantUse'],
+        root['bioContactPlausibleForPlantUse'],
+      ]),
+    );
+    final bioAffectsHealth = _asBool(
+      first([
+        bio['affectsHealth'],
+        data['bioAffectsHealth'],
+        root['bioAffectsHealth'],
+      ]),
+    );
+    final bioOpenLatched = _asBool(
+      first([
+        bio['openLatched'],
+        data['bioOpenLatched'],
+        root['bioOpenLatched'],
+      ]),
+    );
+    final bioReconnectVerifying = _asBool(
+      first([
+        bio['reconnectVerifying'],
+        data['bioReconnectVerifying'],
+        root['bioReconnectVerifying'],
+      ]),
+    );
+    final bioReconnectVerifySec = _asInt(
+      first([
+        bio['reconnectVerifySec'],
+        data['bioReconnectVerifySec'],
+        root['bioReconnectVerifySec'],
+      ]),
+    );
+    final hasNewBioContactGate = rawBioContactState != null ||
+        bioContactConfidence != null ||
+        bioSlowDriftMv != null ||
+        bioContactPlausibleForPlantUse != null ||
+        bioAffectsHealth != null ||
+        bioOpenLatched != null ||
+        bioReconnectVerifying != null ||
+        bioReconnectVerifySec != null;
+    final bioPlantUseValid = bioMeasurementValid &&
+        (!hasNewBioContactGate ||
+            (bioContactPlausibleForPlantUse == true &&
+                bioAffectsHealth != false &&
+                (bioContactState.isEmpty || bioContactState == 'PLAUSIBLE')));
 
     final tempValue = temperatureValid ? _asDouble(temperature) : null;
     final humidityValue = humidityValid ? _asDouble(humidity) : null;
@@ -294,9 +384,11 @@ class Esp32Client {
             ? null
             : (luxValue / 70000 * 100).clamp(0, 100).toDouble());
     final leafValue = leafValid ? _asDouble(leafWetness) : null;
-    final voltageValue = bioValid ? _asDouble(plantVoltageMv) : null;
-    final stabilityValue = bioValid ? _asDouble(bioStability) : null;
-    final qualityValue = bioValid ? _asDouble(bioQuality) : null;
+    // Keep the electrical measurement visible to technical diagnostics even
+    // when the plant-contact gate rejects it for health/baseline use.
+    final voltageValue = bioMeasurementValid ? _asDouble(plantVoltageMv) : null;
+    final stabilityValue = bioMeasurementValid ? _asDouble(bioStability) : null;
+    final qualityValue = bioMeasurementValid ? _asDouble(bioQuality) : null;
 
     if (tempValue == null &&
         humidityValue == null &&
@@ -378,7 +470,7 @@ class Esp32Client {
         rootValid,
         lightValid,
         leafValid,
-        bioValid,
+        bioPlantUseValid,
       ].contains(false),
     );
     final bioticState = '${first([
@@ -476,75 +568,96 @@ class Esp32Client {
             analysis['cameraReason'],
             primaryRootCause
           ])}',
-      'plantModelStatus': _normalizePlantModelStatus(first([
-        plantModel['status'],
-        plantModel['state'],
-        data['plantModelStatus'],
-      ])),
+      'plantModelStatus': _normalizePlantModelStatus(
+        first([
+          plantModel['status'],
+          plantModel['state'],
+          data['plantModelStatus'],
+        ]),
+      ),
       'plantModelReady': _plantModelReady(plantModel),
-      'plantModelConfidence': _asDouble(first([
-        plantModel['confidence'],
-        plantModel['modelConfidence'],
-        data['plantModelConfidence'],
-      ])),
-      'plantModelLearnedSamples': _asInt(first([
-        plantModel['learnedSamples'],
-        plantModel['samples'],
-        data['plantModelLearnedSamples'],
-      ])),
-      'plantModelAgeSec': _asInt(first([
-        plantModel['ageSec'],
-        plantModel['ageSeconds'],
-        data['plantModelAgeSec'],
-      ])),
-      'plantModelPersisted': _asBool(first([
-                plantModel['persisted'],
-                plantModel['restored'],
-                data['plantModelPersisted'],
-              ])) ==
+      'plantModelConfidence': _asDouble(
+        first([
+          plantModel['confidence'],
+          plantModel['modelConfidence'],
+          data['plantModelConfidence'],
+        ]),
+      ),
+      'plantModelLearnedSamples': _asInt(
+        first([
+          plantModel['learnedSamples'],
+          plantModel['samples'],
+          data['plantModelLearnedSamples'],
+        ]),
+      ),
+      'plantModelAgeSec': _asInt(
+        first([
+          plantModel['ageSec'],
+          plantModel['ageSeconds'],
+          data['plantModelAgeSec'],
+        ]),
+      ),
+      'plantModelPersisted': _asBool(
+                first([
+                  plantModel['persisted'],
+                  plantModel['restored'],
+                  data['plantModelPersisted'],
+                ]),
+              ) ==
               true ||
           '${first([plantModel['status'], plantModel['state'], ''])}'
               .toUpperCase()
               .contains('RESTOR'),
-      'plantModelBioBaselineMv': _asDouble(first([
-        plantModel['bioBaselineMv'],
-        plantModel['baselineMv'],
-        bio['baselineMv'],
-      ])),
-      'plantModelTypicalBioVariationMv': _asDouble(first([
-        plantModel['typicalBioVariationMv'],
-        plantModel['typicalVariationMv'],
-      ])),
-      'plantModelNormalNoiseMv': _asDouble(first([
-        plantModel['normalNoiseMv'],
-        plantModel['noiseMv'],
-      ])),
-      'plantModelNormalSoilRatePctPerHour': _asDouble(first([
-        plantModel['normalSoilRatePctPerHour'],
-        plantModel['soilRatePctPerHour'],
-      ])),
+      'plantModelBioBaselineMv': _asDouble(
+        first([
+          plantModel['bioBaselineMv'],
+          plantModel['baselineMv'],
+          bio['baselineMv'],
+        ]),
+      ),
+      'plantModelTypicalBioVariationMv': _asDouble(
+        first([
+          plantModel['typicalBioVariationMv'],
+          plantModel['typicalVariationMv'],
+        ]),
+      ),
+      'plantModelNormalNoiseMv': _asDouble(
+        first([plantModel['normalNoiseMv'], plantModel['noiseMv']]),
+      ),
+      'plantModelNormalSoilRatePctPerHour': _asDouble(
+        first([
+          plantModel['normalSoilRatePctPerHour'],
+          plantModel['soilRatePctPerHour'],
+        ]),
+      ),
       'temporalState': '${first([
             temporalReasoning['state'],
             temporalReasoning['status'],
             ''
           ])}',
-      'temporalConfidence': _asDouble(first([
-        temporalReasoning['confidence'],
-        data['temporalReasoningConfidence'],
-      ])),
+      'temporalConfidence': _asDouble(
+        first([
+          temporalReasoning['confidence'],
+          data['temporalReasoningConfidence'],
+        ]),
+      ),
       'temporalPrimarySequence': '${first([
             temporalReasoning['primarySequence'],
             temporalReasoning['sequence'],
             ''
           ])}',
-      'environmentToBioLagSec': _asInt(first([
-        temporalReasoning['environmentToBioLagSec'],
-        temporalReasoning['envToBioLagSec'],
-      ])),
-      'actionToRecoveryLagSec': _asInt(first([
-        temporalReasoning['actionToRecoveryLagSec'],
-        recovery['actionToRecoveryLagSec'],
-      ])),
+      'environmentToBioLagSec': _asInt(
+        first([
+          temporalReasoning['environmentToBioLagSec'],
+          temporalReasoning['envToBioLagSec'],
+        ]),
+      ),
+      'actionToRecoveryLagSec': _asInt(
+        first([
+          temporalReasoning['actionToRecoveryLagSec'],
+          recovery['actionToRecoveryLagSec'],
+        ]),
+      ),
       'temporalExplanation': '${first([
             temporalReasoning['explanation'],
             temporalReasoning['message'],
@@ -567,35 +680,36 @@ class Esp32Client {
           '${first([anomaly['explanation'], anomaly['message'], ''])}',
       'anomalyAffectedChannel':
           '${first([anomaly['affectedChannel'], anomaly['channel'], ''])}',
-      'predictionAvailable': _asBool(first([
-            prediction['available'],
-            data['predictionAvailable'],
-          ])) ==
+      'predictionAvailable': _asBool(
+            first([prediction['available'], data['predictionAvailable']]),
+          ) ==
           true,
       'predictionTarget':
           '${first([prediction['target'], prediction['metric'], ''])}',
-      'predictionConfidence': _asDouble(first([
-        prediction['confidence'],
-        data['predictionConfidence'],
-      ])),
-      'predictionMinutesToWarning': _asInt(first([
-        prediction['minutesToWarning'],
-        prediction['etaMinutes'],
-        data['predictionMinutesToWarning'],
-      ])),
+      'predictionConfidence': _asDouble(
+        first([prediction['confidence'], data['predictionConfidence']]),
+      ),
+      'predictionMinutesToWarning': _asInt(
+        first([
+          prediction['minutesToWarning'],
+          prediction['etaMinutes'],
+          data['predictionMinutesToWarning'],
+        ]),
+      ),
       'predictionMessage':
           '${first([prediction['message'], prediction['explanation'], ''])}',
       'predictionDirection':
           '${first([prediction['direction'], prediction['trend'], ''])}',
-      'recoveryProgressPct': _asDouble(first([
-        recovery['progressPct'],
-        recovery['progress'],
-        data['recoveryProgressPct'],
-      ])),
-      'recoveryConfidence': _asDouble(first([
-        recovery['confidence'],
-        data['recoveryConfidence'],
-      ])),
+      'recoveryProgressPct': _asDouble(
+        first([
+          recovery['progressPct'],
+          recovery['progress'],
+          data['recoveryProgressPct'],
+        ]),
+      ),
+      'recoveryConfidence': _asDouble(
+        first([recovery['confidence'], data['recoveryConfidence']]),
+      ),
       'recoveryEnvironmentImproved':
           _asBool(recovery['environmentImproved']) == true,
       'recoverySoilImproved': _asBool(recovery['soilImproved']) == true,
@@ -603,17 +717,14 @@ class Esp32Client {
           _asBool(recovery['stressEvidenceDecreasing']) == true,
       'recoveryBioResponseDecreasing':
           _asBool(recovery['bioResponseDecreasing']) == true,
-      'recoveryVerified': _asBool(first([
-            recovery['verified'],
-            data['recoveryVerified'],
-          ])) ==
-          true,
+      'recoveryVerified':
+          _asBool(first([recovery['verified'], data['recoveryVerified']])) ==
+              true,
       'recoveryFarmerResult':
           '${first([recovery['farmerResult'], recovery['result'], ''])}',
-      'recoveryActionToResponseLagSec': _asInt(first([
-        recovery['actionToResponseLagSec'],
-        recovery['responseLagSec'],
-      ])),
+      'recoveryActionToResponseLagSec': _asInt(
+        first([recovery['actionToResponseLagSec'], recovery['responseLagSec']]),
+      ),
       'sensorIntegrityState':
           '${first([sensorIntegrity['state'], sensorIntegrity['status'], ''])}',
       'sensorIntegrityPrimaryIssue': '${first([
@@ -672,7 +783,7 @@ class Esp32Client {
         ),
         'plantSignal': _channelState(
           bio,
-          bioValid,
+          bioMeasurementValid,
           externalState:
               sensorStates['plantSignal'] ?? sensorStates['bioelectric'],
         ),
@@ -757,6 +868,28 @@ class Esp32Client {
       'bioDeviationMv': _asDouble(bio['deviationMv']),
       'bioNoiseMv': _asDouble(bio['noiseMv']),
       'bioSignalQuality': qualityValue ?? 0,
+      'bioContactState': bioContactState,
+      'bioContactConfidence': bioContactConfidence,
+      'bioSlowDriftMv': bioSlowDriftMv,
+      'bioContactPlausibleForPlantUse': bioContactPlausibleForPlantUse,
+      'bioAffectsHealth': bioAffectsHealth,
+      'bioOpenLatched': bioOpenLatched,
+      'bioReconnectVerifying': bioReconnectVerifying,
+      'bioReconnectVerifySec': bioReconnectVerifySec,
+      'firmwareName': '${first([
+            data['firmwareName'],
+            data['firmware'],
+            root['firmwareName'],
+            root['firmware'],
+            ''
+          ])}',
+      'firmwareBuildState': '${first([
+            data['buildState'],
+            data['firmwareBuildState'],
+            system['buildState'],
+            root['buildState'],
+            ''
+          ])}',
     };
 
     return Esp32Snapshot(

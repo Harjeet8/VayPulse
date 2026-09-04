@@ -913,6 +913,13 @@ class _EdgeIntelligencePanel extends StatelessWidget {
       reading.recoveryProgressPct != null ||
       reading.recoveryConfidence != null ||
       reading.recoveryVerified ||
+      reading.bioContactState.trim().isNotEmpty ||
+      reading.bioContactConfidence != null ||
+      reading.bioSlowDriftMv != null ||
+      reading.bioOpenLatched != null ||
+      reading.bioReconnectVerifying != null ||
+      reading.firmwareName.trim().isNotEmpty ||
+      reading.firmwareBuildState.trim().isNotEmpty ||
       reading.recentEvents.isNotEmpty;
 
   static double _confidencePercent(double? value) {
@@ -952,6 +959,9 @@ class _EdgeIntelligencePanel extends StatelessWidget {
       reading.anomalyState.trim().isNotEmpty ||
       reading.bioState.trim().isNotEmpty ||
       reading.bioSignalQuality > 0 ||
+      reading.hasBioContactTelemetry ||
+      reading.firmwareName.trim().isNotEmpty ||
+      reading.firmwareBuildState.trim().isNotEmpty ||
       reading.reliabilityMode.trim().isNotEmpty;
 
   bool get _hasRecovery {
@@ -996,9 +1006,10 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                 Expanded(
                   child: Text(
                     'ESP32 Edge Intelligence',
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.w900),
                   ),
                 ),
                 Chip(
@@ -1040,9 +1051,11 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                     label: 'Model status',
                     value: reading.plantModelReady
                         ? 'Ready'
-                        : _label(reading.plantModelStatus.isEmpty
-                            ? 'LEARNING'
-                            : reading.plantModelStatus),
+                        : _label(
+                            reading.plantModelStatus.isEmpty
+                                ? 'LEARNING'
+                                : reading.plantModelStatus,
+                          ),
                   ),
                   if (reading.plantModelConfidence != null)
                     _EdgeDetailRow(
@@ -1183,10 +1196,52 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                       label: 'Affected channel',
                       value: _label(reading.anomalyAffectedChannel),
                     ),
-                  if (reading.plantSignalAvailable)
+                  if (reading.bioElectricalMeasurementAvailable)
                     _EdgeDetailRow(
-                      label: 'Bio signal quality',
+                      label: 'Electrical signal quality',
                       value: '${reading.bioSignalQuality.round()}%',
+                    ),
+                  if (reading.bioContactState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Electrode contact state',
+                      value: _label(reading.bioContactState),
+                    ),
+                  if (reading.bioContactConfidence != null)
+                    _EdgeDetailRow(
+                      label: 'Contact confidence',
+                      value: _confidence(reading.bioContactConfidence),
+                    ),
+                  if (reading.bioSlowDriftMv != null)
+                    _EdgeDetailRow(
+                      label: 'Slow drift',
+                      value: '${reading.bioSlowDriftMv!.toStringAsFixed(1)} mV',
+                    ),
+                  if (reading.hasBioContactTelemetry)
+                    _EdgeDetailRow(
+                      label: 'Plant-analysis use',
+                      value:
+                          reading.bioPlantUseAllowed ? 'Enabled' : 'Disabled',
+                    ),
+                  if (reading.bioOpenLatched == true)
+                    const _EdgeDetailRow(
+                      label: 'Open-contact latch',
+                      value: 'Open-contact latch active',
+                    ),
+                  if (reading.bioReconnectVerifying == true &&
+                      reading.bioReconnectVerifySec != null)
+                    _EdgeDetailRow(
+                      label: 'Reconnect verification',
+                      value: '${reading.bioReconnectVerifySec} / 26 s',
+                    ),
+                  if (reading.firmwareName.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Firmware',
+                      value: reading.firmwareName.trim(),
+                    ),
+                  if (reading.firmwareBuildState.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Build state',
+                      value: _label(reading.firmwareBuildState),
                     ),
                   _EdgeDetailRow(
                     label: 'Analysis reliability',
@@ -1314,9 +1369,10 @@ class _EdgeSection extends StatelessWidget {
           const SizedBox(height: 5),
           Text(
             title,
-            style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
+            style: Theme.of(context)
+                .textTheme
+                .titleSmall
+                ?.copyWith(fontWeight: FontWeight.w900),
           ),
           const SizedBox(height: 5),
           ...children,
@@ -1340,10 +1396,7 @@ class _EdgeDetailRow extends StatelessWidget {
           children: [
             SizedBox(
               width: 138,
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
+              child: Text(label, style: Theme.of(context).textTheme.bodySmall),
             ),
             const SizedBox(width: 10),
             Expanded(

@@ -167,6 +167,19 @@ class SensorReading {
   final double? bioNoiseMv;
   final double bioSignalQuality;
 
+  // Optional electrode-contact integrity from the newest ESP32 firmware.
+  // Electrical measurement availability and plant-use validity are separate.
+  final String bioContactState;
+  final double? bioContactConfidence;
+  final double? bioSlowDriftMv;
+  final bool? bioContactPlausibleForPlantUse;
+  final bool? bioAffectsHealth;
+  final bool? bioOpenLatched;
+  final bool? bioReconnectVerifying;
+  final int? bioReconnectVerifySec;
+  final String firmwareName;
+  final String firmwareBuildState;
+
   final bool soilMoistureAvailable;
   final bool temperatureAvailable;
   final bool humidityAvailable;
@@ -283,6 +296,16 @@ class SensorReading {
     this.bioDeviationMv,
     this.bioNoiseMv,
     this.bioSignalQuality = 0,
+    this.bioContactState = '',
+    this.bioContactConfidence,
+    this.bioSlowDriftMv,
+    this.bioContactPlausibleForPlantUse,
+    this.bioAffectsHealth,
+    this.bioOpenLatched,
+    this.bioReconnectVerifying,
+    this.bioReconnectVerifySec,
+    this.firmwareName = '',
+    this.firmwareBuildState = '',
     this.soilMoistureAvailable = true,
     this.temperatureAvailable = true,
     this.humidityAvailable = true,
@@ -314,6 +337,37 @@ class SensorReading {
 
   bool get isReliabilityRecovering =>
       reliabilityMode.toUpperCase() == 'RECOVERING';
+
+  String get normalizedBioContactState => bioContactState
+      .trim()
+      .toUpperCase()
+      .replaceAll(' ', '_')
+      .replaceAll('-', '_');
+
+  bool get hasBioContactTelemetry =>
+      bioContactState.trim().isNotEmpty ||
+      bioContactConfidence != null ||
+      bioSlowDriftMv != null ||
+      bioContactPlausibleForPlantUse != null ||
+      bioAffectsHealth != null ||
+      bioOpenLatched != null ||
+      bioReconnectVerifying != null ||
+      bioReconnectVerifySec != null;
+
+  /// True means the electrical channel exists. This is intentionally separate
+  /// from whether firmware allows that channel to influence plant analysis.
+  bool get bioElectricalMeasurementAvailable => plantSignalAvailable;
+
+  /// New firmware requires the explicit plant-contact gate. Older firmware
+  /// without contact telemetry keeps the previous behavior.
+  bool get bioPlantUseAllowed {
+    if (!plantSignalAvailable) return false;
+    if (!hasBioContactTelemetry) return true;
+    if (bioContactPlausibleForPlantUse != true) return false;
+    if (bioAffectsHealth == false) return false;
+    final state = normalizedBioContactState;
+    return state.isEmpty || state == 'PLAUSIBLE';
+  }
 
   int get availableChannelCount => <bool>[
         soilMoistureAvailable,
@@ -434,6 +488,16 @@ class SensorReading {
         'bioDeviationMv': bioDeviationMv,
         'bioNoiseMv': bioNoiseMv,
         'bioSignalQuality': bioSignalQuality,
+        'bioContactState': bioContactState,
+        'bioContactConfidence': bioContactConfidence,
+        'bioSlowDriftMv': bioSlowDriftMv,
+        'bioContactPlausibleForPlantUse': bioContactPlausibleForPlantUse,
+        'bioAffectsHealth': bioAffectsHealth,
+        'bioOpenLatched': bioOpenLatched,
+        'bioReconnectVerifying': bioReconnectVerifying,
+        'bioReconnectVerifySec': bioReconnectVerifySec,
+        'firmwareName': firmwareName,
+        'firmwareBuildState': firmwareBuildState,
       };
 
   factory SensorReading.fromJson(Map<String, dynamic> json) {
@@ -514,11 +578,13 @@ class SensorReading {
       plantModelAgeSec: _nullableInt(json['plantModelAgeSec']),
       plantModelPersisted: json['plantModelPersisted'] == true,
       plantModelBioBaselineMv: _nullableNum(json['plantModelBioBaselineMv']),
-      plantModelTypicalBioVariationMv:
-          _nullableNum(json['plantModelTypicalBioVariationMv']),
+      plantModelTypicalBioVariationMv: _nullableNum(
+        json['plantModelTypicalBioVariationMv'],
+      ),
       plantModelNormalNoiseMv: _nullableNum(json['plantModelNormalNoiseMv']),
-      plantModelNormalSoilRatePctPerHour:
-          _nullableNum(json['plantModelNormalSoilRatePctPerHour']),
+      plantModelNormalSoilRatePctPerHour: _nullableNum(
+        json['plantModelNormalSoilRatePctPerHour'],
+      ),
       temporalState: '${json['temporalState'] ?? ''}',
       temporalConfidence: _nullableNum(json['temporalConfidence']),
       temporalPrimarySequence: '${json['temporalPrimarySequence'] ?? ''}',
@@ -537,8 +603,9 @@ class SensorReading {
       predictionAvailable: json['predictionAvailable'] == true,
       predictionTarget: '${json['predictionTarget'] ?? ''}',
       predictionConfidence: _nullableNum(json['predictionConfidence']),
-      predictionMinutesToWarning:
-          _nullableInt(json['predictionMinutesToWarning']),
+      predictionMinutesToWarning: _nullableInt(
+        json['predictionMinutesToWarning'],
+      ),
       predictionMessage: '${json['predictionMessage'] ?? ''}',
       predictionDirection: '${json['predictionDirection'] ?? ''}',
       recoveryProgressPct: _nullableNum(json['recoveryProgressPct']),
@@ -551,8 +618,9 @@ class SensorReading {
           json['recoveryBioResponseDecreasing'] == true,
       recoveryVerified: json['recoveryVerified'] == true,
       recoveryFarmerResult: '${json['recoveryFarmerResult'] ?? ''}',
-      recoveryActionToResponseLagSec:
-          _nullableInt(json['recoveryActionToResponseLagSec']),
+      recoveryActionToResponseLagSec: _nullableInt(
+        json['recoveryActionToResponseLagSec'],
+      ),
       sensorIntegrityState: '${json['sensorIntegrityState'] ?? ''}',
       sensorIntegrityPrimaryIssue:
           '${json['sensorIntegrityPrimaryIssue'] ?? ''}',
@@ -592,6 +660,25 @@ class SensorReading {
       bioDeviationMv: _nullableNum(json['bioDeviationMv']),
       bioNoiseMv: _nullableNum(json['bioNoiseMv']),
       bioSignalQuality: _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
+      bioContactState: '${json['bioContactState'] ?? ''}',
+      bioContactConfidence: _nullableNum(json['bioContactConfidence']),
+      bioSlowDriftMv: _nullableNum(json['bioSlowDriftMv']),
+      bioContactPlausibleForPlantUse:
+          json['bioContactPlausibleForPlantUse'] is bool
+              ? json['bioContactPlausibleForPlantUse'] as bool
+              : null,
+      bioAffectsHealth: json['bioAffectsHealth'] is bool
+          ? json['bioAffectsHealth'] as bool
+          : null,
+      bioOpenLatched: json['bioOpenLatched'] is bool
+          ? json['bioOpenLatched'] as bool
+          : null,
+      bioReconnectVerifying: json['bioReconnectVerifying'] is bool
+          ? json['bioReconnectVerifying'] as bool
+          : null,
+      bioReconnectVerifySec: _nullableInt(json['bioReconnectVerifySec']),
+      firmwareName: '${json['firmwareName'] ?? ''}',
+      firmwareBuildState: '${json['firmwareBuildState'] ?? ''}',
       soilMoistureAvailable: soilAvailable,
       temperatureAvailable: temperatureAvailable,
       humidityAvailable: humidityAvailable,
@@ -796,6 +883,16 @@ class SensorReading {
     double? bioDeviationMv,
     double? bioNoiseMv,
     double? bioSignalQuality,
+    String? bioContactState,
+    double? bioContactConfidence,
+    double? bioSlowDriftMv,
+    bool? bioContactPlausibleForPlantUse,
+    bool? bioAffectsHealth,
+    bool? bioOpenLatched,
+    bool? bioReconnectVerifying,
+    int? bioReconnectVerifySec,
+    String? firmwareName,
+    String? firmwareBuildState,
     bool? soilMoistureAvailable,
     bool? temperatureAvailable,
     bool? humidityAvailable,
@@ -939,6 +1036,19 @@ class SensorReading {
       bioDeviationMv: bioDeviationMv ?? this.bioDeviationMv,
       bioNoiseMv: bioNoiseMv ?? this.bioNoiseMv,
       bioSignalQuality: bioSignalQuality ?? this.bioSignalQuality,
+      bioContactState: bioContactState ?? this.bioContactState,
+      bioContactConfidence: bioContactConfidence ?? this.bioContactConfidence,
+      bioSlowDriftMv: bioSlowDriftMv ?? this.bioSlowDriftMv,
+      bioContactPlausibleForPlantUse:
+          bioContactPlausibleForPlantUse ?? this.bioContactPlausibleForPlantUse,
+      bioAffectsHealth: bioAffectsHealth ?? this.bioAffectsHealth,
+      bioOpenLatched: bioOpenLatched ?? this.bioOpenLatched,
+      bioReconnectVerifying:
+          bioReconnectVerifying ?? this.bioReconnectVerifying,
+      bioReconnectVerifySec:
+          bioReconnectVerifySec ?? this.bioReconnectVerifySec,
+      firmwareName: firmwareName ?? this.firmwareName,
+      firmwareBuildState: firmwareBuildState ?? this.firmwareBuildState,
       soilMoistureAvailable:
           soilMoistureAvailable ?? this.soilMoistureAvailable,
       temperatureAvailable: temperatureAvailable ?? this.temperatureAvailable,

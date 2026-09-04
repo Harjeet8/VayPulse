@@ -526,7 +526,7 @@ class _PartialHardwareCard extends StatelessWidget {
       if (reading.humidityAvailable) 'humidity',
       if (reading.soilMoistureAvailable) 'soil moisture',
       if (reading.lightAvailable) 'light',
-      if (reading.plantSignalAvailable) 'plant signal',
+      if (reading.bioPlantUseAllowed) 'plant signal',
     ];
     return Card(
       child: Padding(
@@ -727,7 +727,7 @@ class _LiveSensorGrid extends StatelessWidget {
                 title: context.tr('light'),
                 message: _sensorState(reading, 'light'),
               ),
-            if (reading.plantSignalAvailable)
+            if (reading.bioPlantUseAllowed)
               SensorCard(
                 icon: Icons.monitor_heart_outlined,
                 title: context.tr('plant_signal'),
@@ -743,7 +743,10 @@ class _LiveSensorGrid extends StatelessWidget {
               _UnavailableSensorCard(
                 icon: Icons.monitor_heart_outlined,
                 title: context.tr('plant_signal'),
-                message: _sensorState(reading, 'plantSignal'),
+                message: reading.bioElectricalMeasurementAvailable &&
+                        reading.hasBioContactTelemetry
+                    ? _FarmerEdgeSignals.bioContactWarning(reading)
+                    : _sensorState(reading, 'plantSignal'),
               ),
             if (reading.edgeAnalysisAvailable)
               SensorCard(
@@ -875,15 +878,43 @@ class _FarmerEdgeSignals extends StatelessWidget {
       final progress = reading.recoveryProgressPct;
       return progress == null
           ? context.tr('edge_recovery_in_progress')
-          : context.tr(
-              'edge_recovery_progress',
-              {'value': progress.clamp(0, 100).round()},
-            );
+          : context.tr('edge_recovery_progress', {
+              'value': progress.clamp(0, 100).round(),
+            });
+    }
+    return '';
+  }
+
+  static String bioContactWarning(SensorReading reading) {
+    if (!reading.hasBioContactTelemetry) return '';
+    final state = reading.normalizedBioContactState;
+    if (reading.bioPlantUseAllowed && state == 'PLAUSIBLE') return '';
+
+    switch (state) {
+      case 'OPEN':
+        return 'Electrodes open — check plant contact';
+      case 'UNSTABLE':
+        return 'Electrode contact unstable';
+      case 'STATIC':
+      case 'SHORT_SUSPECTED':
+        return 'Static/test input — excluded from plant analysis';
+      case 'VERIFY':
+        return 'Verifying electrode contact';
+      case 'SATURATED':
+        return 'Bio sensor saturated — check electrode/amplifier connection';
+    }
+
+    if (reading.bioContactPlausibleForPlantUse == false ||
+        reading.bioAffectsHealth == false) {
+      return 'Verify electrode contact';
     }
     return '';
   }
 
   static String _systemWarning(SensorReading reading) {
+    final contactWarning = bioContactWarning(reading);
+    if (contactWarning.isNotEmpty) return contactWarning;
+
     // Existing degraded/partial hardware presentation already owns the single
     // farmer-facing quality warning in these states.
     if (!reading.isReliabilityFull || !reading.hasFullCoreReading) return '';
@@ -948,13 +979,10 @@ class _FarmerEdgeSignals extends StatelessWidget {
               icon: Icons.trending_up_rounded,
               text: reading.predictionMessage.trim().isNotEmpty
                   ? reading.predictionMessage.trim()
-                  : context.tr(
-                      'edge_prediction_fallback',
-                      {
-                        'target': _edgeText(reading.predictionTarget),
-                        'minutes': reading.predictionMinutesToWarning ?? '—',
-                      },
-                    ),
+                  : context.tr('edge_prediction_fallback', {
+                      'target': _edgeText(reading.predictionTarget),
+                      'minutes': reading.predictionMinutesToWarning ?? '—',
+                    }),
             ),
           if (recovery.isNotEmpty)
             _CompactEdgeLine(
