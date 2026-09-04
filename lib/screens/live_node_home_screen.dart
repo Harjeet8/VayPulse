@@ -843,11 +843,19 @@ class _FarmerEdgeSignals extends StatelessWidget {
       reading.predictionAvailable &&
       _confidencePercent(reading.predictionConfidence) >= 65 &&
       (reading.predictionMessage.trim().isNotEmpty ||
-          reading.predictionMinutesToWarning != null);
+          (reading.predictionMinutesToWarning != null &&
+              reading.predictionTarget.trim().isNotEmpty));
 
   static bool _hasRecoveryState(SensorReading reading) {
     final state = reading.recoveryStatus.trim().toUpperCase();
-    return (state.isNotEmpty && state != 'NONE') || reading.recoveryVerified;
+    return reading.recoveryVerified ||
+        const {
+          'CONDITIONS_IMPROVING',
+          'IMPROVING',
+          'RECOVERING',
+          'RECOVERY_VERIFIED',
+          'VERIFIED',
+        }.contains(state);
   }
 
   static String _recoveryText(BuildContext context, SensorReading reading) {
@@ -876,6 +884,10 @@ class _FarmerEdgeSignals extends StatelessWidget {
   }
 
   static String _systemWarning(SensorReading reading) {
+    // Existing degraded/partial hardware presentation already owns the single
+    // farmer-facing quality warning in these states.
+    if (!reading.isReliabilityFull || !reading.hasFullCoreReading) return '';
+
     final integrity = reading.sensorIntegrityState.trim().toUpperCase();
     if (integrity.isNotEmpty &&
         !const {'FULL', 'CLEAR', 'GOOD', 'OK'}.contains(integrity)) {
