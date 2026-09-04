@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 concurrency:
-  group: phytosense-final-release
+  group: phytosense-edge-ai-final-validation
   cancel-in-progress: true
 
 jobs:
