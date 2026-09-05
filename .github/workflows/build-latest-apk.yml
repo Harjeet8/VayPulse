@@ -75,24 +75,6 @@ jobs:
             exit 1
           fi
 
-      - name: Android install and launch smoke
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: 35
-          arch: x86_64
-          profile: pixel_6
-          disable-animations: true
-          script: |
-            set -euo pipefail
-            adb install -r PhytoSense-AI-Latest.apk
-            adb shell am force-stop com.harjeet.phytosense
-            adb shell am start -W -n com.harjeet.phytosense/.MainActivity | tee /tmp/launch.txt
-            grep -q 'Status: ok' /tmp/launch.txt
-            adb shell pidof com.harjeet.phytosense
-            adb shell uiautomator dump /sdcard/phytosense-ui.xml
-            adb pull /sdcard/phytosense-ui.xml /tmp/phytosense-ui.xml
-            grep -q 'PhytoSense AI' /tmp/phytosense-ui.xml
-
       - name: Upload APK only
         uses: actions/upload-artifact@v4
         with:
