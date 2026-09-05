@@ -43,6 +43,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
   StreamSubscription<DatabaseEvent>? _subscription;
   FirebaseDatabase? _resolvedDatabase;
   Map<String, dynamic>? _latest;
+  DateTime? _lastReceiveAt;
   bool _started = false;
   bool _starting = false;
   String? _lastErrorKey;
@@ -90,6 +91,10 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
           final value = event.snapshot.value;
           if (value is Map) {
             _latest = Map<String, dynamic>.from(value);
+            // Transport freshness is based on when this phone actually
+            // received the cloud snapshot. The ESP32 RTC timestamp remains
+            // the reading timestamp, but may not contain a timezone offset.
+            _lastReceiveAt = DateTime.now();
             _lastErrorKey = null;
           }
         },
@@ -131,6 +136,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
         if (event.value is Map) {
           payload = Map<String, dynamic>.from(event.value as Map);
           _latest = payload;
+          _lastReceiveAt = DateTime.now();
         }
       } catch (_) {
         _lastErrorKey = 'remote_cloud_unavailable';
@@ -141,13 +147,17 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     }
 
     final network = _map(payload['network']);
-    final lastSeen = RemoteSnapshotFreshnessPolicy.parseTimestamp(
+    final payloadTimestamp = RemoteSnapshotFreshnessPolicy.parseTimestamp(
       _first([
         payload['lastSeen'],
         payload['timestamp'],
         network['lastSeen'],
       ]),
     );
+    // Prefer actual Firebase reception time for connectivity/freshness.
+    // This prevents a timezone-less DS3231 timestamp from making a genuinely
+    // live remote node look stale when the phone is elsewhere.
+    final lastSeen = _lastReceiveAt ?? payloadTimestamp;
     final internetConnected = _bool(
       _first([payload['internetConnected'], network['internetConnected']]),
     );
@@ -212,6 +222,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     await _subscription?.cancel();
     _subscription = null;
     _resolvedDatabase = null;
+    _lastReceiveAt = null;
   }
 
   static dynamic _first(Iterable<dynamic> values) {
