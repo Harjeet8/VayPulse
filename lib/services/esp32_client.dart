@@ -25,7 +25,7 @@ class Esp32Client {
       final response = await _tryGet(path);
       if (response == null) continue;
       try {
-        return _decodeSnapshot(response, endpoint: path);
+        return decodeSnapshot(response, endpoint: path);
       } on FormatException {
         // Try compatibility aliases before declaring the node invalid.
       }
@@ -55,7 +55,7 @@ class Esp32Client {
     }
   }
 
-  Esp32Snapshot _decodeSnapshot(
+  Esp32Snapshot decodeSnapshot(
     http.Response response, {
     required String endpoint,
   }) {
