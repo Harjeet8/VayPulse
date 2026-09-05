@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phytosense_ai/services/node_wifi_provisioning_service.dart';
 
@@ -52,4 +54,29 @@ void main() {
       NodeWifiProvisioningResult.launchFailed,
     );
   });
+  test('Devices UI wires provisioning to external ESP32 dashboard', () {
+    final source = File('lib/screens/devices_screen.dart').readAsStringSync();
+
+    expect(source, contains("'configure_node_wifi'"));
+    expect(source, contains('NodeWifiProvisioningService('));
+    expect(source, contains('LaunchMode.externalApplication'));
+    expect(source, contains('sensorManager.testEndpoint'));
+  });
+
+  test('Flutter source does not store router passwords', () {
+    final files = Directory('lib')
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+    final source = files.map((file) => file.readAsStringSync()).join('\n');
+
+    expect(
+      RegExp(
+        r'(routerPassword|wifiPassword|wiFiPassword|staPassword)',
+        caseSensitive: false,
+      ).hasMatch(source),
+      isFalse,
+    );
+  });
+
 }
