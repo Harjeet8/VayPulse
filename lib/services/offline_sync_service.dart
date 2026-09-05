@@ -80,8 +80,9 @@ class OfflineSyncService extends ChangeNotifier {
   void _queueReading(SensorReading reading) {
     // Demonstration data must never enter a production synchronization queue.
     if (sensors.source == SensorDataSource.simulation) return;
-    final transport = sensors is SensorProviderManager
-        ? sensors.activeHardwareTransport.name
+    final provider = sensors;
+    final transport = provider is SensorProviderManager
+        ? provider.activeHardwareTransport.name
         : 'unknown';
     final record = <String, dynamic>{
       ...reading.toJson(),
