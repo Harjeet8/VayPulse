@@ -160,6 +160,17 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
       ),
       internetConnected: internetConnected,
       cloudConnected: cloudConnected,
+      connectedStaSsid: _text(
+        _first([payload['connectedStaSsid'], network['connectedStaSsid']]),
+      ),
+      lastCloudSync: RemoteSnapshotFreshnessPolicy.parseTimestamp(
+        _first([
+          payload['lastCloudSync'],
+          network['lastCloudSync'],
+          payload['lastCloudSyncMs'],
+          network['lastCloudSyncMs'],
+        ]),
+      ),
       lastSeen: lastSeen,
       firmwareVersion: snapshot.firmwareVersion,
       firmwareEdition: _text(payload['firmwareEdition']),
