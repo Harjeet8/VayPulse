@@ -84,10 +84,33 @@ jobs:
           print('No privileged Firebase/server credentials found in tracked app source.')
 
       - name: Validate Android build without Firebase project config
-        run: flutter build apk --debug
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --debug
+          test -s build/app/outputs/flutter-apk/app-debug.apk
+          cp build/app/outputs/flutter-apk/app-debug.apk PhytoSense-AI-RemoteSync-Debug.apk
+
+      - name: Inspect installable validation APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-RemoteSync-Debug.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+
+      - name: Upload installable validation APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-RemoteSync-Debug
+          path: PhytoSense-AI-RemoteSync-Debug.apk
+          if-no-files-found: error
+          retention-days: 30
 
 # rerun: analyzer-fixes
 
 # rerun: localized-contact-test
 
 # rerun: wifi-provisioning-final
+
+# rerun: wifi-provisioning-artifact
