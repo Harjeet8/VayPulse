@@ -131,16 +131,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
           } else {
             _accept(
               local,
-              HardwareConnectionMetadata(
-                transport: HardwareTransportKind.local,
-                freshness: RemoteSnapshotFreshness.live,
-                connectionMode: 'LOCAL_DIRECT',
-                localApActive: true,
-                lastSeen: local.reading.timestamp,
-                firmwareVersion: local.firmwareVersion,
-                firmwareEdition: local.reading.firmwareEdition,
-                buildState: local.reading.firmwareBuildState,
-              ),
+              _localMetadata(local),
             );
           }
           break;
@@ -193,16 +184,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     if (selected == HardwareTransportKind.local && local != null) {
       _accept(
         local,
-        HardwareConnectionMetadata(
-          transport: HardwareTransportKind.local,
-          freshness: RemoteSnapshotFreshness.live,
-          connectionMode: 'LOCAL_DIRECT',
-          localApActive: true,
-          lastSeen: local.reading.timestamp,
-          firmwareVersion: local.firmwareVersion,
-          firmwareEdition: local.reading.firmwareEdition,
-          buildState: local.reading.firmwareBuildState,
-        ),
+        _localMetadata(local),
       );
       return;
     }
@@ -231,6 +213,25 @@ class Esp32SensorProvider extends HardwareSensorProvider {
           : 'hardware_unreachable',
     );
   }
+
+  HardwareConnectionMetadata _localMetadata(Esp32Snapshot snapshot) =>
+      HardwareConnectionMetadata(
+        transport: HardwareTransportKind.local,
+        freshness: RemoteSnapshotFreshness.live,
+        connectionMode: snapshot.connectionMode.trim().isEmpty
+            ? 'LOCAL_DIRECT'
+            : snapshot.connectionMode,
+        remoteNetworkState: snapshot.remoteNetworkState,
+        localApActive: snapshot.localApActive ?? true,
+        internetConnected: snapshot.internetConnected,
+        cloudConnected: snapshot.cloudConnected,
+        connectedStaSsid: snapshot.connectedStaSsid,
+        lastCloudSync: snapshot.lastCloudSync,
+        lastSeen: snapshot.reading.timestamp,
+        firmwareVersion: snapshot.firmwareVersion,
+        firmwareEdition: snapshot.reading.firmwareEdition,
+        buildState: snapshot.reading.firmwareBuildState,
+      );
 
   Future<Esp32Snapshot?> _tryLocal() async {
     try {
