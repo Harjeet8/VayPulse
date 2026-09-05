@@ -65,8 +65,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
       }
       final app = Firebase.app();
       final configuredProjectId = app.options.projectId.trim();
-      if (configuredProjectId.isNotEmpty &&
-          configuredProjectId != projectId) {
+      if (configuredProjectId.isNotEmpty && configuredProjectId != projectId) {
         _lastErrorKey = 'remote_config_mismatch';
         throw StateError('Firebase project does not match PhytoSense.');
       }
