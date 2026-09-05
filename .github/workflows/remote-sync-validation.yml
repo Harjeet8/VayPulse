@@ -85,3 +85,5 @@ jobs:
 
       - name: Validate Android build without Firebase project config
         run: flutter build apk --debug
+
+# rerun: analyzer-fixes
