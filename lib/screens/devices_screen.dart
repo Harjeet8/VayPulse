@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
+import '../models/hardware_transport.dart';
 import '../models/sensor_node.dart';
 import '../services/app_scope.dart';
+import '../services/node_wifi_provisioning_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/page_frame.dart';
@@ -90,6 +93,22 @@ class DevicesScreen extends StatelessWidget {
                       healthy: sensors.current != null,
                     ),
                     if (sensors.source == SensorDataSource.esp32) ...[
+                      _DiagnosticRow(
+                        label: context.tr('diagnostic_transport'),
+                        value: context.tr(
+                          switch (AppScope.of(context)
+                              .sensorManager
+                              .activeHardwareTransport) {
+                            HardwareTransportKind.local =>
+                              'transport_status_local',
+                            HardwareTransportKind.remote =>
+                              'transport_status_remote',
+                            HardwareTransportKind.none =>
+                              'transport_status_reconnecting',
+                          },
+                        ),
+                        healthy: sensors.connected,
+                      ),
                       const SizedBox(height: 10),
                       SizedBox(
                         width: double.infinity,
@@ -97,6 +116,15 @@ class DevicesScreen extends StatelessWidget {
                           onPressed: sensors.retry,
                           icon: const Icon(Icons.refresh_rounded),
                           label: Text(context.tr('reconnect')),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.tonalIcon(
+                          onPressed: () => _openNodeWifi(context),
+                          icon: const Icon(Icons.wifi_find_rounded),
+                          label: Text(context.tr('configure_node_wifi')),
                         ),
                       ),
                     ],
@@ -143,6 +171,38 @@ class DevicesScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> _openNodeWifi(BuildContext context) async {
+  final scope = AppScope.of(context);
+  final service = NodeWifiProvisioningService(
+    canReach: scope.sensorManager.testEndpoint,
+    launchExternal: (uri) => launchUrl(
+      uri,
+      mode: LaunchMode.externalApplication,
+    ),
+  );
+
+  final result = await service.open();
+  if (!context.mounted || result == NodeWifiProvisioningResult.opened) return;
+
+  final messageKey = switch (result) {
+    NodeWifiProvisioningResult.localNodeUnreachable =>
+      'configure_node_wifi_unreachable',
+    NodeWifiProvisioningResult.launchFailed =>
+      'configure_node_wifi_launch_failed',
+    NodeWifiProvisioningResult.opened => '',
+  };
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(context.tr(messageKey)),
+      action: SnackBarAction(
+        label: context.tr('setup_address'),
+        onPressed: () {},
+      ),
+    ),
+  );
 }
 
 class _NodeCard extends StatelessWidget {
