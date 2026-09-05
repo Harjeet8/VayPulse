@@ -42,6 +42,8 @@ class Esp32Client {
       '/api/status',
       '/status',
       '/api/sensors',
+      '/api/data',
+      '/data',
       '/sensors',
     ]) {
       if (await _tryGet(path) != null) return true;
@@ -204,15 +206,22 @@ class Esp32Client {
       data['soilTemperature'],
       soil['temperatureC'],
     ]);
+    final schemaVersion = _asInt(first([data['schemaVersion'], root['schemaVersion']])) ?? 0;
+    final flatLightIsLux = endpoint.startsWith('firebase:') || schemaVersion >= 9;
     final lux = first([
       data['lux'],
       data['lightLux'],
       light['lux'],
-      if (_asDouble(data['light']) != null && _asDouble(data['light'])! > 100)
+      if (flatLightIsLux) data['light'],
+      if (!flatLightIsLux &&
+          _asDouble(data['light']) != null &&
+          _asDouble(data['light'])! > 100)
         data['light'],
     ]);
     final legacyLight = first([
-      if (_asDouble(data['light']) != null && _asDouble(data['light'])! <= 100)
+      if (!flatLightIsLux &&
+          _asDouble(data['light']) != null &&
+          _asDouble(data['light'])! <= 100)
         data['light'],
       data['lightPercent'],
     ]);
@@ -557,6 +566,7 @@ class Esp32Client {
       'edgeAnalysisAvailable': espHealth != null,
       'crop': '${first([
             data['crop'],
+            data['cropProfile'],
             data['selectedCrop'],
             plantHealth['crop'],
             root['crop'],
@@ -627,7 +637,8 @@ class Esp32Client {
           data['plantModelStatus'],
         ]),
       ),
-      'plantModelReady': _plantModelReady(plantModel),
+      'plantModelReady': _asBool(data['plantModelReady']) == true ||
+          _plantModelReady(plantModel),
       'plantModelConfidence': _asDouble(
         first([
           plantModel['confidence'],
@@ -685,6 +696,7 @@ class Esp32Client {
       'temporalState': '${first([
             temporalReasoning['state'],
             temporalReasoning['status'],
+            data['temporalReasoningState'],
             ''
           ])}',
       'temporalConfidence': _asDouble(
@@ -715,17 +727,30 @@ class Esp32Client {
             temporalReasoning['message'],
             ''
           ])}',
-      'plausibilityState':
-          '${first([plausibility['state'], plausibility['status'], ''])}',
+      'plausibilityState': '${first([
+            plausibility['state'],
+            plausibility['status'],
+            data['plausibilityState'],
+            ''
+          ])}',
       'plausibilityConfidence': _asDouble(plausibility['confidence']),
-      'plausibilityPrimaryIssue':
-          '${first([plausibility['primaryIssue'], plausibility['issue'], ''])}',
+      'plausibilityPrimaryIssue': '${first([
+            plausibility['primaryIssue'],
+            plausibility['issue'],
+            data['plausibilityIssue'],
+            ''
+          ])}',
       'plausibilityRecommendation': '${first([
             plausibility['recommendation'],
             plausibility['action'],
             ''
           ])}',
-      'anomalyState': '${first([anomaly['state'], anomaly['status'], ''])}',
+      'anomalyState': '${first([
+            anomaly['state'],
+            anomaly['status'],
+            data['anomalyState'],
+            ''
+          ])}',
       'anomalyScore': _asDouble(anomaly['score']),
       'anomalyConfidence': _asDouble(anomaly['confidence']),
       'anomalyExplanation':
@@ -739,8 +764,12 @@ class Esp32Client {
           _predictionStateAvailable(
             first([prediction['state'], data['predictionState']]),
           ),
-      'predictionTarget':
-          '${first([prediction['target'], prediction['metric'], ''])}',
+      'predictionTarget': '${first([
+            prediction['target'],
+            prediction['metric'],
+            data['predictionTarget'],
+            ''
+          ])}',
       'predictionConfidence': _asDouble(
         first([prediction['confidence'], data['predictionConfidence']]),
       ),
@@ -789,6 +818,7 @@ class Esp32Client {
       'sensorIntegrityPrimaryIssue': '${first([
             sensorIntegrity['primaryIssue'],
             sensorIntegrity['issue'],
+            data['sensorIntegrityIssue'],
             ''
           ])}',
       'sensorIntegrityPrimaryAction': '${first([
@@ -797,17 +827,35 @@ class Esp32Client {
             ''
           ])}',
       'sensorIntegrityChannels': _stateMap(sensorIntegrity['channels']),
-      'runtimeHealthState':
-          '${first([runtimeHealth['state'], runtimeHealth['status'], ''])}',
+      'runtimeHealthState': '${first([
+            runtimeHealth['state'],
+            runtimeHealth['status'],
+            data['runtimeState'],
+            ''
+          ])}',
       'runtimeFreeHeap': _asInt(runtimeHealth['freeHeap']),
       'runtimeMinFreeHeap': _asInt(runtimeHealth['minFreeHeap']),
-      'runtimeLastLoopGapMs': _asInt(runtimeHealth['lastLoopGapMs']),
-      'runtimeMaxLoopGapMs': _asInt(runtimeHealth['maxLoopGapMs']),
-      'runtimeLastSensorCycleMs': _asInt(runtimeHealth['lastSensorCycleMs']),
-      'runtimeMaxSensorCycleMs': _asInt(runtimeHealth['maxSensorCycleMs']),
-      'runtimeOledI2cSkipTotal': _asInt(runtimeHealth['oledI2cSkipTotal']),
-      'runtimeHealthIssue':
-          '${first([runtimeHealth['issue'], runtimeHealth['message'], ''])}',
+      'runtimeLastLoopGapMs': _asInt(
+        first([runtimeHealth['lastLoopGapMs'], data['lastLoopGapMs']]),
+      ),
+      'runtimeMaxLoopGapMs': _asInt(
+        first([runtimeHealth['maxLoopGapMs'], data['maxLoopGapMs']]),
+      ),
+      'runtimeLastSensorCycleMs': _asInt(
+        first([runtimeHealth['lastSensorCycleMs'], data['lastSensorCycleMs']]),
+      ),
+      'runtimeMaxSensorCycleMs': _asInt(
+        first([runtimeHealth['maxSensorCycleMs'], data['maxSensorCycleMs']]),
+      ),
+      'runtimeOledI2cSkipTotal': _asInt(
+        first([runtimeHealth['oledI2cSkipTotal'], data['oledI2cSkipTotal']]),
+      ),
+      'runtimeHealthIssue': '${first([
+            runtimeHealth['issue'],
+            runtimeHealth['message'],
+            data['runtimeIssue'],
+            ''
+          ])}',
       'recentEvents': recentEvents is List ? recentEvents : const <dynamic>[],
       'sensorStates': <String, String>{
         'temperature': _channelState(
@@ -928,8 +976,14 @@ class Esp32Client {
             ]),
           ) ??
           0,
-      'bioBaselineReady': bio['baselineReady'] == true,
-      'bioBaselineSamples': _asInt(bio['baselineSamples']) ?? 0,
+      'bioBaselineReady': _asBool(
+            first([bio['baselineReady'], data['bioBaselineReady']]),
+          ) ==
+          true,
+      'bioBaselineSamples': _asInt(
+            first([bio['baselineSamples'], data['bioBaselineSamples']]),
+          ) ??
+          0,
       'bioBaselineMv': _asDouble(bio['baselineMv']),
       'bioDeviationMv': _asDouble(bio['deviationMv']),
       'bioNoiseMv': _asDouble(bio['noiseMv']),
@@ -1097,6 +1151,7 @@ class Esp32Client {
         .replaceAll('-', '_');
     return const {
       'VERIFY',
+      'VERIFY_PLACEMENT',
       'PLACEMENT_VERIFY',
       'CHECK_PLACEMENT',
       'OUTSIDE_CALIBRATED_RANGE',

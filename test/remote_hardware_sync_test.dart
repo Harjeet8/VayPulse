@@ -508,4 +508,89 @@ void main() {
     expect(provider.current?.temperature, 34.7);
     expect(provider.current?.soilMoisture, 29);
   });
+
+  test('current schema v9 Firebase compact payload parses exactly', () {
+    final now = DateTime.now();
+    final payload = <String, dynamic>{
+      'deviceId': 'PS-NODE-01',
+      'firmwareVersion': 'PhytoSense AI Edge Intelligence',
+      'firmwareEdition': 'Final Edge Intelligence + Remote Provisioning',
+      'buildState': 'FROZEN_FINAL',
+      'schemaVersion': 9,
+      'lastSeen': now.millisecondsSinceEpoch,
+      'timestamp': now.toIso8601String(),
+      'healthIndex': 92.7,
+      'confidence': 74.2,
+      'status': 'WATCH',
+      'plantCondition': 'WATCH',
+      'priority': 'CHECK',
+      'mainFinding': 'Verify soil probe placement',
+      'farmerAction': 'INSERT PROBE IN SOIL / CHECK CALIBRATION',
+      'because': 'The soil channel needs placement verification.',
+      'airTemperature': 31.8,
+      'humidity': 62.55,
+      'light': 50.8,
+      'soilMoisture': 0.0,
+      'soilRaw': 3272,
+      'soilStatus': 'VERIFY',
+      'rootTemperature': 31.2,
+      'leafWetness': 0.0,
+      'leafRaw': 4095,
+      'diseaseRisk': 4.2,
+      'bioState': 'LEARNING BASELINE',
+      'bioSource': 'real',
+      'bioAffectsHealth': false,
+      'bioVoltage': 1804.8,
+      'bioSignalQuality': 76.0,
+      'bioContactState': 'PLAUSIBLE',
+      'bioContactConfidence': 90.8,
+      'bioContactPlausibleForPlantUse': true,
+      'analysisQuality': 'MODERATE',
+      'reliability': 'DEGRADED',
+      'primaryCause': 'Verify soil probe placement',
+      'secondaryCause': 'Continue monitoring',
+      'predictionState': 'ACTIVE',
+      'predictionTarget': 'soilMoisture',
+      'predictionConfidence': 72.0,
+      'predictionMinutesToWarning': 18,
+      'recoveryState': 'NONE',
+      'sensorIntegrity': 'VERIFY',
+      'sensorIntegrityIssue': 'Soil probe needs verification',
+      'ahtStatus': 'OK',
+      'bh1750Status': 'OK',
+      'ds18b20Status': 'OK',
+      'leafStatus': 'OK',
+      'bioStatus': 'PLAUSIBLE',
+      'dayNight': 'NIGHT',
+      'cropProfile': 'Hibiscus',
+      'growthStage': 'Vegetative',
+      'connectionMode': 'LOCAL_CLOUD',
+      'remoteNetworkState': 'REMOTE_CONNECTED',
+      'localApActive': true,
+      'internetConnected': true,
+      'cloudConnected': true,
+      'staSsid': 'JioFiber4g',
+      'staIp': '192.168.29.5',
+    };
+
+    final reading = Esp32Client('https://firebase.transport.invalid')
+        .decodeSnapshot(
+          _jsonResponse(payload),
+          endpoint: 'firebase:phytosense/nodes/phytosense_01/live',
+        )
+        .reading;
+
+    expect(reading.nodeId, 'PS-NODE-01');
+    expect(reading.lightLux, closeTo(50.8, 0.001));
+    expect(reading.light, closeTo(50.8 / 70000 * 100, 0.001));
+    expect(reading.soilMoistureAvailable, isFalse);
+    expect(reading.crop, 'Hibiscus');
+    expect(reading.predictionAvailable, isTrue);
+    expect(reading.predictionTarget, 'soilMoisture');
+    expect(reading.sensorIntegrityState, 'VERIFY');
+    expect(reading.sensorIntegrityPrimaryIssue, 'Soil probe needs verification');
+    expect(reading.healthScore, closeTo(92.7, 0.001));
+    expect(reading.primaryRootCause, 'Verify soil probe placement');
+  });
+
 }
