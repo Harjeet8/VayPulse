@@ -22,15 +22,18 @@ class DataSourceCard extends StatelessWidget {
         final bioLabel = live ? scope.sensors.current?.bioSourceLabel : null;
         final liveTitle = switch (transport) {
           HardwareTransportKind.local => context.tr('esp32_source_local'),
-          HardwareTransportKind.remote => context.tr('esp32_source_remote'),
+          HardwareTransportKind.remote => metadata.cloudConnected == false
+              ? context.tr('esp32_source_cloud_offline')
+              : context.tr('esp32_source_remote'),
           HardwareTransportKind.none => context.tr('esp32_source_reconnecting'),
         };
         final liveBody = switch (transport) {
           HardwareTransportKind.local => context.tr('local_monitoring_active'),
-          HardwareTransportKind.remote =>
-            metadata.freshness == RemoteSnapshotFreshness.delayed
-                ? context.tr('remote_monitoring_delayed')
-                : context.tr('remote_monitoring_active'),
+          HardwareTransportKind.remote => metadata.cloudConnected == false
+              ? context.tr('remote_cloud_unavailable')
+              : metadata.freshness == RemoteSnapshotFreshness.delayed
+                  ? context.tr('remote_monitoring_delayed')
+                  : context.tr('remote_monitoring_active'),
           HardwareTransportKind.none => connected
               ? context.tr('live_data_connected')
               : context.tr('live_data_waiting'),
