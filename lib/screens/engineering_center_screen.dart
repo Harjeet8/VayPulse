@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/app_strings.dart';
+import '../models/hardware_transport.dart';
 import '../models/sensor_reading.dart';
 import '../services/ai_analysis_service.dart';
 import '../services/app_scope.dart';
@@ -983,6 +984,10 @@ class _EdgeIntelligencePanel extends StatelessWidget {
   Widget build(BuildContext context) {
     final secondary =
         reading.rankedRootCauses.length > 1 ? reading.rankedRootCauses[1] : '';
+    final connection =
+        AppScope.of(context).sensorManager.hardwareConnectionMetadata;
+    final activeTransport =
+        AppScope.of(context).sensorManager.activeHardwareTransport;
     final events = [...reading.recentEvents]..sort((a, b) {
         if (a.timestamp == null && b.timestamp == null) return 0;
         if (a.timestamp == null) return 1;
@@ -1249,6 +1254,77 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                   ),
                 ],
               ),
+            _EdgeSection(
+              title: 'Node & Connectivity',
+              children: [
+                _EdgeDetailRow(
+                  label: 'Firmware',
+                  value: reading.firmwareName.trim().isNotEmpty
+                      ? reading.firmwareName.trim()
+                      : (connection.firmwareVersion.trim().isEmpty
+                          ? 'Not reported'
+                          : connection.firmwareVersion.trim()),
+                ),
+                if (reading.firmwareEdition.trim().isNotEmpty ||
+                    connection.firmwareEdition.trim().isNotEmpty)
+                  _EdgeDetailRow(
+                    label: 'Firmware edition',
+                    value: reading.firmwareEdition.trim().isNotEmpty
+                        ? reading.firmwareEdition.trim()
+                        : connection.firmwareEdition.trim(),
+                  ),
+                if (reading.firmwareBuildState.trim().isNotEmpty ||
+                    connection.buildState.trim().isNotEmpty)
+                  _EdgeDetailRow(
+                    label: 'Build state',
+                    value: _label(
+                      reading.firmwareBuildState.trim().isNotEmpty
+                          ? reading.firmwareBuildState
+                          : connection.buildState,
+                    ),
+                  ),
+                _EdgeDetailRow(
+                  label: 'Transport',
+                  value: switch (activeTransport) {
+                    HardwareTransportKind.local => 'Local direct',
+                    HardwareTransportKind.remote => 'Remote cloud',
+                    HardwareTransportKind.none => 'Unavailable',
+                  },
+                ),
+                if (connection.localApActive != null)
+                  _EdgeDetailRow(
+                    label: 'Local AP active',
+                    value: connection.localApActive! ? 'Yes' : 'No',
+                  ),
+                if (connection.internetConnected != null)
+                  _EdgeDetailRow(
+                    label: 'Internet connected',
+                    value: connection.internetConnected! ? 'Yes' : 'No',
+                  ),
+                if (connection.cloudConnected != null)
+                  _EdgeDetailRow(
+                    label: 'Cloud sync connected',
+                    value: connection.cloudConnected! ? 'Yes' : 'No',
+                  ),
+                if (connection.remoteNetworkState.trim().isNotEmpty)
+                  _EdgeDetailRow(
+                    label: 'Remote network state',
+                    value: _label(connection.remoteNetworkState),
+                  ),
+                if (connection.lastSeen != null &&
+                    activeTransport == HardwareTransportKind.remote)
+                  _EdgeDetailRow(
+                    label: 'Last cloud sync',
+                    value:
+                        '${connection.lastSeen!.toLocal().hour.toString().padLeft(2, '0')}:${connection.lastSeen!.toLocal().minute.toString().padLeft(2, '0')}:${connection.lastSeen!.toLocal().second.toString().padLeft(2, '0')}',
+                  ),
+                if (activeTransport == HardwareTransportKind.remote)
+                  _EdgeDetailRow(
+                    label: 'Snapshot freshness',
+                    value: _label(connection.freshness.name),
+                  ),
+              ],
+            ),
             if (_hasRecovery)
               _EdgeSection(
                 title: 'Recovery',
