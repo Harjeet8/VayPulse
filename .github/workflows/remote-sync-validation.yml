@@ -89,3 +89,5 @@ jobs:
 # rerun: analyzer-fixes
 
 # rerun: localized-contact-test
+
+# rerun: wifi-provisioning-final
