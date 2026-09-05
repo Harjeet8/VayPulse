@@ -193,6 +193,77 @@ void main() {
     expect(remote.bioContactState, local.bioContactState);
   });
 
+  test('live schema-v9 Firebase payload keeps ESP32 decision authoritative', () {
+    final payload = <String, dynamic>{
+      'deviceId': 'PS-NODE-01',
+      'schemaVersion': 9,
+      'firmwareVersion': 'PhytoSense AI Edge Intelligence',
+      'firmwareEdition': 'Final Edge Intelligence + Remote Provisioning',
+      'buildState': 'FROZEN_FINAL',
+      'timestamp': DateTime.now().toIso8601String(),
+      'healthIndex': 95.6,
+      'confidence': 76.9,
+      'status': 'EXCELLENT',
+      'plantCondition': 'EXCELLENT',
+      'priority': 'CHECK',
+      'mainFinding': 'Verify soil probe placement',
+      'farmerAction': 'INSERT PROBE IN SOIL / CHECK CALIBRATION',
+      'because': 'ESP32 excluded the unverified soil value from stress fusion.',
+      'airTemperature': 32.7,
+      'humidity': 64.4,
+      'light': 11.0,
+      'soilMoisture': 0.0,
+      'soilRaw': 3272,
+      'soilStatus': 'VERIFY',
+      'rootTemperature': 32.2,
+      'leafWetness': 0.0,
+      'leafRaw': 4095,
+      'diseaseRisk': 4.2,
+      'bioSource': 'real',
+      'bioVoltage': 1790.0,
+      'bioSignalQuality': 58.0,
+      'bioContactState': 'PLAUSIBLE',
+      'bioContactConfidence': 90.0,
+      'bioContactPlausibleForPlantUse': true,
+      'bioAffectsHealth': true,
+      'rootCause': <String, dynamic>{
+        'primary': <String, dynamic>{
+          'name': 'High atmospheric drying demand',
+          'confidence': 78.0,
+        },
+        'ranked': <dynamic>[
+          <String, dynamic>{
+            'name': 'High atmospheric drying demand',
+            'confidence': 78.0,
+          },
+        ],
+      },
+      'internetConnected': true,
+      'cloudConnected': true,
+      'connectionMode': 'LOCAL_CLOUD',
+      'remoteNetworkState': 'REMOTE_CONNECTED',
+    };
+
+    final reading = Esp32Client('http://192.168.4.1')
+        .decodeSnapshot(
+          _jsonResponse(payload),
+          endpoint: 'firebase:phytosense/nodes/phytosense_01/live',
+        )
+        .reading;
+
+    expect(reading.nodeId, 'PS-NODE-01');
+    expect(reading.healthScore, closeTo(95.6, 0.01));
+    expect(reading.primaryRootCause, 'Verify soil probe placement');
+    expect(
+      reading.farmerAction,
+      'INSERT PROBE IN SOIL / CHECK CALIBRATION',
+    );
+    expect(reading.soilMoistureAvailable, isFalse);
+    expect(reading.lightLux, 11.0);
+    expect(reading.light, lessThan(1.0));
+    expect(reading.rankedRootCauses, contains('High atmospheric drying demand'));
+  });
+
   test('OPEN contact with 100 percent signal quality is not plant-usable', () {
     final payload = _remotePayload()
       ..['bioContactState'] = 'OPEN'
