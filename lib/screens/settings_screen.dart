@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
+import '../models/hardware_transport.dart';
 import '../services/app_scope.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
@@ -530,6 +531,13 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
         uri.host.isNotEmpty;
   }
 
+  Future<void> _setTransport(HardwareTransportMode mode) async {
+    final scope = AppScope.of(context);
+    await scope.settings.setHardwareTransportMode(mode.id);
+    scope.sensorManager.setHardwareTransportMode(mode);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _saveAndTest() async {
     final endpoint = controller.text.trim();
     if (!_validEndpoint(endpoint)) {
@@ -593,6 +601,61 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
               ),
               const SizedBox(height: 6),
               Text(context.tr('configure_esp32_body')),
+              const SizedBox(height: 14),
+              Text(
+                context.tr('hardware_transport'),
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              SegmentedButton<HardwareTransportMode>(
+                showSelectedIcon: false,
+                segments: [
+                  ButtonSegment(
+                    value: HardwareTransportMode.auto,
+                    label: Text(context.tr('transport_auto')),
+                    icon: const Icon(Icons.swap_calls_rounded),
+                  ),
+                  ButtonSegment(
+                    value: HardwareTransportMode.local,
+                    label: Text(context.tr('transport_local')),
+                    icon: const Icon(Icons.router_outlined),
+                  ),
+                  ButtonSegment(
+                    value: HardwareTransportMode.remote,
+                    label: Text(context.tr('transport_remote')),
+                    icon: const Icon(Icons.cloud_outlined),
+                  ),
+                ],
+                selected: {
+                  HardwareTransportModeX.parse(
+                    AppScope.of(context)
+                        .settings
+                        .value
+                        .hardwareTransportMode,
+                  ),
+                },
+                onSelectionChanged: (selection) {
+                  if (selection.isNotEmpty) {
+                    _setTransport(selection.first);
+                  }
+                },
+              ),
+              const SizedBox(height: 8),
+              Text(
+                context.tr(
+                  switch (HardwareTransportModeX.parse(
+                    AppScope.of(context)
+                        .settings
+                        .value
+                        .hardwareTransportMode,
+                  )) {
+                    HardwareTransportMode.auto => 'transport_auto_body',
+                    HardwareTransportMode.local => 'transport_local_body',
+                    HardwareTransportMode.remote => 'transport_remote_body',
+                  },
+                ),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               const SizedBox(height: 14),
               TextField(
                 controller: controller,
