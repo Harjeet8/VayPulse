@@ -104,6 +104,7 @@ class Esp32Client {
       ]),
     );
     final system = _map(data['system']);
+    final network = _map(first([data['network'], system['network']]));
     final recovery = _map(first([data['recovery'], analysis['recovery']]));
     final biotic = _map(
       first([data['biotic'], analysis['biotic'], plantHealth['biotic']]),
@@ -978,6 +979,42 @@ class Esp32Client {
             root['firmwareVersion'],
             'unknown'
           ])}',
+      connectionMode: '${first([
+            data['connectionMode'],
+            network['connectionMode'],
+            system['connectionMode'],
+            ''
+          ])}',
+      remoteNetworkState: '${first([
+            data['remoteNetworkState'],
+            network['remoteNetworkState'],
+            system['remoteNetworkState'],
+            ''
+          ])}',
+      localApActive: _asBool(
+        first([data['localApActive'], network['localApActive']]),
+      ),
+      internetConnected: _asBool(
+        first([data['internetConnected'], network['internetConnected']]),
+      ),
+      cloudConnected: _asBool(
+        first([data['cloudConnected'], network['cloudConnected']]),
+      ),
+      connectedStaSsid: '${first([
+            data['connectedStaSsid'],
+            network['connectedStaSsid'],
+            data['staSsid'],
+            network['staSsid'],
+            ''
+          ])}',
+      lastCloudSync: _dateTime(
+        first([
+          data['lastCloudSync'],
+          network['lastCloudSync'],
+          data['lastCloudSyncMs'],
+          network['lastCloudSyncMs'],
+        ]),
+      ),
       endpoint: endpoint,
       sensorCount: [
         soilValue,
@@ -1176,6 +1213,20 @@ class Esp32Client {
   static int _percentInt(dynamic value, int fallback) =>
       (_asInt(value) ?? fallback).clamp(0, 100).toInt();
 
+  static DateTime? _dateTime(dynamic value) {
+    if (value == null) return null;
+    if (value is num) {
+      final raw = value.toInt();
+      final milliseconds = raw.abs() < 100000000000 ? raw * 1000 : raw;
+      return DateTime.fromMillisecondsSinceEpoch(milliseconds);
+    }
+    final text = '$value'.trim();
+    if (text.isEmpty) return null;
+    final numeric = int.tryParse(text);
+    if (numeric != null) return _dateTime(numeric);
+    return DateTime.tryParse(text);
+  }
+
   static String _timestamp(Map<String, dynamic> payload) {
     final direct = payload['timestamp'] ?? payload['lastSeen'];
     if (direct is num) {
@@ -1205,6 +1256,13 @@ class Esp32Snapshot {
   final int batteryPercent;
   final int signalPercent;
   final String firmwareVersion;
+  final String connectionMode;
+  final String remoteNetworkState;
+  final bool? localApActive;
+  final bool? internetConnected;
+  final bool? cloudConnected;
+  final String connectedStaSsid;
+  final DateTime? lastCloudSync;
   final String endpoint;
   final int sensorCount;
 
@@ -1213,6 +1271,13 @@ class Esp32Snapshot {
     required this.batteryPercent,
     required this.signalPercent,
     required this.firmwareVersion,
+    this.connectionMode = '',
+    this.remoteNetworkState = '',
+    this.localApActive,
+    this.internetConnected,
+    this.cloudConnected,
+    this.connectedStaSsid = '',
+    this.lastCloudSync,
     required this.endpoint,
     required this.sensorCount,
   });
