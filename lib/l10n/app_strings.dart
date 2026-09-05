@@ -313,6 +313,8 @@ class AppStrings {
       'remote_cloud_unavailable': 'Remote cloud monitoring is unavailable.',
       'remote_auth_unavailable':
           'Remote sign-in is unavailable. Local monitoring can still be used.',
+      'remote_config_mismatch':
+          'Remote Firebase configuration does not match this PhytoSense project.',
       'remote_snapshot_unavailable':
           'No remote node snapshot is available yet.',
       'remote_snapshot_stale':
@@ -1624,6 +1626,8 @@ class AppStrings {
           'தொலைநிலை cloud monitoring தற்போது கிடைக்கவில்லை.',
       'remote_auth_unavailable':
           'Remote sign-in கிடைக்கவில்லை. உள்ளூர் monitoring தொடர்ந்து பயன்படுத்தலாம்.',
+      'remote_config_mismatch':
+          'Remote Firebase configuration இந்த PhytoSense project-ுடன் பொருந்தவில்லை.',
       'remote_snapshot_unavailable':
           'Remote node snapshot இன்னும் கிடைக்கவில்லை.',
       'remote_snapshot_stale':
