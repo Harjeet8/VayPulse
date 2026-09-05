@@ -88,3 +88,5 @@ jobs:
 # rerun: adaptive-temporal-final
 
 # rerun: optional-plant-model-fixed
+
+# rerun: current-head-20260905
