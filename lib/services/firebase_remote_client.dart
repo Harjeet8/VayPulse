@@ -6,6 +6,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:http/http.dart' as http;
 
+import '../firebase_options.dart';
 import '../models/hardware_transport.dart';
 import 'esp32_client.dart';
 
@@ -61,7 +62,9 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     _starting = true;
     try {
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp();
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
       }
       final app = Firebase.app();
       final configuredProjectId = app.options.projectId.trim();
