@@ -9,6 +9,7 @@ class AppSettings {
   String demoScenario = 'healthy';
   String dataSource = 'simulation';
   String esp32Endpoint = 'http://192.168.4.1';
+  String hardwareTransportMode = 'AUTO';
   String syncEndpoint = '';
   String experienceMode = 'farmer';
   bool reducedMotion = false;
