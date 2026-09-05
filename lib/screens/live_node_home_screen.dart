@@ -758,7 +758,7 @@ class _LiveSensorGrid extends StatelessWidget {
                 title: context.tr('plant_signal'),
                 message: reading.bioElectricalMeasurementAvailable &&
                         reading.hasBioContactTelemetry
-                    ? _FarmerEdgeSignals.bioContactWarning(reading)
+                    ? _FarmerEdgeSignals.bioContactWarning(context, reading)
                     : _sensorState(reading, 'plantSignal'),
               ),
             if (reading.edgeAnalysisAvailable)
@@ -928,6 +928,14 @@ class _FarmerEdgeSignals extends StatelessWidget {
       return 'bio_contact_check';
     }
     return '';
+  }
+
+  static String bioContactWarning(
+    BuildContext context,
+    SensorReading reading,
+  ) {
+    final key = _bioContactWarningKey(reading);
+    return key.isEmpty ? '' : context.tr(key);
   }
 
   static String _systemWarning(BuildContext context, SensorReading reading) {
