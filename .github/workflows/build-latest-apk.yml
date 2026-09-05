@@ -1,0 +1,102 @@
+name: Build Latest PhytoSense APK
+
+on:
+  push:
+    branches: [codex/latest-apk-build-20260905]
+    paths:
+      - '.github/workflows/build-latest-apk.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-verify-apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - name: Checkout exact latest source
+        uses: actions/checkout@v4
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve and verify source
+        run: |
+          set -euo pipefail
+          flutter pub get
+          dart format --output=none --set-exit-if-changed lib test
+          flutter analyze
+          flutter test
+
+      - name: Create isolated test release signer
+        shell: bash
+        run: |
+          set -euo pipefail
+          release_password="$(openssl rand -hex 24)"
+          echo "::add-mask::${release_password}"
+          keystore_path="${RUNNER_TEMP}/phytosense-test-release.jks"
+          keytool -genkeypair -v             -keystore "${keystore_path}"             -storepass "${release_password}"             -keypass "${release_password}"             -alias phytosense-test             -keyalg RSA             -keysize 4096             -validity 3650             -dname "CN=PhytoSense AI Test Build, OU=Competition Build, O=Harjeet, C=IN"
+          echo "ANDROID_KEYSTORE_PATH=${keystore_path}" >> "${GITHUB_ENV}"
+          echo "ANDROID_STORE_PASSWORD=${release_password}" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_ALIAS=phytosense-test" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_PASSWORD=${release_password}" >> "${GITHUB_ENV}"
+
+      - name: Build obfuscated release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          symbol_dir="${RUNNER_TEMP}/phytosense-dart-symbols"
+          flutter build apk --release --obfuscate --split-debug-info="${symbol_dir}"
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI-Latest.apk
+
+      - name: Inspect release APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "${build_tools}/apksigner" verify --verbose PhytoSense-AI-Latest.apk
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-Latest.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          "${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable PhytoSense-AI-Latest.apk | grep -qx 'false'
+          if unzip -Z1 PhytoSense-AI-Latest.apk | grep -Ei '(^|/)([^/]+\.(dart|kt|java|symbols)|mapping\.txt|.*debug.*\.json)$'; then
+            echo 'Source, symbol, mapping, or debug metadata was packaged.' >&2
+            exit 1
+          fi
+
+      - name: Android install and launch smoke
+        uses: ReactiveCircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          profile: pixel_6
+          disable-animations: true
+          script: |
+            set -euo pipefail
+            adb install -r PhytoSense-AI-Latest.apk
+            adb shell am force-stop com.harjeet.phytosense
+            adb shell am start -W -n com.harjeet.phytosense/.MainActivity | tee /tmp/launch.txt
+            grep -q 'Status: ok' /tmp/launch.txt
+            adb shell pidof com.harjeet.phytosense
+            adb shell uiautomator dump /sdcard/phytosense-ui.xml
+            adb pull /sdcard/phytosense-ui.xml /tmp/phytosense-ui.xml
+            grep -q 'PhytoSense AI' /tmp/phytosense-ui.xml
+
+      - name: Upload APK only
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-Latest
+          path: PhytoSense-AI-Latest.apk
+          if-no-files-found: error
+          retention-days: 30
