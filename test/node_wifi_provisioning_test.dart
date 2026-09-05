@@ -2,7 +2,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:phytosense_ai/services/node_wifi_provisioning_service.dart';
 
 void main() {
-  test('Configure Node Wi-Fi opens ESP32 dashboard when local node is reachable',
+  test(
+      'Configure Node Wi-Fi opens ESP32 dashboard when local node is reachable',
       () async {
     Uri? launched;
     final service = NodeWifiProvisioningService(
@@ -39,7 +40,8 @@ void main() {
     expect(launchCalled, isFalse);
   });
 
-  test('Configure Node Wi-Fi reports external browser launch failure', () async {
+  test('Configure Node Wi-Fi reports external browser launch failure',
+      () async {
     final service = NodeWifiProvisioningService(
       canReach: (_) async => true,
       launchExternal: (_) async => false,
