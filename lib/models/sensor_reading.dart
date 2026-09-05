@@ -65,6 +65,7 @@ class SensorReading {
   final String crop;
   final String growthStage;
   final String reliabilityMode;
+  final String analysisQuality;
   final String systemStatus;
   final String recoveryStatus;
   final String primaryRootCause;
@@ -212,6 +213,7 @@ class SensorReading {
     this.crop = 'Universal',
     this.growthStage = 'Vegetative',
     this.reliabilityMode = 'FULL',
+    this.analysisQuality = '',
     this.systemStatus = '',
     this.recoveryStatus = '',
     this.primaryRootCause = '',
@@ -407,6 +409,7 @@ class SensorReading {
         'crop': crop,
         'growthStage': growthStage,
         'reliabilityMode': reliabilityMode,
+        'analysisQuality': analysisQuality,
         'systemStatus': systemStatus,
         'recoveryStatus': recoveryStatus,
         'primaryRootCause': primaryRootCause,
@@ -571,6 +574,7 @@ class SensorReading {
       crop: '${json['crop'] ?? 'Universal'}',
       growthStage: '${json['growthStage'] ?? 'Vegetative'}',
       reliabilityMode: '${json['reliabilityMode'] ?? 'FULL'}'.toUpperCase(),
+      analysisQuality: '${json['analysisQuality'] ?? ''}',
       systemStatus: '${json['systemStatus'] ?? ''}',
       recoveryStatus: recoveryStatus,
       primaryRootCause: '${json['primaryRootCause'] ?? ''}',
@@ -812,6 +816,7 @@ class SensorReading {
     String? crop,
     String? growthStage,
     String? reliabilityMode,
+    String? analysisQuality,
     String? systemStatus,
     String? recoveryStatus,
     String? primaryRootCause,
@@ -942,6 +947,7 @@ class SensorReading {
       crop: crop ?? this.crop,
       growthStage: growthStage ?? this.growthStage,
       reliabilityMode: reliabilityMode ?? this.reliabilityMode,
+      analysisQuality: analysisQuality ?? this.analysisQuality,
       systemStatus: systemStatus ?? this.systemStatus,
       recoveryStatus: recoveryStatus ?? this.recoveryStatus,
       primaryRootCause: primaryRootCause ?? this.primaryRootCause,
