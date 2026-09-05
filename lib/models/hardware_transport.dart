@@ -33,6 +33,8 @@ class HardwareConnectionMetadata {
   final bool? localApActive;
   final bool? internetConnected;
   final bool? cloudConnected;
+  final String connectedStaSsid;
+  final DateTime? lastCloudSync;
   final DateTime? lastSeen;
   final String firmwareVersion;
   final String firmwareEdition;
@@ -46,6 +48,8 @@ class HardwareConnectionMetadata {
     this.localApActive,
     this.internetConnected,
     this.cloudConnected,
+    this.connectedStaSsid = '',
+    this.lastCloudSync,
     this.lastSeen,
     this.firmwareVersion = '',
     this.firmwareEdition = '',
@@ -60,6 +64,8 @@ class HardwareConnectionMetadata {
     bool? localApActive,
     bool? internetConnected,
     bool? cloudConnected,
+    String? connectedStaSsid,
+    DateTime? lastCloudSync,
     DateTime? lastSeen,
     String? firmwareVersion,
     String? firmwareEdition,
@@ -73,6 +79,8 @@ class HardwareConnectionMetadata {
         localApActive: localApActive ?? this.localApActive,
         internetConnected: internetConnected ?? this.internetConnected,
         cloudConnected: cloudConnected ?? this.cloudConnected,
+        connectedStaSsid: connectedStaSsid ?? this.connectedStaSsid,
+        lastCloudSync: lastCloudSync ?? this.lastCloudSync,
         lastSeen: lastSeen ?? this.lastSeen,
         firmwareVersion: firmwareVersion ?? this.firmwareVersion,
         firmwareEdition: firmwareEdition ?? this.firmwareEdition,
