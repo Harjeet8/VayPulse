@@ -312,7 +312,8 @@ class AppStrings {
       'remote_cloud_unavailable': 'Remote cloud monitoring is unavailable.',
       'remote_auth_unavailable':
           'Remote sign-in is unavailable. Local monitoring can still be used.',
-      'remote_snapshot_unavailable': 'No remote node snapshot is available yet.',
+      'remote_snapshot_unavailable':
+          'No remote node snapshot is available yet.',
       'remote_snapshot_stale':
           'The remote snapshot is stale and is not being shown as live.',
       'remote_node_offline': 'The remote PhytoSense node is currently offline.',
@@ -1601,20 +1602,25 @@ class AppStrings {
       'esp32_source_local': 'ESP32 • உள்ளூர்',
       'esp32_source_remote': 'ESP32 • தொலைநிலை',
       'esp32_source_reconnecting': 'ESP32 • மீண்டும் இணைகிறது',
-      'local_monitoring_active': 'PhytoSense Node-க்கு நேரடியாக இணைக்கப்பட்டுள்ளது',
-      'remote_monitoring_active': 'பாதுகாப்பான cloud sync மூலம் தொலைநிலை கண்காணிப்பு',
+      'local_monitoring_active':
+          'PhytoSense Node-க்கு நேரடியாக இணைக்கப்பட்டுள்ளது',
+      'remote_monitoring_active':
+          'பாதுகாப்பான cloud sync மூலம் தொலைநிலை கண்காணிப்பு',
       'remote_monitoring_delayed':
           'தொலைநிலை update தாமதமாகிறது — புதிய snapshot சரிபார்க்கப்படுகிறது',
       'remote_cloud_sync': 'பாதுகாப்பான cloud sync',
-      'remote_cloud_unavailable': 'தொலைநிலை cloud monitoring தற்போது கிடைக்கவில்லை.',
+      'remote_cloud_unavailable':
+          'தொலைநிலை cloud monitoring தற்போது கிடைக்கவில்லை.',
       'remote_auth_unavailable':
           'Remote sign-in கிடைக்கவில்லை. உள்ளூர் monitoring தொடர்ந்து பயன்படுத்தலாம்.',
-      'remote_snapshot_unavailable': 'Remote node snapshot இன்னும் கிடைக்கவில்லை.',
+      'remote_snapshot_unavailable':
+          'Remote node snapshot இன்னும் கிடைக்கவில்லை.',
       'remote_snapshot_stale':
           'Remote snapshot பழையது; அது live தரவாக காட்டப்படவில்லை.',
       'remote_node_offline': 'Remote PhytoSense node தற்போது offline.',
       'bio_contact_initializing': 'செடி signal தொடங்கப்படுகிறது',
-      'bio_contact_open': 'Electrode திறந்துள்ளது — செடி contact-ஐ சரிபார்க்கவும்',
+      'bio_contact_open':
+          'Electrode திறந்துள்ளது — செடி contact-ஐ சரிபார்க்கவும்',
       'bio_contact_verify': 'Electrode contact சரிபார்க்கப்படுகிறது',
       'bio_contact_unstable': 'Electrode contact நிலையாக இல்லை',
       'bio_contact_static': 'Static input — செடி analysis-ல் பயன்படுத்தப்படாது',

@@ -628,10 +628,7 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
                 ],
                 selected: {
                   HardwareTransportModeX.parse(
-                    AppScope.of(context)
-                        .settings
-                        .value
-                        .hardwareTransportMode,
+                    AppScope.of(context).settings.value.hardwareTransportMode,
                   ),
                 },
                 onSelectionChanged: (selection) {
@@ -644,10 +641,7 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
               Text(
                 context.tr(
                   switch (HardwareTransportModeX.parse(
-                    AppScope.of(context)
-                        .settings
-                        .value
-                        .hardwareTransportMode,
+                    AppScope.of(context).settings.value.hardwareTransportMode,
                   )) {
                     HardwareTransportMode.auto => 'transport_auto_body',
                     HardwareTransportMode.local => 'transport_local_body',

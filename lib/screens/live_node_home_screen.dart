@@ -415,72 +415,72 @@ class _HealthSummary extends StatelessWidget {
               )
             : _Freshness.from(reading.timestamp);
     return Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final info = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ESP32 CROP PROFILE',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    '${reading.crop} • ${reading.growthStage}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(context.tr('live_health_body')),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: [
-                      _Meta(
-                        icon: Icons.battery_5_bar_rounded,
-                        value: '${node?.batteryPercent ?? 0}%',
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final info = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ESP32 CROP PROFILE',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w900,
                       ),
-                      _Meta(
-                        icon: Icons.network_cell_rounded,
-                        value: '${node?.signalPercent ?? 0}%',
-                      ),
-                      _Meta(
-                        icon: Icons.schedule_rounded,
-                        value: context.tr(freshness.key),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-              final textScale = MediaQuery.textScalerOf(context).scale(1.0);
-              if (constraints.maxWidth < 430 || textScale > 1.35) {
-                return Column(
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '${reading.crop} • ${reading.growthStage}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 7),
+                Text(context.tr('live_health_body')),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
-                    _EdgeHealthIndicator(reading: reading),
-                    const SizedBox(height: 18),
-                    Align(alignment: Alignment.centerLeft, child: info),
+                    _Meta(
+                      icon: Icons.battery_5_bar_rounded,
+                      value: '${node?.batteryPercent ?? 0}%',
+                    ),
+                    _Meta(
+                      icon: Icons.network_cell_rounded,
+                      value: '${node?.signalPercent ?? 0}%',
+                    ),
+                    _Meta(
+                      icon: Icons.schedule_rounded,
+                      value: context.tr(freshness.key),
+                    ),
                   ],
-                );
-              }
-              return Row(
+                ),
+              ],
+            );
+            final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+            if (constraints.maxWidth < 430 || textScale > 1.35) {
+              return Column(
                 children: [
                   _EdgeHealthIndicator(reading: reading),
-                  const SizedBox(width: 20),
-                  Expanded(child: info),
+                  const SizedBox(height: 18),
+                  Align(alignment: Alignment.centerLeft, child: info),
                 ],
               );
-            },
-          ),
+            }
+            return Row(
+              children: [
+                _EdgeHealthIndicator(reading: reading),
+                const SizedBox(width: 20),
+                Expanded(child: info),
+              ],
+            );
+          },
         ),
-      );
+      ),
+    );
   }
 }
 

@@ -148,7 +148,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
         case HardwareTransportMode.remote:
           final remote = await _tryRemote();
           if (remote == null) {
-            _registerFailure(remoteClient.lastErrorKey ?? 'remote_cloud_unavailable');
+            _registerFailure(
+                remoteClient.lastErrorKey ?? 'remote_cloud_unavailable');
           } else if (!remote.metadata.freshness.usable) {
             _connectionMetadata = remote.metadata;
             _registerFailure(

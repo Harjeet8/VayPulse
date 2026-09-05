@@ -117,6 +117,7 @@ class Esp32Client {
         sensorStates[channel] = value;
       }
     }
+
     addFlatSensorState('temperature', data['ahtStatus']);
     addFlatSensorState('humidity', data['ahtStatus']);
     addFlatSensorState('light', data['bh1750Status']);
@@ -949,11 +950,8 @@ class Esp32Client {
             root['firmware'],
             ''
           ])}',
-      'firmwareEdition': '${first([
-            data['firmwareEdition'],
-            root['firmwareEdition'],
-            ''
-          ])}',
+      'firmwareEdition':
+          '${first([data['firmwareEdition'], root['firmwareEdition'], ''])}',
       'firmwareBuildState': '${first([
             data['buildState'],
             data['firmwareBuildState'],

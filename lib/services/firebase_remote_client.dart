@@ -99,8 +99,10 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     if (payload == null) {
       try {
         final db = database ?? FirebaseDatabase.instance;
-        final event =
-            await db.ref(databasePath).get().timeout(const Duration(seconds: 4));
+        final event = await db
+            .ref(databasePath)
+            .get()
+            .timeout(const Duration(seconds: 4));
         if (event.value is Map) {
           payload = Map<String, dynamic>.from(event.value as Map);
           _latest = payload;

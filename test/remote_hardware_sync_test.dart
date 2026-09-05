@@ -134,7 +134,8 @@ void main() {
     expect(reading.firmwareBuildState, 'FROZEN_FINAL');
   });
 
-  test('Firebase-shaped flat snapshot normalizes through same SensorReading', () {
+  test('Firebase-shaped flat snapshot normalizes through same SensorReading',
+      () {
     final local = _decode(_localPayload()).reading;
     final remote = _decode(_remotePayload()).reading;
 
