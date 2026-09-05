@@ -67,12 +67,10 @@ class Esp32Client {
     final responses = await Future.wait(
       _candidateBaseUrls.map((candidate) async {
         try {
-          return await _httpClient
-              .get(
-                Uri.parse('$candidate$path'),
-                headers: const {'Accept': 'application/json'},
-              )
-              .timeout(const Duration(milliseconds: 1500));
+          return await _httpClient.get(
+            Uri.parse('$candidate$path'),
+            headers: const {'Accept': 'application/json'},
+          ).timeout(const Duration(milliseconds: 1500));
         } catch (_) {
           return null;
         }
