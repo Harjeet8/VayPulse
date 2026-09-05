@@ -290,7 +290,41 @@ class AppStrings {
       'simulation_description':
           'Safe presentation mode with realistic, controllable farm scenarios. Values are clearly labelled as simulated.',
       'esp32_description':
-          'Polls the configured ESP32 node over the local network and validates every reading before use.',
+          'Uses the ESP32 as the authority, over direct local connection or authenticated remote cloud sync.',
+      'hardware_transport': 'Hardware connection',
+      'transport_auto': 'Auto',
+      'transport_local': 'Local',
+      'transport_remote': 'Remote',
+      'transport_auto_body':
+          'Prefer the direct ESP32 connection and fall back to fresh secure cloud data when needed.',
+      'transport_local_body':
+          'Use only the direct ESP32 connection. Internet is not required.',
+      'transport_remote_body':
+          'Use authenticated remote monitoring without requiring the phone to join the ESP32 Wi-Fi.',
+      'esp32_source_local': 'ESP32 • Local',
+      'esp32_source_remote': 'ESP32 • Remote',
+      'esp32_source_reconnecting': 'ESP32 • Reconnecting',
+      'local_monitoring_active': 'Connected directly to PhytoSense Node',
+      'remote_monitoring_active': 'Remote monitoring via secure cloud sync',
+      'remote_monitoring_delayed':
+          'Remote update is delayed — checking for a fresh snapshot',
+      'remote_cloud_sync': 'Secure cloud sync',
+      'remote_cloud_unavailable': 'Remote cloud monitoring is unavailable.',
+      'remote_auth_unavailable':
+          'Remote sign-in is unavailable. Local monitoring can still be used.',
+      'remote_snapshot_unavailable': 'No remote node snapshot is available yet.',
+      'remote_snapshot_stale':
+          'The remote snapshot is stale and is not being shown as live.',
+      'remote_node_offline': 'The remote PhytoSense node is currently offline.',
+      'bio_contact_initializing': 'Initializing plant signal',
+      'bio_contact_open': 'Electrodes open — check plant contact',
+      'bio_contact_verify': 'Verifying electrode contact',
+      'bio_contact_unstable': 'Electrode contact unstable',
+      'bio_contact_static': 'Static input — not used for plant analysis',
+      'bio_contact_short':
+          'Test/short input detected — not used for plant analysis',
+      'bio_contact_saturated': 'Bio sensor signal out of range',
+      'bio_contact_check': 'Verify electrode contact',
       'source_demo_badge': 'DEMO',
       'source_live_badge': 'LIVE',
       'simulation_active_scenario': 'Scenario: {value}',
@@ -1553,7 +1587,41 @@ class AppStrings {
       'simulation_description':
           'விளக்கக்காட்சிக்கான கட்டுப்படுத்தக்கூடிய பண்ணை நிலைகள். இவை simulation மதிப்புகள் என்று தெளிவாக காட்டப்படும்.',
       'esp32_description':
-          'உள்ளூர் வலையில் ESP32 தரவைப் பெற்று, பயன்படுத்தும் முன் ஒவ்வொரு அளவையும் சரிபார்க்கும்.',
+          'ESP32 முடிவுகளையே அதிகாரப்பூர்வமாக கொண்டு, நேரடி உள்ளூர் இணைப்பு அல்லது பாதுகாப்பான தொலைநிலை cloud sync மூலம் தரவைப் பெறும்.',
+      'hardware_transport': 'Hardware இணைப்பு',
+      'transport_auto': 'தானியங்கி',
+      'transport_local': 'உள்ளூர்',
+      'transport_remote': 'தொலைநிலை',
+      'transport_auto_body':
+          'நேரடி ESP32 இணைப்பை முதலில் பயன்படுத்தி, அது கிடைக்காதபோது புதிய பாதுகாப்பான cloud தரவுக்கு மாறும்.',
+      'transport_local_body':
+          'நேரடி ESP32 இணைப்பை மட்டும் பயன்படுத்தும். Internet தேவையில்லை.',
+      'transport_remote_body':
+          'Phone-ஐ ESP32 Wi-Fi-க்கு இணைக்காமல், authenticated remote monitoring பயன்படுத்தும்.',
+      'esp32_source_local': 'ESP32 • உள்ளூர்',
+      'esp32_source_remote': 'ESP32 • தொலைநிலை',
+      'esp32_source_reconnecting': 'ESP32 • மீண்டும் இணைகிறது',
+      'local_monitoring_active': 'PhytoSense Node-க்கு நேரடியாக இணைக்கப்பட்டுள்ளது',
+      'remote_monitoring_active': 'பாதுகாப்பான cloud sync மூலம் தொலைநிலை கண்காணிப்பு',
+      'remote_monitoring_delayed':
+          'தொலைநிலை update தாமதமாகிறது — புதிய snapshot சரிபார்க்கப்படுகிறது',
+      'remote_cloud_sync': 'பாதுகாப்பான cloud sync',
+      'remote_cloud_unavailable': 'தொலைநிலை cloud monitoring தற்போது கிடைக்கவில்லை.',
+      'remote_auth_unavailable':
+          'Remote sign-in கிடைக்கவில்லை. உள்ளூர் monitoring தொடர்ந்து பயன்படுத்தலாம்.',
+      'remote_snapshot_unavailable': 'Remote node snapshot இன்னும் கிடைக்கவில்லை.',
+      'remote_snapshot_stale':
+          'Remote snapshot பழையது; அது live தரவாக காட்டப்படவில்லை.',
+      'remote_node_offline': 'Remote PhytoSense node தற்போது offline.',
+      'bio_contact_initializing': 'செடி signal தொடங்கப்படுகிறது',
+      'bio_contact_open': 'Electrode திறந்துள்ளது — செடி contact-ஐ சரிபார்க்கவும்',
+      'bio_contact_verify': 'Electrode contact சரிபார்க்கப்படுகிறது',
+      'bio_contact_unstable': 'Electrode contact நிலையாக இல்லை',
+      'bio_contact_static': 'Static input — செடி analysis-ல் பயன்படுத்தப்படாது',
+      'bio_contact_short':
+          'Test/short input கண்டறியப்பட்டது — செடி analysis-ல் பயன்படுத்தப்படாது',
+      'bio_contact_saturated': 'Bio sensor signal அளவுக்கு வெளியே உள்ளது',
+      'bio_contact_check': 'Electrode contact-ஐ சரிபார்க்கவும்',
       'source_demo_badge': 'DEMO',
       'source_live_badge': 'LIVE',
       'simulation_active_scenario': 'நிலை: {value}',
