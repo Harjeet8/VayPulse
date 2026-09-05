@@ -124,7 +124,11 @@ class Esp32Client {
     // decision/root-cause model either flat or nested. These are aliases only:
     // Flutter never recalculates the ESP32 result.
     final decision = _map(
-      first([data['decision'], plantHealth['decision'], analysis['decision']]),
+      first([
+        data['decision'],
+        plantHealth['decision'],
+        analysis['decision'],
+      ]),
     );
     final rootCause = _map(
       first([
