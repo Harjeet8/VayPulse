@@ -508,5 +508,4 @@ void main() {
     expect(provider.current?.temperature, 34.7);
     expect(provider.current?.soilMoisture, 29);
   });
-
 }
