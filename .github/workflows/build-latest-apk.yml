@@ -42,16 +42,7 @@ jobs:
         run: flutter pub get
 
       - name: Verify formatting
-        shell: bash
-        run: |
-          set -euo pipefail
-          dart format lib
-          if ! git diff --quiet -- lib; then
-            echo "DART_FORMAT_DIFF_BEGIN"
-            git diff -- lib
-            echo "DART_FORMAT_DIFF_END"
-            exit 1
-          fi
+        run: dart format --output=none --set-exit-if-changed lib
 
       - name: Static analysis
         run: flutter analyze
