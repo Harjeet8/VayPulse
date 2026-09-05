@@ -120,6 +120,19 @@ class Esp32Client {
     final analysis = _map(
       first([data['analysis'], data['edgeAnalysis'], plantHealth['analysis']]),
     );
+    // Schema-v9 edge intelligence can expose the authoritative farmer
+    // decision/root-cause model either flat or nested. These are aliases only:
+    // Flutter never recalculates the ESP32 result.
+    final decision = _map(
+      first([data['decision'], plantHealth['decision'], analysis['decision']]),
+    );
+    final rootCause = _map(
+      first([
+        data['rootCause'],
+        plantHealth['rootCause'],
+        analysis['rootCause'],
+      ]),
+    );
     final reliability = _map(
       first([
         data['reliability'],
@@ -481,7 +494,11 @@ class Esp32Client {
     );
     final rawCause = first([
       data['primaryRootCause'],
+      data['primaryFinding'],
       data['mainFinding'],
+      decision['primaryFinding'],
+      decision['finding'],
+      rootCause['primary'],
       data['rootCause'],
       data['primaryCause'],
       analysis['primaryRootCause'],
@@ -489,9 +506,12 @@ class Esp32Client {
       plantHealth['rootCause'],
     ]);
     final rawAction = first([
+      data['primaryAction'],
       data['farmerAction'],
       data['recommendedAction'],
       data['recommendation'],
+      decision['primaryAction'],
+      decision['action'],
       analysis['farmerAction'],
       analysis['recommendedAction'],
       plantHealth['farmerAction'],
@@ -499,6 +519,7 @@ class Esp32Client {
     ]);
     final rankedCauses = _causeList(
       first([
+        rootCause['ranked'],
         data['rankedRootCauses'],
         data['rootCauses'],
         data['causes'],
@@ -538,11 +559,14 @@ class Esp32Client {
           ''
         ])}'
         .toUpperCase();
+    final cameraHandoff = _map(data['cameraHandoff']);
     final cameraRecommended = _asBool(
           first([
             data['cameraRecommended'],
-            data['cameraHandoff'],
+            data['cameraScanRecommended'],
+            cameraHandoff['recommended'],
             biotic['cameraRecommended'],
+            biotic['cameraScanRecommended'],
             analysis['cameraRecommended'],
           ]),
         ) ??
@@ -578,10 +602,19 @@ class Esp32Client {
             plantHealth['status'],
             'starting'
           ])}',
-      'priority': '${first([data['priority'], analysis['priority'], ''])}',
+      'priority': '${first([
+            data['priority'],
+            decision['urgency'],
+            decision['priority'],
+            analysis['priority'],
+            ''
+          ])}',
       'because': '${first([
+            data['decisionExplanation'],
             data['because'],
             data['explanation'],
+            decision['explanation'],
+            decision['because'],
             analysis['because'],
             analysis['explanation'],
             ''
@@ -628,6 +661,7 @@ class Esp32Client {
       'rootCauseConfidence': _asDouble(
         first([
           data['rootCauseConfidence'],
+          _map(rootCause['primary'])['confidence'],
           _map(rawCause)['confidence'],
           analysis['rootCauseConfidence'],
           espConfidence,
@@ -636,6 +670,7 @@ class Esp32Client {
       'rankedRootCauses': _mergeCauses(
         primaryRootCause,
         _causeLabel(first([
+          rootCause['secondary'],
           data['secondaryCause'],
           data['secondaryRootCause'],
           analysis['secondaryCause'],
