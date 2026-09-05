@@ -28,7 +28,7 @@ class Esp32Client {
       final response = await _tryGet(path);
       if (response == null) continue;
       try {
-        return _decodeSnapshot(response, endpoint: path);
+        return decodeSnapshot(response, endpoint: path);
       } on FormatException {
         // A compatibility endpoint may exist but expose an older shape. Keep
         // trying the remaining aliases before declaring the node invalid.
@@ -61,7 +61,7 @@ class Esp32Client {
     }
   }
 
-  Esp32Snapshot _decodeSnapshot(
+  Esp32Snapshot decodeSnapshot(
     http.Response response, {
     required String endpoint,
   }) {
@@ -109,9 +109,21 @@ class Esp32Client {
       first([data['biotic'], analysis['biotic'], plantHealth['biotic']]),
     );
     final validity = _map(first([data['sensorValidity'], data['validity']]));
-    final sensorStates = _map(
-      first([data['sensorStates'], data['sensorStatus']]),
-    );
+    final sensorStates = <String, dynamic>{
+      ..._map(first([data['sensorStates'], data['sensorStatus']])),
+    };
+    void addFlatSensorState(String channel, dynamic value) {
+      if (value != null && !sensorStates.containsKey(channel)) {
+        sensorStates[channel] = value;
+      }
+    }
+    addFlatSensorState('temperature', data['ahtStatus']);
+    addFlatSensorState('humidity', data['ahtStatus']);
+    addFlatSensorState('light', data['bh1750Status']);
+    addFlatSensorState('soilMoisture', data['soilStatus']);
+    addFlatSensorState('soilTemperature', data['ds18b20Status']);
+    addFlatSensorState('leafWetness', data['leafStatus']);
+    addFlatSensorState('plantSignal', data['bioStatus']);
 
     final plantModel = _map(
       first([
@@ -404,6 +416,7 @@ class Esp32Client {
     final espHealth = _asDouble(
       first([
         data['healthScore'],
+        data['healthIndex'],
         data['health'],
         plantHealth['score'],
         plantHealth['index'],
@@ -413,6 +426,7 @@ class Esp32Client {
       first([
         data['healthConfidence'],
         data['analysisConfidence'],
+        data['confidence'],
         plantHealth['confidence'],
       ]),
     );
@@ -426,6 +440,7 @@ class Esp32Client {
     );
     final rawCause = first([
       data['primaryRootCause'],
+      data['mainFinding'],
       data['rootCause'],
       data['primaryCause'],
       analysis['primaryRootCause'],
@@ -515,8 +530,21 @@ class Esp32Client {
       // Hardware mode uses the ESP32 edge-intelligence result directly.
       'healthScore': espHealth ?? 0,
       'stressScore': espStress ?? (espHealth == null ? 0 : 100 - espHealth),
-      'healthStatus':
-          '${first([data['healthStatus'], plantHealth['status'], 'starting'])}',
+      'healthStatus': '${first([
+            data['plantCondition'],
+            data['healthStatus'],
+            data['status'],
+            plantHealth['status'],
+            'starting'
+          ])}',
+      'priority': '${first([data['priority'], analysis['priority'], ''])}',
+      'because': '${first([
+            data['because'],
+            data['explanation'],
+            analysis['because'],
+            analysis['explanation'],
+            ''
+          ])}',
       'analysisConfidence': espConfidence ?? 0,
       'edgeAnalysisAvailable': espHealth != null,
       'crop': '${first([
@@ -542,6 +570,7 @@ class Esp32Client {
           ])}',
       'recoveryStatus': '${first([
             data['recoveryStatus'],
+            data['recoveryState'],
             recovery['status'],
             recovery['state'],
             ''
@@ -556,7 +585,16 @@ class Esp32Client {
           espConfidence,
         ]),
       ),
-      'rankedRootCauses': rankedCauses,
+      'rankedRootCauses': _mergeCauses(
+        primaryRootCause,
+        _causeLabel(first([
+          data['secondaryCause'],
+          data['secondaryRootCause'],
+          analysis['secondaryCause'],
+          analysis['secondaryRootCause'],
+        ])),
+        rankedCauses,
+      ),
       'bioticState': bioticState,
       'bioState':
           '${first([data['bioState'], bio['state'], bio['status'], ''])}'
@@ -681,9 +719,12 @@ class Esp32Client {
       'anomalyAffectedChannel':
           '${first([anomaly['affectedChannel'], anomaly['channel'], ''])}',
       'predictionAvailable': _asBool(
-            first([prediction['available'], data['predictionAvailable']]),
-          ) ==
-          true,
+                first([prediction['available'], data['predictionAvailable']]),
+              ) ==
+              true ||
+          _predictionStateAvailable(
+            first([prediction['state'], data['predictionState']]),
+          ),
       'predictionTarget':
           '${first([prediction['target'], prediction['metric'], ''])}',
       'predictionConfidence': _asDouble(
@@ -725,8 +766,12 @@ class Esp32Client {
       'recoveryActionToResponseLagSec': _asInt(
         first([recovery['actionToResponseLagSec'], recovery['responseLagSec']]),
       ),
-      'sensorIntegrityState':
-          '${first([sensorIntegrity['state'], sensorIntegrity['status'], ''])}',
+      'sensorIntegrityState': '${first([
+            sensorIntegrity['state'],
+            sensorIntegrity['status'],
+            data['sensorIntegrity'] is String ? data['sensorIntegrity'] : null,
+            ''
+          ])}',
       'sensorIntegrityPrimaryIssue': '${first([
             sensorIntegrity['primaryIssue'],
             sensorIntegrity['issue'],
@@ -795,6 +840,7 @@ class Esp32Client {
           components['water'],
           components['waterScore'],
           data['waterScore'],
+          data['waterBalance'],
         ]),
       ),
       'thermalScore': _asDouble(
@@ -833,8 +879,12 @@ class Esp32Client {
         ]),
       ),
       'bioelectricStability': stabilityValue,
-      'soilRaw': _asInt(first([soil['moistureRaw'], data['soilMoistureRaw']])),
-      'leafRaw': _asInt(first([leaf['raw'], data['leafWetnessRaw']])),
+      'soilRaw': _asInt(
+        first([soil['moistureRaw'], data['soilMoistureRaw'], data['soilRaw']]),
+      ),
+      'leafRaw': _asInt(
+        first([leaf['raw'], data['leafWetnessRaw'], data['leafRaw']]),
+      ),
       'soilCalibrated': first([
             soil['calibrated'],
             calibration['soilConfirmed'],
@@ -847,7 +897,9 @@ class Esp32Client {
             calibration['leafCalibrated'],
           ]) ==
           true,
-      'daytime': first([light['daytime'], data['daytime']]) != false,
+      'daytime': _isDaytime(
+        first([light['daytime'], data['daytime'], data['dayNight']]),
+      ),
       'leafWetDurationSeconds': _asDouble(
             first([
               leaf['continuousWetSeconds'],
@@ -878,9 +930,16 @@ class Esp32Client {
       'bioReconnectVerifySec': bioReconnectVerifySec,
       'firmwareName': '${first([
             data['firmwareName'],
+            data['firmwareVersion'],
             data['firmware'],
             root['firmwareName'],
+            root['firmwareVersion'],
             root['firmware'],
+            ''
+          ])}',
+      'firmwareEdition': '${first([
+            data['firmwareEdition'],
+            root['firmwareEdition'],
             ''
           ])}',
       'firmwareBuildState': '${first([
@@ -903,8 +962,8 @@ class Esp32Client {
         100,
       ),
       firmwareVersion: '${first([
-            data['firmware'],
             data['firmwareVersion'],
+            data['firmware'],
             root['firmware'],
             root['firmwareVersion'],
             'unknown'
@@ -1007,6 +1066,35 @@ class Esp32Client {
     return degraded ? 'DEGRADED' : 'FULL';
   }
 
+  static List<String> _mergeCauses(
+    String primary,
+    String? secondary,
+    List<String> existing,
+  ) {
+    final result = <String>[];
+    for (final item in <String>[primary, secondary ?? '', ...existing]) {
+      final clean = item.trim();
+      if (clean.isNotEmpty && !result.contains(clean)) result.add(clean);
+    }
+    return result;
+  }
+
+  static bool _predictionStateAvailable(dynamic value) {
+    final state = '${value ?? ''}'.trim().toUpperCase();
+    return state.isNotEmpty &&
+        state != 'NONE' &&
+        state != 'UNAVAILABLE' &&
+        state != 'DISABLED';
+  }
+
+  static bool _isDaytime(dynamic value) {
+    if (value is bool) return value;
+    final text = '${value ?? ''}'.trim().toUpperCase();
+    if (text == 'NIGHT') return false;
+    if (text == 'DAY') return true;
+    return _asBool(value) ?? true;
+  }
+
   static List<String> _causeList(dynamic value) {
     if (value is! List) return const <String>[];
     return value
@@ -1063,9 +1151,24 @@ class Esp32Client {
       (_asInt(value) ?? fallback).clamp(0, 100).toInt();
 
   static String _timestamp(Map<String, dynamic> payload) {
-    final direct = payload['timestamp'];
-    if (direct != null && DateTime.tryParse('$direct') != null) {
-      return '$direct';
+    final direct = payload['timestamp'] ?? payload['lastSeen'];
+    if (direct is num) {
+      final raw = direct.toInt();
+      final milliseconds = raw.abs() < 100000000000 ? raw * 1000 : raw;
+      return DateTime.fromMillisecondsSinceEpoch(milliseconds)
+          .toIso8601String();
+    }
+    if (direct != null) {
+      final text = '$direct'.trim();
+      final numeric = int.tryParse(text);
+      if (numeric != null) {
+        final milliseconds =
+            numeric.abs() < 100000000000 ? numeric * 1000 : numeric;
+        return DateTime.fromMillisecondsSinceEpoch(milliseconds)
+            .toIso8601String();
+      }
+      final parsed = DateTime.tryParse(text);
+      if (parsed != null) return parsed.toIso8601String();
     }
     return DateTime.now().toIso8601String();
   }
