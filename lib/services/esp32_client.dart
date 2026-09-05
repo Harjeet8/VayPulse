@@ -178,6 +178,7 @@ class Esp32Client {
 
     final temperature = first([
       data['airTemperatureC'],
+      data['airTemperature'],
       data['temperatureC'],
       data['temperature'],
       air['temperatureC'],
@@ -197,6 +198,7 @@ class Esp32Client {
     ]);
     final soilTemperature = first([
       data['soilTemperatureC'],
+      data['rootTemperature'],
       data['soilTemperature'],
       soil['temperatureC'],
     ]);
@@ -219,6 +221,7 @@ class Esp32Client {
     ]);
     final plantVoltageMv = first([
       data['plantVoltageMv'],
+      data['bioVoltage'],
       data['plantVoltage'],
       bio['amplifierOutputMv'],
     ]);
@@ -257,15 +260,16 @@ class Esp32Client {
       externalState: sensorStates['humidity'],
     );
     final soilValid = _channelValid(
-      soil,
-      explicitValid: first([
-        soil['moistureValid'],
-        data['soilMoistureValid'],
-        validity['soilMoisture'],
-        soil['valid'],
-      ]),
-      externalState: sensorStates['soilMoisture'],
-    );
+          soil,
+          explicitValid: first([
+            soil['moistureValid'],
+            data['soilMoistureValid'],
+            validity['soilMoisture'],
+            soil['valid'],
+          ]),
+          externalState: sensorStates['soilMoisture'],
+        ) &&
+        !_deploymentVerificationState(sensorStates['soilMoisture']);
     final rootValid = _channelValid(
       soil,
       explicitValid: first([
@@ -564,6 +568,12 @@ class Esp32Client {
             'Vegetative'
           ])}',
       'reliabilityMode': reliabilityMode,
+      'analysisQuality': '${first([
+            data['analysisQuality'],
+            analysis['quality'],
+            analysis['analysisQuality'],
+            ''
+          ])}',
       'systemStatus': '${first([
             data['systemStatus'],
             system['status'],
@@ -1041,6 +1051,22 @@ class Esp32Client {
       'AMP_LOW_RAIL',
       'FAILED',
       'ERROR',
+    }.contains(state);
+  }
+
+  static bool _deploymentVerificationState(dynamic value) {
+    final state = '${value ?? ''}'
+        .trim()
+        .toUpperCase()
+        .replaceAll(' ', '_')
+        .replaceAll('-', '_');
+    return const {
+      'VERIFY',
+      'PLACEMENT_VERIFY',
+      'CHECK_PLACEMENT',
+      'OUTSIDE_CALIBRATED_RANGE',
+      'HEALTH_USE_DISABLED',
+      'DISABLED',
     }.contains(state);
   }
 
