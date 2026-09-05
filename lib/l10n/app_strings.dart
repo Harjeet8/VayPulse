@@ -303,6 +303,7 @@ class AppStrings {
           'Use authenticated remote monitoring without requiring the phone to join the ESP32 Wi-Fi.',
       'esp32_source_local': 'ESP32 • Local',
       'esp32_source_remote': 'ESP32 • Remote',
+      'esp32_source_cloud_offline': 'ESP32 • Cloud offline',
       'esp32_source_reconnecting': 'ESP32 • Reconnecting',
       'local_monitoring_active': 'Connected directly to PhytoSense Node',
       'remote_monitoring_active': 'Remote monitoring via secure cloud sync',
@@ -354,6 +355,15 @@ class AppStrings {
       'diagnostic_provider': 'Active provider',
       'diagnostic_connection': 'Connection',
       'diagnostic_data_quality': 'Data quality',
+      'diagnostic_transport': 'Hardware transport',
+      'transport_status_local': 'Local direct',
+      'transport_status_remote': 'Remote cloud',
+      'transport_status_reconnecting': 'Reconnecting',
+      'configure_node_wifi': 'Configure Node Wi-Fi',
+      'configure_node_wifi_unreachable':
+          'Connect your phone to the PhytoSense node Wi-Fi, then try again. Setup address: 192.168.4.1',
+      'configure_node_wifi_launch_failed':
+          'Could not open the node setup page. Open 192.168.4.1 in your browser while connected to the PhytoSense node Wi-Fi.',
       'about_settings_title': 'Learn how PhytoSense AI works',
       'about_settings_body':
           'Mission, engineering architecture, farmer design and interactive farm-impact estimator',
@@ -1601,6 +1611,7 @@ class AppStrings {
           'Phone-ஐ ESP32 Wi-Fi-க்கு இணைக்காமல், authenticated remote monitoring பயன்படுத்தும்.',
       'esp32_source_local': 'ESP32 • உள்ளூர்',
       'esp32_source_remote': 'ESP32 • தொலைநிலை',
+      'esp32_source_cloud_offline': 'ESP32 • Cloud offline',
       'esp32_source_reconnecting': 'ESP32 • மீண்டும் இணைகிறது',
       'local_monitoring_active':
           'PhytoSense Node-க்கு நேரடியாக இணைக்கப்பட்டுள்ளது',
@@ -1654,6 +1665,15 @@ class AppStrings {
       'diagnostic_provider': 'செயலில் உள்ள provider',
       'diagnostic_connection': 'இணைப்பு',
       'diagnostic_data_quality': 'தரவு தரம்',
+      'diagnostic_transport': 'Hardware transport',
+      'transport_status_local': 'நேரடி உள்ளூர்',
+      'transport_status_remote': 'தொலைநிலை cloud',
+      'transport_status_reconnecting': 'மீண்டும் இணைகிறது',
+      'configure_node_wifi': 'Node Wi-Fi அமைக்கவும்',
+      'configure_node_wifi_unreachable':
+          'உங்கள் phone-ஐ PhytoSense node Wi-Fi-க்கு இணைத்து மீண்டும் முயற்சிக்கவும். Setup address: 192.168.4.1',
+      'configure_node_wifi_launch_failed':
+          'Node setup page-ஐ திறக்க முடியவில்லை. PhytoSense node Wi-Fi-க்கு இணைந்தபின் browser-ல் 192.168.4.1 திறக்கவும்.',
       'about_settings_title': 'PhytoSense AI எவ்வாறு செயல்படுகிறது',
       'about_settings_body':
           'நோக்கம், engineering architecture, விவசாயி வடிவமைப்பு மற்றும் interactive farm-impact estimator',
