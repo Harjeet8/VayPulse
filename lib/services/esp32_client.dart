@@ -382,7 +382,9 @@ class Esp32Client {
     final bioPlantUseValid = bioMeasurementValid &&
         (!hasNewBioContactGate ||
             (bioContactPlausibleForPlantUse == true &&
-                bioAffectsHealth != false &&
+                bioAffectsHealth == true &&
+                bioOpenLatched != true &&
+                bioReconnectVerifying != true &&
                 (bioContactState.isEmpty || bioContactState == 'PLAUSIBLE')));
 
     final tempValue = temperatureValid ? _asDouble(temperature) : null;
