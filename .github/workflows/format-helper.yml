@@ -1,0 +1,26 @@
+name: Temporary Dart Formatter Helper
+
+on:
+  push:
+    branches:
+      - format-helper-20260905
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.47.1"
+          channel: stable
+          cache: true
+      - name: Print exact formatted parser
+        run: |
+          echo "===FORMATTED_FILE_START==="
+          dart format --output=show lib/services/esp32_client.dart
+          echo "===FORMATTED_FILE_END==="
