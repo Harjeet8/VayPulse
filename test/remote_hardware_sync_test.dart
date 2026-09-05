@@ -90,6 +90,49 @@ Esp32Snapshot _decode(Map<String, dynamic> payload) =>
       endpoint: '/api/sensors',
     );
 
+class _StaticRemoteClient implements RemoteHardwareClient {
+  final RemoteHardwareSnapshot value;
+  int snapshotCalls = 0;
+
+  _StaticRemoteClient(this.value);
+
+  @override
+  String? get lastErrorKey => null;
+
+  @override
+  Future<void> start() async {}
+
+  @override
+  Future<RemoteHardwareSnapshot> getSnapshot() async {
+    snapshotCalls++;
+    return value;
+  }
+
+  @override
+  Future<void> dispose() async {}
+}
+
+RemoteHardwareSnapshot _remoteSnapshot(
+  Map<String, dynamic> payload,
+) {
+  final snapshot = _decode(payload);
+  return RemoteHardwareSnapshot(
+    snapshot: snapshot,
+    metadata: HardwareConnectionMetadata(
+      transport: HardwareTransportKind.remote,
+      freshness: RemoteSnapshotFreshness.live,
+      connectionMode: 'REMOTE',
+      remoteNetworkState: 'REMOTE_CONNECTED',
+      internetConnected: true,
+      cloudConnected: true,
+      lastSeen: DateTime.now().toUtc(),
+      firmwareVersion: snapshot.firmwareVersion,
+      firmwareEdition: snapshot.reading.firmwareEdition,
+      buildState: snapshot.reading.firmwareBuildState,
+    ),
+  );
+}
+
 class _ThrowingRemoteClient implements RemoteHardwareClient {
   int startCalls = 0;
   int snapshotCalls = 0;
@@ -381,4 +424,89 @@ void main() {
       'phytosense/nodes/phytosense_01/live',
     );
   });
+  test('REMOTE Hardware Mode works without local ESP32 reachability', () async {
+    final remotePayload = _remotePayload()
+      ..['healthIndex'] = 77
+      ..['mainFinding'] = 'Remote authoritative result'
+      ..['airTemperature'] = 31.2;
+    final remote = _StaticRemoteClient(_remoteSnapshot(remotePayload));
+    final localClient = Esp32Client(
+      'http://192.168.4.1',
+      httpClient: MockClient((_) async {
+        throw http.ClientException('local AP unavailable');
+      }),
+    );
+    final provider = Esp32SensorProvider(
+      client: localClient,
+      remoteClient: remote,
+      transportMode: HardwareTransportMode.remote,
+      pollInterval: const Duration(hours: 1),
+    );
+    addTearDown(provider.dispose);
+
+    provider.start();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    expect(provider.connectionStatus, SensorConnectionStatus.ready);
+    expect(provider.activeTransport, HardwareTransportKind.remote);
+    expect(provider.current?.healthScore, 77);
+    expect(provider.current?.primaryRootCause, 'Remote authoritative result');
+    expect(provider.current?.temperature, 31.2);
+    expect(remote.snapshotCalls, greaterThan(0));
+  });
+
+  test('AUTO switches complete snapshots and never field-merges local/remote',
+      () async {
+    var localReachable = true;
+    final localPayload = _localPayload()
+      ..['healthIndex'] = 96
+      ..['mainFinding'] = 'LOCAL RESULT'
+      ..['airTemperature'] = 25.1
+      ..['soilMoisture'] = 81;
+
+    final remotePayload = _remotePayload()
+      ..['healthIndex'] = 42
+      ..['mainFinding'] = 'REMOTE RESULT'
+      ..['airTemperature'] = 34.7
+      ..['soilMoisture'] = 29;
+
+    final localClient = Esp32Client(
+      'http://192.168.4.1',
+      httpClient: MockClient((_) async {
+        if (!localReachable) {
+          throw http.ClientException('local unavailable');
+        }
+        return _jsonResponse(localPayload);
+      }),
+    );
+    final remote = _StaticRemoteClient(_remoteSnapshot(remotePayload));
+    final provider = Esp32SensorProvider(
+      client: localClient,
+      remoteClient: remote,
+      transportMode: HardwareTransportMode.auto,
+      pollInterval: const Duration(hours: 1),
+    );
+    addTearDown(provider.dispose);
+
+    provider.start();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    expect(provider.activeTransport, HardwareTransportKind.local);
+    expect(provider.current?.healthScore, 96);
+    expect(provider.current?.primaryRootCause, 'LOCAL RESULT');
+    expect(provider.current?.temperature, 25.1);
+    expect(provider.current?.soilMoisture, 81);
+
+    localReachable = false;
+    provider.retry();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    provider.retry();
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+
+    expect(provider.activeTransport, HardwareTransportKind.remote);
+    expect(provider.current?.healthScore, 42);
+    expect(provider.current?.primaryRootCause, 'REMOTE RESULT');
+    expect(provider.current?.temperature, 34.7);
+    expect(provider.current?.soilMoisture, 29);
+  });
+
 }
