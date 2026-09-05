@@ -1,0 +1,102 @@
+name: Build Verdant Remote Final APK
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-verdant-remote-final:
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Checkout Verdant Remote Final
+        uses: actions/checkout@v4
+        with:
+          ref: phytosense-verdant-remote-final
+
+      - name: Verify integrated lineage
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q '^version: 9.1.0+901$' pubspec.yaml
+          test -f assets/branding/phytosense_icon.png
+          test -f assets/fonts/NotoSansTamil-Regular.ttf
+          grep -Fq "TimePhaseCard" lib/screens/live_node_home_screen.dart
+          grep -Fq "Full plant intelligence" lib/screens/live_node_home_screen.dart
+          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
+          grep -Fq "FirebaseRemoteClient" lib/services/esp32_sensor_provider.dart
+          grep -Fq "HardwareTransportMode" lib/screens/settings_screen.dart
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Format
+        run: dart format lib test
+
+      - name: Analyze
+        run: flutter analyze
+
+      - name: Test
+        run: flutter test
+
+      - name: Create temporary install signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          PASS="$(openssl rand -hex 24)"
+          KEYSTORE="$RUNNER_TEMP/phytosense-vrf.jks"
+          keytool -genkeypair -noprompt \
+            -keystore "$KEYSTORE" -storepass "$PASS" -keypass "$PASS" \
+            -alias phytosense -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=PhytoSense AI Verdant Remote Final,O=PhytoSense AI,C=IN"
+          echo "ANDROID_KEYSTORE_PATH=$KEYSTORE" >> "$GITHUB_ENV"
+          echo "ANDROID_STORE_PASSWORD=$PASS" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_ALIAS=phytosense" >> "$GITHUB_ENV"
+          echo "ANDROID_KEY_PASSWORD=$PASS" >> "$GITHUB_ENV"
+
+      - name: Build release APK
+        run: flutter build apk --release --obfuscate --split-debug-info="$RUNNER_TEMP/symbols"
+
+      - name: Verify package and signature
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC=build/app/outputs/flutter-apk/app-release.apk
+          OUT=PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.0.apk
+          test -s "$SRC"
+          cp "$SRC" "$OUT"
+          unzip -t "$OUT" >/dev/null
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          build_tools="$(find "$sdk_root/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "$build_tools/apksigner" verify --verbose "$OUT"
+          app_id="$("$sdk_root/cmdline-tools/latest/bin/apkanalyzer" manifest application-id "$OUT")"
+          test "$app_id" = "com.harjeet.phytosense"
+          "$sdk_root/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable "$OUT" | grep -qx false
+          sha256sum "$OUT" | tee "$OUT.sha256"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.0
+          path: |
+            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.0.apk
+            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.0.apk.sha256
+          if-no-files-found: error
+          retention-days: 14
