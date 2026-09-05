@@ -85,3 +85,17 @@ STALE/OFFLINE snapshots are not accepted as current Hardware Mode readings.
 
 Simulation remains an independent provider and never reads from or writes to
 the hardware Firebase path.
+
+## ESP32 Wi-Fi provisioning
+
+Router credentials remain owned by the ESP32 and its NVS storage. Flutter does
+not scan router networks, request router passwords, save router passwords, or
+write router credentials to Firebase.
+
+In Hardware Mode, **Devices → Configure Node Wi-Fi** checks the direct
+PhytoSense setup node and opens the ESP32 dashboard at
+`http://192.168.4.1` in the system browser. If the local node is not reachable,
+the app asks the user to connect the phone to the PhytoSense node Wi-Fi first.
+
+The provisioning page served by the ESP32 is responsible for SSID scanning,
+password entry, STA connection, and persistent network switching.
