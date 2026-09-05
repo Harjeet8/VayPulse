@@ -369,4 +369,17 @@ void main() {
     expect(reading.firmwareEdition, isEmpty);
     expect(reading.analysisQuality, isEmpty);
   });
+  test('Firebase client is pinned to the final PhytoSense project and RTDB',
+      () {
+    expect(FirebaseRemoteClient.projectId, 'phytosense-ai-1b0d8');
+    expect(
+      FirebaseRemoteClient.databaseUrl,
+      'https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app',
+    );
+    expect(
+      FirebaseRemoteClient.defaultPath,
+      'phytosense/nodes/phytosense_01/live',
+    );
+  });
+
 }
