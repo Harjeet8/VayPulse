@@ -4,9 +4,22 @@ Firebase is a **transport layer only**. The ESP32 remains the source of truth fo
 health, plant condition, root cause, recommendation, confidence, prediction,
 recovery, sensor integrity, bio/contact validity, and adaptive plant intelligence.
 
+## Firebase project
+
+Project ID:
+
+`phytosense-ai-1b0d8`
+
+Realtime Database:
+
+`https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app`
+
+The Flutter remote client is explicitly bound to that database URL and refuses
+a mismatched Firebase project configuration.
+
 ## Android client configuration
 
-1. Create/select the Firebase project used by the PhytoSense node.
+1. Open/select Firebase project `phytosense-ai-1b0d8`.
 2. Register Android application ID `com.harjeet.phytosense`.
 3. Download that project's Android `google-services.json`.
 4. Supply it at build time as:
@@ -34,6 +47,10 @@ The app reads the authoritative ESP32 snapshot at:
 
 `/phytosense/nodes/phytosense_01/live`
 
+against:
+
+`https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app`
+
 The ESP32/cloud writer should update `lastSeen` or `timestamp` on every cloud
 upload (the current firmware cadence is approximately three seconds).
 
@@ -41,7 +58,7 @@ upload (the current firmware cadence is approximately three seconds).
 
 Do **not** use public rules such as `.read = true` or `.write = true`.
 
-A minimal authenticated-read development rule is:
+A minimal authenticated-read app rule is:
 
 ```json
 {
@@ -51,7 +68,7 @@ A minimal authenticated-read development rule is:
         "$nodeId": {
           "live": {
             ".read": "auth != null",
-            ".write": "false"
+            ".write": "auth != null && auth.uid == 'REPLACE_WITH_ESP32_WRITER_UID'"
           }
         }
       }
@@ -60,10 +77,13 @@ A minimal authenticated-read development rule is:
 }
 ```
 
-That example deliberately blocks client writes. For a production deployment,
-scope reads to the user's permitted node(s), and authorize the ESP32/cloud
-writer separately using an appropriate Firebase-supported identity. Do not put
-a privileged server credential inside the Flutter APK.
+Replace `REPLACE_WITH_ESP32_WRITER_UID` with the UID of the dedicated ESP32
+writer identity configured on the device side. The Flutter app uses Anonymous
+Authentication for reads and contains no ESP32 writer email/password.
+
+For a production deployment, scope reads to the user's permitted node(s) and
+keep write authorization restricted to the dedicated device identity. Do not
+put a privileged server credential inside the Flutter APK.
 
 ## Freshness
 

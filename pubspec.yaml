@@ -1,7 +1,7 @@
 name: phytosense_ai
 description: PhytoSense AI - intelligent, farmer-first crop monitoring and decision support, powered by VayPulse.
 publish_to: "none"
-version: 9.0.0+15
+version: 9.0.0+16
 
 environment:
   sdk: ">=3.4.0 <4.0.0"
