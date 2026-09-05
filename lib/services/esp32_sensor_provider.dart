@@ -155,6 +155,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
               remote.metadata.freshness == RemoteSnapshotFreshness.stale
                   ? 'remote_snapshot_stale'
                   : 'remote_node_offline',
+              immediate: true,
             );
           } else {
             _accept(remote.snapshot, remote.metadata);
@@ -218,6 +219,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
         remote.metadata.freshness == RemoteSnapshotFreshness.stale
             ? 'remote_snapshot_stale'
             : 'remote_node_offline',
+        immediate: true,
       );
       return;
     }
@@ -280,11 +282,11 @@ class Esp32SensorProvider extends HardwareSensorProvider {
     _controller.add(reading);
   }
 
-  void _registerFailure(String key) {
+  void _registerFailure(String key, {bool immediate = false}) {
     _consecutiveFailures++;
-    // Keep the last complete snapshot for context during one missed cycle, but
-    // never mark it as a newly live reading.
-    if (_consecutiveFailures < 2 && _current != null) return;
+    // A stale cloud snapshot is never allowed to retain a LIVE connection
+    // state. Ordinary transient local failures still get one-cycle debounce.
+    if (!immediate && _consecutiveFailures < 2 && _current != null) return;
     _status = SensorConnectionStatus.offline;
     _errorMessage = key;
     _node = _node.copyWith(isOnline: false);
