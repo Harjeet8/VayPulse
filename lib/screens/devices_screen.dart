@@ -195,13 +195,7 @@ Future<void> _openNodeWifi(BuildContext context) async {
   };
 
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(context.tr(messageKey)),
-      action: SnackBarAction(
-        label: context.tr('setup_address'),
-        onPressed: () {},
-      ),
-    ),
+    SnackBar(content: Text(context.tr(messageKey))),
   );
 }
 
