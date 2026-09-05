@@ -14,11 +14,23 @@ class Esp32Client {
 
   static const _sensorPaths = <String>[
     '/api/sensors',
-    '/api/v1/sensors',
     '/api/data',
+    '/api/v1/sensors',
     '/data',
     '/sensors',
   ];
+
+  // Keep the polished UI unchanged while allowing the same node to be reached
+  // through its AP address or the current router-side STA address.
+  static const _knownLocalNodeUrls = <String>[
+    'http://192.168.4.1',
+    'http://192.168.29.5',
+  ];
+
+  List<String> get _candidateBaseUrls => <String>[
+        baseUrl,
+        ..._knownLocalNodeUrls.where((candidate) => candidate != baseUrl),
+      ];
 
   /// Reads the production PhytoSense firmware first, while keeping aliases for
   /// earlier bring-up builds. No internet or router is required: this is a
@@ -52,15 +64,25 @@ class Esp32Client {
   }
 
   Future<http.Response?> _tryGet(String path) async {
-    try {
-      final response = await _httpClient.get(
-        Uri.parse('$baseUrl$path'),
-        headers: const {'Accept': 'application/json'},
-      ).timeout(const Duration(seconds: 4));
-      return response.statusCode == 200 ? response : null;
-    } catch (_) {
-      return null;
+    final responses = await Future.wait(
+      _candidateBaseUrls.map((candidate) async {
+        try {
+          return await _httpClient
+              .get(
+                Uri.parse('$candidate$path'),
+                headers: const {'Accept': 'application/json'},
+              )
+              .timeout(const Duration(milliseconds: 1500));
+        } catch (_) {
+          return null;
+        }
+      }),
+    );
+
+    for (final response in responses) {
+      if (response?.statusCode == 200) return response;
     }
+    return null;
   }
 
   Esp32Snapshot decodeSnapshot(

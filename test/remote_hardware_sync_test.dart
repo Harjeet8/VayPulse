@@ -593,4 +593,24 @@ void main() {
     expect(reading.primaryRootCause, 'Verify soil probe placement');
   });
 
+
+  test('local hardware automatically falls back to current STA node address',
+      () async {
+    final payload = _localPayload();
+    final client = Esp32Client(
+      'http://192.168.4.1',
+      httpClient: MockClient((request) async {
+        if (request.url.host == '192.168.29.5' &&
+            request.url.path == '/api/sensors') {
+          return _jsonResponse(payload);
+        }
+        throw http.ClientException('unreachable');
+      }),
+    );
+
+    final snapshot = await client.getSnapshot();
+    expect(snapshot.reading.nodeId, 'phytosense_01');
+    expect(snapshot.reading.healthScore, 91);
+  });
+
 }
