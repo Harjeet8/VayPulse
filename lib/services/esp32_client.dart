@@ -206,8 +206,10 @@ class Esp32Client {
       data['soilTemperature'],
       soil['temperatureC'],
     ]);
-    final schemaVersion = _asInt(first([data['schemaVersion'], root['schemaVersion']])) ?? 0;
-    final flatLightIsLux = endpoint.startsWith('firebase:') || schemaVersion >= 9;
+    final schemaVersion =
+        _asInt(first([data['schemaVersion'], root['schemaVersion']])) ?? 0;
+    final flatLightIsLux =
+        endpoint.startsWith('firebase:') || schemaVersion >= 9;
     final lux = first([
       data['lux'],
       data['lightLux'],
@@ -637,8 +639,9 @@ class Esp32Client {
           data['plantModelStatus'],
         ]),
       ),
-      'plantModelReady': _asBool(data['plantModelReady']) == true ||
-          _plantModelReady(plantModel),
+      'plantModelReady':
+          _asBool(data['plantModelReady']) == true ||
+              _plantModelReady(plantModel),
       'plantModelConfidence': _asDouble(
         first([
           plantModel['confidence'],
