@@ -932,6 +932,13 @@ class _EdgeIntelligencePanel extends StatelessWidget {
       ? ''
       : '${_confidencePercent(value).clamp(0, 100).round()}%';
 
+  static String _clock(DateTime value) {
+    final local = value.toLocal();
+    return '${local.hour.toString().padLeft(2, '0')}:'
+        '${local.minute.toString().padLeft(2, '0')}:'
+        '${local.second.toString().padLeft(2, '0')}';
+  }
+
   static String _label(String value) => value
       .trim()
       .replaceAll('_', ' ')
@@ -1238,16 +1245,6 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                       label: 'Reconnect verification',
                       value: '${reading.bioReconnectVerifySec} / 26 s',
                     ),
-                  if (reading.firmwareName.trim().isNotEmpty)
-                    _EdgeDetailRow(
-                      label: 'Firmware',
-                      value: reading.firmwareName.trim(),
-                    ),
-                  if (reading.firmwareBuildState.trim().isNotEmpty)
-                    _EdgeDetailRow(
-                      label: 'Build state',
-                      value: _label(reading.firmwareBuildState),
-                    ),
                   if (reading.analysisQuality.trim().isNotEmpty)
                     _EdgeDetailRow(
                       label: 'Analysis quality',
@@ -1316,12 +1313,19 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                     label: 'Remote network state',
                     value: _label(connection.remoteNetworkState),
                   ),
-                if (connection.lastSeen != null &&
-                    activeTransport == HardwareTransportKind.remote)
+                if (connection.connectedStaSsid.trim().isNotEmpty)
+                  _EdgeDetailRow(
+                    label: 'Connected router',
+                    value: connection.connectedStaSsid.trim(),
+                  ),
+                if (connection.lastCloudSync != null ||
+                    (connection.lastSeen != null &&
+                        activeTransport == HardwareTransportKind.remote))
                   _EdgeDetailRow(
                     label: 'Last cloud sync',
-                    value:
-                        '${connection.lastSeen!.toLocal().hour.toString().padLeft(2, '0')}:${connection.lastSeen!.toLocal().minute.toString().padLeft(2, '0')}:${connection.lastSeen!.toLocal().second.toString().padLeft(2, '0')}',
+                    value: _clock(
+                      connection.lastCloudSync ?? connection.lastSeen!,
+                    ),
                   ),
                 if (activeTransport == HardwareTransportKind.remote)
                   _EdgeDetailRow(
