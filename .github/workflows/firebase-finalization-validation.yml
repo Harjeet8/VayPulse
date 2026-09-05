@@ -85,9 +85,14 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          rg -q "phytosense-ai-1b0d8" lib/services/firebase_remote_client.dart FIREBASE_SETUP.md
-          rg -q "https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app" lib/services/firebase_remote_client.dart FIREBASE_SETUP.md
-          rg -q "phytosense/nodes/phytosense_01/live" lib/services/firebase_remote_client.dart FIREBASE_SETUP.md
+          grep -Fq "phytosense-ai-1b0d8" lib/services/firebase_remote_client.dart
+          grep -Fq "phytosense-ai-1b0d8" FIREBASE_SETUP.md
+          grep -Fq "https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app" lib/services/firebase_remote_client.dart
+          grep -Fq "https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app" FIREBASE_SETUP.md
+          grep -Fq "phytosense/nodes/phytosense_01/live" lib/services/firebase_remote_client.dart
+          grep -Fq "phytosense/nodes/phytosense_01/live" FIREBASE_SETUP.md
 
       - name: Android build without Firebase project file
         run: flutter build apk --debug
+
+# rerun: grep-fix
