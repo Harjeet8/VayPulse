@@ -261,7 +261,10 @@ void main() {
     expect(reading.soilMoistureAvailable, isFalse);
     expect(reading.lightLux, 11.0);
     expect(reading.light, lessThan(1.0));
-    expect(reading.rankedRootCauses, contains('High atmospheric drying demand'));
+    expect(
+      reading.rankedRootCauses,
+      contains('High atmospheric drying demand'),
+    );
   });
 
   test('OPEN contact with 100 percent signal quality is not plant-usable', () {
