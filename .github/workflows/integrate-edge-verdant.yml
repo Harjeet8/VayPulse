@@ -1,4 +1,4 @@
-name: Integrate Edge AI Into Verdant Final
+name: Build Verdant Edge Final APK
 
 on:
   push:
@@ -9,33 +9,162 @@ permissions:
   contents: write
 
 jobs:
-  integrate:
+  build:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 50
     steps:
       - name: Checkout polished Verdant final
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Apply frozen edge intelligence commit
+      - name: Merge final edge intelligence while preserving Verdant UI
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "PhytoSense Build Bot"
           git config user.email "actions@users.noreply.github.com"
-          git fetch origin main
+          git fetch origin main phytosense-verdant-final
+          git reset --hard origin/phytosense-verdant-final
+          set +e
           git cherry-pick -m 1 1a080ee27ec56415dc1e24af3bd4a2b8633a1e38
+          cp_status=$?
+          set -e
+          if [ "$cp_status" -ne 0 ]; then
+            git checkout --theirs lib/models/sensor_reading.dart
+            git checkout --theirs lib/services/esp32_client.dart
+            git checkout --ours lib/screens/live_node_home_screen.dart
+            git rm -f lib/screens/engineering_center_screen.dart 2>/dev/null || true
+            git add lib/l10n/app_strings.dart lib/models/sensor_reading.dart lib/services/esp32_client.dart lib/screens/live_node_home_screen.dart
+            git -c core.editor=true cherry-pick --continue
+          fi
 
-      - name: Verify both polished UI and edge sync survived
+      - name: Restore Verdant compatibility fields
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('lib/models/sensor_reading.dart')
+          text = p.read_text(encoding='utf-8')
+
+          def insert_after(anchor, addition):
+              global text
+              if addition.strip() in text:
+                  return
+              if anchor not in text:
+                  raise SystemExit(f'Missing compatibility anchor: {anchor!r}')
+              text = text.replace(anchor, anchor + addition, 1)
+
+          insert_after(
+              '  final double analysisConfidence;\n',
+              '  final String analysisOrigin;\n  final bool recoveryActive;\n  final double? vpdKpa;\n',
+          )
+          insert_after(
+              '    this.analysisConfidence = 0,\n',
+              "    this.analysisOrigin = 'persisted',\n    this.recoveryActive = false,\n    this.vpdKpa,\n",
+          )
+          insert_after(
+              "        'analysisConfidence': analysisConfidence,\n",
+              "        'analysisOrigin': analysisOrigin,\n        'recoveryActive': recoveryActive,\n        'vpdKpa': vpdKpa,\n",
+          )
+          insert_after(
+              "      analysisConfidence: _bounded(\n        _nullableNum(json['analysisConfidence']) ?? 0,\n      ),\n",
+              "      analysisOrigin: '${json['analysisOrigin'] ?? 'persisted'}',\n      recoveryActive: json['recoveryActive'] == true,\n      vpdKpa: _nullableNum(json['vpdKpa']),\n",
+          )
+          insert_after(
+              '    double? analysisConfidence,\n',
+              '    String? analysisOrigin,\n    bool? recoveryActive,\n    double? vpdKpa,\n',
+          )
+          insert_after(
+              '      analysisConfidence: analysisConfidence ?? this.analysisConfidence,\n',
+              '      analysisOrigin: analysisOrigin ?? this.analysisOrigin,\n      recoveryActive: recoveryActive ?? this.recoveryActive,\n      vpdKpa: vpdKpa ?? this.vpdKpa,\n',
+          )
+          p.write_text(text, encoding='utf-8')
+
+      - name: Preserve Verdant branding and verify edge parser
         shell: bash
         run: |
           set -euo pipefail
-          grep -Fq "plantModelStatus" lib/models/sensor_reading.dart
-          grep -Fq "_FarmerEdgeSignals" lib/screens/live_node_home_screen.dart
-          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
-          grep -Fq "phytosense" lib/screens/splash_screen.dart || true
           test -f assets/branding/phytosense_icon.png
+          grep -Fq "plantModelStatus" lib/models/sensor_reading.dart
+          grep -Fq "predictionAvailable" lib/models/sensor_reading.dart
+          grep -Fq "runtimeHealthState" lib/models/sensor_reading.dart
+          grep -Fq "recentEvents" lib/models/sensor_reading.dart
+          grep -Fq "adaptivePlantModel" lib/services/esp32_client.dart
+          grep -Fq "temporalReasoning" lib/services/esp32_client.dart
+          grep -Fq "sensorIntegrity" lib/services/esp32_client.dart
+          grep -Fq "runtimeHealth" lib/services/esp32_client.dart
+          grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
+          grep -Fq "Live Readings" lib/models/sensor_reading.dart
 
-      - name: Push integrated final branch
-        run: git push origin HEAD:phytosense-verdant-edge-final
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve and validate
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter pub get
+          dart format lib test
+          flutter analyze --no-fatal-infos --no-fatal-warnings
+          flutter test
+
+      - name: Commit integrated source
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add lib test
+          git commit -m "Integrate final ESP32 edge intelligence into Verdant UI" || true
+          git push --force origin HEAD:phytosense-verdant-edge-final
+
+      - name: Create temporary install signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          keytool -genkeypair -noprompt \
+            -keystore "${RUNNER_TEMP}/phytosense-verdant-temp.jks" \
+            -storepass phytosense-verdant-20260905 \
+            -keypass phytosense-verdant-20260905 \
+            -alias phytosense-verdant \
+            -keyalg RSA -keysize 2048 -validity 3650 \
+            -dname "CN=PhytoSense AI Verdant Final,O=PhytoSense AI,C=IN"
+          echo "ANDROID_KEYSTORE_PATH=${RUNNER_TEMP}/phytosense-verdant-temp.jks" >> "${GITHUB_ENV}"
+          echo "ANDROID_STORE_PASSWORD=phytosense-verdant-20260905" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_ALIAS=phytosense-verdant" >> "${GITHUB_ENV}"
+          echo "ANDROID_KEY_PASSWORD=phytosense-verdant-20260905" >> "${GITHUB_ENV}"
+
+      - name: Build optimized APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          flutter build apk --release --obfuscate --split-debug-info="${RUNNER_TEMP}/symbols"
+          test -s build/app/outputs/flutter-apk/app-release.apk
+          cp build/app/outputs/flutter-apk/app-release.apk PhytoSense-AI-VERDANT-EDGE-FINAL.apk
+
+      - name: Verify APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          sdk_root="${ANDROID_SDK_ROOT:-${ANDROID_HOME}}"
+          build_tools="$(find "${sdk_root}/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          "${build_tools}/apksigner" verify --verbose PhytoSense-AI-VERDANT-EDGE-FINAL.apk
+          app_id="$("${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest application-id PhytoSense-AI-VERDANT-EDGE-FINAL.apk)"
+          test "${app_id}" = "com.harjeet.phytosense"
+          "${sdk_root}/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable PhytoSense-AI-VERDANT-EDGE-FINAL.apk | grep -qx 'false'
+          sha256sum PhytoSense-AI-VERDANT-EDGE-FINAL.apk
+
+      - name: Upload final APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-VERDANT-EDGE-FINAL
+          path: PhytoSense-AI-VERDANT-EDGE-FINAL.apk
+          if-no-files-found: error
+          retention-days: 7
