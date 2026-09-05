@@ -69,6 +69,8 @@ class SensorReading {
   final String recoveryStatus;
   final String primaryRootCause;
   final String farmerAction;
+  final String priority;
+  final String because;
   final double? rootCauseConfidence;
   final List<String> rankedRootCauses;
   final String bioticState;
@@ -178,6 +180,7 @@ class SensorReading {
   final bool? bioReconnectVerifying;
   final int? bioReconnectVerifySec;
   final String firmwareName;
+  final String firmwareEdition;
   final String firmwareBuildState;
 
   final bool soilMoistureAvailable;
@@ -213,6 +216,8 @@ class SensorReading {
     this.recoveryStatus = '',
     this.primaryRootCause = '',
     this.farmerAction = '',
+    this.priority = '',
+    this.because = '',
     this.rootCauseConfidence,
     this.rankedRootCauses = const <String>[],
     this.bioticState = '',
@@ -305,6 +310,7 @@ class SensorReading {
     this.bioReconnectVerifying,
     this.bioReconnectVerifySec,
     this.firmwareName = '',
+    this.firmwareEdition = '',
     this.firmwareBuildState = '',
     this.soilMoistureAvailable = true,
     this.temperatureAvailable = true,
@@ -364,7 +370,8 @@ class SensorReading {
     if (!plantSignalAvailable) return false;
     if (!hasBioContactTelemetry) return true;
     if (bioContactPlausibleForPlantUse != true) return false;
-    if (bioAffectsHealth == false) return false;
+    if (bioAffectsHealth != true) return false;
+    if (bioOpenLatched == true || bioReconnectVerifying == true) return false;
     final state = normalizedBioContactState;
     return state.isEmpty || state == 'PLAUSIBLE';
   }
@@ -404,6 +411,8 @@ class SensorReading {
         'recoveryStatus': recoveryStatus,
         'primaryRootCause': primaryRootCause,
         'farmerAction': farmerAction,
+        'priority': priority,
+        'because': because,
         'rootCauseConfidence': rootCauseConfidence,
         'rankedRootCauses': rankedRootCauses,
         'bioticState': bioticState,
@@ -497,6 +506,7 @@ class SensorReading {
         'bioReconnectVerifying': bioReconnectVerifying,
         'bioReconnectVerifySec': bioReconnectVerifySec,
         'firmwareName': firmwareName,
+        'firmwareEdition': firmwareEdition,
         'firmwareBuildState': firmwareBuildState,
       };
 
@@ -536,6 +546,7 @@ class SensorReading {
     final stress = json['stressScore'] == null
         ? 100.0 - health
         : _bounded(_num(json['stressScore']));
+    final recoveryStatus = '${json['recoveryStatus'] ?? ''}';
 
     return SensorReading(
       nodeId: '${json['nodeId'] ?? 'PHYTO-NODE-001'}',
@@ -561,9 +572,11 @@ class SensorReading {
       growthStage: '${json['growthStage'] ?? 'Vegetative'}',
       reliabilityMode: '${json['reliabilityMode'] ?? 'FULL'}'.toUpperCase(),
       systemStatus: '${json['systemStatus'] ?? ''}',
-      recoveryStatus: '${json['recoveryStatus'] ?? ''}',
+      recoveryStatus: recoveryStatus,
       primaryRootCause: '${json['primaryRootCause'] ?? ''}',
       farmerAction: '${json['farmerAction'] ?? ''}',
+      priority: '${json['priority'] ?? ''}',
+      because: '${json['because'] ?? ''}',
       rootCauseConfidence: _nullableNum(json['rootCauseConfidence']),
       rankedRootCauses: _stringList(json['rankedRootCauses']),
       bioticState: '${json['bioticState'] ?? ''}',
@@ -608,7 +621,9 @@ class SensorReading {
       ),
       predictionMessage: '${json['predictionMessage'] ?? ''}',
       predictionDirection: '${json['predictionDirection'] ?? ''}',
-      recoveryProgressPct: _nullableNum(json['recoveryProgressPct']),
+      recoveryProgressPct: recoveryStatus.trim().toUpperCase() == 'NONE'
+          ? null
+          : _nullableNum(json['recoveryProgressPct']),
       recoveryConfidence: _nullableNum(json['recoveryConfidence']),
       recoveryEnvironmentImproved: json['recoveryEnvironmentImproved'] == true,
       recoverySoilImproved: json['recoverySoilImproved'] == true,
@@ -678,6 +693,7 @@ class SensorReading {
           : null,
       bioReconnectVerifySec: _nullableInt(json['bioReconnectVerifySec']),
       firmwareName: '${json['firmwareName'] ?? ''}',
+      firmwareEdition: '${json['firmwareEdition'] ?? ''}',
       firmwareBuildState: '${json['firmwareBuildState'] ?? ''}',
       soilMoistureAvailable: soilAvailable,
       temperatureAvailable: temperatureAvailable,
@@ -800,6 +816,8 @@ class SensorReading {
     String? recoveryStatus,
     String? primaryRootCause,
     String? farmerAction,
+    String? priority,
+    String? because,
     double? rootCauseConfidence,
     List<String>? rankedRootCauses,
     String? bioticState,
@@ -892,6 +910,7 @@ class SensorReading {
     bool? bioReconnectVerifying,
     int? bioReconnectVerifySec,
     String? firmwareName,
+    String? firmwareEdition,
     String? firmwareBuildState,
     bool? soilMoistureAvailable,
     bool? temperatureAvailable,
@@ -927,6 +946,8 @@ class SensorReading {
       recoveryStatus: recoveryStatus ?? this.recoveryStatus,
       primaryRootCause: primaryRootCause ?? this.primaryRootCause,
       farmerAction: farmerAction ?? this.farmerAction,
+      priority: priority ?? this.priority,
+      because: because ?? this.because,
       rootCauseConfidence: rootCauseConfidence ?? this.rootCauseConfidence,
       rankedRootCauses: rankedRootCauses ?? this.rankedRootCauses,
       bioticState: bioticState ?? this.bioticState,
@@ -1048,6 +1069,7 @@ class SensorReading {
       bioReconnectVerifySec:
           bioReconnectVerifySec ?? this.bioReconnectVerifySec,
       firmwareName: firmwareName ?? this.firmwareName,
+      firmwareEdition: firmwareEdition ?? this.firmwareEdition,
       firmwareBuildState: firmwareBuildState ?? this.firmwareBuildState,
       soilMoistureAvailable:
           soilMoistureAvailable ?? this.soilMoistureAvailable,
