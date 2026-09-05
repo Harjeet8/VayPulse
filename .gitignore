@@ -53,3 +53,6 @@ android-signing/
 
 # Widget Preview related
 .widget_preview/
+
+# Project-specific Firebase client configuration is supplied at build time.
+android/app/google-services.json
