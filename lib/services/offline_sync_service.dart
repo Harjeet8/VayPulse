@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/sensor_reading.dart';
 import 'sensor_data_provider.dart';
+import 'sensor_provider_manager.dart';
 import 'settings_service.dart';
 
 enum OfflineSyncStatus { ready, syncing, success, failed }
@@ -79,9 +80,14 @@ class OfflineSyncService extends ChangeNotifier {
   void _queueReading(SensorReading reading) {
     // Demonstration data must never enter a production synchronization queue.
     if (sensors.source == SensorDataSource.simulation) return;
+    final provider = sensors;
+    final transport = provider is SensorProviderManager
+        ? provider.activeHardwareTransport.name
+        : 'unknown';
     final record = <String, dynamic>{
       ...reading.toJson(),
       'source': sensors.source.name,
+      'transport': transport,
       'queuedAt': DateTime.now().toIso8601String(),
     };
     _pending.add(record);

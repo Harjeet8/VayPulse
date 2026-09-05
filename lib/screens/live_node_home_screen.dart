@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
+import '../models/hardware_transport.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import '../services/app_scope.dart';
@@ -66,10 +67,16 @@ class LiveNodeHomeScreen extends StatelessWidget {
             const DataSourceCard(),
             const SizedBox(height: 14),
             _LiveSessionCard(
-              endpoint: scope.sensorManager.hardwareEndpoint,
+              endpoint: scope.sensorManager.activeHardwareTransport ==
+                      HardwareTransportKind.remote
+                  ? context.tr('remote_cloud_sync')
+                  : scope.sensorManager.hardwareEndpoint,
               status: sensors.connectionStatus,
               node: node,
               reading: reading,
+              transport: scope.sensorManager.activeHardwareTransport,
+              remoteFreshness:
+                  scope.sensorManager.hardwareConnectionMetadata.freshness,
               onReconnect: sensors.retry,
             ),
             const SizedBox(height: 18),
@@ -152,6 +159,8 @@ class _LiveSessionCard extends StatelessWidget {
   final SensorConnectionStatus status;
   final SensorNode? node;
   final SensorReading? reading;
+  final HardwareTransportKind transport;
+  final RemoteSnapshotFreshness remoteFreshness;
   final VoidCallback onReconnect;
 
   const _LiveSessionCard({
@@ -159,12 +168,16 @@ class _LiveSessionCard extends StatelessWidget {
     required this.status,
     required this.node,
     required this.reading,
+    required this.transport,
+    required this.remoteFreshness,
     required this.onReconnect,
   });
 
   @override
   Widget build(BuildContext context) {
-    final freshness = _Freshness.from(reading?.timestamp);
+    final freshness = transport == HardwareTransportKind.remote
+        ? _Freshness.fromRemote(remoteFreshness)
+        : _Freshness.from(reading?.timestamp);
     final color = switch (freshness) {
       _Freshness.fresh => Theme.of(context).colorScheme.primary,
       _Freshness.delayed => Theme.of(context).colorScheme.tertiary,
@@ -393,74 +406,82 @@ class _HealthSummary extends StatelessWidget {
   const _HealthSummary({required this.reading, required this.node});
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(18),
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final info = Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'ESP32 CROP PROFILE',
-                    style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                          color: Theme.of(context).colorScheme.primary,
-                          fontWeight: FontWeight.w900,
-                        ),
-                  ),
-                  const SizedBox(height: 5),
-                  Text(
-                    '${reading.crop} • ${reading.growthStage}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontWeight: FontWeight.w900),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(context.tr('live_health_body')),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 8,
-                    children: [
-                      _Meta(
-                        icon: Icons.battery_5_bar_rounded,
-                        value: '${node?.batteryPercent ?? 0}%',
+  Widget build(BuildContext context) {
+    final manager = AppScope.of(context).sensorManager;
+    final freshness =
+        manager.activeHardwareTransport == HardwareTransportKind.remote
+            ? _Freshness.fromRemote(
+                manager.hardwareConnectionMetadata.freshness,
+              )
+            : _Freshness.from(reading.timestamp);
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final info = Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'ESP32 CROP PROFILE',
+                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                        color: Theme.of(context).colorScheme.primary,
+                        fontWeight: FontWeight.w900,
                       ),
-                      _Meta(
-                        icon: Icons.network_cell_rounded,
-                        value: '${node?.signalPercent ?? 0}%',
-                      ),
-                      _Meta(
-                        icon: Icons.schedule_rounded,
-                        value:
-                            context.tr(_Freshness.from(reading.timestamp).key),
-                      ),
-                    ],
-                  ),
-                ],
-              );
-              final textScale = MediaQuery.textScalerOf(context).scale(1.0);
-              if (constraints.maxWidth < 430 || textScale > 1.35) {
-                return Column(
+                ),
+                const SizedBox(height: 5),
+                Text(
+                  '${reading.crop} • ${reading.growthStage}',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+                const SizedBox(height: 7),
+                Text(context.tr('live_health_body')),
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
                   children: [
-                    _EdgeHealthIndicator(reading: reading),
-                    const SizedBox(height: 18),
-                    Align(alignment: Alignment.centerLeft, child: info),
+                    _Meta(
+                      icon: Icons.battery_5_bar_rounded,
+                      value: '${node?.batteryPercent ?? 0}%',
+                    ),
+                    _Meta(
+                      icon: Icons.network_cell_rounded,
+                      value: '${node?.signalPercent ?? 0}%',
+                    ),
+                    _Meta(
+                      icon: Icons.schedule_rounded,
+                      value: context.tr(freshness.key),
+                    ),
                   ],
-                );
-              }
-              return Row(
+                ),
+              ],
+            );
+            final textScale = MediaQuery.textScalerOf(context).scale(1.0);
+            if (constraints.maxWidth < 430 || textScale > 1.35) {
+              return Column(
                 children: [
                   _EdgeHealthIndicator(reading: reading),
-                  const SizedBox(width: 20),
-                  Expanded(child: info),
+                  const SizedBox(height: 18),
+                  Align(alignment: Alignment.centerLeft, child: info),
                 ],
               );
-            },
-          ),
+            }
+            return Row(
+              children: [
+                _EdgeHealthIndicator(reading: reading),
+                const SizedBox(width: 20),
+                Expanded(child: info),
+              ],
+            );
+          },
         ),
-      );
+      ),
+    );
+  }
 }
 
 class _Meta extends StatelessWidget {
@@ -745,7 +766,7 @@ class _LiveSensorGrid extends StatelessWidget {
                 title: context.tr('plant_signal'),
                 message: reading.bioElectricalMeasurementAvailable &&
                         reading.hasBioContactTelemetry
-                    ? _FarmerEdgeSignals.bioContactWarning(reading)
+                    ? _FarmerEdgeSignals.bioContactWarning(context, reading)
                     : _sensorState(reading, 'plantSignal'),
               ),
             if (reading.edgeAnalysisAvailable)
@@ -885,35 +906,49 @@ class _FarmerEdgeSignals extends StatelessWidget {
     return '';
   }
 
-  static String bioContactWarning(SensorReading reading) {
+  static String _bioContactWarningKey(SensorReading reading) {
     if (!reading.hasBioContactTelemetry) return '';
     final state = reading.normalizedBioContactState;
     if (reading.bioPlantUseAllowed && state == 'PLAUSIBLE') return '';
 
+    if (reading.bioOpenLatched == true) return 'bio_contact_open';
+    if (reading.bioReconnectVerifying == true) return 'bio_contact_verify';
+
     switch (state) {
+      case 'INITIALIZING':
+        return 'bio_contact_initializing';
       case 'OPEN':
-        return 'Electrodes open — check plant contact';
+        return 'bio_contact_open';
       case 'UNSTABLE':
-        return 'Electrode contact unstable';
+        return 'bio_contact_unstable';
       case 'STATIC':
+        return 'bio_contact_static';
       case 'SHORT_SUSPECTED':
-        return 'Static/test input — excluded from plant analysis';
+        return 'bio_contact_short';
       case 'VERIFY':
-        return 'Verifying electrode contact';
+        return 'bio_contact_verify';
       case 'SATURATED':
-        return 'Bio sensor saturated — check electrode/amplifier connection';
+        return 'bio_contact_saturated';
     }
 
-    if (reading.bioContactPlausibleForPlantUse == false ||
-        reading.bioAffectsHealth == false) {
-      return 'Verify electrode contact';
+    if (reading.bioContactPlausibleForPlantUse != true ||
+        reading.bioAffectsHealth != true) {
+      return 'bio_contact_check';
     }
     return '';
   }
 
-  static String _systemWarning(SensorReading reading) {
-    final contactWarning = bioContactWarning(reading);
-    if (contactWarning.isNotEmpty) return contactWarning;
+  static String bioContactWarning(
+    BuildContext context,
+    SensorReading reading,
+  ) {
+    final key = _bioContactWarningKey(reading);
+    return key.isEmpty ? '' : context.tr(key);
+  }
+
+  static String _systemWarning(BuildContext context, SensorReading reading) {
+    final contactKey = _bioContactWarningKey(reading);
+    if (contactKey.isNotEmpty) return context.tr(contactKey);
 
     // Existing degraded/partial hardware presentation already owns the single
     // farmer-facing quality warning in these states.
@@ -954,13 +989,35 @@ class _FarmerEdgeSignals extends StatelessWidget {
           reading.plantModelStatus.trim().toUpperCase() == 'LEARNING') ||
       _predictionVisible(reading) ||
       _hasRecoveryState(reading) ||
-      _systemWarning(reading).isNotEmpty;
+      _bioContactWarningKey(reading).isNotEmpty ||
+      _hasNonContactSystemWarning(reading);
+
+  static bool _hasNonContactSystemWarning(SensorReading reading) {
+    if (!reading.isReliabilityFull || !reading.hasFullCoreReading) return false;
+    final integrity = reading.sensorIntegrityState.trim().toUpperCase();
+    if (integrity.isNotEmpty &&
+        !const {'FULL', 'CLEAR', 'GOOD', 'OK'}.contains(integrity) &&
+        (reading.sensorIntegrityPrimaryAction.trim().isNotEmpty ||
+            reading.sensorIntegrityPrimaryIssue.trim().isNotEmpty)) {
+      return true;
+    }
+    final plausibility = reading.plausibilityState.trim().toUpperCase();
+    if (plausibility.isNotEmpty &&
+        !const {'CLEAR', 'GOOD', 'NORMAL', 'OK'}.contains(plausibility) &&
+        (reading.plausibilityRecommendation.trim().isNotEmpty ||
+            reading.plausibilityPrimaryIssue.trim().isNotEmpty)) {
+      return true;
+    }
+    final runtime = reading.runtimeHealthState.trim().toUpperCase();
+    return const {'WATCH', 'DEGRADED', 'FAULT'}.contains(runtime) &&
+        reading.runtimeHealthIssue.trim().isNotEmpty;
+  }
 
   @override
   Widget build(BuildContext context) {
     final predictionVisible = _predictionVisible(reading);
     final recovery = _recoveryText(context, reading);
-    final warning = _systemWarning(reading);
+    final warning = _systemWarning(context, reading);
     final learning = !reading.plantModelReady &&
         reading.plantModelStatus.trim().toUpperCase() == 'LEARNING';
 
@@ -1166,6 +1223,14 @@ enum _Freshness {
 
   final String key;
   const _Freshness(this.key);
+
+  static _Freshness fromRemote(RemoteSnapshotFreshness freshness) =>
+      switch (freshness) {
+        RemoteSnapshotFreshness.live => _Freshness.fresh,
+        RemoteSnapshotFreshness.delayed => _Freshness.delayed,
+        RemoteSnapshotFreshness.stale => _Freshness.stale,
+        RemoteSnapshotFreshness.offline => _Freshness.waiting,
+      };
 
   static _Freshness from(DateTime? timestamp) {
     if (timestamp == null) return _Freshness.waiting;

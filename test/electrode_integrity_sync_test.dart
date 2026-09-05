@@ -157,18 +157,20 @@ void main() {
     expect(reading.firmwareBuildState, 'FROZEN_FINAL');
   });
 
-  test('Home uses existing single system warning for contact gate', () {
+  test('Home uses existing localized single system warning for contact gate',
+      () {
     final source =
         File('lib/screens/live_node_home_screen.dart').readAsStringSync();
+    final strings = File('lib/l10n/app_strings.dart').readAsStringSync();
 
-    expect(source, contains('Electrodes open — check plant contact'));
-    expect(source, contains('Electrode contact unstable'));
-    expect(
-      source,
-      contains('Static/test input — excluded from plant analysis'),
-    );
-    expect(source, contains('Verifying electrode contact'));
-    expect(source, contains('bioContactWarning(reading)'));
+    expect(source, contains("'bio_contact_open'"));
+    expect(source, contains("'bio_contact_unstable'"));
+    expect(source, contains("'bio_contact_static'"));
+    expect(source, contains("'bio_contact_verify'"));
+    expect(source, contains('bioContactWarning(context, reading)'));
+    expect(strings, contains("'bio_contact_open':"));
+    expect(strings, contains('Electrodes open — check plant contact'));
+    expect(strings, contains('Electrode contact நிலையாக இல்லை'));
     expect(source, isNot(contains('class _ElectrodeContactCard')));
   });
 

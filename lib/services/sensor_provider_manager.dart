@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import '../models/hardware_transport.dart';
 import '../models/sensor_node.dart';
 import '../models/sensor_reading.dart';
 import '../simulation/simulated_sensor_provider.dart';
@@ -15,6 +16,7 @@ class SensorProviderManager extends SensorDataProvider {
   StreamSubscription<SensorReading>? _streamSubscription;
   bool _started = false;
   int _attachmentGeneration = 0;
+  HardwareTransportMode _hardwareTransportMode = HardwareTransportMode.auto;
 
   SensorProviderManager({String endpoint = 'http://192.168.4.1'}) {
     _hardware = _buildHardware(endpoint);
@@ -22,17 +24,32 @@ class SensorProviderManager extends SensorDataProvider {
     _attach();
   }
 
-  Esp32SensorProvider _buildHardware(String endpoint) =>
-      Esp32SensorProvider(client: Esp32Client(endpoint));
+  Esp32SensorProvider _buildHardware(String endpoint) => Esp32SensorProvider(
+        client: Esp32Client(endpoint),
+        transportMode: _hardwareTransportMode,
+      );
 
   String get hardwareEndpoint => _hardware.endpoint;
+  HardwareTransportMode get hardwareTransportMode => _hardwareTransportMode;
+  HardwareTransportKind get activeHardwareTransport =>
+      _hardware.activeTransport;
+  HardwareConnectionMetadata get hardwareConnectionMetadata =>
+      _hardware.connectionMetadata;
 
   @override
   SensorDataSource get source => _active.source;
 
   Future<bool> testEndpoint(String endpoint) => Esp32Client(endpoint).ping();
 
-  void configure({required SensorDataSource source, required String endpoint}) {
+  void configure({
+    required SensorDataSource source,
+    required String endpoint,
+    HardwareTransportMode? transportMode,
+  }) {
+    if (transportMode != null) {
+      _hardwareTransportMode = transportMode;
+    }
+
     final cleanEndpoint = endpoint.trim().replaceFirst(RegExp(r'/$'), '');
     if (cleanEndpoint.isNotEmpty && cleanEndpoint != _hardware.endpoint) {
       final oldHardware = _hardware;
@@ -45,6 +62,8 @@ class SensorProviderManager extends SensorDataProvider {
         _attach();
       }
       oldHardware.dispose();
+    } else {
+      _hardware.setTransportMode(_hardwareTransportMode);
     }
 
     final target =
@@ -56,6 +75,13 @@ class SensorProviderManager extends SensorDataProvider {
       _attach();
     }
     if (_started) _active.start();
+    notifyListeners();
+  }
+
+  void setHardwareTransportMode(HardwareTransportMode mode) {
+    if (_hardwareTransportMode == mode) return;
+    _hardwareTransportMode = mode;
+    _hardware.setTransportMode(mode);
     notifyListeners();
   }
 

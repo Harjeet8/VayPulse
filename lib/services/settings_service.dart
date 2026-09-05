@@ -18,6 +18,8 @@ class SettingsService extends ChangeNotifier {
       value.dataSource = p.getString('dataSource') ?? 'simulation';
       value.esp32Endpoint =
           p.getString('esp32Endpoint') ?? 'http://192.168.4.1';
+      value.hardwareTransportMode =
+          (p.getString('hardwareTransportMode') ?? 'AUTO').toUpperCase();
       value.syncEndpoint = p.getString('syncEndpoint') ?? '';
       value.experienceMode = p.getString('experienceMode') ?? 'farmer';
       value.reducedMotion = p.getBool('reducedMotion') ?? false;
@@ -54,6 +56,15 @@ class SettingsService extends ChangeNotifier {
     value.dataSource = source;
     final p = await SharedPreferences.getInstance();
     await p.setString('dataSource', source);
+    notifyListeners();
+  }
+
+  Future<void> setHardwareTransportMode(String mode) async {
+    final normalized = mode.trim().toUpperCase();
+    value.hardwareTransportMode =
+        const {'LOCAL', 'REMOTE'}.contains(normalized) ? normalized : 'AUTO';
+    final p = await SharedPreferences.getInstance();
+    await p.setString('hardwareTransportMode', value.hardwareTransportMode);
     notifyListeners();
   }
 

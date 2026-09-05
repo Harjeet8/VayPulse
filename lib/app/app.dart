@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 
+import '../models/hardware_transport.dart';
 import '../screens/splash_screen.dart';
 import '../services/alert_service.dart';
 import '../services/app_scope.dart';
@@ -60,6 +61,9 @@ class _VayPulseAppState extends State<VayPulseApp> {
           ? SensorDataSource.esp32
           : SensorDataSource.simulation,
       endpoint: settings.value.esp32Endpoint,
+      transportMode: HardwareTransportModeX.parse(
+        settings.value.hardwareTransportMode,
+      ),
     );
     sensors.start();
     offlineSync.start();

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../l10n/app_strings.dart';
+import '../models/hardware_transport.dart';
 import '../services/app_scope.dart';
 import '../services/sensor_data_provider.dart';
 
@@ -16,7 +17,27 @@ class DataSourceCard extends StatelessWidget {
       builder: (context, _) {
         final live = scope.sensorManager.source == SensorDataSource.esp32;
         final connected = scope.sensorManager.connected;
+        final transport = scope.sensorManager.activeHardwareTransport;
+        final metadata = scope.sensorManager.hardwareConnectionMetadata;
         final bioLabel = live ? scope.sensors.current?.bioSourceLabel : null;
+        final liveTitle = switch (transport) {
+          HardwareTransportKind.local => context.tr('esp32_source_local'),
+          HardwareTransportKind.remote => metadata.cloudConnected == false
+              ? context.tr('esp32_source_cloud_offline')
+              : context.tr('esp32_source_remote'),
+          HardwareTransportKind.none => context.tr('esp32_source_reconnecting'),
+        };
+        final liveBody = switch (transport) {
+          HardwareTransportKind.local => context.tr('local_monitoring_active'),
+          HardwareTransportKind.remote => metadata.cloudConnected == false
+              ? context.tr('remote_cloud_unavailable')
+              : metadata.freshness == RemoteSnapshotFreshness.delayed
+                  ? context.tr('remote_monitoring_delayed')
+                  : context.tr('remote_monitoring_active'),
+          HardwareTransportKind.none => connected
+              ? context.tr('live_data_connected')
+              : context.tr('live_data_waiting'),
+        };
         final accent = live
             ? const Color(0xFF4E9DDB)
             : Theme.of(context).colorScheme.primary;
@@ -46,17 +67,13 @@ class DataSourceCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          live
-                              ? context.tr('esp32_live')
-                              : context.tr('simulation_mode'),
+                          live ? liveTitle : context.tr('simulation_mode'),
                           style: const TextStyle(fontWeight: FontWeight.w900),
                         ),
                         const SizedBox(height: 2),
                         Text(
                           live
-                              ? (connected
-                                  ? context.tr('live_data_connected')
-                                  : context.tr('live_data_waiting'))
+                              ? liveBody
                               : context.tr('simulation_active_scenario', {
                                   'value': context.tr(
                                     'scenario_${scope.sensorManager.scenarioId}',
