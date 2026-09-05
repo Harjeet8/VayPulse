@@ -30,6 +30,9 @@ abstract class RemoteHardwareClient {
 /// ESP32 decisions; the cloud payload is normalized by the same parser used by
 /// the direct local ESP32 client.
 class FirebaseRemoteClient implements RemoteHardwareClient {
+  static const projectId = 'phytosense-ai-1b0d8';
+  static const databaseUrl =
+      'https://phytosense-ai-1b0d8-default-rtdb.asia-southeast1.firebasedatabase.app';
   static const defaultPath = 'phytosense/nodes/phytosense_01/live';
 
   final String databasePath;
@@ -37,6 +40,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
   final FirebaseAuth? auth;
 
   StreamSubscription<DatabaseEvent>? _subscription;
+  FirebaseDatabase? _resolvedDatabase;
   Map<String, dynamic>? _latest;
   bool _started = false;
   bool _starting = false;
@@ -59,11 +63,25 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp();
       }
-      final authClient = auth ?? FirebaseAuth.instance;
+      final app = Firebase.app();
+      final configuredProjectId = app.options.projectId.trim();
+      if (configuredProjectId.isNotEmpty &&
+          configuredProjectId != projectId) {
+        _lastErrorKey = 'remote_config_mismatch';
+        throw StateError('Firebase project does not match PhytoSense.');
+      }
+
+      final authClient = auth ?? FirebaseAuth.instanceFor(app: app);
       if (authClient.currentUser == null) {
         await authClient.signInAnonymously();
       }
-      final db = database ?? FirebaseDatabase.instance;
+
+      final db = database ??
+          FirebaseDatabase.instanceFor(
+            app: app,
+            databaseURL: databaseUrl,
+          );
+      _resolvedDatabase = db;
       final ref = db.ref(databasePath);
       _subscription = ref.onValue.listen(
         (event) {
@@ -80,9 +98,9 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
       _started = true;
       _lastErrorKey = null;
     } catch (_) {
-      // Missing Firebase Android configuration or auth failure must never
-      // prevent local ESP32 monitoring.
-      _lastErrorKey = 'remote_auth_unavailable';
+      // Missing/mismatched Firebase Android configuration or auth failure must
+      // never prevent local ESP32 monitoring.
+      _lastErrorKey ??= 'remote_auth_unavailable';
     } finally {
       _starting = false;
     }
@@ -98,7 +116,12 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     var payload = _latest;
     if (payload == null) {
       try {
-        final db = database ?? FirebaseDatabase.instance;
+        final db = _resolvedDatabase ??
+            database ??
+            FirebaseDatabase.instanceFor(
+              app: Firebase.app(),
+              databaseURL: databaseUrl,
+            );
         final event = await db
             .ref(databasePath)
             .get()
@@ -186,6 +209,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
   Future<void> dispose() async {
     await _subscription?.cancel();
     _subscription = null;
+    _resolvedDatabase = null;
   }
 
   static dynamic _first(Iterable<dynamic> values) {
