@@ -4,6 +4,13 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// Apply Firebase's Android resource processing only when a project-specific
+// google-services.json is supplied. This keeps local-only builds valid while
+// allowing the same source to enable authenticated remote monitoring.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
+}
+
 val releaseStorePath = providers.environmentVariable("ANDROID_KEYSTORE_PATH").orNull
 val releaseStorePassword =
     providers.environmentVariable("ANDROID_STORE_PASSWORD").orNull
