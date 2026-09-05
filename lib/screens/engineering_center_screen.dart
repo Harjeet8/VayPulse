@@ -1248,6 +1248,11 @@ class _EdgeIntelligencePanel extends StatelessWidget {
                       label: 'Build state',
                       value: _label(reading.firmwareBuildState),
                     ),
+                  if (reading.analysisQuality.trim().isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Analysis quality',
+                      value: _label(reading.analysisQuality),
+                    ),
                   _EdgeDetailRow(
                     label: 'Analysis reliability',
                     value: _label(reading.reliabilityMode),
