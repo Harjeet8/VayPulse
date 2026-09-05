@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
+import '../models/hardware_transport.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
@@ -472,6 +473,13 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
         uri.host.isNotEmpty;
   }
 
+  Future<void> _setTransport(HardwareTransportMode mode) async {
+    final scope = AppScope.of(context);
+    await scope.settings.setHardwareTransportMode(mode.id);
+    scope.sensorManager.setHardwareTransportMode(mode);
+    if (mounted) setState(() {});
+  }
+
   Future<void> _saveAndTest() async {
     final endpoint = controller.text.trim();
     if (!_validEndpoint(endpoint)) {
@@ -534,6 +542,59 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
               ),
               const SizedBox(height: 6),
               Text(context.tr('configure_esp32_body')),
+              const SizedBox(height: 14),
+              Text(
+                'Hardware connection',
+                style: const TextStyle(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 8),
+              SizedBox(
+                width: double.infinity,
+                child: SegmentedButton<HardwareTransportMode>(
+                  showSelectedIcon: false,
+                  segments: const [
+                    ButtonSegment(
+                      value: HardwareTransportMode.auto,
+                      label: Text('Auto'),
+                    ),
+                    ButtonSegment(
+                      value: HardwareTransportMode.local,
+                      label: Text('Local'),
+                    ),
+                    ButtonSegment(
+                      value: HardwareTransportMode.remote,
+                      label: Text('Remote'),
+                    ),
+                  ],
+                  selected: {
+                    HardwareTransportModeX.parse(
+                      AppScope.of(context)
+                          .settings
+                          .value
+                          .hardwareTransportMode,
+                    ),
+                  },
+                  onSelectionChanged: (selection) {
+                    if (selection.isNotEmpty) {
+                      _setTransport(selection.first);
+                    }
+                  },
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                switch (HardwareTransportModeX.parse(
+                  AppScope.of(context).settings.value.hardwareTransportMode,
+                )) {
+                  HardwareTransportMode.auto =>
+                    'Auto prefers the direct ESP32 link and safely falls back to the fresh Firebase snapshot.',
+                  HardwareTransportMode.local =>
+                    'Local uses only the direct ESP32 Wi-Fi/API connection.',
+                  HardwareTransportMode.remote =>
+                    'Remote uses only the fresh Firebase snapshot sent by the ESP32.',
+                },
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
               const SizedBox(height: 14),
               TextField(
                 controller: controller,
