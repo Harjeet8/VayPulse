@@ -406,7 +406,15 @@ class _HealthSummary extends StatelessWidget {
   const _HealthSummary({required this.reading, required this.node});
 
   @override
-  Widget build(BuildContext context) => Card(
+  Widget build(BuildContext context) {
+    final manager = AppScope.of(context).sensorManager;
+    final freshness =
+        manager.activeHardwareTransport == HardwareTransportKind.remote
+            ? _Freshness.fromRemote(
+                manager.hardwareConnectionMetadata.freshness,
+              )
+            : _Freshness.from(reading.timestamp);
+    return Card(
         child: Padding(
           padding: const EdgeInsets.all(18),
           child: LayoutBuilder(
@@ -446,8 +454,7 @@ class _HealthSummary extends StatelessWidget {
                       ),
                       _Meta(
                         icon: Icons.schedule_rounded,
-                        value:
-                            context.tr(_Freshness.from(reading.timestamp).key),
+                        value: context.tr(freshness.key),
                       ),
                     ],
                   ),
@@ -474,6 +481,7 @@ class _HealthSummary extends StatelessWidget {
           ),
         ),
       );
+  }
 }
 
 class _Meta extends StatelessWidget {
