@@ -14,11 +14,23 @@ class Esp32Client {
 
   static const _sensorPaths = <String>[
     '/api/sensors',
-    '/api/v1/sensors',
     '/api/data',
+    '/api/v1/sensors',
     '/data',
     '/sensors',
   ];
+
+  // Preserve the existing UI while allowing the same ESP32 node to be reached
+  // through its AP address or its current JioFiber/router-side address.
+  static const _knownLocalNodeUrls = <String>[
+    'http://192.168.4.1',
+    'http://192.168.29.5',
+  ];
+
+  List<String> get _candidateBaseUrls => <String>[
+        baseUrl,
+        ..._knownLocalNodeUrls.where((candidate) => candidate != baseUrl),
+      ];
 
   Future<Esp32Snapshot> getSnapshot() async {
     for (final path in _sensorPaths) {
@@ -34,25 +46,39 @@ class Esp32Client {
   }
 
   Future<bool> ping() async {
-    for (final path
-        in const ['/api/status', '/status', '/api/sensors', '/sensors']) {
+    for (final path in const [
+      '/api/status',
+      '/status',
+      '/api/sensors',
+      '/api/data',
+      '/data',
+      '/sensors',
+    ]) {
       if (await _tryGet(path) != null) return true;
     }
     return false;
   }
 
   Future<http.Response?> _tryGet(String path) async {
-    try {
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl$path'),
-            headers: const {'Accept': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 4));
-      return response.statusCode == 200 ? response : null;
-    } catch (_) {
-      return null;
+    final responses = await Future.wait(
+      _candidateBaseUrls.map((candidate) async {
+        try {
+          return await http
+              .get(
+                Uri.parse('$candidate$path'),
+                headers: const {'Accept': 'application/json'},
+              )
+              .timeout(const Duration(milliseconds: 1500));
+        } catch (_) {
+          return null;
+        }
+      }),
+    );
+
+    for (final response in responses) {
+      if (response?.statusCode == 200) return response;
     }
+    return null;
   }
 
   Esp32Snapshot decodeSnapshot(

@@ -43,6 +43,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
   StreamSubscription<DatabaseEvent>? _subscription;
   FirebaseDatabase? _resolvedDatabase;
   Map<String, dynamic>? _latest;
+  DateTime? _lastReceiveAt;
   bool _started = false;
   bool _starting = false;
   String? _lastErrorKey;
@@ -85,6 +86,9 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
           final value = event.snapshot.value;
           if (value is Map) {
             _latest = Map<String, dynamic>.from(value);
+            // Use the phone's actual Firebase receive time for transport
+            // freshness. The ESP32 RTC timestamp remains the reading timestamp.
+            _lastReceiveAt = DateTime.now();
             _lastErrorKey = null;
           }
         },
@@ -122,6 +126,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
         if (event.value is Map) {
           payload = Map<String, dynamic>.from(event.value as Map);
           _latest = payload;
+          _lastReceiveAt = DateTime.now();
         }
       } catch (_) {
         _lastErrorKey = 'remote_cloud_unavailable';
@@ -140,7 +145,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
       payload['network'],
     ]);
 
-    final lastSeen = RemoteSnapshotFreshnessPolicy.parseTimestamp(
+    final payloadTimestamp = RemoteSnapshotFreshnessPolicy.parseTimestamp(
       _first([
         source['lastSeen'],
         source['timestamp'],
@@ -149,6 +154,9 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
         network['lastSeen'],
       ]),
     );
+    // RTC timestamps may be timezone-less. A snapshot that just arrived from
+    // Firebase is live regardless of how the ESP32 formats its display clock.
+    final lastSeen = _lastReceiveAt ?? payloadTimestamp;
     final internetConnected = _bool(_first([
       source['internetConnected'],
       network['internetConnected'],
@@ -216,6 +224,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     await _subscription?.cancel();
     _subscription = null;
     _resolvedDatabase = null;
+    _lastReceiveAt = null;
   }
 
   static dynamic _first(Iterable<dynamic> values) {
