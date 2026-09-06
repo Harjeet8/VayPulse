@@ -101,6 +101,7 @@ class Esp32Client {
     final light = _map(readings['light']);
     final leaf = _map(readings['leaf']);
     final bio = _map(readings['bioelectric']);
+    final authoritativeBio = _map(data['bioelectric']);
     final calibration = _map(data['calibration']);
     final legacyComponents = _map(data['healthComponents']);
     final plantHealth = _map(data['plantHealth']);
@@ -1038,14 +1039,48 @@ class Esp32Client {
           ) ??
           0,
       'bioBaselineReady': _asBool(
-            first([bio['baselineReady'], data['bioBaselineReady']]),
+            first([
+              authoritativeBio['baselineReady'],
+              bio['baselineReady'],
+              data['bioBaselineReady'],
+              root['bioBaselineReady'],
+            ]),
           ) ==
           true,
       'bioBaselineSamples': _asInt(
-            first([bio['baselineSamples'], data['bioBaselineSamples']]),
+            first([
+              authoritativeBio['baselineSamples'],
+              bio['baselineSamples'],
+              data['bioBaselineSamples'],
+              root['bioBaselineSamples'],
+            ]),
           ) ??
           0,
-      'bioBaselineMv': _asDouble(bio['baselineMv']),
+      'bioBaselineLearningPaused': _asBool(
+        first([
+          authoritativeBio['baselineLearningPaused'],
+          bio['baselineLearningPaused'],
+          data['bioBaselineLearningPaused'],
+          root['bioBaselineLearningPaused'],
+        ]),
+      ),
+      'bioBaselinePauseReason': first([
+        authoritativeBio['baselinePauseReason'],
+        bio['baselinePauseReason'],
+        data['bioBaselinePauseReason'],
+        root['bioBaselinePauseReason'],
+      ]),
+      'bioBaselineTargetSamples': _asInt(
+        first([
+          authoritativeBio['baselineTargetSamples'],
+          bio['baselineTargetSamples'],
+          data['bioBaselineTargetSamples'],
+          root['bioBaselineTargetSamples'],
+        ]),
+      ),
+      'bioBaselineMv': _asDouble(
+        first([authoritativeBio['baselineMv'], bio['baselineMv']]),
+      ),
       'bioDeviationMv': _asDouble(bio['deviationMv']),
       'bioNoiseMv': _asDouble(bio['noiseMv']),
       'bioSignalQuality': qualityValue ?? 0,
