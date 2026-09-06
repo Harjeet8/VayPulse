@@ -165,6 +165,9 @@ class SensorReading {
   final double recentWetExposureSeconds;
   final bool bioBaselineReady;
   final int bioBaselineSamples;
+  final bool? bioBaselineLearningPaused;
+  final String? bioBaselinePauseReason;
+  final int? bioBaselineTargetSamples;
   final double? bioBaselineMv;
   final double? bioDeviationMv;
   final double? bioNoiseMv;
@@ -299,6 +302,9 @@ class SensorReading {
     this.recentWetExposureSeconds = 0,
     this.bioBaselineReady = false,
     this.bioBaselineSamples = 0,
+    this.bioBaselineLearningPaused,
+    this.bioBaselinePauseReason,
+    this.bioBaselineTargetSamples,
     this.bioBaselineMv,
     this.bioDeviationMv,
     this.bioNoiseMv,
@@ -496,6 +502,9 @@ class SensorReading {
         'recentWetExposureSeconds': recentWetExposureSeconds,
         'bioBaselineReady': bioBaselineReady,
         'bioBaselineSamples': bioBaselineSamples,
+        'bioBaselineLearningPaused': bioBaselineLearningPaused,
+        'bioBaselinePauseReason': bioBaselinePauseReason,
+        'bioBaselineTargetSamples': bioBaselineTargetSamples,
         'bioBaselineMv': bioBaselineMv,
         'bioDeviationMv': bioDeviationMv,
         'bioNoiseMv': bioNoiseMv,
@@ -675,6 +684,13 @@ class SensorReading {
           _nullableNum(json['recentWetExposureSeconds']) ?? 0,
       bioBaselineReady: json['bioBaselineReady'] == true,
       bioBaselineSamples: _nullableInt(json['bioBaselineSamples']) ?? 0,
+      bioBaselineLearningPaused: json['bioBaselineLearningPaused'] is bool
+          ? json['bioBaselineLearningPaused'] as bool
+          : null,
+      bioBaselinePauseReason: json['bioBaselinePauseReason'] == null
+          ? null
+          : '${json['bioBaselinePauseReason']}',
+      bioBaselineTargetSamples: _nullableInt(json['bioBaselineTargetSamples']),
       bioBaselineMv: _nullableNum(json['bioBaselineMv']),
       bioDeviationMv: _nullableNum(json['bioDeviationMv']),
       bioNoiseMv: _nullableNum(json['bioNoiseMv']),
@@ -902,6 +918,9 @@ class SensorReading {
     double? recentWetExposureSeconds,
     bool? bioBaselineReady,
     int? bioBaselineSamples,
+    bool? bioBaselineLearningPaused,
+    String? bioBaselinePauseReason,
+    int? bioBaselineTargetSamples,
     double? bioBaselineMv,
     double? bioDeviationMv,
     double? bioNoiseMv,
@@ -1059,6 +1078,12 @@ class SensorReading {
           recentWetExposureSeconds ?? this.recentWetExposureSeconds,
       bioBaselineReady: bioBaselineReady ?? this.bioBaselineReady,
       bioBaselineSamples: bioBaselineSamples ?? this.bioBaselineSamples,
+      bioBaselineLearningPaused:
+          bioBaselineLearningPaused ?? this.bioBaselineLearningPaused,
+      bioBaselinePauseReason:
+          bioBaselinePauseReason ?? this.bioBaselinePauseReason,
+      bioBaselineTargetSamples:
+          bioBaselineTargetSamples ?? this.bioBaselineTargetSamples,
       bioBaselineMv: bioBaselineMv ?? this.bioBaselineMv,
       bioDeviationMv: bioDeviationMv ?? this.bioDeviationMv,
       bioNoiseMv: bioNoiseMv ?? this.bioNoiseMv,
