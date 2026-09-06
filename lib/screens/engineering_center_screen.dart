@@ -948,7 +948,49 @@ class _EdgeIntelligencePanel extends StatelessWidget {
       .map((part) => '${part[0].toUpperCase()}${part.substring(1)}')
       .join(' ');
 
+  String get _baselineStatus {
+    if (reading.bioBaselineReady) return 'Ready';
+    if (reading.bioBaselineLearningPaused == true) return 'Paused';
+    return 'Learning';
+  }
+
+  String get _baselinePauseReasonLabel {
+    switch ((reading.bioBaselinePauseReason ?? '').trim().toUpperCase()) {
+      case 'CONTACT_NOT_PLAUSIBLE':
+        return 'Waiting for stable plant electrode contact';
+      case 'ELECTRODES_OPEN':
+        return 'Verify plant electrode contact';
+      case 'LOW_SIGNAL_QUALITY':
+        return 'Waiting for a clean plant electrical signal';
+      case 'STATIC_OR_SHORT_SUSPECTED':
+        return 'Check electrodes for a static or test/short connection';
+      case 'SATURATED':
+        return 'Plant amplifier signal is out of range';
+      case 'TRANSIENT_SIGNAL':
+        return 'Waiting for the plant electrical signal to settle';
+      case 'CRITICAL_ABIOTIC_CONDITION':
+        return 'Waiting for conditions to stabilize';
+      case 'BIO_DEVIATION_TOO_LARGE':
+        return 'Waiting for the plant electrical pattern to stabilize';
+      case 'BIO_SIGNAL_INVALID':
+        return 'Waiting for a valid plant electrical signal';
+      case 'NONE':
+      case '':
+        return '';
+      default:
+        return 'Waiting for a valid plant electrical baseline condition';
+    }
+  }
+
+  bool get _hasBaselineTelemetry =>
+      reading.bioBaselineReady ||
+      reading.bioBaselineSamples > 0 ||
+      reading.bioBaselineLearningPaused != null ||
+      reading.bioBaselinePauseReason != null ||
+      reading.bioBaselineTargetSamples != null;
+
   bool get _hasPlantModel =>
+      _hasBaselineTelemetry ||
       reading.plantModelStatus.trim().isNotEmpty ||
       reading.plantModelConfidence != null ||
       reading.plantModelLearnedSamples != null ||
@@ -1059,6 +1101,23 @@ class _EdgeIntelligencePanel extends StatelessWidget {
               _EdgeSection(
                 title: 'Individual Plant Model',
                 children: [
+                  if (_hasBaselineTelemetry)
+                    _EdgeDetailRow(
+                      label: 'Baseline status',
+                      value: _baselineStatus,
+                    ),
+                  if (reading.bioBaselineTargetSamples != null)
+                    _EdgeDetailRow(
+                      label: 'Baseline progress',
+                      value:
+                          '${reading.bioBaselineSamples} / ${reading.bioBaselineTargetSamples}',
+                    ),
+                  if (reading.bioBaselineLearningPaused == true &&
+                      _baselinePauseReasonLabel.isNotEmpty)
+                    _EdgeDetailRow(
+                      label: 'Paused because',
+                      value: _baselinePauseReasonLabel,
+                    ),
                   _EdgeDetailRow(
                     label: 'Model status',
                     value: reading.plantModelReady
