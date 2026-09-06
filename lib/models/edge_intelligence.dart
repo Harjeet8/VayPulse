@@ -1013,10 +1013,10 @@ class EdgeIntelligence {
   bool get cameraInspectionRecommended =>
       cameraHandoff.recommended == true || bioticStress.suspected;
 
-  /// Versionless legacy packets and schemas 1-8 are supported. Newer schemas
+  /// Versionless legacy packets and schemas 1-9 are supported. Newer schemas
   /// remain visible in diagnostics but are not silently treated as compatible.
   bool get firmwareCompatible =>
-      schemaVersion == null || (schemaVersion! >= 1 && schemaVersion! <= 8);
+      schemaVersion == null || (schemaVersion! >= 1 && schemaVersion! <= 9);
 
   String? get compatibilityIssue =>
       firmwareCompatible ? null : 'Firmware compatibility issue';
@@ -1211,12 +1211,15 @@ class EdgeIntelligence {
       data['overallConfidence'],
       data['healthConfidence'],
       data['analysisConfidence'],
+      data['confidence'],
       plantHealth['confidence'],
       qualityMap['confidence'],
     ]));
     final plantState = _text(_first([
       edge['plantState'],
       data['plantState'],
+      data['plantCondition'],
+      data['status'],
       plantHealth['plantCondition'],
       plantHealth['status'],
       data['healthStatus'],
@@ -1476,6 +1479,7 @@ class EdgeIntelligence {
         bioelectricMap['plantVoltageMv'],
         edge['bioVoltageMv'],
         data['bioVoltageMv'],
+        data['bioVoltage'],
         data['plantVoltageMv'],
       ])),
       baselineMv: _num(_first([
@@ -1626,6 +1630,7 @@ class EdgeIntelligence {
         bioelectricMap['usedInFusion'],
         edge['bioIncludedInFusion'],
         data['bioIncludedInFusion'],
+        data['bioAffectsHealth'],
       ])),
       interpretation: _text(_first([
         bioelectricMap['interpretation'],
@@ -1898,11 +1903,13 @@ class EdgeIntelligence {
         temporalReasoningMap['status'],
         edge['temporalState'],
         data['temporalState'],
+        data['temporalReasoningState'],
       ])),
       confidence: _confidencePercent(_first([
         temporalReasoningMap['confidence'],
         edge['temporalConfidence'],
         data['temporalConfidence'],
+        data['temporalReasoningConfidence'],
       ])),
       primarySequence: _text(_first([
         temporalReasoningMap['primarySequence'],

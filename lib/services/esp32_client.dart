@@ -117,6 +117,7 @@ class Esp32Client {
 
     final temperature = first([
       data['airTemperatureC'],
+      data['airTemperature'],
       data['temperatureC'],
       data['temperature'],
       air['temperatureC'],
@@ -136,18 +137,28 @@ class Esp32Client {
     ]);
     final soilTemperature = first([
       data['soilTemperatureC'],
+      data['rootTemperature'],
       data['soilTemperature'],
       soil['temperatureC'],
     ]);
+    final schemaVersion =
+        _asInt(first([data['schemaVersion'], root['schemaVersion']])) ?? 0;
+    final flatLightIsLux =
+        endpoint.startsWith('firebase:') || schemaVersion >= 9;
     final lux = first([
       data['lux'],
       data['lightLux'],
       light['lux'],
-      if (_asDouble(data['light']) != null && _asDouble(data['light'])! > 100)
+      if (flatLightIsLux) data['light'],
+      if (!flatLightIsLux &&
+          _asDouble(data['light']) != null &&
+          _asDouble(data['light'])! > 100)
         data['light'],
     ]);
     final legacyLight = first([
-      if (_asDouble(data['light']) != null && _asDouble(data['light'])! <= 100)
+      if (!flatLightIsLux &&
+          _asDouble(data['light']) != null &&
+          _asDouble(data['light'])! <= 100)
         data['light'],
       data['lightPercent'],
     ]);
@@ -158,6 +169,7 @@ class Esp32Client {
     ]);
     final plantVoltageMv = first([
       data['plantVoltageMv'],
+      data['bioVoltage'],
       data['plantVoltage'],
       bio['voltageMv'],
       bio['amplifierOutputMv'],
@@ -175,12 +187,20 @@ class Esp32Client {
       bio['confidence'],
     ]);
 
-    final airValid = air['valid'] != false;
-    final soilValid = soil['moistureValid'] != false && soil['valid'] != false;
-    final rootValid = soil['temperatureValid'] != false && soil['valid'] != false;
-    final lightValid = light['valid'] != false;
-    final leafValid = leaf['valid'] != false;
-    final bioAvailable = bio['available'] != false;
+    final airValid =
+        air['valid'] != false && _flatSensorStatusUsable(data['ahtStatus']);
+    final soilValid = soil['moistureValid'] != false &&
+        soil['valid'] != false &&
+        _soilStatusUsable(data['soilStatus']);
+    final rootValid = soil['temperatureValid'] != false &&
+        soil['valid'] != false &&
+        _flatSensorStatusUsable(data['ds18b20Status']);
+    final lightValid =
+        light['valid'] != false && _flatSensorStatusUsable(data['bh1750Status']);
+    final leafValid =
+        leaf['valid'] != false && _flatSensorStatusUsable(data['leafStatus']);
+    final bioAvailable =
+        bio['available'] != false && _flatSensorStatusUsable(data['bioStatus']);
     final rawBioContactState = first([
       bio['contactState'],
       bio['bioContactState'],
@@ -233,6 +253,7 @@ class Esp32Client {
 
     final espHealth = _asDouble(first([
       data['healthScore'],
+      data['healthIndex'],
       data['health'],
       plantHealth['score'],
       plantHealth['index'],
@@ -240,6 +261,7 @@ class Esp32Client {
     final espConfidence = _asDouble(first([
       data['healthConfidence'],
       data['analysisConfidence'],
+      data['confidence'],
       data['overallAnalysisConfidence'],
       plantHealth['confidence'],
     ]));
@@ -259,8 +281,15 @@ class Esp32Client {
       'plantVoltageMv': voltageValue,
       'bioSource': '${first([data['bioSource'], data['bioelectricSource'], bio['source'], bio['bioSource'], 'real'])}',
       'healthScore': espHealth,
-      'healthStatus':
-          '${first([data['plantState'], data['healthStatus'], plantHealth['plantCondition'], plantHealth['status'], 'starting'])}',
+      'healthStatus': '${first([
+        data['plantState'],
+        data['plantCondition'],
+        data['healthStatus'],
+        data['status'],
+        plantHealth['plantCondition'],
+        plantHealth['status'],
+        'starting',
+      ])}',
       'analysisConfidence': espConfidence ?? 0,
       'esp32HealthScore': espHealth,
       'esp32HealthConfidence': espConfidence,
@@ -298,8 +327,17 @@ class Esp32Client {
         data['diseaseRisk'] is num ? data['diseaseRisk'] : null,
       ])),
       'bioelectricStability': stabilityValue,
-      'soilRaw': _asInt(first([soil['moistureRaw'], soil['raw'], data['soilMoistureRaw']])),
-      'leafRaw': _asInt(first([leaf['raw'], data['leafWetnessRaw']])),
+      'soilRaw': _asInt(first([
+        soil['moistureRaw'],
+        soil['raw'],
+        data['soilMoistureRaw'],
+        data['soilRaw'],
+      ])),
+      'leafRaw': _asInt(first([
+        leaf['raw'],
+        data['leafWetnessRaw'],
+        data['leafRaw'],
+      ])),
       'soilCalibrated': first([
             soil['calibrated'],
             calibration['soilConfirmed'],
@@ -312,7 +350,9 @@ class Esp32Client {
             calibration['leafCalibrated'],
           ]) ==
           true,
-      'daytime': first([light['daytime'], data['daytime']]) != false,
+      'daytime': _isDaytime(
+        first([light['daytime'], data['daytime'], data['dayNight']]),
+      ),
       'leafWetDurationSeconds': _asDouble(first([
             leaf['continuousWetSeconds'],
             leaf['wetDurationSeconds'],
@@ -639,6 +679,52 @@ class Esp32Client {
     };
 
     return data;
+  }
+
+  static bool _flatSensorStatusUsable(dynamic value) {
+    final state = '${value ?? ''}'
+        .trim()
+        .toUpperCase()
+        .replaceAll(' ', '_')
+        .replaceAll('-', '_');
+    if (state.isEmpty) return true;
+    return !const <String>{
+      'UNAVAILABLE',
+      'NOT_AVAILABLE',
+      'INVALID',
+      'FAILED',
+      'FAIL',
+      'ERROR',
+      'MISSING',
+      'NOT_CONNECTED',
+      'ABSENT',
+    }.contains(state);
+  }
+
+  static bool _soilStatusUsable(dynamic value) {
+    final state = '${value ?? ''}'
+        .trim()
+        .toUpperCase()
+        .replaceAll(' ', '_')
+        .replaceAll('-', '_');
+    if (!_flatSensorStatusUsable(state)) return false;
+    return !const <String>{
+      'VERIFY',
+      'VERIFY_PLACEMENT',
+      'PLACEMENT_VERIFY',
+      'CHECK_PLACEMENT',
+      'OUTSIDE_CALIBRATED_RANGE',
+      'HEALTH_USE_DISABLED',
+      'DISABLED',
+    }.contains(state);
+  }
+
+  static bool _isDaytime(dynamic value) {
+    if (value is bool) return value;
+    final state = '${value ?? ''}'.trim().toUpperCase();
+    if (state == 'NIGHT') return false;
+    if (state == 'DAY') return true;
+    return true;
   }
 
   static Map<String, dynamic> _map(dynamic value) => value is Map
