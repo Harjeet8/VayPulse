@@ -90,6 +90,49 @@ void main() {
     expect(realtime.bioSourceLabel, 'Real Time Signal');
   });
 
+  test('ESP32 baseline telemetry stays authoritative when soil is VERIFY',
+      () async {
+    final client = Esp32Client(
+      'http://192.168.4.1',
+      httpClient: MockClient(
+        (_) async => http.Response(
+          jsonEncode({
+            'data': {
+              'nodeId': 'node-baseline',
+              'healthScore': 94,
+              'temperature': 28,
+              'soilStatus': 'VERIFY',
+              'bioelectric': {
+                'baselineReady': false,
+                'baselineLearningPaused': false,
+                'baselinePauseReason': 'NONE',
+                'baselineSamples': 18,
+                'baselineTargetSamples': 60,
+              },
+            },
+          }),
+          200,
+        ),
+      ),
+    );
+
+    final reading = (await client.getSnapshot()).reading;
+
+    expect(reading.bioBaselineReady, isFalse);
+    expect(reading.bioBaselineLearningPaused, isFalse);
+    expect(reading.bioBaselinePauseReason, 'NONE');
+    expect(reading.bioBaselineSamples, 18);
+    expect(reading.bioBaselineTargetSamples, 60);
+  });
+
+  test('new baseline pause fields remain nullable for older firmware', () async {
+    final reading = await _readingForSource('real');
+
+    expect(reading.bioBaselineLearningPaused, isNull);
+    expect(reading.bioBaselinePauseReason, isNull);
+    expect(reading.bioBaselineTargetSamples, isNull);
+  });
+
   test('crop sync requires POST and persisted GET confirmation', () async {
     var posted = false;
     final client = Esp32ConfigClient(
