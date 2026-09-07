@@ -399,7 +399,7 @@ class _BootCopy extends StatelessWidget {
           child: Opacity(
             opacity: quote,
             child: Text(
-              'FOR PHYTOSENSE AI FOR THE BETTERMENT OF FARMERS',
+              'For the Betterment of Farmers',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: secondary.withValues(alpha: dark ? 0.68 : 0.78),
