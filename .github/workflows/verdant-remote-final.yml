@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '^version: 9.1.2+903$' pubspec.yaml
+          grep -q '^version: 9.1.3+904$' pubspec.yaml
           test -f assets/branding/phytosense_icon.png
           test -f assets/fonts/NotoSansTamil-Regular.ttf
           grep -Fq "TimePhaseCard" lib/screens/live_node_home_screen.dart
@@ -90,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           SRC="build/app/outputs/flutter-apk/app-release.apk"
-          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk"
+          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.3-904.apk"
           test -s "$SRC"
           cp "$SRC" "$OUT"
           unzip -t "$OUT" >/dev/null
@@ -106,10 +106,19 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk"
+          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.3-904.apk"
           test -s "$OUT"
-          response="$(curl --fail-with-body --silent --show-error -T "$OUT" https://pixeldrain.com/api/file/)"
-          echo "$response"
-          file_id="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["id"])' "$response")"
-          test -n "$file_id"
-          echo "PHYTO_APK_URL=https://pixeldrain.com/api/file/$file_id"
+
+          url="$(curl --fail-with-body --silent --show-error             -F "reqtype=fileupload"             -F "fileToUpload=@$OUT"             https://catbox.moe/user/api.php || true)"
+
+          if [[ ! "$url" =~ ^https:// ]]; then
+            response="$(curl --fail-with-body --silent --show-error               -F "file=@$OUT"               https://tmpfiles.org/api/v1/upload || true)"
+            url="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("data",{}).get("url",""))' "$response" 2>/dev/null || true)"
+          fi
+
+          if [[ ! "$url" =~ ^https:// ]]; then
+            echo "No external handoff service accepted the verified APK."
+            exit 1
+          fi
+
+          echo "PHYTO_APK_URL=$url"

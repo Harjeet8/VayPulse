@@ -229,6 +229,16 @@ void main() {
     expect(edge.bioelectric.voltageMv, 1712.0);
   });
 
+  test('farmer-facing Real Time Signal card uses mV as the primary value', () {
+    final home = File('lib/screens/live_node_home_screen.dart').readAsStringSync();
+    final sensors = File('lib/screens/live_sensors_screen.dart').readAsStringSync();
+
+    expect(home, contains("bio.voltageMv!.round()} mV"));
+    expect(home, contains('NORMAL • STABLE'));
+    expect(sensors, contains('reading.plantVoltageMv'));
+    expect(sensors, contains('NORMAL • STABLE'));
+  });
+
   test('reliability parses full degraded and recovering', () {
     EdgeIntelligence edge(String mode) => EdgeIntelligence.fromPayload(
           root: const {},

@@ -556,13 +556,46 @@ class _BioelectricCard extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.w900),
             ),
             const SizedBox(height: 8),
-            Text(
-              state,
-              style: Theme.of(context)
-                  .textTheme
-                  .headlineSmall
-                  ?.copyWith(fontWeight: FontWeight.w900),
-            ),
+            if (displayOnly) ...[
+              Text(
+                signalLabel,
+                style: Theme.of(context)
+                    .textTheme
+                    .labelLarge
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
+              const SizedBox(height: 3),
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 260),
+                child: Text(
+                  (bio?.voltageMv ?? reading.plantVoltageMv) == null
+                      ? '— mV'
+                      : '${(bio?.voltageMv ?? reading.plantVoltageMv)!.round()} mV',
+                  key: ValueKey<int?>(
+                    (bio?.voltageMv ?? reading.plantVoltageMv)?.round(),
+                  ),
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineMedium
+                      ?.copyWith(fontWeight: FontWeight.w900),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                'NORMAL • STABLE',
+                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: Theme.of(context).colorScheme.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+              ),
+            ] else
+              Text(
+                state,
+                style: Theme.of(context)
+                    .textTheme
+                    .headlineSmall
+                    ?.copyWith(fontWeight: FontWeight.w900),
+              ),
             if (available &&
                 !displayOnly &&
                 !(bio?.learningBaseline ?? false) &&

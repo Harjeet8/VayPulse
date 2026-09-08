@@ -1020,8 +1020,42 @@ class _PlantResponseCard extends StatelessWidget {
                         ?.copyWith(fontWeight: FontWeight.w800),
                   ),
                   const SizedBox(height: 3),
-                  Text(state,
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),
+                  if (displayOnly) ...[
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 260),
+                      child: Text(
+                        bio.voltageMv == null
+                            ? '— mV'
+                            : '${bio.voltageMv!.round()} mV',
+                        key: ValueKey<int?>(
+                          bio.voltageMv?.round(),
+                        ),
+                        style: Theme.of(context)
+                            .textTheme
+                            .headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.6,
+                            ),
+                      ),
+                    ),
+                    const SizedBox(height: 3),
+                    Text(
+                      'NORMAL • STABLE',
+                      style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                            color: Theme.of(context).colorScheme.primary,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.35,
+                          ),
+                    ),
+                  ] else
+                    Text(
+                      state,
+                      style: Theme.of(context)
+                          .textTheme
+                          .titleLarge
+                          ?.copyWith(fontWeight: FontWeight.w900),
+                    ),
                   const SizedBox(height: 5),
                   Text(
                     result,
