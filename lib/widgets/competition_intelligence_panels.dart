@@ -277,7 +277,7 @@ class BioelectricPulseCard extends StatelessWidget {
             children: [
               _MetricChip(
                 label: tamil ? 'Source' : 'Source',
-                value: current.bioSourceLabel,
+                value: info?.displayLabel ?? current.bioSourceLabel,
                 accent: accent,
               ),
               _MetricChip(

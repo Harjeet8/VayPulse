@@ -961,22 +961,32 @@ class _PlantResponseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final excluded = bio.excludedByFirmware;
-    final learning = !excluded && bio.learningBaseline;
-    final state = excluded
-        ? FarmerLanguage.label(context, 'signal_unavailable')
-        : learning
-            ? FarmerLanguage.label(context, 'learning_baseline')
-            : _plantResponse(context, bio);
-    final result = FarmerLanguage.firmware(
-      context,
-      excluded ? bio.interpretation : bio.farmerResult ?? bio.interpretation,
-      fallback: excluded
-          ? FarmerLanguage.label(context, 'bio_signal_check_electrodes')
-          : learning
-              ? FarmerLanguage.label(context, 'bio_learning_body')
-              : FarmerLanguage.label(context, 'plant_response_no_result'),
-    );
+    final displayOnly = bio.presentationOnly;
+    final excluded = !displayOnly && bio.excludedByFirmware;
+    final learning = !displayOnly && !excluded && bio.learningBaseline;
+    final state = displayOnly
+        ? bio.displayLabel
+        : excluded
+            ? FarmerLanguage.label(context, 'signal_unavailable')
+            : learning
+                ? FarmerLanguage.label(context, 'learning_baseline')
+                : _plantResponse(context, bio);
+    final result = displayOnly
+        ? 'Signal readings are updating normally.'
+        : FarmerLanguage.firmware(
+            context,
+            excluded
+                ? bio.interpretation
+                : bio.farmerResult ?? bio.interpretation,
+            fallback: excluded
+                ? FarmerLanguage.label(context, 'bio_signal_check_electrodes')
+                : learning
+                    ? FarmerLanguage.label(context, 'bio_learning_body')
+                    : FarmerLanguage.label(
+                        context,
+                        'plant_response_no_result',
+                      ),
+          );
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(17),
@@ -1000,8 +1010,15 @@ class _PlantResponseCard extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(FarmerLanguage.label(context, 'plant_response'),
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w800)),
+                  Text(
+                    displayOnly
+                        ? bio.displayLabel
+                        : FarmerLanguage.label(context, 'plant_response'),
+                    style: Theme.of(context)
+                        .textTheme
+                        .labelLarge
+                        ?.copyWith(fontWeight: FontWeight.w800),
+                  ),
                   const SizedBox(height: 3),
                   Text(state,
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w900)),

@@ -518,18 +518,28 @@ class _BioelectricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bio = edge?.bioelectric;
     final detail = telemetry?.sensor('plantSignal');
-    final available = !(bio?.excludedByFirmware ?? false) &&
-        (bio?.available ??
-            (reading.plantSignalAvailable && reading.plantVoltageMv != null));
+    final displayOnly =
+        bio?.presentationOnly == true || reading.bioIsPresentation;
+    final available = displayOnly
+        ? (bio?.displayAvailable ?? reading.plantSignalAvailable)
+        : !(bio?.excludedByFirmware ?? false) &&
+            (bio?.available ??
+                (reading.plantSignalAvailable &&
+                    reading.plantVoltageMv != null));
+    final signalLabel = bio?.displayLabel ?? reading.bioSourceLabel;
     final result = available
-        ? FarmerLanguage.firmware(
-            context,
-            bio?.farmerResult ?? detail?.result,
-            fallback: FarmerLanguage.label(context, 'no_interpretation'),
-          )
+        ? displayOnly
+            ? 'Signal readings are updating normally.'
+            : FarmerLanguage.firmware(
+                context,
+                bio?.farmerResult ?? detail?.result,
+                fallback: FarmerLanguage.label(context, 'no_interpretation'),
+              )
         : FarmerLanguage.label(context, 'unavailable');
     final state = available
-        ? _bioState(context, bio)
+        ? displayOnly
+            ? signalLabel
+            : _bioState(context, bio)
         : FarmerLanguage.label(context, 'signal_unavailable');
     final trend = bio?.trend ?? detail?.trend;
     final confidence = bio?.confidence ?? detail?.confidence;
@@ -554,6 +564,7 @@ class _BioelectricCard extends StatelessWidget {
                   ?.copyWith(fontWeight: FontWeight.w900),
             ),
             if (available &&
+                !displayOnly &&
                 !(bio?.learningBaseline ?? false) &&
                 bio?.stressScore != null) ...[
               const SizedBox(height: 4),
@@ -588,15 +599,18 @@ class _BioelectricCard extends StatelessWidget {
                   ),
               ],
             ),
-            const SizedBox(height: 6),
-            Text(
-              FarmerLanguage.label(context, 'baseline_note'),
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
+            if (!displayOnly) ...[
+              const SizedBox(height: 6),
+              Text(
+                FarmerLanguage.label(context, 'baseline_note'),
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
             ExpansionTile(
               tilePadding: EdgeInsets.zero,
               title: Text(FarmerLanguage.label(context, 'technical')),
               children: [
+                _Technical('Source', signalLabel),
                 _Technical(
                   'Voltage',
                   bio?.voltageMv != null

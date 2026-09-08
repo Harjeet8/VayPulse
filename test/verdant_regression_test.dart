@@ -205,6 +205,30 @@ void main() {
     );
   });
 
+  test('Real Time Signal stays visible but cannot affect plant health', () {
+    final edge = EdgeIntelligence.fromPayload(
+      root: const {},
+      data: const {
+        'bioSource': 'realtime',
+        'bioDisplayName': 'Real Time Signal',
+        'bioDisplayOnly': true,
+        'bioAffectsHealth': false,
+        'bioAvailable': true,
+        'bioVoltage': 1712.0,
+        'bioSignalQuality': 92,
+      },
+      firmwareVersion: 'test',
+    );
+
+    expect(edge.bioelectric.presentationOnly, isTrue);
+    expect(edge.bioelectric.displayAvailable, isTrue);
+    expect(edge.bioelectric.displayLabel, 'Real Time Signal');
+    expect(edge.bioelectric.includedInFusion, isFalse);
+    expect(edge.bioelectric.excludedByFirmware, isTrue);
+    expect(edge.bioelectric.learningBaseline, isFalse);
+    expect(edge.bioelectric.voltageMv, 1712.0);
+  });
+
   test('reliability parses full degraded and recovering', () {
     EdgeIntelligence edge(String mode) => EdgeIntelligence.fromPayload(
           root: const {},

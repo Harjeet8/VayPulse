@@ -308,6 +308,8 @@ class RuntimeHealthInfo {
 
 class BioelectricIntelligence {
   final String? source;
+  final String? displayName;
+  final bool? displayOnly;
   final bool? available;
   final double? voltageMv;
   final double? baselineMv;
@@ -345,6 +347,8 @@ class BioelectricIntelligence {
 
   const BioelectricIntelligence({
     this.source,
+    this.displayName,
+    this.displayOnly,
     this.available,
     this.voltageMv,
     this.baselineMv,
@@ -383,6 +387,8 @@ class BioelectricIntelligence {
 
   bool get hasData =>
       source != null ||
+      displayName != null ||
+      displayOnly != null ||
       available != null ||
       voltageMv != null ||
       baselineMv != null ||
@@ -434,7 +440,27 @@ class BioelectricIntelligence {
         source == 'SYNTHETIC';
   }
 
-  bool get presentationOnly => isPresentationSource(source);
+  bool get presentationOnly =>
+      displayOnly == true || isPresentationSource(source);
+
+  /// User-facing source label. Display-only signal sources deliberately use
+  /// the neutral Real Time Signal wording and never expose internal mode names.
+  String get displayLabel {
+    if (presentationOnly) return 'Real Time Signal';
+    final preferred = displayName?.trim();
+    if (preferred != null && preferred.isNotEmpty) return preferred;
+    if (_normalizedState(source) == 'REAL') return 'Live Readings';
+    final raw = source?.trim();
+    return raw == null || raw.isEmpty ? 'Plant signal' : raw;
+  }
+
+  /// A display-only signal can still be shown normally even though it is
+  /// intentionally excluded from plant-health fusion and baseline learning.
+  bool get displayAvailable {
+    if (available == false) return false;
+    if (presentationOnly) return true;
+    return !excludedByFirmware;
+  }
 
   /// True only when the firmware says the plant channel is unusable or its
   /// explicit state identifies a contact/noise/rail problem. A bad plant
@@ -1085,7 +1111,21 @@ class EdgeIntelligence {
       data['bioSource'],
       data['bioelectricSource'],
     ]));
-    final presentationBio =
+    final bioDisplayName = _text(_first([
+      bioelectricMap['displayName'],
+      bioelectricMap['bioDisplayName'],
+      edge['bioDisplayName'],
+      data['bioDisplayName'],
+      root['bioDisplayName'],
+    ]));
+    final explicitBioDisplayOnly = _bool(_first([
+      bioelectricMap['displayOnly'],
+      bioelectricMap['bioDisplayOnly'],
+      edge['bioDisplayOnly'],
+      data['bioDisplayOnly'],
+      root['bioDisplayOnly'],
+    ]));
+    final presentationBio = explicitBioDisplayOnly == true ||
         BioelectricIntelligence.isPresentationSource(bioSource);
     final bioticStressMap = _firstMap([
       edge['bioticStress'],
@@ -1469,6 +1509,8 @@ class EdgeIntelligence {
 
     final bioelectric = BioelectricIntelligence(
       source: bioSource,
+      displayName: bioDisplayName,
+      displayOnly: explicitBioDisplayOnly ?? presentationBio,
       available: _bool(_first([
         bioelectricMap['available'],
         edge['bioAvailable'],

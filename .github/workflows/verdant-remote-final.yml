@@ -22,7 +22,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '^version: 9.1.1+902$' pubspec.yaml
+          grep -q '^version: 9.1.2+903$' pubspec.yaml
           test -f assets/branding/phytosense_icon.png
           test -f assets/fonts/NotoSansTamil-Regular.ttf
           grep -Fq "TimePhaseCard" lib/screens/live_node_home_screen.dart
@@ -90,7 +90,7 @@ jobs:
         run: |
           set -euo pipefail
           SRC="build/app/outputs/flutter-apk/app-release.apk"
-          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.1-902.apk"
+          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk"
           test -s "$SRC"
           cp "$SRC" "$OUT"
           unzip -t "$OUT" >/dev/null
@@ -105,9 +105,9 @@ jobs:
       - name: Upload newest APK
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.1-902
+          name: PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903
           path: |
-            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.1-902.apk
-            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.1-902.apk.sha256
+            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk
+            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk.sha256
           if-no-files-found: error
           retention-days: 14
