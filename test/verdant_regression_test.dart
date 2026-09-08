@@ -239,6 +239,19 @@ void main() {
     expect(sensors, contains('NORMAL • STABLE'));
   });
 
+  test('analysis page treats Real Time Signal as visible and normal', () {
+    final analysis =
+        File('lib/screens/farmer_analysis_screen.dart').readAsStringSync();
+    expect(analysis, contains('Real Time Signal is updating normally.'));
+    expect(analysis, contains('NORMAL • STABLE'));
+    expect(analysis, contains("bio.voltageMv!.round()} mV"));
+    expect(analysis, contains('Does not affect plant health'));
+    expect(
+      analysis,
+      contains('final excluded = !displayOnly && bio.excludedByFirmware;'),
+    );
+  });
+
   test('reliability parses full degraded and recovering', () {
     EdgeIntelligence edge(String mode) => EdgeIntelligence.fromPayload(
           root: const {},

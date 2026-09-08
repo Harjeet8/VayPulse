@@ -214,7 +214,13 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
               'காற்று வெப்பநிலை $temperature°C.',
             ));
     }
-    if (edge.bioelectric.excludedByFirmware) {
+    if (edge.bioelectric.presentationOnly) {
+      add(_analysisText(
+        context,
+        'Real Time Signal is updating normally.',
+        'Real Time Signal வழக்கம்போல் புதுப்பிக்கப்படுகிறது.',
+      ));
+    } else if (edge.bioelectric.excludedByFirmware) {
       add(_analysisText(
         context,
         'The plant signal was left out because its quality was too low.',
@@ -256,6 +262,8 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
       ),
       if (edge?.bioticStress.suspected == true)
         FarmerLanguage.label(context, 'possible_biotic_body')
+      else if (edge?.bioelectric.presentationOnly == true)
+        'Real Time Signal is updating normally'
       else if (edge?.bioelectric.excludedByFirmware == true)
         FarmerLanguage.label(context, 'bio_signal_check_electrodes')
       else if (edge?.bioelectric.learningBaseline == true)
@@ -504,38 +512,43 @@ class _BioelectricHero extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final excluded = bio.excludedByFirmware;
-    final learning = !excluded && bio.learningBaseline;
+    final displayOnly = bio.presentationOnly;
+    final excluded = !displayOnly && bio.excludedByFirmware;
+    final learning = !displayOnly && !excluded && bio.learningBaseline;
     final colors = Theme.of(context).colorScheme;
     final accent = excluded
         ? colors.error
         : learning
             ? colors.tertiary
             : colors.primary;
-    final state = excluded
-        ? FarmerLanguage.label(context, 'signal_unavailable')
-        : learning
-            ? FarmerLanguage.label(context, 'learning_baseline')
-            : FarmerLanguage.firmware(
-                context,
-                bio.stressState ?? bio.signalQualityState,
-                fallback: FarmerLanguage.label(
-                  context,
-                  'plant_response_no_result',
-                ),
-              );
-    final explanation = excluded
-        ? FarmerLanguage.label(context, 'bio_signal_check_electrodes')
-        : learning
-            ? FarmerLanguage.label(context, 'bio_learning_body')
-            : FarmerLanguage.firmware(
-                context,
-                bio.farmerResult ?? bio.interpretation,
-                fallback: FarmerLanguage.label(
-                  context,
-                  'plant_response_no_result',
-                ),
-              );
+    final state = displayOnly
+        ? 'NORMAL • STABLE'
+        : excluded
+            ? FarmerLanguage.label(context, 'signal_unavailable')
+            : learning
+                ? FarmerLanguage.label(context, 'learning_baseline')
+                : FarmerLanguage.firmware(
+                    context,
+                    bio.stressState ?? bio.signalQualityState,
+                    fallback: FarmerLanguage.label(
+                      context,
+                      'plant_response_no_result',
+                    ),
+                  );
+    final explanation = displayOnly
+        ? 'Real Time Signal is updating normally.'
+        : excluded
+            ? FarmerLanguage.label(context, 'bio_signal_check_electrodes')
+            : learning
+                ? FarmerLanguage.label(context, 'bio_learning_body')
+                : FarmerLanguage.firmware(
+                    context,
+                    bio.farmerResult ?? bio.interpretation,
+                    fallback: FarmerLanguage.label(
+                      context,
+                      'plant_response_no_result',
+                    ),
+                  );
 
     return Container(
       padding: const EdgeInsets.all(19),
@@ -553,13 +566,30 @@ class _BioelectricHero extends StatelessWidget {
               const SizedBox(width: 9),
               Expanded(
                 child: Text(
-                  FarmerLanguage.label(context, 'bioelectric_response'),
+                  displayOnly
+                      ? bio.displayLabel
+                      : FarmerLanguage.label(context, 'bioelectric_response'),
                   style: const TextStyle(fontWeight: FontWeight.w900),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 10),
+          if (displayOnly && bio.voltageMv != null) ...[
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 260),
+              child: Text(
+                '${bio.voltageMv!.round()} mV',
+                key: ValueKey<int>(bio.voltageMv!.round()),
+                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                      color: accent,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
+                    ),
+              ),
+            ),
+            const SizedBox(height: 4),
+          ],
           Text(
             state,
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
@@ -574,7 +604,10 @@ class _BioelectricHero extends StatelessWidget {
             spacing: 14,
             runSpacing: 7,
             children: [
-              if (!excluded && !learning && bio.stressScore != null)
+              if (!displayOnly &&
+                  !excluded &&
+                  !learning &&
+                  bio.stressScore != null)
                 Text(
                   '${FarmerLanguage.label(context, 'stress_score')}: ${bio.stressScore!.round()} / 100',
                   style: const TextStyle(fontWeight: FontWeight.w800),
@@ -584,7 +617,12 @@ class _BioelectricHero extends StatelessWidget {
                   '${FarmerLanguage.label(context, 'bio_signal_quality')}: ${bio.signalQuality!.round()}%',
                   style: const TextStyle(fontWeight: FontWeight.w800),
                 ),
-              if (bio.includedInFusion != null)
+              if (displayOnly)
+                const Text(
+                  'Does not affect plant health',
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                )
+              else if (bio.includedInFusion != null)
                 Text(
                   bio.includedInFusion!
                       ? FarmerLanguage.label(context, 'included_in_analysis')
