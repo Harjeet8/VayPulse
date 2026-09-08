@@ -102,12 +102,14 @@ jobs:
           "$sdk_root/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable "$OUT" | grep -qx 'false'
           sha256sum "$OUT" | tee "$OUT.sha256"
 
-      - name: Upload newest APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903
-          path: |
-            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk
-            PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk.sha256
-          if-no-files-found: error
-          retention-days: 14
+      - name: Publish verified APK handoff
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.2-903.apk"
+          test -s "$OUT"
+          response="$(curl --fail-with-body --silent --show-error -T "$OUT" https://pixeldrain.com/api/file/)"
+          echo "$response"
+          file_id="$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["id"])' "$response")"
+          test -n "$file_id"
+          echo "PHYTO_APK_URL=https://pixeldrain.com/api/file/$file_id"
