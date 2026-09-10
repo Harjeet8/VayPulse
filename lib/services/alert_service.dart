@@ -5,6 +5,8 @@ import 'package:flutter/foundation.dart';
 import '../models/alert.dart';
 import '../models/sensor_reading.dart';
 import 'farm_repository.dart';
+import 'farmer_language_service.dart';
+import 'local_notification_service.dart';
 import 'settings_service.dart';
 import 'sensor_data_provider.dart';
 import 'weather_service.dart';
@@ -14,12 +16,20 @@ class AlertService extends ChangeNotifier {
   final SettingsService settings;
   final WeatherService weather;
   final FarmRepository farms;
+  final LocalNotificationService localNotifications;
   final List<PlantAlert> alerts = [];
   final Map<String, DateTime> _lastAlertAt = {};
+  final Map<String, AlertSeverity> _lastAlertSeverity = {};
   StreamSubscription<SensorReading>? _subscription;
   SensorDataSource? _lastSource;
 
-  AlertService(this.sensors, this.settings, this.weather, this.farms);
+  AlertService(
+    this.sensors,
+    this.settings,
+    this.weather,
+    this.farms,
+    this.localNotifications,
+  );
 
   int get unreadCount => alerts.where((alert) => !alert.isRead).length;
 
@@ -75,22 +85,42 @@ class AlertService extends ChangeNotifier {
 
   void _evaluateEdgeDecision(SensorReading reading) {
     if (!reading.edgeAnalysisAvailable) return;
-    final status = reading.healthStatus.toUpperCase();
-    if (!const <String>{'WATCH', 'STRESS', 'CRITICAL'}.contains(status)) {
-      return;
-    }
+
+    final status = reading.healthStatus.trim().toUpperCase();
+    final priority = reading.priority.trim().toUpperCase();
+    const healthAttention = <String>{'WATCH', 'STRESS', 'CRITICAL'};
+    const priorityAttention = <String>{
+      'CHECK',
+      'WATCH',
+      'STRESS',
+      'HIGH',
+      'CRITICAL',
+      'URGENT',
+    };
+
+    final needsAttention = healthAttention.contains(status) ||
+        priorityAttention.contains(priority);
+    if (!needsAttention) return;
+
+    final critical =
+        status == 'CRITICAL' || priority == 'CRITICAL' || priority == 'URGENT';
+    final problem = FarmerLanguageService.hardwareProblem(
+      rootCause: reading.primaryRootCause,
+      because: reading.because,
+      needsAttention: true,
+    );
+    final solution = FarmerLanguageService.hardwareSolution(
+      farmerAction: reading.farmerAction,
+      problem: problem,
+    );
+
     _addAlert(
       nodeId: reading.nodeId,
       titleKey: 'alert_edge_decision',
       messageKey: 'alert_abnormal_sensor_message',
-      titleText: reading.primaryRootCause.isEmpty
-          ? 'ESP32 plant-health alert'
-          : reading.primaryRootCause.replaceAll('_', ' '),
-      messageText: reading.farmerAction.isEmpty
-          ? 'Open the live dashboard for the ESP32 recommendation.'
-          : reading.farmerAction,
-      severity:
-          status == 'CRITICAL' ? AlertSeverity.critical : AlertSeverity.warning,
+      titleText: problem,
+      messageText: solution,
+      severity: critical ? AlertSeverity.critical : AlertSeverity.warning,
     );
   }
 
@@ -136,6 +166,7 @@ class AlertService extends ChangeNotifier {
       _lastSource = sensors.source;
       alerts.clear();
       _lastAlertAt.clear();
+      _lastAlertSeverity.clear();
       notifyListeners();
     }
     if (sensors.connectionStatus == SensorConnectionStatus.error) {
@@ -192,12 +223,21 @@ class AlertService extends ChangeNotifier {
     required AlertSeverity severity,
     String? titleText,
     String? messageText,
-    Duration cooldown = const Duration(seconds: 25),
+    Duration cooldown = const Duration(minutes: 5),
   }) {
     final dedupeKey = '$nodeId:$titleKey';
     final last = _lastAlertAt[dedupeKey];
-    if (last != null && DateTime.now().difference(last) < cooldown) return;
+    final previousSeverity = _lastAlertSeverity[dedupeKey];
+    final escalated =
+        previousSeverity != null && severity.index > previousSeverity.index;
+    if (last != null &&
+        DateTime.now().difference(last) < cooldown &&
+        !escalated) {
+      return;
+    }
+
     _lastAlertAt[dedupeKey] = DateTime.now();
+    _lastAlertSeverity[dedupeKey] = severity;
     alerts.insert(
       0,
       PlantAlert(
@@ -213,6 +253,63 @@ class AlertService extends ChangeNotifier {
     );
     if (alerts.length > 40) alerts.removeLast();
     notifyListeners();
+
+    if (settings.value.notificationsEnabled) {
+      unawaited(
+        localNotifications.showAlert(
+          title: _notificationTitle(titleKey, titleText),
+          body: _notificationMessage(messageKey, messageText),
+          critical: severity == AlertSeverity.critical,
+        ),
+      );
+    }
+  }
+
+  String _notificationTitle(String key, String? override) {
+    if (override != null && override.trim().isNotEmpty) return override.trim();
+    return switch (key) {
+      'alert_severe_dryness' => 'The soil is very dry',
+      'alert_low_moisture' => 'The soil is getting dry',
+      'alert_overwatering' => 'The soil may be too wet',
+      'alert_heat_stress' => 'The plant may be too hot',
+      'alert_low_light' => 'The plant may need more light',
+      'alert_low_battery' => 'The PhytoSense battery is low',
+      'alert_weak_signal' => 'The PhytoSense connection is weak',
+      'alert_abnormal_sensor' => 'A sensor needs a quick check',
+      'alert_heavy_rain' => 'Heavy rain may affect the field',
+      'alert_disease_risk' => 'Check the crop for disease signs',
+      'alert_dry_spell' => 'Dry weather may continue',
+      _ => 'PhytoSense AI alert',
+    };
+  }
+
+  String _notificationMessage(String key, String? override) {
+    if (override != null && override.trim().isNotEmpty) return override.trim();
+    return switch (key) {
+      'alert_severe_dryness_message' =>
+        'Check the soil near the roots. Water only if it is actually dry.',
+      'alert_low_moisture_message' =>
+        'Check the soil near the roots before adding water.',
+      'alert_overwatering_message' =>
+        'Do not add more water now. Check soil wetness and drainage.',
+      'alert_heat_stress_message' =>
+        'Check the plant and soil moisture during the hottest part of the day.',
+      'alert_low_light_message' =>
+        'Check for shade or anything blocking the light sensor.',
+      'alert_low_battery_message' =>
+        'Recharge or replace the sensor node power source soon.',
+      'alert_weak_signal_message' =>
+        'Check the node power, distance, and network connection.',
+      'alert_abnormal_sensor_message' =>
+        'Check the sensor connection, then open PhytoSense AI for the latest reading.',
+      'alert_heavy_rain_message' =>
+        'Check field drainage and protect areas that may collect water.',
+      'alert_disease_risk_message' =>
+        'Look at the leaves and wet areas for early signs of disease.',
+      'alert_dry_spell_message' =>
+        'Check the soil before deciding whether the crop needs water.',
+      _ => 'Open PhytoSense AI to see what is wrong and what to do next.',
+    };
   }
 
   void markAllRead() {
@@ -232,6 +329,7 @@ class AlertService extends ChangeNotifier {
   void clear() {
     alerts.clear();
     _lastAlertAt.clear();
+    _lastAlertSeverity.clear();
     notifyListeners();
   }
 

@@ -3,9 +3,12 @@ import 'package:flutter/services.dart';
 
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
+import '../services/ai_analysis_service.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/farmer_analysis_dock.dart';
 import 'alerts_screen.dart';
 import 'app_command_search.dart';
 import 'devices_screen.dart';
@@ -29,16 +32,19 @@ class _ShellScreenState extends State<ShellScreen> {
     final scope = AppScope.of(context);
     final sensors = scope.sensors;
     return AnimatedBuilder(
-      animation: sensors,
+      animation: Listenable.merge([sensors, scope.farms]),
       builder: (context, _) {
         final live = sensors.source == SensorDataSource.esp32;
         final pages = [
-          HomeScreen(
-            onOpenAlerts: () => setState(() => index = 3),
-            onOpenFields: () => setState(() => index = 1),
+          _withFarmerAnalysis(
+            context,
+            HomeScreen(
+              onOpenAlerts: () => setState(() => index = 3),
+              onOpenFields: () => setState(() => index = 1),
+            ),
           ),
           live ? const DevicesScreen() : const PlantsScreen(),
-          const InsightsScreen(),
+          _withFarmerAnalysis(context, const InsightsScreen()),
           const AlertsScreen(),
           const ProfileScreen(),
         ];
@@ -181,6 +187,84 @@ class _ShellScreenState extends State<ShellScreen> {
           ),
         );
       },
+    );
+  }
+
+  Widget _withFarmerAnalysis(BuildContext context, Widget child) {
+    final scope = AppScope.of(context);
+    final current = scope.sensors.current;
+    if (current == null) return child;
+
+    String problem;
+    String solution;
+    Color accent;
+
+    if (scope.sensors.source == SensorDataSource.esp32) {
+      if (!current.edgeAnalysisAvailable) return child;
+
+      final status = current.healthStatus.trim().toUpperCase();
+      final priority = current.priority.trim().toUpperCase();
+      const healthAttention = <String>{'WATCH', 'STRESS', 'CRITICAL'};
+      const priorityAttention = <String>{
+        'CHECK',
+        'WATCH',
+        'STRESS',
+        'HIGH',
+        'CRITICAL',
+        'URGENT',
+      };
+      final needsAttention = healthAttention.contains(status) ||
+          priorityAttention.contains(priority);
+      final critical = status == 'CRITICAL' ||
+          priority == 'CRITICAL' ||
+          priority == 'URGENT';
+
+      problem = FarmerLanguageService.hardwareProblem(
+        rootCause: current.primaryRootCause,
+        because: current.because,
+        needsAttention: needsAttention,
+      );
+      solution = FarmerLanguageService.hardwareSolution(
+        farmerAction: current.farmerAction,
+        problem: problem,
+      );
+      accent = critical
+          ? Theme.of(context).colorScheme.error
+          : needsAttention
+              ? Theme.of(context).colorScheme.tertiary
+              : Theme.of(context).colorScheme.primary;
+    } else {
+      if (!scope.farms.isLoaded || scope.farms.farms.isEmpty) return child;
+
+      final analysis = AiAnalysisService.analyze(
+        current,
+        scope.sensors.historyFor(current.nodeId),
+        crop: scope.farms.selectedField.crop,
+      );
+      problem = FarmerLanguageService.simulationProblem(
+        analysis.headlineKey,
+        context.tr(analysis.headlineKey),
+      );
+      solution = FarmerLanguageService.simulationSolution(
+        analysis.recommendationKey,
+        context.tr(analysis.recommendationKey),
+      );
+      accent = switch (analysis.level) {
+        InsightLevel.healthy => Theme.of(context).colorScheme.primary,
+        InsightLevel.attention => Theme.of(context).colorScheme.tertiary,
+        InsightLevel.urgent => Theme.of(context).colorScheme.error,
+      };
+    }
+
+    return Column(
+      children: [
+        Expanded(child: child),
+        FarmerAnalysisDock(
+          problem: problem,
+          solution: solution,
+          accent: accent,
+        ),
+      ],
     );
   }
 }

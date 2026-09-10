@@ -7,12 +7,13 @@ import '../models/hardware_transport.dart';
 import '../screens/splash_screen.dart';
 import '../services/alert_service.dart';
 import '../services/app_scope.dart';
-import '../services/farm_repository.dart';
 import '../services/engineering_evidence_service.dart';
+import '../services/farm_repository.dart';
+import '../services/local_notification_service.dart';
 import '../services/offline_sync_service.dart';
-import '../services/settings_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../services/sensor_provider_manager.dart';
+import '../services/settings_service.dart';
 import '../services/voice_guidance_service.dart';
 import '../services/weather_service.dart';
 import 'theme.dart';
@@ -28,6 +29,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
   late final FarmRepository farms;
   late final SensorProviderManager sensors;
   late final AlertService alerts;
+  late final LocalNotificationService localNotifications;
   late final WeatherService weather;
   late final VoiceGuidanceService voice;
   late final OfflineSyncService offlineSync;
@@ -42,9 +44,16 @@ class _VayPulseAppState extends State<VayPulseApp> {
     sensors = SensorProviderManager();
     weather = WeatherService();
     voice = VoiceGuidanceService();
+    localNotifications = LocalNotificationService();
     offlineSync = OfflineSyncService(sensors, settings);
     engineeringEvidence = EngineeringEvidenceService(sensors);
-    alerts = AlertService(sensors, settings, weather, farms);
+    alerts = AlertService(
+      sensors,
+      settings,
+      weather,
+      farms,
+      localNotifications,
+    );
     initialization = _initialize();
   }
 
@@ -55,6 +64,9 @@ class _VayPulseAppState extends State<VayPulseApp> {
       offlineSync.load(),
       engineeringEvidence.load(),
     ]);
+    await localNotifications.initialize(
+      requestPermission: settings.value.notificationsEnabled,
+    );
     sensors.setScenario(settings.value.demoScenario);
     sensors.configure(
       source: settings.value.dataSource == 'esp32'
@@ -225,7 +237,9 @@ class _StartupError extends StatelessWidget {
                       Text(
                         'PhytoSense AI could not start',
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.w900),
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       SizedBox(height: 8),
                       Text(
