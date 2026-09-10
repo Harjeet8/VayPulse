@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Compact always-visible Problem / Solution summary for farmer-facing pages.
+/// Compact, always-visible guidance for farmer-facing pages.
 class FarmerAnalysisDock extends StatelessWidget {
   final String problem;
   final String solution;
@@ -24,7 +24,7 @@ class FarmerAnalysisDock extends StatelessWidget {
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               color: scheme.surfaceContainerLow,
               borderRadius: BorderRadius.circular(18),
@@ -36,27 +36,27 @@ class FarmerAnalysisDock extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Icon(Icons.agriculture_rounded, size: 18, color: accent),
-                    const SizedBox(width: 7),
+                    Icon(Icons.agriculture_rounded, size: 19, color: accent),
+                    const SizedBox(width: 8),
                     Text(
-                      'Farmer analysis',
+                      'Simple farm guidance',
                       style: Theme.of(context)
                           .textTheme
-                          .labelLarge
+                          .titleSmall
                           ?.copyWith(fontWeight: FontWeight.w900),
                     ),
                   ],
                 ),
-                const SizedBox(height: 9),
+                const SizedBox(height: 11),
                 _DockLine(
-                  label: 'Problem',
+                  label: "What's wrong?",
                   text: problem,
-                  icon: Icons.error_outline_rounded,
+                  icon: Icons.help_outline_rounded,
                   color: accent,
                 ),
-                const SizedBox(height: 7),
+                const SizedBox(height: 9),
                 _DockLine(
-                  label: 'Solution',
+                  label: 'What should I do?',
                   text: solution,
                   icon: Icons.task_alt_rounded,
                   color: scheme.primary,
@@ -87,21 +87,38 @@ class _DockLine extends StatelessWidget {
   Widget build(BuildContext context) => Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 18, color: color),
-          const SizedBox(width: 8),
-          SizedBox(
-            width: 62,
-            child: Text(
-              '$label:',
-              style: TextStyle(color: color, fontWeight: FontWeight.w900),
+          Container(
+            width: 34,
+            height: 34,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.11),
+              borderRadius: BorderRadius.circular(11),
             ),
+            child: Icon(icon, size: 19, color: color),
           ),
+          const SizedBox(width: 10),
           Expanded(
-            child: Text(
-              text,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontWeight: FontWeight.w700),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  text,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(fontWeight: FontWeight.w700),
+                ),
+              ],
             ),
           ),
         ],
