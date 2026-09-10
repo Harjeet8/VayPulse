@@ -61,7 +61,12 @@ class FarmerLanguageService {
     if (_hasAny(text, ['avoid extra irrigation', 'pause irrigation'])) {
       return 'Do not add more water now. Check whether the soil is already wet.';
     }
-    if (_hasAny(text, ['water if', 'irrigat', 'genuinely dry', 'actually dry'])) {
+    if (_hasAny(text, [
+      'water if',
+      'irrigat',
+      'genuinely dry',
+      'actually dry',
+    ])) {
       return 'Check the soil near the roots. Water only if the soil is actually dry.';
     }
     if (_hasAny(text, ['drainage', 'drain'])) {
@@ -95,8 +100,8 @@ class FarmerLanguageService {
   static String simulationProblem(String headlineKey, String fallback) {
     return switch (headlineKey) {
       'ai_combined_stress' => 'The plant may be too dry and too hot.',
-      'ai_water_stress' || 'ai_early_water_stress' =>
-        'The plant may not be getting enough water.',
+      'ai_water_stress' ||
+      'ai_early_water_stress' => 'The plant may not be getting enough water.',
       'ai_overwatering' => 'The soil may be too wet.',
       'ai_paddy_water_expected' =>
         'The wet soil level looks normal for this rice field.',
@@ -110,20 +115,15 @@ class FarmerLanguageService {
 
   static String simulationSolution(String recommendationKey, String fallback) {
     return switch (recommendationKey) {
-      'ai_combined_stress_action' =>
-        'Check the soil near the roots. If it is dry, water the plant and check the irrigation line.',
-      'ai_water_stress_action' || 'ai_early_water_stress_action' =>
-        'Check the soil near the roots. Water only if the soil is actually dry.',
+      'ai_combined_stress_action' => 'Check the soil near the roots. If it is dry, water the plant and check the irrigation line.',
+      'ai_water_stress_action' || 'ai_early_water_stress_action' => 'Check the soil near the roots. Water only if the soil is actually dry.',
       'ai_overwatering_action' =>
         'Do not add more water now. Check drainage and soil wetness.',
-      'ai_paddy_water_expected_action' =>
-        'Check the standing water and drainage. Add water only if the field really needs it.',
-      'ai_heat_stress_action' =>
-        'Check the plant and soil moisture. Avoid extra stress during the hottest part of the day.',
+      'ai_paddy_water_expected_action' => 'Check the standing water and drainage. Add water only if the field really needs it.',
+      'ai_heat_stress_action' => 'Check the plant and soil moisture. Avoid extra stress during the hottest part of the day.',
       'ai_low_light_action' =>
         'Check for shade, covering, or dirt on the light sensor.',
-      'ai_signal_stress_action' =>
-        'Check that the plant electrodes are attached properly, then inspect the plant.',
+      'ai_signal_stress_action' => 'Check that the plant electrodes are attached properly, then inspect the plant.',
       'ai_healthy_action' =>
         'Keep the current routine. No immediate action is needed.',
       _ => _simplifyAction(fallback),
@@ -153,7 +153,10 @@ class FarmerLanguageService {
       return 'Check the plant and nearby sensors, then review the reading again.';
     }
     result = result
-        .replaceAll(RegExp('root-zone', caseSensitive: false), 'soil near the roots')
+        .replaceAll(
+          RegExp('root-zone', caseSensitive: false),
+          'soil near the roots',
+        )
         .replaceAll(RegExp('irrigation', caseSensitive: false), 'watering')
         .replaceAll(RegExp('probe', caseSensitive: false), 'soil sensor')
         .replaceAll(RegExp('genuinely', caseSensitive: false), 'actually')
