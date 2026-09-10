@@ -1,0 +1,105 @@
+name: Deliver Latest PhytoSense APK
+
+on:
+  push:
+    branches:
+      - fix-notifications-problem-solution
+
+permissions:
+  contents: write
+
+jobs:
+  deliver:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: gradle
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        run: flutter pub get
+
+      - name: Verify formatting
+        run: dart format --output=none --set-exit-if-changed lib
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Run tests
+        shell: bash
+        run: |
+          if [ -d test ] && find test -type f -name '*_test.dart' -print -quit | grep -q .; then
+            flutter test
+          else
+            echo "No Flutter tests found; skipping."
+          fi
+
+      - name: Create temporary install signing key
+        shell: bash
+        run: |
+          set -euo pipefail
+          PASS="$(openssl rand -hex 24)"
+          KEYSTORE="$RUNNER_TEMP/phytosense-build.jks"
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE" \
+            -storepass "$PASS" \
+            -keypass "$PASS" \
+            -alias phytosense \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 3650 \
+            -dname "CN=PhytoSense AI Build, OU=Competition Build, O=PhytoSense AI, L=Trichy, ST=Tamil Nadu, C=IN"
+          {
+            echo "ANDROID_KEYSTORE_PATH=$KEYSTORE"
+            echo "ANDROID_STORE_PASSWORD=$PASS"
+            echo "ANDROID_KEY_ALIAS=phytosense"
+            echo "ANDROID_KEY_PASSWORD=$PASS"
+          } >> "$GITHUB_ENV"
+
+      - name: Build release APK
+        run: flutter build apk --release --obfuscate --split-debug-info="$RUNNER_TEMP/phytosense-symbols"
+
+      - name: Verify and package APK
+        shell: bash
+        run: |
+          set -euo pipefail
+          SRC="build/app/outputs/flutter-apk/app-release.apk"
+          OUT="PhytoSense-AI-REMOTE-AUTO-LATEST.apk"
+          test -s "$SRC"
+          cp "$SRC" "$OUT"
+          unzip -t "$OUT" >/dev/null
+          APKSIGNER="$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
+          "$APKSIGNER" verify --verbose "$OUT"
+          sha256sum "$OUT" | tee "$OUT.sha256"
+          ls -lh "$OUT" "$OUT.sha256"
+
+      - name: Publish APK as GitHub Release asset
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TAG="phytosense-latest-${GITHUB_RUN_ID}"
+          gh release create "$TAG" \
+            --target "$GITHUB_SHA" \
+            --title "PhytoSense AI Latest APK" \
+            --notes "Verified PhytoSense AI APK with simplified farmer guidance for Simulation and ESP32 modes. Built from commit $GITHUB_SHA." \
+            --prerelease
+          gh release upload "$TAG" \
+            PhytoSense-AI-REMOTE-AUTO-LATEST.apk \
+            PhytoSense-AI-REMOTE-AUTO-LATEST.apk.sha256 \
+            --clobber
+          echo "RELEASE_TAG=$TAG" >> "$GITHUB_ENV"
