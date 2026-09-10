@@ -18,6 +18,7 @@ class AlertService extends ChangeNotifier {
   final LocalNotificationService localNotifications;
   final List<PlantAlert> alerts = [];
   final Map<String, DateTime> _lastAlertAt = {};
+  final Map<String, AlertSeverity> _lastAlertSeverity = {};
   StreamSubscription<SensorReading>? _subscription;
   SensorDataSource? _lastSource;
 
@@ -83,10 +84,27 @@ class AlertService extends ChangeNotifier {
 
   void _evaluateEdgeDecision(SensorReading reading) {
     if (!reading.edgeAnalysisAvailable) return;
-    final status = reading.healthStatus.toUpperCase();
-    if (!const <String>{'WATCH', 'STRESS', 'CRITICAL'}.contains(status)) {
+
+    final status = reading.healthStatus.trim().toUpperCase();
+    final priority = reading.priority.trim().toUpperCase();
+    const healthAttention = <String>{'WATCH', 'STRESS', 'CRITICAL'};
+    const priorityAttention = <String>{
+      'CHECK',
+      'WATCH',
+      'STRESS',
+      'HIGH',
+      'CRITICAL',
+      'URGENT',
+    };
+
+    if (!healthAttention.contains(status) &&
+        !priorityAttention.contains(priority)) {
       return;
     }
+
+    final critical = status == 'CRITICAL' ||
+        priority == 'CRITICAL' ||
+        priority == 'URGENT';
     _addAlert(
       nodeId: reading.nodeId,
       titleKey: 'alert_edge_decision',
@@ -97,8 +115,7 @@ class AlertService extends ChangeNotifier {
       messageText: reading.farmerAction.isEmpty
           ? 'Open the live dashboard for the ESP32 recommendation.'
           : reading.farmerAction,
-      severity:
-          status == 'CRITICAL' ? AlertSeverity.critical : AlertSeverity.warning,
+      severity: critical ? AlertSeverity.critical : AlertSeverity.warning,
     );
   }
 
@@ -144,6 +161,7 @@ class AlertService extends ChangeNotifier {
       _lastSource = sensors.source;
       alerts.clear();
       _lastAlertAt.clear();
+      _lastAlertSeverity.clear();
       notifyListeners();
     }
     if (sensors.connectionStatus == SensorConnectionStatus.error) {
@@ -200,12 +218,20 @@ class AlertService extends ChangeNotifier {
     required AlertSeverity severity,
     String? titleText,
     String? messageText,
-    Duration cooldown = const Duration(seconds: 25),
+    Duration cooldown = const Duration(minutes: 5),
   }) {
     final dedupeKey = '$nodeId:$titleKey';
     final last = _lastAlertAt[dedupeKey];
-    if (last != null && DateTime.now().difference(last) < cooldown) return;
+    final previousSeverity = _lastAlertSeverity[dedupeKey];
+    final escalated = previousSeverity != null && severity.index > previousSeverity.index;
+    if (last != null &&
+        DateTime.now().difference(last) < cooldown &&
+        !escalated) {
+      return;
+    }
+
     _lastAlertAt[dedupeKey] = DateTime.now();
+    _lastAlertSeverity[dedupeKey] = severity;
     alerts.insert(
       0,
       PlantAlert(
@@ -297,6 +323,7 @@ class AlertService extends ChangeNotifier {
   void clear() {
     alerts.clear();
     _lastAlertAt.clear();
+    _lastAlertSeverity.clear();
     notifyListeners();
   }
 
