@@ -98,13 +98,13 @@ class AlertService extends ChangeNotifier {
       'URGENT',
     };
 
-    final needsAttention = healthAttention.contains(status) ||
+    final needsAttention =
+        healthAttention.contains(status) ||
         priorityAttention.contains(priority);
     if (!needsAttention) return;
 
-    final critical = status == 'CRITICAL' ||
-        priority == 'CRITICAL' ||
-        priority == 'URGENT';
+    final critical =
+        status == 'CRITICAL' || priority == 'CRITICAL' || priority == 'URGENT';
     final problem = FarmerLanguageService.hardwareProblem(
       rootCause: reading.primaryRootCause,
       because: reading.because,
@@ -229,8 +229,8 @@ class AlertService extends ChangeNotifier {
     final dedupeKey = '$nodeId:$titleKey';
     final last = _lastAlertAt[dedupeKey];
     final previousSeverity = _lastAlertSeverity[dedupeKey];
-    final escalated = previousSeverity != null &&
-        severity.index > previousSeverity.index;
+    final escalated =
+        previousSeverity != null && severity.index > previousSeverity.index;
     if (last != null &&
         DateTime.now().difference(last) < cooldown &&
         !escalated) {
@@ -301,8 +301,7 @@ class AlertService extends ChangeNotifier {
         'Recharge or replace the sensor node power source soon.',
       'alert_weak_signal_message' =>
         'Check the node power, distance, and network connection.',
-      'alert_abnormal_sensor_message' =>
-        'Check the sensor connection, then open PhytoSense AI for the latest reading.',
+      'alert_abnormal_sensor_message' => 'Check the sensor connection, then open PhytoSense AI for the latest reading.',
       'alert_heavy_rain_message' =>
         'Check field drainage and protect areas that may collect water.',
       'alert_disease_risk_message' =>
