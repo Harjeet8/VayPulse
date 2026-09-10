@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../models/alert.dart';
 import '../models/sensor_reading.dart';
 import 'farm_repository.dart';
+import 'farmer_language_service.dart';
 import 'local_notification_service.dart';
 import 'settings_service.dart';
 import 'sensor_data_provider.dart';
@@ -97,24 +98,29 @@ class AlertService extends ChangeNotifier {
       'URGENT',
     };
 
-    if (!healthAttention.contains(status) &&
-        !priorityAttention.contains(priority)) {
-      return;
-    }
+    final needsAttention = healthAttention.contains(status) ||
+        priorityAttention.contains(priority);
+    if (!needsAttention) return;
 
     final critical = status == 'CRITICAL' ||
         priority == 'CRITICAL' ||
         priority == 'URGENT';
+    final problem = FarmerLanguageService.hardwareProblem(
+      rootCause: reading.primaryRootCause,
+      because: reading.because,
+      needsAttention: true,
+    );
+    final solution = FarmerLanguageService.hardwareSolution(
+      farmerAction: reading.farmerAction,
+      problem: problem,
+    );
+
     _addAlert(
       nodeId: reading.nodeId,
       titleKey: 'alert_edge_decision',
       messageKey: 'alert_abnormal_sensor_message',
-      titleText: reading.primaryRootCause.isEmpty
-          ? 'ESP32 plant-health alert'
-          : reading.primaryRootCause.replaceAll('_', ' '),
-      messageText: reading.farmerAction.isEmpty
-          ? 'Open the live dashboard for the ESP32 recommendation.'
-          : reading.farmerAction,
+      titleText: problem,
+      messageText: solution,
       severity: critical ? AlertSeverity.critical : AlertSeverity.warning,
     );
   }
@@ -223,7 +229,8 @@ class AlertService extends ChangeNotifier {
     final dedupeKey = '$nodeId:$titleKey';
     final last = _lastAlertAt[dedupeKey];
     final previousSeverity = _lastAlertSeverity[dedupeKey];
-    final escalated = previousSeverity != null && severity.index > previousSeverity.index;
+    final escalated = previousSeverity != null &&
+        severity.index > previousSeverity.index;
     if (last != null &&
         DateTime.now().difference(last) < cooldown &&
         !escalated) {
@@ -262,17 +269,17 @@ class AlertService extends ChangeNotifier {
   String _notificationTitle(String key, String? override) {
     if (override != null && override.trim().isNotEmpty) return override.trim();
     return switch (key) {
-      'alert_severe_dryness' => 'Severe dryness detected',
-      'alert_low_moisture' => 'Low soil moisture',
-      'alert_overwatering' => 'Very high soil moisture',
-      'alert_heat_stress' => 'High temperature pattern',
-      'alert_low_light' => 'Low light level',
-      'alert_low_battery' => 'PhytoSense node battery low',
-      'alert_weak_signal' => 'PhytoSense node signal weak',
-      'alert_abnormal_sensor' => 'Sensor needs attention',
-      'alert_heavy_rain' => 'Heavy rain risk',
-      'alert_disease_risk' => 'Disease-favouring weather',
-      'alert_dry_spell' => 'Dry spell risk',
+      'alert_severe_dryness' => 'The soil is very dry',
+      'alert_low_moisture' => 'The soil is getting dry',
+      'alert_overwatering' => 'The soil may be too wet',
+      'alert_heat_stress' => 'The plant may be too hot',
+      'alert_low_light' => 'The plant may need more light',
+      'alert_low_battery' => 'The PhytoSense battery is low',
+      'alert_weak_signal' => 'The PhytoSense connection is weak',
+      'alert_abnormal_sensor' => 'A sensor needs a quick check',
+      'alert_heavy_rain' => 'Heavy rain may affect the field',
+      'alert_disease_risk' => 'Check the crop for disease signs',
+      'alert_dry_spell' => 'Dry weather may continue',
       _ => 'PhytoSense AI alert',
     };
   }
@@ -281,28 +288,28 @@ class AlertService extends ChangeNotifier {
     if (override != null && override.trim().isNotEmpty) return override.trim();
     return switch (key) {
       'alert_severe_dryness_message' =>
-        'Soil moisture is very low. Inspect this node and verify irrigation.',
+        'Check the soil near the roots. Water only if it is actually dry.',
       'alert_low_moisture_message' =>
-        'Moisture dropped below the preferred range. Check the zone before watering.',
+        'Check the soil near the roots before adding water.',
       'alert_overwatering_message' =>
-        'The soil remains unusually wet. Check drainage and pause irrigation if needed.',
+        'Do not add more water now. Check soil wetness and drainage.',
       'alert_heat_stress_message' =>
-        'Air temperature is above the preferred range. Inspect for heat stress.',
+        'Check the plant and soil moisture during the hottest part of the day.',
       'alert_low_light_message' =>
-        'Light has fallen below the expected range for this zone.',
+        'Check for shade or anything blocking the light sensor.',
       'alert_low_battery_message' =>
-        'The sensor node battery is low. Recharge or replace its power source soon.',
+        'Recharge or replace the sensor node power source soon.',
       'alert_weak_signal_message' =>
-        'The node connection is weak. Check distance, power and network conditions.',
+        'Check the node power, distance, and network connection.',
       'alert_abnormal_sensor_message' =>
-        'A live sensor or connection needs attention. Open PhytoSense AI for details.',
+        'Check the sensor connection, then open PhytoSense AI for the latest reading.',
       'alert_heavy_rain_message' =>
-        'Weather conditions indicate a heavy-rain risk. Check drainage and field exposure.',
+        'Check field drainage and protect areas that may collect water.',
       'alert_disease_risk_message' =>
-        'Current weather may favour crop disease. Inspect leaves and wet areas early.',
+        'Look at the leaves and wet areas for early signs of disease.',
       'alert_dry_spell_message' =>
-        'Dry conditions may continue. Review soil moisture before planning irrigation.',
-      _ => 'Open PhytoSense AI to review the latest farm condition.',
+        'Check the soil before deciding whether the crop needs water.',
+      _ => 'Open PhytoSense AI to see what is wrong and what to do next.',
     };
   }
 
