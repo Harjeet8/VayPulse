@@ -3,9 +3,11 @@ import 'package:flutter/services.dart';
 
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
+import '../services/ai_analysis_service.dart';
 import '../services/app_scope.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/bottom_nav.dart';
+import '../widgets/farmer_analysis_dock.dart';
 import 'alerts_screen.dart';
 import 'app_command_search.dart';
 import 'devices_screen.dart';
@@ -29,16 +31,19 @@ class _ShellScreenState extends State<ShellScreen> {
     final scope = AppScope.of(context);
     final sensors = scope.sensors;
     return AnimatedBuilder(
-      animation: sensors,
+      animation: Listenable.merge([sensors, scope.farms]),
       builder: (context, _) {
         final live = sensors.source == SensorDataSource.esp32;
         final pages = [
-          HomeScreen(
-            onOpenAlerts: () => setState(() => index = 3),
-            onOpenFields: () => setState(() => index = 1),
+          _withFarmerAnalysis(
+            context,
+            HomeScreen(
+              onOpenAlerts: () => setState(() => index = 3),
+              onOpenFields: () => setState(() => index = 1),
+            ),
           ),
           live ? const DevicesScreen() : const PlantsScreen(),
-          const InsightsScreen(),
+          _withFarmerAnalysis(context, const InsightsScreen()),
           const AlertsScreen(),
           const ProfileScreen(),
         ];
@@ -183,4 +188,64 @@ class _ShellScreenState extends State<ShellScreen> {
       },
     );
   }
+
+  Widget _withFarmerAnalysis(BuildContext context, Widget child) {
+    final scope = AppScope.of(context);
+    final current = scope.sensors.current;
+    if (current == null) return child;
+
+    String problem;
+    String solution;
+    Color accent;
+
+    if (scope.sensors.source == SensorDataSource.esp32) {
+      if (!current.edgeAnalysisAvailable) return child;
+      final status = current.healthStatus.trim().toUpperCase();
+      final cause = _cleanEdgeText(current.primaryRootCause);
+      final healthy = !const {'WATCH', 'STRESS', 'CRITICAL'}.contains(status);
+      problem = healthy && cause.isEmpty
+          ? 'No major problem detected.'
+          : cause.isEmpty
+              ? _cleanEdgeText(status)
+              : cause;
+      solution = current.farmerAction.trim().isEmpty
+          ? 'Continue monitoring the crop and follow the latest ESP32 guidance.'
+          : current.farmerAction.trim();
+      accent = status == 'CRITICAL'
+          ? Theme.of(context).colorScheme.error
+          : status == 'WATCH' || status == 'STRESS'
+              ? Theme.of(context).colorScheme.tertiary
+              : Theme.of(context).colorScheme.primary;
+    } else {
+      if (!scope.farms.isLoaded || scope.farms.farms.isEmpty) return child;
+      final analysis = AiAnalysisService.analyze(
+        current,
+        scope.sensors.historyFor(current.nodeId),
+        crop: scope.farms.selectedField.crop,
+      );
+      problem = analysis.level == InsightLevel.healthy
+          ? 'No major problem detected.'
+          : context.tr(analysis.headlineKey);
+      solution = context.tr(analysis.recommendationKey);
+      accent = switch (analysis.level) {
+        InsightLevel.healthy => Theme.of(context).colorScheme.primary,
+        InsightLevel.attention => Theme.of(context).colorScheme.tertiary,
+        InsightLevel.urgent => Theme.of(context).colorScheme.error,
+      };
+    }
+
+    return Column(
+      children: [
+        Expanded(child: child),
+        FarmerAnalysisDock(
+          problem: problem,
+          solution: solution,
+          accent: accent,
+        ),
+      ],
+    );
+  }
+
+  String _cleanEdgeText(String value) =>
+      value.replaceAll(RegExp(r'[_-]+'), ' ').trim();
 }
