@@ -201,19 +201,34 @@ class _ShellScreenState extends State<ShellScreen> {
     if (scope.sensors.source == SensorDataSource.esp32) {
       if (!current.edgeAnalysisAvailable) return child;
       final status = current.healthStatus.trim().toUpperCase();
+      final priority = current.priority.trim().toUpperCase();
       final cause = _cleanEdgeText(current.primaryRootCause);
-      final healthy = !const {'WATCH', 'STRESS', 'CRITICAL'}.contains(status);
-      problem = healthy && cause.isEmpty
+      const healthAttention = <String>{'WATCH', 'STRESS', 'CRITICAL'};
+      const priorityAttention = <String>{
+        'CHECK',
+        'WATCH',
+        'STRESS',
+        'HIGH',
+        'CRITICAL',
+        'URGENT',
+      };
+      final needsAttention = healthAttention.contains(status) ||
+          priorityAttention.contains(priority);
+      final critical = status == 'CRITICAL' ||
+          priority == 'CRITICAL' ||
+          priority == 'URGENT';
+
+      problem = !needsAttention && cause.isEmpty
           ? 'No major problem detected.'
           : cause.isEmpty
-              ? _cleanEdgeText(status)
+              ? _cleanEdgeText(priority.isEmpty ? status : priority)
               : cause;
       solution = current.farmerAction.trim().isEmpty
           ? 'Continue monitoring the crop and follow the latest ESP32 guidance.'
           : current.farmerAction.trim();
-      accent = status == 'CRITICAL'
+      accent = critical
           ? Theme.of(context).colorScheme.error
-          : status == 'WATCH' || status == 'STRESS'
+          : needsAttention
               ? Theme.of(context).colorScheme.tertiary
               : Theme.of(context).colorScheme.primary;
     } else {
