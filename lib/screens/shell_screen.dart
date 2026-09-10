@@ -5,6 +5,7 @@ import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../services/ai_analysis_service.dart';
 import '../services/app_scope.dart';
+import '../services/farmer_language_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/farmer_analysis_dock.dart';
@@ -200,9 +201,9 @@ class _ShellScreenState extends State<ShellScreen> {
 
     if (scope.sensors.source == SensorDataSource.esp32) {
       if (!current.edgeAnalysisAvailable) return child;
+
       final status = current.healthStatus.trim().toUpperCase();
       final priority = current.priority.trim().toUpperCase();
-      final cause = _cleanEdgeText(current.primaryRootCause);
       const healthAttention = <String>{'WATCH', 'STRESS', 'CRITICAL'};
       const priorityAttention = <String>{
         'CHECK',
@@ -218,14 +219,15 @@ class _ShellScreenState extends State<ShellScreen> {
           priority == 'CRITICAL' ||
           priority == 'URGENT';
 
-      problem = !needsAttention && cause.isEmpty
-          ? 'No major problem detected.'
-          : cause.isEmpty
-              ? _cleanEdgeText(priority.isEmpty ? status : priority)
-              : cause;
-      solution = current.farmerAction.trim().isEmpty
-          ? 'Continue monitoring the crop and follow the latest ESP32 guidance.'
-          : current.farmerAction.trim();
+      problem = FarmerLanguageService.hardwareProblem(
+        rootCause: current.primaryRootCause,
+        because: current.because,
+        needsAttention: needsAttention,
+      );
+      solution = FarmerLanguageService.hardwareSolution(
+        farmerAction: current.farmerAction,
+        problem: problem,
+      );
       accent = critical
           ? Theme.of(context).colorScheme.error
           : needsAttention
@@ -233,15 +235,20 @@ class _ShellScreenState extends State<ShellScreen> {
               : Theme.of(context).colorScheme.primary;
     } else {
       if (!scope.farms.isLoaded || scope.farms.farms.isEmpty) return child;
+
       final analysis = AiAnalysisService.analyze(
         current,
         scope.sensors.historyFor(current.nodeId),
         crop: scope.farms.selectedField.crop,
       );
-      problem = analysis.level == InsightLevel.healthy
-          ? 'No major problem detected.'
-          : context.tr(analysis.headlineKey);
-      solution = context.tr(analysis.recommendationKey);
+      problem = FarmerLanguageService.simulationProblem(
+        analysis.headlineKey,
+        context.tr(analysis.headlineKey),
+      );
+      solution = FarmerLanguageService.simulationSolution(
+        analysis.recommendationKey,
+        context.tr(analysis.recommendationKey),
+      );
       accent = switch (analysis.level) {
         InsightLevel.healthy => Theme.of(context).colorScheme.primary,
         InsightLevel.attention => Theme.of(context).colorScheme.tertiary,
@@ -260,7 +267,4 @@ class _ShellScreenState extends State<ShellScreen> {
       ],
     );
   }
-
-  String _cleanEdgeText(String value) =>
-      value.replaceAll(RegExp(r'[_-]+'), ' ').trim();
 }
