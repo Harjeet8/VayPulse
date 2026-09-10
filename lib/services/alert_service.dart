@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import '../models/alert.dart';
 import '../models/sensor_reading.dart';
 import 'farm_repository.dart';
+import 'local_notification_service.dart';
 import 'settings_service.dart';
 import 'sensor_data_provider.dart';
 import 'weather_service.dart';
@@ -14,12 +15,19 @@ class AlertService extends ChangeNotifier {
   final SettingsService settings;
   final WeatherService weather;
   final FarmRepository farms;
+  final LocalNotificationService localNotifications;
   final List<PlantAlert> alerts = [];
   final Map<String, DateTime> _lastAlertAt = {};
   StreamSubscription<SensorReading>? _subscription;
   SensorDataSource? _lastSource;
 
-  AlertService(this.sensors, this.settings, this.weather, this.farms);
+  AlertService(
+    this.sensors,
+    this.settings,
+    this.weather,
+    this.farms,
+    this.localNotifications,
+  );
 
   int get unreadCount => alerts.where((alert) => !alert.isRead).length;
 
@@ -213,6 +221,63 @@ class AlertService extends ChangeNotifier {
     );
     if (alerts.length > 40) alerts.removeLast();
     notifyListeners();
+
+    if (settings.value.notificationsEnabled) {
+      unawaited(
+        localNotifications.showAlert(
+          title: _notificationTitle(titleKey, titleText),
+          body: _notificationMessage(messageKey, messageText),
+          critical: severity == AlertSeverity.critical,
+        ),
+      );
+    }
+  }
+
+  String _notificationTitle(String key, String? override) {
+    if (override != null && override.trim().isNotEmpty) return override.trim();
+    return switch (key) {
+      'alert_severe_dryness' => 'Severe dryness detected',
+      'alert_low_moisture' => 'Low soil moisture',
+      'alert_overwatering' => 'Very high soil moisture',
+      'alert_heat_stress' => 'High temperature pattern',
+      'alert_low_light' => 'Low light level',
+      'alert_low_battery' => 'PhytoSense node battery low',
+      'alert_weak_signal' => 'PhytoSense node signal weak',
+      'alert_abnormal_sensor' => 'Sensor needs attention',
+      'alert_heavy_rain' => 'Heavy rain risk',
+      'alert_disease_risk' => 'Disease-favouring weather',
+      'alert_dry_spell' => 'Dry spell risk',
+      _ => 'PhytoSense AI alert',
+    };
+  }
+
+  String _notificationMessage(String key, String? override) {
+    if (override != null && override.trim().isNotEmpty) return override.trim();
+    return switch (key) {
+      'alert_severe_dryness_message' =>
+        'Soil moisture is very low. Inspect this node and verify irrigation.',
+      'alert_low_moisture_message' =>
+        'Moisture dropped below the preferred range. Check the zone before watering.',
+      'alert_overwatering_message' =>
+        'The soil remains unusually wet. Check drainage and pause irrigation if needed.',
+      'alert_heat_stress_message' =>
+        'Air temperature is above the preferred range. Inspect for heat stress.',
+      'alert_low_light_message' =>
+        'Light has fallen below the expected range for this zone.',
+      'alert_low_battery_message' =>
+        'The sensor node battery is low. Recharge or replace its power source soon.',
+      'alert_weak_signal_message' =>
+        'The node connection is weak. Check distance, power and network conditions.',
+      'alert_abnormal_sensor_message' =>
+        'A live sensor or connection needs attention. Open PhytoSense AI for details.',
+      'alert_heavy_rain_message' =>
+        'Weather conditions indicate a heavy-rain risk. Check drainage and field exposure.',
+      'alert_disease_risk_message' =>
+        'Current weather may favour crop disease. Inspect leaves and wet areas early.',
+      'alert_dry_spell_message' =>
+        'Dry conditions may continue. Review soil moisture before planning irrigation.',
+      _ => 'Open PhytoSense AI to review the latest farm condition.',
+    };
   }
 
   void markAllRead() {
