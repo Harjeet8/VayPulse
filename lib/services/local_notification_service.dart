@@ -15,51 +15,68 @@ class LocalNotificationService {
       FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  bool _permissionRequestAttempted = false;
 
   Future<void> initialize({required bool requestPermission}) async {
-    if (kIsWeb || _initialized) return;
+    if (kIsWeb) return;
+
+    if (!_initialized) {
+      try {
+        const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+        const darwin = DarwinInitializationSettings(
+          requestAlertPermission: false,
+          requestBadgePermission: false,
+          requestSoundPermission: false,
+        );
+        const settings = InitializationSettings(
+          android: android,
+          iOS: darwin,
+          macOS: darwin,
+        );
+
+        await _plugin.initialize(settings);
+        _initialized = true;
+
+        final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>();
+        await androidPlugin?.createNotificationChannel(
+          const AndroidNotificationChannel(
+            _channelId,
+            _channelName,
+            description: _channelDescription,
+            importance: Importance.high,
+          ),
+        );
+      } catch (error, stackTrace) {
+        _initialized = false;
+        debugPrint('Local notifications unavailable: $error');
+        debugPrintStack(stackTrace: stackTrace);
+        return;
+      }
+    }
+
+    if (requestPermission) await _requestPermissions();
+  }
+
+  Future<void> _requestPermissions() async {
+    if (kIsWeb || !_initialized || _permissionRequestAttempted) return;
+    _permissionRequestAttempted = true;
 
     try {
-      const android = AndroidInitializationSettings('@mipmap/ic_launcher');
-      const darwin = DarwinInitializationSettings(
-        requestAlertPermission: false,
-        requestBadgePermission: false,
-        requestSoundPermission: false,
-      );
-      const settings = InitializationSettings(
-        android: android,
-        iOS: darwin,
-        macOS: darwin,
-      );
-
-      await _plugin.initialize(settings);
-      _initialized = true;
-
-      final androidPlugin = _plugin.resolvePlatformSpecificImplementation<
-          AndroidFlutterLocalNotificationsPlugin>();
-      await androidPlugin?.createNotificationChannel(
-        const AndroidNotificationChannel(
-          _channelId,
-          _channelName,
-          description: _channelDescription,
-          importance: Importance.high,
-        ),
-      );
-
-      if (requestPermission) {
-        await androidPlugin?.requestNotificationsPermission();
-        await _plugin
-            .resolvePlatformSpecificImplementation<
-                IOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
-        await _plugin
-            .resolvePlatformSpecificImplementation<
-                MacOSFlutterLocalNotificationsPlugin>()
-            ?.requestPermissions(alert: true, badge: true, sound: true);
-      }
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.requestNotificationsPermission();
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              IOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
+      await _plugin
+          .resolvePlatformSpecificImplementation<
+              MacOSFlutterLocalNotificationsPlugin>()
+          ?.requestPermissions(alert: true, badge: true, sound: true);
     } catch (error, stackTrace) {
-      _initialized = false;
-      debugPrint('Local notifications unavailable: $error');
+      debugPrint('Notification permission request failed: $error');
       debugPrintStack(stackTrace: stackTrace);
     }
   }
@@ -71,7 +88,9 @@ class LocalNotificationService {
   }) async {
     if (kIsWeb) return;
     if (!_initialized) {
-      await initialize(requestPermission: false);
+      await initialize(requestPermission: true);
+    } else {
+      await _requestPermissions();
     }
     if (!_initialized) return;
 
@@ -82,8 +101,6 @@ class LocalNotificationService {
         channelDescription: _channelDescription,
         importance: critical ? Importance.max : Importance.high,
         priority: critical ? Priority.max : Priority.high,
-        category: AndroidNotificationCategory.alarm,
-        visibility: NotificationVisibility.public,
         ticker: title,
       );
       const darwinDetails = DarwinNotificationDetails(
