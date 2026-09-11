@@ -6,6 +6,8 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/biotic_stress_card.dart';
+import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 import 'leaf_screening_screen.dart';
 
 class FarmerAnalysisScreen extends StatefulWidget {
@@ -28,9 +30,13 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
         final reading = sensors.current;
         final edge = sensors.edgeIntelligence;
         final live = sensors.source == SensorDataSource.esp32;
+        final canShowCurrent = !live ||
+            sensors.connectionStatus == SensorConnectionStatus.ready;
         return Scaffold(
           appBar: AppBar(
-            title: Text(FarmerLanguage.label(context, 'analysis')),
+            title: Text(
+              _analysisText(context, 'Plant care', 'செடி பராமரிப்பு'),
+            ),
             actions: [
               IconButton(
                 tooltip: FarmerLanguage.label(context, 'speak_summary'),
@@ -50,26 +56,43 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
               sensors.retry();
               await Future<void>.delayed(const Duration(milliseconds: 450));
             },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+            child: PageFrame(
               children: [
-                Text(
-                  FarmerLanguage.label(context, 'farmer_subtitle'),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                PhytoPageIntro(
+                  eyebrow: live
+                      ? _analysisText(
+                          context,
+                          'Real sensor guidance',
+                          'நேரடி சென்சார் வழிகாட்டுதல்',
+                        )
+                      : _analysisText(
+                          context,
+                          'Simulation practice',
+                          'சிமுலேஷன் பயிற்சி',
+                        ),
+                  title: _analysisText(
+                    context,
+                    'See the problem. Know what to do.',
+                    'பிரச்சினையை அறிந்து, என்ன செய்ய வேண்டும் என்று தெரிந்துகொள்ளுங்கள்.',
+                  ),
+                  body: _analysisText(
+                    context,
+                    'The most important answer is shown first in simple words.',
+                    'முக்கியமான பதில் எளிய வார்த்தைகளில் முதலில் காட்டப்படும்.',
+                  ),
+                  icon: Icons.eco_rounded,
                 ),
-                const SizedBox(height: 14),
-                if (sensors.connectionStatus != SensorConnectionStatus.ready)
+                const SizedBox(height: 18),
+                if (!canShowCurrent)
                   _ConnectionNotice(
                     reading: reading,
                     live: live,
-                  ),
-                if (edge?.firmwareCompatible == false)
+                    onRetry: sensors.retry,
+                  )
+                else if (edge?.firmwareCompatible == false)
                   const _FirmwareCompatibilityNotice()
                 else if (reading == null)
-                  _WaitingCard(live: live)
+                  _WaitingCard(live: live, onRetry: sensors.retry)
                 else ...[
                   _FarmerResultHero(
                     reading: reading,
@@ -106,40 +129,12 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
                     ),
                     const SizedBox(height: 10),
                   ],
-                  _AnswerCard(
-                    icon: Icons.fact_check_outlined,
-                    title: _analysisText(
-                      context,
-                      'Why this result?',
-                      'இந்த முடிவு ஏன்?',
-                    ),
-                    value: _why(context, edge, reading),
+                  _EvidencePanel(
+                    reading: reading,
+                    edge: edge,
+                    live: live,
                   ),
-                  const SizedBox(height: 10),
-                  if (edge?.bioelectric.hasData == true) ...[
-                    _BioelectricHero(bio: edge!.bioelectric),
-                    const SizedBox(height: 10),
-                  ],
-                  if (edge?.waterBalance.hasData == true) ...[
-                    _WaterBalanceCard(waterBalance: edge!.waterBalance),
-                    const SizedBox(height: 10),
-                  ],
-                  _AnswerCard(
-                    icon: Icons.trending_up_rounded,
-                    title: FarmerLanguage.label(context, 'is_improving'),
-                    value: _conditionTrend(context, edge),
-                  ),
-                  const SizedBox(height: 10),
-                  _ConfidenceCard(
-                    value: edge?.overallConfidence ??
-                        reading.esp32HealthConfidence ??
-                        (sensors.source == SensorDataSource.simulation
-                            ? reading.analysisConfidence
-                            : null),
-                    degraded: edge?.degradedAnalysis == true,
-                    degradedReason: edge?.degradedReason,
-                  ),
-                  const SizedBox(height: 10),
+                  const SizedBox(height: 12),
                   _AdvancedDetails(
                     reading: reading,
                     edge: edge,
@@ -158,124 +153,45 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
     );
   }
 
-  static String _why(
-    BuildContext context,
-    EdgeIntelligence? edge,
-    SensorReading reading,
-  ) {
-    if (edge == null) return FarmerLanguage.label(context, 'why_unavailable');
-    if (edge.recovery.active || edge.plantState?.toUpperCase() == 'RECOVERING') {
-      return FarmerLanguage.firmware(
-        context,
-        edge.recovery.improved ?? edge.recovery.farmerResult,
-        fallback: FarmerLanguage.label(context, 'recovery_summary'),
-      );
-    }
-    final reasons = <String>[];
-    void add(String value) {
-      if (value.trim().isNotEmpty && !reasons.contains(value)) {
-        reasons.add(value);
-      }
-    }
-
-    if (reading.soilMoistureAvailable) {
-      final soil = reading.soilMoisture.round();
-      if (soil <= 25) {
-        add(_analysisText(
-          context,
-          'Soil moisture is very low: $soil%.',
-          'மண் ஈரம் மிகவும் குறைவு: $soil%.',
-        ));
-      } else if (soil >= 85) {
-        add(_analysisText(
-          context,
-          'Soil moisture is very high: $soil%.',
-          'மண் ஈரம் மிகவும் அதிகம்: $soil%.',
-        ));
-      } else {
-        add(_analysisText(
-          context,
-          'Soil moisture is in range: $soil%.',
-          'மண் ஈரம் சரியான அளவில் உள்ளது: $soil%.',
-        ));
-      }
-    }
-    if (reading.temperatureAvailable) {
-      final temperature = reading.temperature.round();
-      add(temperature >= 34
-          ? _analysisText(
-              context,
-              'Air temperature is high: $temperature°C.',
-              'காற்று வெப்பநிலை அதிகம்: $temperature°C.',
-            )
-          : _analysisText(
-              context,
-              'Air temperature is $temperature°C.',
-              'காற்று வெப்பநிலை $temperature°C.',
-            ));
-    }
-    if (edge.bioelectric.presentationOnly) {
-      add(_analysisText(
-        context,
-        'Real Time Signal is updating normally.',
-        'Real Time Signal வழக்கம்போல் புதுப்பிக்கப்படுகிறது.',
-      ));
-    } else if (edge.bioelectric.excludedByFirmware) {
-      add(_analysisText(
-        context,
-        'The plant signal was left out because its quality was too low.',
-        'தரம் குறைவாக இருந்ததால் செடி சிக்னல் சேர்க்கப்படவில்லை.',
-      ));
-    } else if (edge.bioelectric.hasData) {
-      final stress = edge.bioelectric.stressScore;
-      add(stress != null && stress >= 55
-          ? _analysisText(
-              context,
-              'The plant signal is above its normal level.',
-              'செடி சிக்னல் அதன் இயல்பான அளவை விட அதிகமாக உள்ளது.',
-            )
-          : _analysisText(
-              context,
-              'The plant signal is close to its normal level.',
-              'செடி சிக்னல் அதன் இயல்பான அளவுக்கு அருகில் உள்ளது.',
-            ));
-    }
-    return reasons.isEmpty
-        ? FarmerLanguage.label(context, 'why_unavailable')
-        : reasons.take(3).join(' ');
-  }
-
   static Future<void> _speakSummary(
     BuildContext context,
     SensorReading reading,
     EdgeIntelligence? edge,
   ) async {
     final scope = AppScope.of(context);
+    final rawState = edge?.plantState ?? reading.healthStatus;
+    final possibleBiotic = edge?.bioticStress.suspected == true;
+    final recovering = edge?.recovery.active == true ||
+        rawState.toUpperCase().contains('RECOVER');
+    final healthy = !possibleBiotic &&
+        !recovering &&
+        _isFarmerHealthyState(rawState);
+    final problem = _farmerProblem(
+      context,
+      possibleBiotic
+          ? FarmerLanguage.label(context, 'possible_biotic_title')
+          : edge?.rootCause.primary ?? edge?.farmerSummary,
+      healthy: healthy,
+      possibleBiotic: possibleBiotic,
+    );
+    final action = _farmerAction(
+      context,
+      edge,
+      problem: problem,
+      healthy: healthy,
+      recovering: recovering,
+      possibleBiotic: possibleBiotic,
+    );
     final phrases = <String>[
-      FarmerLanguage.firmware(
+      _farmerStatus(
         context,
-        edge?.plantState ?? reading.healthStatus,
+        rawState,
+        healthy: healthy,
+        recovering: recovering,
+        possibleBiotic: possibleBiotic,
       ),
-      FarmerLanguage.firmware(
-        context,
-        edge?.farmerSummary ?? edge?.rootCause.primary,
-      ),
-      if (edge?.bioticStress.suspected == true)
-        FarmerLanguage.label(context, 'possible_biotic_body')
-      else if (edge?.bioelectric.presentationOnly == true)
-        'Real Time Signal is updating normally'
-      else if (edge?.bioelectric.excludedByFirmware == true)
-        FarmerLanguage.label(context, 'bio_signal_check_electrodes')
-      else if (edge?.bioelectric.learningBaseline == true)
-        FarmerLanguage.label(context, 'bio_learning_body')
-      else
-        FarmerLanguage.firmware(context, edge?.bioelectric.farmerResult),
-      FarmerLanguage.firmware(
-        context,
-        edge?.bioticStress.suspected == true
-            ? edge?.bioticStress.recommendation
-            : edge?.recommendation,
-      ),
+      problem,
+      action,
     ].where((value) => value.trim().isNotEmpty).toSet().toList();
     if (phrases.isEmpty) return;
 
@@ -350,21 +266,14 @@ class _FarmerResultHero extends StatelessWidget {
         ? const Color(0xFF2879B9)
         : const Color(0xFFE17A22);
 
-    return Container(
-      padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            accent.withValues(alpha: 0.15),
-            Theme.of(context).colorScheme.surface,
-          ],
-        ),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: accent.withValues(alpha: 0.28)),
-      ),
-      child: Column(
+    return Semantics(
+      key: const Key('farmer-care-summary'),
+      container: true,
+      label: '$status. $problem. $action',
+      child: PhytoSurface(
+        color: accent.withValues(alpha: 0.075),
+        padding: const EdgeInsets.all(20),
+        child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
@@ -399,50 +308,107 @@ class _FarmerResultHero extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 17),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.13),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  healthy
+                      ? Icons.check_rounded
+                      : recovering
+                          ? Icons.trending_up_rounded
+                          : Icons.priority_high_rounded,
+                  color: accent,
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _analysisText(
+                        context,
+                        'PLANT CONDITION',
+                        'செடியின் நிலை',
+                      ),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: accent,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.9,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      status,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: accent,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          Divider(color: accent.withValues(alpha: 0.18)),
+          const SizedBox(height: 18),
           Text(
-            status,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            _analysisText(context, 'WHAT IS WRONG?', 'என்ன பிரச்சினை?'),
+            style: Theme.of(context).textTheme.labelMedium?.copyWith(
                   color: accent,
                   fontWeight: FontWeight.w900,
-                  height: 1.14,
+                  letterSpacing: 0.75,
                 ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            FarmerLanguage.label(context, 'main_problem'),
-            style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                  fontWeight: FontWeight.w800,
-                ),
-          ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 7),
           Text(
             problem,
+            key: const Key('farmer-main-problem'),
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w900,
-                  height: 1.25,
+                  fontSize: 23,
+                  height: 1.24,
                 ),
           ),
-          const SizedBox(height: 15),
+          const SizedBox(height: 20),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(14),
+            padding: const EdgeInsets.all(17),
             decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.09),
+              color: accent.withValues(alpha: 0.13),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  FarmerLanguage.label(context, 'do_this_now'),
-                  style: TextStyle(color: accent, fontWeight: FontWeight.w900),
+                  _analysisText(
+                    context,
+                    'WHAT TO DO NOW',
+                    'இப்போது என்ன செய்ய வேண்டும்',
+                  ),
+                  style: TextStyle(
+                    color: accent,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.7,
+                  ),
                 ),
-                const SizedBox(height: 5),
+                const SizedBox(height: 7),
                 Text(
                   action,
-                  style: const TextStyle(fontWeight: FontWeight.w800, height: 1.35),
+                  key: const Key('farmer-immediate-action'),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontSize: 18,
+                        height: 1.38,
+                      ),
                 ),
               ],
             ),
@@ -468,6 +434,7 @@ class _FarmerResultHero extends StatelessWidget {
             ],
           ),
         ],
+        ),
       ),
     );
   }
@@ -502,6 +469,233 @@ class _ResultMetric extends StatelessWidget {
             ),
           ],
         ),
+      );
+}
+
+class _EvidencePanel extends StatelessWidget {
+  final SensorReading reading;
+  final EdgeIntelligence? edge;
+  final bool live;
+
+  const _EvidencePanel({
+    required this.reading,
+    required this.edge,
+    required this.live,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final items = <_EvidenceItem>[];
+    if (reading.soilMoistureAvailable) {
+      final firmwareState = edge?.waterBalance.state;
+      items.add(
+        _EvidenceItem(
+          icon: Icons.water_drop_outlined,
+          label: _analysisText(context, 'Soil near roots', 'வேர் அருகே மண்'),
+          value: firmwareState == null
+              ? '${reading.soilMoisture.round()}%'
+              : '${FarmerLanguage.firmware(context, firmwareState)} • ${reading.soilMoisture.round()}%',
+        ),
+      );
+    }
+
+    final airValues = <String>[
+      if (reading.temperatureAvailable)
+        '${reading.temperature.toStringAsFixed(1)}°C',
+      if (reading.humidityAvailable)
+        '${reading.humidity.round()}% ${_analysisText(context, 'humidity', 'ஈரப்பதம்')}',
+    ];
+    if (airValues.isNotEmpty) {
+      items.add(
+        _EvidenceItem(
+          icon: Icons.air_rounded,
+          label: _analysisText(context, 'Air around plant', 'செடியை சுற்றிய காற்று'),
+          value: airValues.join(' • '),
+        ),
+      );
+    }
+
+    final bio = edge?.bioelectric;
+    final presentationSignal = bio?.presentationOnly == true ||
+        reading.bioIsPresentation;
+    if (bio?.hasData == true || reading.plantSignalAvailable) {
+      final voltage = bio?.voltageMv ?? reading.plantVoltageMv;
+      final signalValue = presentationSignal
+          ? voltage == null
+              ? 'NORMAL • STABLE'
+              : '${voltage.round()} mV • NORMAL • STABLE'
+          : bio?.displayAvailable == false
+              ? _analysisText(
+                  context,
+                  'Sensor needs checking',
+                  'சென்சாரை சரிபார்க்க வேண்டும்',
+                )
+              : FarmerLanguage.firmware(
+                  context,
+                  bio?.stressState ?? bio?.signalQualityState,
+                  fallback: voltage == null
+                      ? FarmerLanguage.label(context, 'not_available')
+                      : '${voltage.round()} mV',
+                );
+      items.add(
+        _EvidenceItem(
+          icon: Icons.bolt_rounded,
+          label: presentationSignal
+              ? 'Real Time Signal'
+              : _analysisText(context, 'Plant signal', 'செடி சிக்னல்'),
+          value: signalValue,
+          note: presentationSignal
+              ? _analysisText(
+                  context,
+                  'Real Time Signal is updating normally. Does not affect plant health.',
+                  'Real Time Signal வழக்கம்போல் புதுப்பிக்கப்படுகிறது. இது செடி ஆரோக்கிய முடிவை மாற்றாது.',
+                )
+              : null,
+        ),
+      );
+    }
+
+    final confidence = _finitePercent(
+      edge?.overallConfidence ??
+          reading.esp32HealthConfidence ??
+          reading.analysisConfidence,
+    );
+    return PhytoSurface(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.fact_check_outlined,
+                color: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  _analysisText(
+                    context,
+                    'Why PhytoSense says this',
+                    'PhytoSense ஏன் இதைச் சொல்கிறது',
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
+              ),
+              PhytoStatusBadge(
+                label: live
+                    ? _analysisText(context, 'REAL DATA', 'நேரடி DATA')
+                    : _analysisText(context, 'SIMULATION', 'சிமுலேஷன்'),
+                icon: live ? Icons.memory_rounded : Icons.science_outlined,
+                color: live
+                    ? const Color(0xFF3E789F)
+                    : Theme.of(context).colorScheme.tertiary,
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          if (items.isEmpty)
+            Text(FarmerLanguage.label(context, 'why_unavailable'))
+          else
+            for (var index = 0; index < items.take(3).length; index++) ...[
+              _EvidenceRow(item: items[index]),
+              if (index < items.take(3).length - 1)
+                const Divider(height: 22),
+            ],
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.surfaceContainer,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: _ResultMetric(
+                    label: FarmerLanguage.label(context, 'trend'),
+                    value: _conditionTrend(context, edge),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _ResultMetric(
+                    label: FarmerLanguage.label(context, 'confidence'),
+                    value: confidence == null
+                        ? FarmerLanguage.label(context, 'not_available')
+                        : FarmerLanguage.confidence(context, confidence),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EvidenceItem {
+  final IconData icon;
+  final String label;
+  final String value;
+  final String? note;
+
+  const _EvidenceItem({
+    required this.icon,
+    required this.label,
+    required this.value,
+    this.note,
+  });
+}
+
+class _EvidenceRow extends StatelessWidget {
+  final _EvidenceItem item;
+
+  const _EvidenceRow({required this.item});
+
+  @override
+  Widget build(BuildContext context) => Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Theme.of(context).colorScheme.primaryContainer,
+              borderRadius: BorderRadius.circular(13),
+            ),
+            child: Icon(
+              item.icon,
+              size: 20,
+              color: Theme.of(context).colorScheme.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                ),
+                const SizedBox(height: 2),
+                Text(item.value, style: Theme.of(context).textTheme.titleMedium),
+                if (item.note != null) ...[
+                  const SizedBox(height: 3),
+                  Text(
+                    item.note!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
       );
 }
 
@@ -1241,74 +1435,64 @@ class _Row extends StatelessWidget {
 class _ConnectionNotice extends StatelessWidget {
   final SensorReading? reading;
   final bool live;
+  final VoidCallback onRetry;
 
-  const _ConnectionNotice({required this.reading, required this.live});
+  const _ConnectionNotice({
+    required this.reading,
+    required this.live,
+    required this.onRetry,
+  });
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(
-                live ? Icons.portable_wifi_off_rounded : Icons.hourglass_top_rounded,
-                color: Theme.of(context).colorScheme.tertiary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      FarmerLanguage.label(
-                        context,
-                        live ? 'disconnected' : 'simulation_waiting',
-                      ),
-                      style: const TextStyle(fontWeight: FontWeight.w900),
-                    ),
-                    if (reading != null) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        '${FarmerLanguage.label(context, 'last_reading')}: ${_time(reading!.timestamp)}',
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
+  Widget build(BuildContext context) => PhytoStatePanel(
+        icon: live
+            ? Icons.portable_wifi_off_rounded
+            : Icons.hourglass_top_rounded,
+        title: FarmerLanguage.label(
+          context,
+          live ? 'disconnected' : 'simulation_waiting',
         ),
+        body: live
+            ? _analysisText(
+                context,
+                reading == null
+                    ? 'No current reading is shown. Connect to the ESP32 and try again.'
+                    : 'The last reading is saved, but it is not shown as live. Last received at ${_time(reading!.timestamp)}.',
+                reading == null
+                    ? 'தற்போதைய அளவீடு காட்டப்படவில்லை. ESP32-ஐ இணைத்து மீண்டும் முயற்சிக்கவும்.'
+                    : 'கடைசி அளவீடு சேமிக்கப்பட்டுள்ளது; அது நேரடி அளவீடாக காட்டப்படாது. கடைசியாக கிடைத்த நேரம் ${_time(reading!.timestamp)}.',
+              )
+            : FarmerLanguage.label(context, 'simulation_waiting'),
+        actionLabel: _analysisText(context, 'Try again', 'மீண்டும் முயற்சி'),
+        onAction: onRetry,
       );
 }
 
 class _WaitingCard extends StatelessWidget {
   final bool live;
-  const _WaitingCard({required this.live});
+  final VoidCallback onRetry;
+
+  const _WaitingCard({required this.live, required this.onRetry});
 
   @override
-  Widget build(BuildContext context) => Card(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2.5),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  FarmerLanguage.label(
-                    context,
-                    live ? 'waiting_esp32' : 'simulation_waiting',
-                  ),
-                ),
-              ),
-            ],
-          ),
+  Widget build(BuildContext context) => PhytoStatePanel(
+        icon: Icons.sensors_rounded,
+        title: FarmerLanguage.label(
+          context,
+          live ? 'waiting_esp32' : 'simulation_waiting',
         ),
+        body: _analysisText(
+          context,
+          live
+              ? 'PhytoSense will show the plant result after a fresh ESP32 reading arrives.'
+              : 'Demo values are being prepared. They will stay separate from real sensor data.',
+          live
+              ? 'புதிய ESP32 அளவீடு வந்ததும் செடியின் முடிவு காட்டப்படும்.'
+              : 'மாதிரி மதிப்புகள் தயாராகின்றன. அவை நேரடி சென்சார் தரவுடன் கலக்கப்படாது.',
+        ),
+        loading: true,
+        actionLabel: _analysisText(context, 'Try again', 'மீண்டும் முயற்சி'),
+        onAction: onRetry,
       );
 }
 
@@ -1431,6 +1615,23 @@ String _farmerProblem(
       'அதிக வெப்பம் செடிக்கு அழுத்தம் தருகிறது.',
     );
   }
+  if (value.contains('SENSOR') &&
+      (value.contains('FAULT') ||
+          value.contains('MISSING') ||
+          value.contains('UNAVAILABLE'))) {
+    return _analysisText(
+      context,
+      'A sensor is not working now.',
+      'ஒரு சென்சார் இப்போது வேலை செய்யவில்லை.',
+    );
+  }
+  if (value.contains('NOISY') || value.contains('CONTACT')) {
+    return _analysisText(
+      context,
+      'The plant sensor reading is not clear.',
+      'செடி சென்சார் அளவீடு தெளிவாக இல்லை.',
+    );
+  }
   return FarmerLanguage.firmware(
     context,
     raw,
@@ -1460,7 +1661,34 @@ String _farmerAction(
       'இலை, தண்டு மற்றும் இலைகளின் அடிப்பகுதியில் பூச்சி அல்லது சேதம் உள்ளதா பாருங்கள்.',
     );
   }
-  final value = '${edge?.rootCause.primary ?? ''} $problem'.toUpperCase();
+  final recommendation = edge?.recommendation?.toUpperCase() ?? '';
+  final value = '${edge?.rootCause.primary ?? ''} $problem $recommendation'
+      .toUpperCase();
+  if (recommendation.contains('WATER_ROOT') ||
+      recommendation.contains('WATER SOON') ||
+      recommendation.contains('WATER THE ROOT')) {
+    return _analysisText(
+      context,
+      'Water the soil near the roots.',
+      'வேர் அருகிலுள்ள மண்ணில் நீர் பாய்ச்சவும்.',
+    );
+  }
+  if (recommendation.contains('CHECK_CONTACT') ||
+      recommendation.contains('ELECTRODE')) {
+    return _analysisText(
+      context,
+      'Check that the plant sensor touches the plant properly.',
+      'செடி சென்சார் செடியை சரியாக தொடுகிறதா பாருங்கள்.',
+    );
+  }
+  if (recommendation.contains('CHECK_SENSOR') ||
+      recommendation.contains('CHECK WIRING')) {
+    return _analysisText(
+      context,
+      'Check the sensor and its connection.',
+      'சென்சார் மற்றும் அதன் இணைப்பை பாருங்கள்.',
+    );
+  }
   if (value.contains('TOO WET') || value.contains('OVERWATER')) {
     return _analysisText(
       context,
@@ -1472,21 +1700,28 @@ String _farmerAction(
       (value.contains('DRY') || value.contains('WATER'))) {
     return _analysisText(
       context,
-      'Check the soil near the roots. If it is dry, irrigate slowly and reduce strong midday heat where possible.',
+      'Check the soil near the roots. If it is dry, water slowly and protect the plant from strong midday heat.',
       'வேர் அருகே மண்ணை பாருங்கள். உலர்ந்தால் மெதுவாக நீர் பாய்ச்சி, முடிந்தால் மதிய வெப்பத்தை குறைக்கவும்.',
     );
   }
   if (value.contains('DRY')) {
     return _analysisText(
       context,
-      'Check the root-zone soil and irrigate slowly if it is dry.',
+      'Check the soil near the roots. Water it slowly if it is dry.',
       'வேர் பகுதி மண்ணை பார்த்து, உலர்ந்தால் மெதுவாக நீர் பாய்ச்சவும்.',
+    );
+  }
+  if (value.contains('WATER_STRESS') || value.contains('WATER STRESS')) {
+    return _analysisText(
+      context,
+      'Water the soil near the roots.',
+      'வேர் அருகிலுள்ள மண்ணில் நீர் பாய்ச்சவும்.',
     );
   }
   if (value.contains('HEAT')) {
     return _analysisText(
       context,
-      'Check root-zone water and reduce strong midday heat where possible.',
+      'Check the soil near the roots. Keep the plant away from strong midday heat.',
       'வேர் பகுதி நீரை பார்த்து, முடிந்தால் அதிக மதிய வெப்பத்தை குறைக்கவும்.',
     );
   }

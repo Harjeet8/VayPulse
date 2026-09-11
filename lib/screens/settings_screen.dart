@@ -7,6 +7,7 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 import 'about_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -23,6 +24,19 @@ class SettingsScreen extends StatelessWidget {
         appBar: AppBar(title: Text(context.tr('settings_title'))),
         body: PageFrame(
           children: [
+            PhytoPageIntro(
+              eyebrow: FarmerLanguage.isTamil(context)
+                  ? 'உங்கள் விருப்பம்'
+                  : 'YOUR APP',
+              title: FarmerLanguage.isTamil(context)
+                  ? 'PhytoSense-ஐ அமைக்கவும்'
+                  : 'Make PhytoSense yours',
+              body: FarmerLanguage.isTamil(context)
+                  ? 'தரவு மூலம், மொழி, தோற்றம் மற்றும் அறிவிப்புகளை ஒரே இடத்தில் மாற்றுங்கள்.'
+                  : 'Choose the data source, language, appearance and alerts in one place.',
+              icon: Icons.tune_rounded,
+            ),
+            const SizedBox(height: 22),
             _SettingsLabel(context.tr('source_control')),
             const SizedBox(height: 8),
             Card(

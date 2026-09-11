@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="phytosense_launch_background">#F3F8F5</color>
+    <color name="phytosense_notification_accent">#1D684D</color>
 </resources>

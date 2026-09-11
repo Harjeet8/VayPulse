@@ -6,6 +6,7 @@ import '../models/crop_catalog.dart';
 import '../models/farm.dart';
 import '../services/app_scope.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class FarmManagementScreen extends StatelessWidget {
   const FarmManagementScreen({super.key});
@@ -31,6 +32,13 @@ class FarmManagementScreen extends StatelessWidget {
         appBar: AppBar(title: Text(context.tr('crop_management'))),
         body: PageFrame(
           children: [
+            PhytoPageIntro(
+              eyebrow: context.tr('crop_management'),
+              title: context.tr('crop_management'),
+              body: context.tr('crop_management_body'),
+              icon: Icons.agriculture_outlined,
+            ),
+            const SizedBox(height: 16),
             Card(
               color: phytoGreen.withValues(alpha: 0.06),
               child: Padding(

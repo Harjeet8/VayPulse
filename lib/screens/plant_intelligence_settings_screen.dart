@@ -4,6 +4,8 @@ import '../models/esp32_configuration.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
+import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class PlantIntelligenceSettingsScreen extends StatefulWidget {
   const PlantIntelligenceSettingsScreen({super.key});
@@ -182,9 +184,17 @@ class _PlantIntelligenceSettingsScreenState
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+      body: PageFrame(
         children: [
+          PhytoPageIntro(
+            eyebrow: 'ESP32',
+            title: tamil ? 'செடி நுண்ணறிவு அமைப்புகள்' : 'Plant intelligence settings',
+            body: tamil
+                ? 'பயிர், வளர்ச்சி நிலை மற்றும் கற்றல் அமைப்புகளை மாற்றுங்கள்.'
+                : 'Manage crop, growth stage, and learning settings on the node.',
+            icon: Icons.tune_rounded,
+          ),
+          const SizedBox(height: 16),
           if (!live)
             Card(
               child: Padding(

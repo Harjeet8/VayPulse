@@ -7,6 +7,8 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/live_motion.dart';
+import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 import 'esp32_diagnostics_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
 
@@ -23,6 +25,8 @@ class LiveSensorsScreen extends StatelessWidget {
         final edge = sensors.edgeIntelligence;
         final telemetry = sensors.hardwareTelemetry;
         final live = sensors.source == SensorDataSource.esp32;
+        final canShowCurrent = !live ||
+            sensors.connectionStatus == SensorConnectionStatus.ready;
         return Scaffold(
           appBar: AppBar(
             title: Text(FarmerLanguage.label(context, 'live_sensors')),
@@ -56,20 +60,24 @@ class LiveSensorsScreen extends StatelessWidget {
               sensors.retry();
               await Future<void>.delayed(const Duration(milliseconds: 450));
             },
-            child: ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
+            child: PageFrame(
               children: [
-                Text(
-                  FarmerLanguage.label(context, 'live_subtitle'),
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
-                      ),
+                PhytoPageIntro(
+                  eyebrow: live ? 'ESP32 EVIDENCE' : 'SIMULATION DATA',
+                  title: FarmerLanguage.isTamil(context)
+                      ? 'சென்சார்கள் என்ன பார்க்கின்றன'
+                      : 'What the sensors see',
+                  body: FarmerLanguage.isTamil(context)
+                      ? 'எளிய நிலை முதலில். பொறியியல் மதிப்புகள் தேவைப்பட்டால் கீழே உள்ளன.'
+                      : 'Simple status first. Engineering values remain available below when needed.',
+                  icon: Icons.sensors_rounded,
                 ),
-                const SizedBox(height: 14),
-                if (sensors.connectionStatus != SensorConnectionStatus.ready)
+                const SizedBox(height: 18),
+                if (!canShowCurrent)
                   _ConnectionCard(reading: reading, live: live),
-                if (reading == null)
+                if (!canShowCurrent)
+                  const SizedBox.shrink()
+                else if (reading == null)
                   _WaitingCard(live: live)
                 else ...[
                   _OverallCard(reading: reading, edge: edge, telemetry: telemetry),

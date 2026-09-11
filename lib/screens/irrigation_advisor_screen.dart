@@ -5,6 +5,7 @@ import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
 import '../services/irrigation_advisor.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class IrrigationAdvisorScreen extends StatelessWidget {
   const IrrigationAdvisorScreen({super.key});
@@ -34,45 +35,11 @@ class IrrigationAdvisorScreen extends StatelessWidget {
           appBar: AppBar(title: Text(context.tr('irrigation_advisor'))),
           body: PageFrame(
             children: [
-              Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1D668F), Color(0xFF3B9FAD)],
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.water_drop_outlined,
-                        size: 50, color: Colors.white),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr('smart_irrigation'),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            context.tr('smart_irrigation_body'),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.82),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              PhytoPageIntro(
+                eyebrow: context.tr('irrigation_advisor'),
+                title: context.tr('smart_irrigation'),
+                body: context.tr('smart_irrigation_body'),
+                icon: Icons.water_drop_outlined,
               ),
               const SizedBox(height: 14),
               Card(

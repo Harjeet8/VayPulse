@@ -7,6 +7,7 @@ import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/data_source_card.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class DevicesScreen extends StatelessWidget {
   const DevicesScreen({super.key});
@@ -20,6 +21,19 @@ class DevicesScreen extends StatelessWidget {
         appBar: AppBar(title: Text(context.tr('devices_title'))),
         body: PageFrame(
           children: [
+            PhytoPageIntro(
+              eyebrow: FarmerLanguage.isTamil(context)
+                  ? 'இணைப்பு'
+                  : 'CONNECTION',
+              title: FarmerLanguage.isTamil(context)
+                  ? 'தரவு எங்கிருந்து வருகிறது'
+                  : 'Choose where data comes from',
+              body: FarmerLanguage.isTamil(context)
+                  ? 'ESP32 நேரடி தரவும் பயிற்சி சிமுலேஷனும் தனித்தனியாக வைக்கப்படுகின்றன.'
+                  : 'Live ESP32 data and practice simulation always stay separate.',
+              icon: Icons.hub_outlined,
+            ),
+            const SizedBox(height: 16),
             const DataSourceCard(),
             const SizedBox(height: 12),
             Card(

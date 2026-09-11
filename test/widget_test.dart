@@ -15,6 +15,7 @@ import 'package:phytosense_ai/services/alert_service.dart';
 import 'package:phytosense_ai/services/app_scope.dart';
 import 'package:phytosense_ai/services/engineering_evidence_service.dart';
 import 'package:phytosense_ai/services/farm_repository.dart';
+import 'package:phytosense_ai/services/firmware_text_adapter.dart';
 import 'package:phytosense_ai/services/inspection_history_service.dart';
 import 'package:phytosense_ai/services/irrigation_advisor.dart';
 import 'package:phytosense_ai/services/location_name_resolver.dart';
@@ -303,6 +304,10 @@ void main() {
     await tester.pump();
 
     expect(find.text('Plant needs urgent attention'), findsOneWidget);
+    expect(find.byKey(const Key('farmer-main-problem')), findsOneWidget);
+    expect(find.byKey(const Key('farmer-immediate-action')), findsOneWidget);
+    expect(find.text('WHAT IS WRONG?'), findsOneWidget);
+    expect(find.text('WHAT TO DO NOW'), findsOneWidget);
     await tester.scrollUntilVisible(
       find.text('More details'),
       420,
@@ -319,6 +324,33 @@ void main() {
 
     await tester.pumpWidget(const SizedBox.shrink());
     sensors.dispose();
+  });
+
+  test('real ESP32 output is translated into plain farmer English', () {
+    expect(
+      FirmwareTextAdapter.farmerEnglish(
+        'VPD indicates the air is pulling water quickly',
+      ),
+      'Dry air is pulling water from the plant quickly.',
+    );
+    expect(
+      FirmwareTextAdapter.farmerEnglish(
+        'Plant electrical response uncertain - check electrode signal',
+      ),
+      'The plant sensor reading is not clear. Check that it touches the plant properly.',
+    );
+    expect(
+      FirmwareTextAdapter.farmerEnglish(
+        'Check the root-zone soil and water if it is genuinely dry',
+      ),
+      'Check the soil near the roots. Water it if it is dry.',
+    );
+    expect(
+      FirmwareTextAdapter.farmerEnglish(
+        'Root temperature is unavailable; analysis continues with remaining sensors',
+      ),
+      'The root-temperature sensor is not working. The other sensors are still active.',
+    );
   });
 
   test('simulation supplies environment and bioelectric intelligence', () {

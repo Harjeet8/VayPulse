@@ -5,6 +5,8 @@ import '../models/hardware_telemetry.dart';
 import '../services/app_scope.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/competition_intelligence_panels.dart';
+import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 import 'esp32_diagnostics_screen.dart';
 
 /// Hidden technical surface for jury questions and engineering verification.
@@ -54,9 +56,15 @@ class JudgeViewScreen extends StatelessWidget {
               const SizedBox(width: 6),
             ],
           ),
-          body: ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 30),
+          body: PageFrame(
             children: [
+              const PhytoPageIntro(
+                eyebrow: 'ADVANCED DETAILS',
+                title: 'Engineering evidence',
+                body: 'Raw ESP32 decisions, confidence, sensor health, and source traceability.',
+                icon: Icons.data_object_rounded,
+              ),
+              const SizedBox(height: 16),
               _SourceHeader(
                 live: live,
                 state: state,

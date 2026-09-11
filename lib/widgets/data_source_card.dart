@@ -6,6 +6,7 @@ import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
 import 'live_motion.dart';
+import 'phyto_ui.dart';
 
 class DataSourceCard extends StatelessWidget {
   const DataSourceCard({super.key});
@@ -55,32 +56,11 @@ class DataSourceCard extends StatelessWidget {
             child: InkWell(
               borderRadius: BorderRadius.circular(27),
               onTap: () => _showSourcePicker(context),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 360),
-                curve: Curves.easeOutCubic,
+              child: PhytoSurface(
+                color: live && connected
+                    ? accent.withValues(alpha: 0.075)
+                    : colors.surface,
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(27),
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      accent.withValues(alpha: 0.12),
-                      colors.surfaceContainerHighest.withValues(alpha: 0.5),
-                      colors.surface,
-                    ],
-                  ),
-                  border: Border.all(
-                    color: accent.withValues(alpha: live && connected ? 0.3 : 0.18),
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: accent.withValues(alpha: 0.07),
-                      blurRadius: 24,
-                      offset: const Offset(0, 9),
-                    ),
-                  ],
-                ),
                 child: Row(
                   children: [
                     AnimatedContainer(

@@ -4,8 +4,6 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
-import '../widgets/boot_intelligence_overlay.dart';
-import '../widgets/boot_motion_polish.dart';
 import 'shell_screen.dart';
 
 /// Complete PhytoSense startup sequence. Initialization and motion run
@@ -36,7 +34,7 @@ class _SplashScreenState extends State<SplashScreen>
     super.initState();
     _sequence = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 3400),
+      duration: const Duration(milliseconds: 2600),
     )..addStatusListener((status) {
         if (status == AnimationStatus.completed) {
           _sequenceDone = true;
@@ -158,38 +156,29 @@ class _SplashScreenState extends State<SplashScreen>
             final phase = _reducedMotion ? 0.18 : _ambient.value;
             return DecoratedBox(
               decoration: BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(0, -0.24),
-                  radius: 1.02,
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
                   colors: isDark
                       ? const [
-                          Color(0xFF174936),
-                          Color(0xFF0A271E),
+                          Color(0xFF102A20),
                           Color(0xFF04120E),
                         ]
                       : const [
-                          Color(0xFFE2F3EA),
                           Color(0xFFEEF8F2),
-                          Color(0xFFF8FCF9),
+                          Color(0xFFF3F8F5),
                         ],
-                  stops: [0, 0.48, 1],
                 ),
               ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   IgnorePointer(
-                    child: BootMotionPolish(
+                    child: _LivingBootIcons(
                       progress: progress,
                       phase: phase,
                       dark: isDark,
-                    ),
-                  ),
-                  IgnorePointer(
-                    child: BootIntelligenceOverlay(
-                      progress: progress,
-                      phase: phase,
-                      dark: isDark,
+                      reducedMotion: _reducedMotion,
                     ),
                   ),
                   SafeArea(
@@ -220,6 +209,71 @@ class _SplashScreenState extends State<SplashScreen>
               ),
             );
           },
+        ),
+      ),
+    );
+  }
+}
+
+class _LivingBootIcons extends StatelessWidget {
+  final double progress;
+  final double phase;
+  final bool dark;
+  final bool reducedMotion;
+
+  const _LivingBootIcons({
+    required this.progress,
+    required this.phase,
+    required this.dark,
+    required this.reducedMotion,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final reveal = Curves.easeOutCubic.transform(
+      ((progress - 0.12) / 0.62).clamp(0.0, 1.0).toDouble(),
+    );
+    final color = dark ? const Color(0xFF9EE9C8) : const Color(0xFF1D684D);
+    final icons = <(IconData, Alignment, double)>[
+      (Icons.water_drop_outlined, const Alignment(-0.72, -0.27), 0.0),
+      (Icons.wb_sunny_outlined, const Alignment(0.72, -0.29), 0.21),
+      (Icons.air_rounded, const Alignment(-0.72, 0.25), 0.42),
+      (Icons.sensors_rounded, const Alignment(0.72, 0.25), 0.63),
+    ];
+    return SafeArea(
+      child: Center(
+        child: SizedBox(
+          width: 330,
+          height: 390,
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              for (final item in icons)
+                Align(
+                  alignment: item.$2,
+                  child: Opacity(
+                    opacity: reveal * 0.72,
+                    child: Transform.translate(
+                      offset: reducedMotion
+                          ? Offset.zero
+                          : Offset(
+                              math.sin((phase + item.$3) * math.pi * 2) * 3,
+                              math.cos((phase + item.$3) * math.pi * 2) * 5,
+                            ),
+                      child: Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: color.withValues(alpha: dark ? 0.08 : 0.07),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Icon(item.$1, color: color, size: 22),
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -267,19 +321,14 @@ class _AnimatedLogo extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            for (var ring = 0; ring < 3; ring++)
-              Container(
-                width: 148 + ring * 20 + pulse * (2 + ring),
-                height: 148 + ring * 20 + pulse * (2 + ring),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: accent.withValues(
-                      alpha: (0.06 + lock * 0.09) / (ring + 1),
-                    ),
-                  ),
-                ),
+            Container(
+              width: 170 + pulse * 3,
+              height: 170 + pulse * 3,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: accent.withValues(alpha: 0.075 + lock * 0.025),
               ),
+            ),
             Transform.translate(
               offset: Offset(0, lift),
               child: Transform.rotate(
@@ -293,11 +342,9 @@ class _AnimatedLogo extends StatelessWidget {
                       borderRadius: BorderRadius.circular(42),
                       boxShadow: [
                         BoxShadow(
-                          color: glow.withValues(
-                            alpha: 0.10 + lock * 0.14 + pulse * 0.04,
-                          ),
-                          blurRadius: 32 + lock * 18,
-                          spreadRadius: 1 + lock * 2,
+                          color: glow.withValues(alpha: 0.10 + lock * 0.06),
+                          blurRadius: 28 + lock * 8,
+                          spreadRadius: 1,
                         ),
                         BoxShadow(
                           color: Colors.black.withValues(
@@ -423,7 +470,7 @@ class _BootCopy extends StatelessWidget {
               ),
             ),
             child: Text(
-              'EDGE INTELLIGENCE  •  SYNCHRONIZED',
+              'PLANT CARE, MADE CLEAR',
               style: TextStyle(
                 color: dark
                     ? const Color(0xFFBFEFDB)

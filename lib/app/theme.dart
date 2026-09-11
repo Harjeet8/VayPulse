@@ -1,12 +1,13 @@
 import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
-const phytoGreen = Color(0xFF176B4D);
-const phytoLeaf = Color(0xFF31A36F);
-const phytoMint = Color(0xFFDDF4E8);
-const phytoAmber = Color(0xFFF3A83B);
-const phytoTerracotta = Color(0xFFD9684B);
-const phytoInk = Color(0xFF14251E);
+const phytoGreen = Color(0xFF1D684D);
+const phytoLeaf = Color(0xFF4C8F6D);
+const phytoMint = Color(0xFFE3F0E7);
+const phytoAmber = Color(0xFFC88427);
+const phytoTerracotta = Color(0xFFB95F43);
+const phytoInk = Color(0xFF173126);
+const phytoCream = Color(0xFFF7F5EF);
 
 ThemeData buildTheme(Brightness brightness, String languageCode) {
   final dark = brightness == Brightness.dark;
@@ -15,18 +16,18 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     brightness: brightness,
   );
   final scheme = seeded.copyWith(
-    primary: dark ? const Color(0xFF74DDAA) : phytoGreen,
+    primary: dark ? const Color(0xFF83D9AD) : phytoGreen,
     onPrimary: dark ? const Color(0xFF003823) : Colors.white,
-    primaryContainer: dark ? const Color(0xFF174D37) : const Color(0xFFC9F3DD),
+    primaryContainer: dark ? const Color(0xFF214B39) : const Color(0xFFDCEEE3),
     onPrimaryContainer:
         dark ? const Color(0xFFC9F8DE) : const Color(0xFF073C29),
-    secondary: dark ? const Color(0xFF8EDBC9) : const Color(0xFF276C60),
+    secondary: dark ? const Color(0xFF9BCFBA) : const Color(0xFF4C765F),
     onSecondary: dark ? const Color(0xFF043831) : Colors.white,
     secondaryContainer:
-        dark ? const Color(0xFF17483F) : const Color(0xFFC0EEE3),
+        dark ? const Color(0xFF26483A) : const Color(0xFFE3ECE5),
     onSecondaryContainer:
         dark ? const Color(0xFFC9F5EA) : const Color(0xFF123D35),
-    tertiary: dark ? const Color(0xFFFFC66D) : const Color(0xFF8B5A08),
+    tertiary: dark ? const Color(0xFFF0C27B) : const Color(0xFF8A5A18),
     onTertiary: dark ? const Color(0xFF462A00) : Colors.white,
     tertiaryContainer: dark ? const Color(0xFF5B3A08) : const Color(0xFFFFDEA5),
     onTertiaryContainer:
@@ -35,19 +36,19 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     onError: dark ? const Color(0xFF5A190E) : Colors.white,
     errorContainer: dark ? const Color(0xFF6D271B) : const Color(0xFFFFDAD2),
     onErrorContainer: dark ? const Color(0xFFFFDAD3) : const Color(0xFF421008),
-    surface: dark ? const Color(0xFF101F17) : const Color(0xFFF8FCF9),
-    onSurface: dark ? const Color(0xFFE7F2EB) : phytoInk,
-    surfaceContainerLowest: dark ? const Color(0xFF07110D) : Colors.white,
+    surface: dark ? const Color(0xFF14231B) : const Color(0xFFFFFDF9),
+    onSurface: dark ? const Color(0xFFE7EEE9) : phytoInk,
+    surfaceContainerLowest: dark ? const Color(0xFF0A120E) : Colors.white,
     surfaceContainerLow:
-        dark ? const Color(0xFF102018) : const Color(0xFFF4F9F6),
-    surfaceContainer: dark ? const Color(0xFF15271D) : const Color(0xFFEEF6F1),
+        dark ? const Color(0xFF14231B) : const Color(0xFFFAF8F3),
+    surfaceContainer: dark ? const Color(0xFF182920) : const Color(0xFFF2F3ED),
     surfaceContainerHigh:
-        dark ? const Color(0xFF192A21) : const Color(0xFFE8F1EB),
+        dark ? const Color(0xFF203229) : const Color(0xFFEAEEE8),
     surfaceContainerHighest:
-        dark ? const Color(0xFF22362B) : const Color(0xFFDFEBE4),
-    onSurfaceVariant: dark ? const Color(0xFFBDD0C4) : const Color(0xFF4C6256),
-    outline: dark ? const Color(0xFF6F8D7C) : const Color(0xFF71877B),
-    outlineVariant: dark ? const Color(0xFF2B4638) : const Color(0xFFD4E2D9),
+        dark ? const Color(0xFF293B31) : const Color(0xFFE2E9E2),
+    onSurfaceVariant: dark ? const Color(0xFFBACBC0) : const Color(0xFF56675E),
+    outline: dark ? const Color(0xFF718B7C) : const Color(0xFF77867D),
+    outlineVariant: dark ? const Color(0xFF334B3D) : const Color(0xFFDCE3DC),
     shadow: dark ? const Color(0xFF000000) : const Color(0xFF143426),
     inverseSurface: dark ? const Color(0xFFE1EEE6) : const Color(0xFF213B2E),
     onInverseSurface: dark ? const Color(0xFF153126) : const Color(0xFFEAF4EE),
@@ -59,12 +60,49 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     colorScheme: scheme,
     fontFamily: languageCode == 'ta' ? 'NotoSansTamil' : null,
   );
-  final cardColor = dark ? const Color(0xFF14271D) : const Color(0xFFFFFFFF);
-  final subtleBorder = dark ? const Color(0xFF294537) : const Color(0xFFE0ECE5);
+  final cardColor = dark ? const Color(0xFF16271E) : const Color(0xFFFFFDF9);
+  final typography = base.textTheme.copyWith(
+    displaySmall: base.textTheme.displaySmall?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: -1.2,
+      height: 1.06,
+    ),
+    headlineLarge: base.textTheme.headlineLarge?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.9,
+      height: 1.1,
+    ),
+    headlineMedium: base.textTheme.headlineMedium?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.65,
+      height: 1.13,
+    ),
+    headlineSmall: base.textTheme.headlineSmall?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.45,
+      height: 1.18,
+    ),
+    titleLarge: base.textTheme.titleLarge?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: -0.35,
+    ),
+    titleMedium: base.textTheme.titleMedium?.copyWith(
+      fontWeight: FontWeight.w700,
+    ),
+    bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.48),
+    bodyMedium: base.textTheme.bodyMedium?.copyWith(height: 1.44),
+    labelLarge: base.textTheme.labelLarge?.copyWith(
+      fontWeight: FontWeight.w800,
+      letterSpacing: 0.05,
+    ),
+  ).apply(
+    bodyColor: scheme.onSurface,
+    displayColor: scheme.onSurface,
+  );
 
   return base.copyWith(
     scaffoldBackgroundColor:
-        dark ? const Color(0xFF07120D) : const Color(0xFFF3F8F5),
+        dark ? const Color(0xFF0B1510) : phytoCream,
     visualDensity: VisualDensity.standard,
     focusColor: scheme.primary.withValues(alpha: 0.18),
     hoverColor: scheme.primary.withValues(alpha: dark ? 0.1 : 0.06),
@@ -72,17 +110,14 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     shadowColor: scheme.shadow,
     splashColor: scheme.primary.withValues(alpha: dark ? 0.16 : 0.1),
     highlightColor: scheme.primary.withValues(alpha: dark ? 0.1 : 0.06),
-    textTheme: base.textTheme.apply(
-      bodyColor: scheme.onSurface,
-      displayColor: scheme.onSurface,
-    ),
+    textTheme: typography,
     iconTheme: IconThemeData(color: scheme.onSurfaceVariant),
     primaryIconTheme: IconThemeData(color: scheme.primary),
     iconButtonTheme: IconButtonThemeData(
       style: IconButton.styleFrom(
         minimumSize: const Size(48, 48),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+          borderRadius: BorderRadius.circular(14),
         ),
       ),
     ),
@@ -96,16 +131,15 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       },
     ),
     appBarTheme: AppBarTheme(
-      backgroundColor: dark
-          ? const Color(0xFF08130E).withValues(alpha: 0.96)
-          : Colors.transparent,
+      backgroundColor: dark ? const Color(0xFF0B1510) : phytoCream,
       foregroundColor: scheme.onSurface,
       surfaceTintColor: Colors.transparent,
       centerTitle: false,
       elevation: 0,
       scrolledUnderElevation: 0,
       iconTheme: IconThemeData(color: scheme.onSurface),
-      titleTextStyle: base.textTheme.titleLarge?.copyWith(
+      toolbarHeight: 68,
+      titleTextStyle: typography.titleLarge?.copyWith(
         color: scheme.onSurface,
         fontWeight: FontWeight.w900,
         letterSpacing: -0.4,
@@ -115,11 +149,10 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       elevation: 0,
       color: cardColor,
       surfaceTintColor: Colors.transparent,
-      shadowColor: scheme.shadow.withValues(alpha: dark ? 0.32 : 0.09),
+      shadowColor: scheme.shadow.withValues(alpha: dark ? 0.24 : 0.08),
       margin: EdgeInsets.zero,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(24),
-        side: BorderSide(color: subtleBorder),
+        borderRadius: BorderRadius.circular(22),
       ),
     ),
     dividerTheme: DividerThemeData(
@@ -142,23 +175,23 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       prefixIconColor: scheme.primary,
       suffixIconColor: scheme.onSurfaceVariant,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: scheme.outlineVariant),
       ),
       focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: scheme.primary, width: 2),
       ),
       errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: scheme.error),
       ),
       focusedErrorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(17),
+        borderRadius: BorderRadius.circular(16),
         borderSide: BorderSide(color: scheme.error, width: 2),
       ),
     ),
@@ -170,7 +203,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         disabledBackgroundColor: scheme.surfaceContainerHighest,
         disabledForegroundColor: scheme.onSurfaceVariant,
         elevation: 0,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         textStyle: const TextStyle(fontWeight: FontWeight.w900),
       ),
     ),
@@ -179,7 +212,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         minimumSize: const Size(48, 50),
         foregroundColor: scheme.primary,
         side: BorderSide(color: dark ? scheme.outline : scheme.outlineVariant),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
         textStyle: const TextStyle(fontWeight: FontWeight.w800),
       ),
     ),
@@ -194,8 +227,8 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       selectedColor: scheme.primaryContainer,
       disabledColor: scheme.surfaceContainerHigh,
       surfaceTintColor: Colors.transparent,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      side: BorderSide(color: scheme.outlineVariant),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(13)),
+      side: BorderSide.none,
       labelStyle: TextStyle(
         color: scheme.onSurface,
         fontWeight: FontWeight.w700,
@@ -295,7 +328,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       ),
     ),
     navigationRailTheme: NavigationRailThemeData(
-      backgroundColor: dark ? const Color(0xFF0D1913) : const Color(0xFFFFFFFF),
+      backgroundColor: dark ? const Color(0xFF111F18) : const Color(0xFFFFFDF9),
       indicatorColor: scheme.primaryContainer,
       unselectedIconTheme: IconThemeData(color: scheme.onSurfaceVariant),
       selectedIconTheme: IconThemeData(color: scheme.primary),
@@ -306,9 +339,9 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       ),
     ),
     bottomSheetTheme: BottomSheetThemeData(
-      backgroundColor: scheme.surfaceContainerLow,
+      backgroundColor: scheme.surface,
       surfaceTintColor: Colors.transparent,
-      modalBackgroundColor: scheme.surfaceContainerLow,
+      modalBackgroundColor: scheme.surface,
       modalBarrierColor: Colors.black.withValues(alpha: 0.68),
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
@@ -337,14 +370,14 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       contentTextStyle: base.textTheme.bodyMedium?.copyWith(
         color: scheme.onSurfaceVariant,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(26)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
     ),
     snackBarTheme: SnackBarThemeData(
       behavior: SnackBarBehavior.floating,
       backgroundColor: scheme.inverseSurface,
       contentTextStyle: TextStyle(color: scheme.onInverseSurface),
       actionTextColor: scheme.inversePrimary,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
     ),
     progressIndicatorTheme: ProgressIndicatorThemeData(
       color: scheme.primary,

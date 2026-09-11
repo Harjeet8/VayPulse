@@ -72,13 +72,20 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
               color: Theme.of(context).colorScheme.secondary,
             ),
           if (scope.sensors.current case final reading?)
+            if (scope.sensors.source != SensorDataSource.esp32 ||
+                scope.sensors.connectionStatus ==
+                    SensorConnectionStatus.ready)
             _TimelineEntry(
               time: reading.timestamp,
               type: _TimelineFilter.sensor,
               icon: Icons.sensors_rounded,
-              title: FarmerLanguage.isTamil(context)
-                  ? 'சமீப நேரடி அளவீடு'
-                  : 'Latest live reading',
+              title: scope.sensors.source == SensorDataSource.esp32
+                  ? (FarmerLanguage.isTamil(context)
+                      ? 'சமீப நேரடி அளவீடு'
+                      : 'Latest live reading')
+                  : (FarmerLanguage.isTamil(context)
+                      ? 'சமீப மாதிரி அளவீடு'
+                      : 'Latest simulation reading'),
               body: _latestReadingBody(context, scope, reading),
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -92,32 +99,16 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
           appBar: AppBar(title: Text(FarmerLanguage.label(context, 'history'))),
           body: PageFrame(
             children: [
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          FarmerLanguage.label(context, 'recent_trend'),
-                          style: Theme.of(context)
-                              .textTheme
-                              .headlineSmall
-                              ?.copyWith(fontWeight: FontWeight.w900),
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          FarmerLanguage.isTamil(context)
-                              ? 'செடியின் நிலை, வேர் மண் மற்றும் plant response எப்படி மாறுகிறது என்பதைப் பாருங்கள்.'
-                              : 'See how plant condition, root soil and plant response are changing over time.',
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  PhytoStatusBadge(
+              PhytoPageIntro(
+                eyebrow: FarmerLanguage.isTamil(context)
+                    ? 'காலப்போக்கு'
+                    : 'OVER TIME',
+                title: FarmerLanguage.label(context, 'recent_trend'),
+                body: FarmerLanguage.isTamil(context)
+                    ? 'செடியின் நிலையும் வேர் மண்ணும் எப்படி மாறுகின்றன என்பதைப் பாருங்கள்.'
+                    : 'See how the plant condition and root soil are changing.',
+                icon: Icons.timeline_rounded,
+                trailing: PhytoStatusBadge(
                     label: scope.sensors.source == SensorDataSource.esp32
                         ? 'ESP32 LIVE'
                         : FarmerLanguage.label(context, 'simulated'),
@@ -127,8 +118,7 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
                     color: scope.sensors.source == SensorDataSource.esp32
                         ? const Color(0xFF397FC0)
                         : Theme.of(context).colorScheme.primary,
-                  ),
-                ],
+                ),
               ),
               const SizedBox(height: 16),
               _HistoryCharts(history: recent),

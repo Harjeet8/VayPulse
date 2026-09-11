@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import '../models/esp32_configuration.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
+import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class Esp32DiagnosticsScreen extends StatefulWidget {
   const Esp32DiagnosticsScreen({super.key});
@@ -46,16 +48,15 @@ class _Esp32DiagnosticsScreenState extends State<Esp32DiagnosticsScreen> {
           ),
         ],
       ),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(16, 8, 16, 28),
+      body: PageFrame(
         children: [
-          Text(
-            tamil
+          PhytoPageIntro(
+            eyebrow: 'ENGINEERING',
+            title: tamil ? 'கணினி சோதனை' : 'System diagnostics',
+            body: tamil
                 ? 'ESP32 மற்றும் physical sensors-ன் தொழில்நுட்ப நிலை.'
                 : 'Technical status reported by the ESP32 and physical sensors.',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+            icon: Icons.monitor_heart_outlined,
           ),
           const SizedBox(height: 12),
           if (_loading)

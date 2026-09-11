@@ -9,6 +9,7 @@ import '../services/engineering_evidence_service.dart';
 import '../services/edge_alert_language.dart';
 import '../services/farmer_language.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 import 'leaf_screening_screen.dart';
 
 enum _AlertFilter { all, action, monitor, resolved, system }
@@ -72,9 +73,15 @@ class _AlertsScreenState extends State<AlertsScreen> {
           ),
           body: PageFrame(
             children: [
-              Text(
-                context.tr('alerts_subtitle'),
-                style: Theme.of(context).textTheme.bodyLarge,
+              PhytoPageIntro(
+                eyebrow: FarmerLanguage.isTamil(context)
+                    ? 'கவனம் தேவை'
+                    : 'NEEDS YOUR ATTENTION',
+                title: FarmerLanguage.isTamil(context)
+                    ? 'முக்கியமானது முதலில்'
+                    : 'Important things first',
+                body: context.tr('alerts_subtitle'),
+                icon: Icons.notifications_none_rounded,
               ),
               const SizedBox(height: 12),
               if (service.unreadCount > 0)

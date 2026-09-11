@@ -137,13 +137,20 @@ class MainActivity : FlutterActivity() {
         }
 
         builder
-            .setSmallIcon(applicationInfo.icon)
+            // Android status bars mask this artwork to a single visible colour.
+            // The full-colour launcher icon can become blank here, so always use
+            // the dedicated PhytoSense notification silhouette.
+            .setSmallIcon(R.drawable.ic_stat_phytosense)
+            .setColor(resources.getColor(R.color.phytosense_notification_accent, theme))
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setAutoCancel(true)
+            .setOnlyAlertOnce(true)
             .setPriority(priority)
             .setCategory(Notification.CATEGORY_STATUS)
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
+            .setGroup("phytosense_plant_health")
 
         if (contentIntent != null) {
             builder.setContentIntent(contentIntent)

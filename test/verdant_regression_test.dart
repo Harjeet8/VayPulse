@@ -74,6 +74,8 @@ void main() {
 
     expect(find.text('PhytoSense AI'), findsOneWidget);
     expect(find.byKey(const Key('boot-logo-clip')), findsOneWidget);
+    expect(find.byIcon(Icons.water_drop_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.sensors_rounded), findsOneWidget);
 
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -106,6 +108,33 @@ void main() {
     expect(android12LightTheme, isNot(contains('@drawable/ic_launcher_nova')));
     expect(nativeBadge.lengthSync(), greaterThan(10000));
     expect(manifest, contains('io.flutter.embedding.android.NormalTheme'));
+  });
+
+  test('Android notifications use the visible monochrome status icon', () {
+    final activity = File(
+      'android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt',
+    ).readAsStringSync();
+    final icon = File(
+      'android/app/src/main/res/drawable/ic_stat_phytosense.xml',
+    ).readAsStringSync();
+
+    expect(activity, contains('.setSmallIcon(R.drawable.ic_stat_phytosense)'));
+    expect(activity, isNot(contains('.setSmallIcon(applicationInfo.icon)')));
+    expect(activity, contains('.setOnlyAlertOnce(true)'));
+    expect(activity, contains('setContentIntent'));
+    expect(icon, contains('android:fillColor="#FFFFFFFF"'));
+  });
+
+  test('farmer analysis has one clear problem and action hierarchy', () {
+    final analysis =
+        File('lib/screens/farmer_analysis_screen.dart').readAsStringSync();
+    final shell = File('lib/screens/shell_screen.dart').readAsStringSync();
+
+    expect('WHAT IS WRONG?'.allMatches(analysis), hasLength(1));
+    expect('WHAT TO DO NOW'.allMatches(analysis), hasLength(1));
+    expect(analysis, contains("Key('farmer-main-problem')"));
+    expect(analysis, contains("Key('farmer-immediate-action')"));
+    expect(shell, isNot(contains('_FarmerGuidanceDock')));
   });
 
   testWidgets('animated boot follows the active light or dark theme',

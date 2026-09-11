@@ -1,6 +1,185 @@
 import 'package:flutter/material.dart';
 
 import '../app/theme.dart';
+import 'live_motion.dart';
+
+/// Shared page introduction used across the commercial farmer experience.
+/// It replaces decorative title cards with one clear hierarchy.
+class PhytoPageIntro extends StatelessWidget {
+  final String eyebrow;
+  final String title;
+  final String body;
+  final IconData? icon;
+  final Widget? trailing;
+
+  const PhytoPageIntro({
+    super.key,
+    required this.eyebrow,
+    required this.title,
+    required this.body,
+    this.icon,
+    this.trailing,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (icon != null) ...[
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: colors.primaryContainer,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: LiveMotionIcon(
+              icon: icon!,
+              color: colors.onPrimaryContainer,
+            ),
+          ),
+          const SizedBox(width: 14),
+        ],
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                eyebrow.toUpperCase(),
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: colors.primary,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 1.1,
+                    ),
+              ),
+              const SizedBox(height: 5),
+              Text(title, style: Theme.of(context).textTheme.headlineSmall),
+              const SizedBox(height: 6),
+              Text(
+                body,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: colors.onSurfaceVariant,
+                    ),
+              ),
+            ],
+          ),
+        ),
+        if (trailing != null) ...[
+          const SizedBox(width: 12),
+          trailing!,
+        ],
+      ],
+    );
+  }
+}
+
+/// A quiet, borderless content surface. Only purposeful status surfaces use
+/// stronger colour so long farmer pages do not become a wall of boxes.
+class PhytoSurface extends StatelessWidget {
+  final Widget child;
+  final EdgeInsets padding;
+  final Color? color;
+  final double radius;
+
+  const PhytoSurface({
+    super.key,
+    required this.child,
+    this.padding = const EdgeInsets.all(18),
+    this.color,
+    this.radius = 22,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final colors = Theme.of(context).colorScheme;
+    return Container(
+      padding: padding,
+      decoration: BoxDecoration(
+        color: color ?? colors.surface,
+        borderRadius: BorderRadius.circular(radius),
+        boxShadow: [
+          BoxShadow(
+            color: colors.shadow.withValues(alpha: dark ? 0.16 : 0.055),
+            blurRadius: dark ? 18 : 24,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class PhytoStatePanel extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String body;
+  final String? actionLabel;
+  final VoidCallback? onAction;
+  final Color? accent;
+  final bool loading;
+
+  const PhytoStatePanel({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.body,
+    this.actionLabel,
+    this.onAction,
+    this.accent,
+    this.loading = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final color = accent ?? Theme.of(context).colorScheme.primary;
+    return PhytoSurface(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: loading
+                ? Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2.5,
+                      color: color,
+                    ),
+                  )
+                : LiveMotionIcon(icon: icon, color: color),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: Theme.of(context).textTheme.titleMedium),
+                const SizedBox(height: 5),
+                Text(body),
+                if (actionLabel != null && onAction != null) ...[
+                  const SizedBox(height: 13),
+                  FilledButton.tonal(
+                    onPressed: onAction,
+                    child: Text(actionLabel!),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
 class PhytoSectionHeader extends StatelessWidget {
   final String title;
@@ -74,9 +253,12 @@ class PhytoStatusBadge extends StatelessWidget {
           children: [
             Icon(icon, size: prominent ? 17 : 14, color: color),
             const SizedBox(width: 6),
-            Flexible(
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 150),
               child: Text(
                 label,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   color: color,

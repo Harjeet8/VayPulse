@@ -6,6 +6,7 @@ import '../models/weather_snapshot.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class WeatherCenterScreen extends StatelessWidget {
   const WeatherCenterScreen({super.key});
@@ -41,6 +42,21 @@ class WeatherCenterScreen extends StatelessWidget {
           ),
           body: PageFrame(
             children: [
+              PhytoPageIntro(
+                eyebrow: _weatherText(context, 'LOCAL WEATHER', 'உள்ளூர் வானிலை'),
+                title: _weatherText(
+                  context,
+                  'Weather around your plant',
+                  'உங்கள் செடியை சுற்றிய வானிலை',
+                ),
+                body: _weatherText(
+                  context,
+                  'See heat, rain, and drying conditions in one place.',
+                  'வெப்பம், மழை மற்றும் உலர் நிலையை ஒரே இடத்தில் பாருங்கள்.',
+                ),
+                icon: Icons.partly_cloudy_day_outlined,
+              ),
+              const SizedBox(height: 16),
               if (snapshot == null)
                 _WeatherUnavailable(loading: scope.weather.loading)
               else ...[

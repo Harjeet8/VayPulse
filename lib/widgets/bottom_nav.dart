@@ -16,34 +16,29 @@ class BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      top: false,
-      child: Container(
-        margin: const EdgeInsets.fromLTRB(8, 0, 8, 8),
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.surface,
-          borderRadius: BorderRadius.circular(22),
-          border: Border.all(
-            color: Theme.of(context).dividerColor.withValues(alpha: 0.7),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Theme.of(context).shadowColor.withValues(
-                    alpha: Theme.of(context).brightness == Brightness.dark
-                        ? 0.32
-                        : 0.08,
-                  ),
-              blurRadius: 22,
-              offset: const Offset(0, 8),
+    final theme = Theme.of(context);
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+        boxShadow: [
+          BoxShadow(
+            color: theme.shadowColor.withValues(
+              alpha: theme.brightness == Brightness.dark ? 0.25 : 0.08,
             ),
-          ],
-        ),
-        clipBehavior: Clip.antiAlias,
+            blurRadius: 28,
+            offset: const Offset(0, -6),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: SafeArea(
+        top: false,
         child: NavigationBar(
-          height: 74,
+          height: 70,
           labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
           backgroundColor: Colors.transparent,
-          indicatorColor: Theme.of(context).colorScheme.primaryContainer,
+          indicatorColor: theme.colorScheme.primaryContainer,
           selectedIndex: index,
           onDestinationSelected: onChanged,
           destinations: [

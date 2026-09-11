@@ -5,6 +5,7 @@ import '../l10n/app_strings.dart';
 import '../services/app_scope.dart';
 import '../services/offline_sync_service.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class OfflineSyncScreen extends StatefulWidget {
   const OfflineSyncScreen({super.key});
@@ -67,45 +68,11 @@ class _OfflineSyncScreenState extends State<OfflineSyncScreen> {
           appBar: AppBar(title: Text(context.tr('offline_sync_title'))),
           body: PageFrame(
             children: [
-              Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF3B5C4F), Color(0xFF6A8D7B)],
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.cloud_sync_outlined,
-                        color: Colors.white, size: 48),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            context.tr('offline_first'),
-                            style: Theme.of(context)
-                                .textTheme
-                                .titleLarge
-                                ?.copyWith(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                          ),
-                          const SizedBox(height: 5),
-                          Text(
-                            context.tr('offline_first_body'),
-                            style: TextStyle(
-                              color: Colors.white.withValues(alpha: 0.82),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+              PhytoPageIntro(
+                eyebrow: context.tr('offline_sync_title'),
+                title: context.tr('offline_first'),
+                body: context.tr('offline_first_body'),
+                icon: Icons.cloud_sync_outlined,
               ),
               const SizedBox(height: 14),
               Row(

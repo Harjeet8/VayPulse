@@ -18,6 +18,7 @@ import '../widgets/biotic_stress_card.dart';
 import '../widgets/calibre_upgrade_panels.dart';
 import '../widgets/competition_intelligence_panels.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 import '../widgets/time_phase_card.dart';
 import 'judge_view_screen.dart';
 import 'leaf_screening_screen.dart';
@@ -37,6 +38,8 @@ class LiveNodeHomeScreen extends StatelessWidget {
     final edge = sensors.edgeIntelligence;
     final telemetry = sensors.hardwareTelemetry;
     final live = sensors.source == SensorDataSource.esp32;
+    final canShowCurrent = !live ||
+        sensors.connectionStatus == SensorConnectionStatus.ready;
     final homeSystemNotice =
         live ? _HomeSystemNotice.fromEdge(edge) : null;
 
@@ -109,12 +112,20 @@ class LiveNodeHomeScreen extends StatelessWidget {
         },
         child: PageFrame(
           children: [
-            const DataSourceCard(),
-            const SizedBox(height: 12),
-            TimePhaseCard(
-              live: live,
-              espDayPhase: telemetry?.dayPhase,
+            PhytoPageIntro(
+              eyebrow: live ? 'LIVE FARM' : 'SIMULATION',
+              title: _competitionText(
+                context,
+                'Your plant at a glance',
+                'உங்கள் செடியின் சுருக்கம்',
+              ),
+              body: live
+                  ? 'Your plant condition and the next useful action, in simple words.'
+                  : FarmerLanguage.label(context, 'source_separation'),
+              icon: Icons.spa_rounded,
             ),
+            const SizedBox(height: 18),
+            const DataSourceCard(),
             if (!live) ...[
               const SizedBox(height: 12),
               const SimulationCommandDeck(),
@@ -138,7 +149,9 @@ class LiveNodeHomeScreen extends StatelessWidget {
               ),
             ],
             const SizedBox(height: 14),
-            if (edge?.firmwareCompatible == false)
+            if (!canShowCurrent)
+              const SizedBox.shrink()
+            else if (edge?.firmwareCompatible == false)
               const _FirmwareCompatibilityCard()
             else if (reading == null)
               _WaitingCard(
@@ -153,6 +166,13 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 telemetry: telemetry,
                 live: live,
               ),
+              const SizedBox(height: 12),
+              const _WeatherHomeCard(),
+              const SizedBox(height: 12),
+              TimePhaseCard(
+                live: live,
+                espDayPhase: telemetry?.dayPhase,
+              ),
               if (live && _FarmerEdgeSignals.visible(edge)) ...[
                 const SizedBox(height: 10),
                 _FarmerEdgeSignals(edge: edge!),
@@ -165,8 +185,6 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 const SizedBox(height: 12),
                 _SystemQualityCard(notice: homeSystemNotice),
               ],
-              const SizedBox(height: 12),
-              const _WeatherHomeCard(),
               if (edge?.bioelectric.hasData == true) ...[
                 const SizedBox(height: 12),
                 _PlantResponseCard(bio: edge!.bioelectric),
@@ -286,11 +304,6 @@ class _ConditionCard extends StatelessWidget {
     final rawState = edge?.plantState ?? reading.healthStatus;
     final recovering = rawState.toUpperCase() == 'RECOVERING';
     final possibleBiotic = edge?.bioticStress.suspected == true;
-    final score = (edge?.healthScore ??
-            reading.esp32HealthScore ??
-            reading.healthScore)
-        .clamp(0.0, 100.0)
-        .toDouble();
     final main = possibleBiotic
         ? FarmerLanguage.label(context, 'possible_biotic_title')
         : edge?.rootCause.primary ??
@@ -308,6 +321,23 @@ class _ConditionCard extends StatelessWidget {
     final healthy = !recovering &&
         !possibleBiotic &&
         _isHealthyState(rawState);
+    final conditionStatus = recovering
+        ? _competitionText(
+            context,
+            'Plant is recovering',
+            'செடி மீண்டு வருகிறது',
+          )
+        : healthy
+            ? _competitionText(
+                context,
+                'Plant looks healthy',
+                'செடி ஆரோக்கியமாக உள்ளது',
+              )
+            : _competitionText(
+                context,
+                'Plant needs attention',
+                'செடிக்கு கவனம் தேவை',
+              );
     final title = useSoilPresentation
         ? soilPresentation.title(tamil: FarmerLanguage.isTamil(context))
         : _simpleConditionTitle(
@@ -362,17 +392,9 @@ class _ConditionCard extends StatelessWidget {
     final crop = telemetry?.cropProfile ?? edge?.cropProfile.profile ?? 'Universal';
     final stage = telemetry?.growthStage ?? edge?.cropProfile.growthStage;
 
-    return Container(
+    return PhytoSurface(
+      color: accent.withValues(alpha: 0.075),
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [accent.withValues(alpha: 0.16), Theme.of(context).colorScheme.surface],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: accent.withValues(alpha: 0.3)),
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -431,14 +453,67 @@ class _ConditionCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 8),
-          Center(
-            child: _PlantHealthMeter(
-              score: score,
-              status: _simpleMeterStatus(context, score, rawState),
-            ),
+          const SizedBox(height: 18),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Container(
+                width: 48,
+                height: 48,
+                decoration: BoxDecoration(
+                  color: accent.withValues(alpha: 0.13),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  healthy
+                      ? Icons.check_rounded
+                      : recovering
+                          ? Icons.trending_up_rounded
+                          : Icons.priority_high_rounded,
+                  color: accent,
+                ),
+              ),
+              const SizedBox(width: 13),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _competitionText(
+                        context,
+                        'PLANT CONDITION',
+                        'செடியின் நிலை',
+                      ),
+                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                            color: accent,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 0.8,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      conditionStatus,
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                            color: accent,
+                          ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 18),
+          Divider(color: accent.withValues(alpha: 0.18)),
+          const SizedBox(height: 15),
+          Text(
+            _competitionText(context, 'MAIN ISSUE', 'முக்கிய பிரச்சினை'),
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: accent,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.8,
+                ),
+          ),
+          const SizedBox(height: 6),
           AnimatedSwitcher(
             duration: const Duration(milliseconds: 360),
             switchInCurve: Curves.easeOutCubic,
@@ -458,7 +533,6 @@ class _ConditionCard extends StatelessWidget {
               width: double.infinity,
               child: Text(
                 title,
-                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                       fontWeight: FontWeight.w900,
                       color: accent,
@@ -474,7 +548,6 @@ class _ConditionCard extends StatelessWidget {
               child: Text(
                 summary,
                 key: ValueKey(summary),
-                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w600,
                       height: 1.38,
@@ -1253,21 +1326,21 @@ class _HomeSystemNotice {
     final bio = edge.bioelectric;
     final contact = bio.normalizedContactState;
 
-    // Keep electrode integrity in the existing single Home warning slot.
+    // Keep plant-contact integrity in the existing single Home warning slot.
     // This prevents a clean electrical trace from being presented as valid
     // plant bioelectric data when the firmware says plant contact is invalid.
     if (!bio.presentationOnly && contact != null && contact != 'PLAUSIBLE') {
       return switch (contact) {
         'OPEN' => const _HomeSystemNotice(
-            title: 'Electrodes open',
-            issue: 'Check plant contact',
-            action: 'Re-seat both electrodes on the plant.',
+            title: 'Plant sensors are loose',
+            issue: 'The plant reading is not clear.',
+            action: 'Make sure both sensors touch the plant firmly.',
             severe: false,
           ),
         'VERIFY' => const _HomeSystemNotice(
-            title: 'Verify electrode contact',
-            issue: 'Plant contact is not confirmed yet.',
-            action: 'Check that both electrodes are firmly attached.',
+            title: 'Check the plant sensors',
+            issue: 'The plant reading is not ready yet.',
+            action: 'Make sure both sensors touch the plant firmly.',
             severe: false,
           ),
         'STATIC' || 'SHORT_SUSPECTED' => const _HomeSystemNotice(
@@ -1277,21 +1350,21 @@ class _HomeSystemNotice {
             severe: false,
           ),
         'UNSTABLE' => const _HomeSystemNotice(
-            title: 'Electrode contact unstable',
-            issue: 'Plant contact is changing.',
-            action: 'Check electrode placement and movement.',
+            title: 'Plant sensors are moving',
+            issue: 'The plant reading keeps changing.',
+            action: 'Keep both sensors still and touching the plant.',
             severe: false,
           ),
         'SATURATED' => const _HomeSystemNotice(
-            title: 'Bio sensor saturated',
-            issue: 'Sensor fault warning',
-            action: 'Check the electrode and amplifier connection.',
+            title: 'Plant sensor needs attention',
+            issue: 'The plant reading is too strong to use.',
+            action: 'Check the plant sensor and its wire.',
             severe: true,
           ),
         _ => const _HomeSystemNotice(
-            title: 'Verify electrode contact',
-            issue: 'Plant contact is not plausible for analysis.',
-            action: 'Check electrode placement before relying on bio readings.',
+            title: 'Check the plant sensors',
+            issue: 'The plant reading is not clear enough to use.',
+            action: 'Make sure both sensors touch the plant firmly.',
             severe: false,
           ),
       };
@@ -1300,9 +1373,9 @@ class _HomeSystemNotice {
         bio.contactPlausibleForPlantUse == false &&
         contact == null) {
       return const _HomeSystemNotice(
-        title: 'Verify electrode contact',
-        issue: 'Plant contact is not plausible for analysis.',
-        action: 'Check electrode placement before relying on bio readings.',
+        title: 'Check the plant sensors',
+        issue: 'The plant reading is not clear enough to use.',
+        action: 'Make sure both sensors touch the plant firmly.',
         severe: false,
       );
     }
@@ -2233,14 +2306,14 @@ String _simpleFarmerAction(
       value.contains('URGENT')) {
     return _competitionText(
       context,
-      'Check the soil near the roots. If it is dry, irrigate slowly and reduce strong midday heat where possible.',
+      'Check the soil near the roots. If it is dry, water slowly and protect the plant from strong midday heat.',
       'வேர் அருகே மண்ணை பாருங்கள். உலர்ந்தால் மெதுவாக நீர் பாய்ச்சி, முடிந்தால் மதிய வெப்பத்தை குறைக்கவும்.',
     );
   }
   if (value.contains('DRYING') || value.contains('ROOT-ZONE MOISTURE')) {
     return _competitionText(
       context,
-      'Check the root-zone soil. Water only if it is becoming dry, and give shade during the hottest hours.',
+      'Check the soil near the roots. Water only if it is dry, and give shade during the hottest hours.',
       'வேர் பகுதி மண்ணை பாருங்கள். மண் உலர்ந்தால் மட்டும் நீர் ஊற்றி, அதிக வெப்ப நேரத்தில் நிழல் கொடுங்கள்.',
     );
   }

@@ -17,23 +17,299 @@ class FirmwareTextAdapter {
 
   static String text(BuildContext context, String? raw, {String fallback = ''}) {
     if (raw == null || raw.trim().isEmpty) return fallback;
+    if (!_tamil(context)) return farmerEnglish(raw, fallback: fallback);
     final clean = raw.trim();
     final key = clean
         .toUpperCase()
         .replaceAll(RegExp(r'[^A-Z0-9]+'), '_')
         .replaceAll(RegExp(r'^_+|_+$'), '');
-    final known = (_tamil(context) ? _knownTa : _knownEn)[key];
+    final known = _knownTa[key];
     if (known != null) return known;
+
+    // The ESP32 remains the source of truth. These rules change wording only;
+    // they never infer a new diagnosis or action from raw sensor values.
+    final plain = _plainTamil(clean.toLowerCase());
+    if (plain != null) return plain;
 
     // Never surface engineering shorthand as farmer advice. Unknown future
     // phrases are retained, but common implementation terms are softened.
-    return clean
+    return _softenEnglish(clean);
+  }
+
+  /// Pure adapter used by tests and notification-safe presentation code.
+  /// It changes wording only and never derives a condition from readings.
+  static String farmerEnglish(String? raw, {String fallback = ''}) {
+    if (raw == null || raw.trim().isEmpty) return fallback;
+    final clean = raw.trim();
+    final key = clean
+        .toUpperCase()
+        .replaceAll(RegExp(r'[^A-Z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '');
+    final known = _knownEn[key];
+    if (known != null) return known;
+    final plain = _plainEnglish(clean.toLowerCase());
+    return plain ?? _softenEnglish(clean);
+  }
+
+  static String _softenEnglish(String clean) => clean
         .replaceAll(RegExp(r'\bADC\b', caseSensitive: false), 'sensor reading')
         .replaceAll(RegExp(r'\bEMA\b', caseSensitive: false), 'recent trend')
+        .replaceAll(RegExp(r'\bVPD\b', caseSensitive: false), 'air drying level')
         .replaceAll(RegExp(r'\bZ[- ]?score\b', caseSensitive: false), 'unusual change')
+        .replaceAll(RegExp(r'\bbioelectric\b', caseSensitive: false), 'plant signal')
+        .replaceAll(RegExp(r'\bbiotic\b', caseSensitive: false), 'pest or disease')
+        .replaceAll(RegExp(r'\bcorroborated\b', caseSensitive: false), 'supported')
+        .replaceAll(RegExp(r'\banomaly\b', caseSensitive: false), 'unusual change')
+        .replaceAll(RegExp(r'\btelemetry\b', caseSensitive: false), 'sensor data')
         .replaceAll(RegExp(r'feature vector', caseSensitive: false), 'sensor pattern')
         .replaceAll(RegExp(r'regression slope', caseSensitive: false), 'rate of change')
         .replaceAll(RegExp(r'weighted fusion', caseSensitive: false), 'combined sensor evidence');
+
+  static String? _plainEnglish(String value) {
+    if (value.contains('collecting live sensor data') ||
+        value.contains('first complete sensor frame') ||
+        value.contains('waiting for a complete reliable sensor frame')) {
+      return 'Waiting for the first good sensor reading.';
+    }
+    if (value.contains('baseline learning paused')) {
+      return 'Learning is paused while the plant is stressed.';
+    }
+    if ((value.contains('electrical response uncertain') ||
+            value.contains('signal quality is not reliable')) &&
+        (value.contains('electrode') || value.contains('plant electrical'))) {
+      return 'The plant sensor reading is not clear. Check that it touches the plant properly.';
+    }
+    if (value.contains('electrical activity normal') ||
+        value.contains('normal relative to learned baseline')) {
+      return 'The plant signal looks normal.';
+    }
+    if (value.contains('root soil is dry') ||
+        value.contains('root zone is critically dry')) {
+      return 'The soil near the roots is too dry.';
+    }
+    if (value.contains('air or root-zone temperature is elevated') ||
+        value.contains('air or root zone temperature is elevated') ||
+        value.contains('severe daytime heat') ||
+        value.contains('severe night heat')) {
+      return 'The air or soil around the roots is too hot.';
+    }
+    if (value.contains('atmospheric drying') ||
+        value.contains('high vpd') ||
+        value.contains('vpd indicates')) {
+      return 'Dry air is pulling water from the plant quickly.';
+    }
+    if (value.contains('root-zone heat') ||
+        value.contains('root zone heat') ||
+        value.contains('root temperature high')) {
+      return 'The soil around the roots is too hot.';
+    }
+    if (value.contains('water stress') ||
+        value.contains('moisture deficit') ||
+        value.contains('root zone is dry')) {
+      return 'The plant needs more water.';
+    }
+    if (value.contains('possible biotic') ||
+        value.contains('biotic stress') ||
+        value.contains('unexplained plant stress')) {
+      return 'A pest or disease may be affecting the plant. Check it closely.';
+    }
+    if (value.contains('camera') &&
+        (value.contains('scan') || value.contains('inspect'))) {
+      return 'Use the camera to check the plant.';
+    }
+    if (value.contains('probable watering') ||
+        value.contains('irrigation likely')) {
+      return 'Watering may have happened.';
+    }
+    if (value.contains('conditions improved') &&
+        value.contains('stress remains')) {
+      return 'Conditions are better, but the plant still needs attention.';
+    }
+    if (value.contains('recovering') &&
+        value.contains('stress signal decreasing')) {
+      return 'The plant is recovering.';
+    }
+    if (value.contains('root temperature is unavailable')) {
+      return 'The root-temperature sensor is not working. The other sensors are still active.';
+    }
+    if (value.contains('light sensor is unavailable')) {
+      return 'The light sensor is not working. The main plant check continues.';
+    }
+    if (value.contains('one or more channels have reduced confidence')) {
+      return 'Some sensor information is unclear, so this result is less certain.';
+    }
+    if (value.contains('check the root-zone soil') &&
+        value.contains('water if')) {
+      return 'Check the soil near the roots. Water it if it is dry.';
+    }
+    if (value.contains('reduce heat exposure') &&
+        value.contains('root-zone moisture')) {
+      return 'Protect the plant from strong heat and check the soil near the roots.';
+    }
+    if (value.contains('inspect root-zone temperature') &&
+        value.contains('drainage')) {
+      return 'Check the soil near the roots, its temperature, and drainage.';
+    }
+    if (value.contains('reduce drying stress') &&
+        value.contains('root-zone moisture')) {
+      return 'Protect the plant from dry air and watch the soil near the roots.';
+    }
+    if (value.contains('no strong measured stress cause')) {
+      return 'No main stress cause is clear now.';
+    }
+    if (value.contains('learning') && value.contains('baseline')) {
+      return 'PhytoSense is learning this plant’s normal signal.';
+    }
+    if (value.contains('noisy') || value.contains('noise')) {
+      return 'The plant sensor reading is not clear. Check that it touches the plant properly.';
+    }
+    if (value.contains('electrode') &&
+        (value.contains('contact') || value.contains('check'))) {
+      return 'Check that the plant sensor touches the plant properly.';
+    }
+    if (value.contains('reduced confidence') ||
+        value.contains('low confidence')) {
+      return 'This result is less certain because some sensor information is not clear.';
+    }
+    if (value.contains('sensor') &&
+        (value.contains('unavailable') ||
+            value.contains('missing') ||
+            value.contains('fault'))) {
+      return 'A sensor is not working now. Check its connection.';
+    }
+    if (value.contains('soil probe')) {
+      return value
+          .replaceAll('soil probe', 'soil sensor')
+          .replaceAll('calibration', 'setup');
+    }
+    if (value.contains('leaf wetness') && value.contains('calibrat')) {
+      return 'Set up the leaf sensor again.';
+    }
+    if (value.contains('disease conducive')) {
+      return 'The weather may help disease grow. This does not confirm a disease.';
+    }
+    return null;
+  }
+
+  static String? _plainTamil(String value) {
+    if (value.contains('collecting live sensor data') ||
+        value.contains('first complete sensor frame') ||
+        value.contains('waiting for a complete reliable sensor frame')) {
+      return 'முதல் நல்ல சென்சார் அளவீட்டுக்காக காத்திருக்கிறது.';
+    }
+    if (value.contains('baseline learning paused')) {
+      return 'செடிக்கு பிரச்சினை உள்ளதால் கற்றல் தற்காலிகமாக நிறுத்தப்பட்டுள்ளது.';
+    }
+    if ((value.contains('electrical response uncertain') ||
+            value.contains('signal quality is not reliable')) &&
+        (value.contains('electrode') || value.contains('plant electrical'))) {
+      return 'செடி சென்சார் அளவீடு தெளிவாக இல்லை. அது செடியை சரியாக தொடுகிறதா பாருங்கள்.';
+    }
+    if (value.contains('electrical activity normal') ||
+        value.contains('normal relative to learned baseline')) {
+      return 'செடி சிக்னல் இயல்பாக உள்ளது.';
+    }
+    if (value.contains('root soil is dry') ||
+        value.contains('root zone is critically dry')) {
+      return 'வேர் அருகிலுள்ள மண் மிகவும் உலர்ந்துள்ளது.';
+    }
+    if (value.contains('air or root-zone temperature is elevated') ||
+        value.contains('air or root zone temperature is elevated') ||
+        value.contains('severe daytime heat') ||
+        value.contains('severe night heat')) {
+      return 'காற்று அல்லது வேர் சுற்றியுள்ள மண் மிகவும் சூடாக உள்ளது.';
+    }
+    if (value.contains('atmospheric drying') ||
+        value.contains('high vpd') ||
+        value.contains('vpd indicates')) {
+      return 'உலர் காற்று செடியிலிருந்து நீரை வேகமாக இழுக்கிறது.';
+    }
+    if (value.contains('root-zone heat') ||
+        value.contains('root zone heat') ||
+        value.contains('root temperature high')) {
+      return 'வேர் சுற்றியுள்ள மண் மிகவும் சூடாக உள்ளது.';
+    }
+    if (value.contains('water stress') ||
+        value.contains('moisture deficit') ||
+        value.contains('root zone is dry')) {
+      return 'செடிக்கு அதிக நீர் தேவை.';
+    }
+    if (value.contains('possible biotic') ||
+        value.contains('biotic stress') ||
+        value.contains('unexplained plant stress')) {
+      return 'பூச்சி அல்லது நோய் செடியை பாதிக்கலாம். செடியை நன்றாக பாருங்கள்.';
+    }
+    if (value.contains('camera') &&
+        (value.contains('scan') || value.contains('inspect'))) {
+      return 'கேமராவால் செடியை சரிபார்க்கவும்.';
+    }
+    if (value.contains('probable watering') ||
+        value.contains('irrigation likely')) {
+      return 'நீர் பாய்ச்சியிருக்கலாம்.';
+    }
+    if (value.contains('conditions improved') &&
+        value.contains('stress remains')) {
+      return 'சூழல் மேம்பட்டுள்ளது. ஆனால் செடிக்கு இன்னும் கவனம் தேவை.';
+    }
+    if (value.contains('recovering') &&
+        value.contains('stress signal decreasing')) {
+      return 'செடி மீண்டு வருகிறது.';
+    }
+    if (value.contains('root temperature is unavailable')) {
+      return 'வேர் வெப்ப சென்சார் வேலை செய்யவில்லை. மற்ற சென்சார்கள் இயங்குகின்றன.';
+    }
+    if (value.contains('light sensor is unavailable')) {
+      return 'ஒளி சென்சார் வேலை செய்யவில்லை. முக்கிய செடி சோதனை தொடர்கிறது.';
+    }
+    if (value.contains('one or more channels have reduced confidence')) {
+      return 'சில சென்சார் தகவல்கள் தெளிவாக இல்லை. அதனால் முடிவு குறைவாக உறுதியாக உள்ளது.';
+    }
+    if (value.contains('check the root-zone soil') &&
+        value.contains('water if')) {
+      return 'வேர் அருகிலுள்ள மண்ணை பாருங்கள். உலர்ந்தால் நீர் பாய்ச்சவும்.';
+    }
+    if (value.contains('reduce heat exposure') &&
+        value.contains('root-zone moisture')) {
+      return 'அதிக வெப்பத்திலிருந்து செடியை பாதுகாத்து, வேர் அருகிலுள்ள மண்ணை பாருங்கள்.';
+    }
+    if (value.contains('inspect root-zone temperature') &&
+        value.contains('drainage')) {
+      return 'வேர் அருகிலுள்ள மண், அதன் வெப்பம் மற்றும் வடிகாலை பாருங்கள்.';
+    }
+    if (value.contains('reduce drying stress') &&
+        value.contains('root-zone moisture')) {
+      return 'உலர் காற்றிலிருந்து செடியை பாதுகாத்து, வேர் அருகிலுள்ள மண்ணை கவனிக்கவும்.';
+    }
+    if (value.contains('no strong measured stress cause')) {
+      return 'இப்போது முக்கிய பிரச்சினைக்கான காரணம் தெளிவாக இல்லை.';
+    }
+    if (value.contains('learning') && value.contains('baseline')) {
+      return 'இந்த செடியின் இயல்பான சிக்னலை PhytoSense கற்றுக்கொள்கிறது.';
+    }
+    if (value.contains('noisy') || value.contains('noise')) {
+      return 'செடி சென்சார் அளவீடு தெளிவாக இல்லை. அது செடியை சரியாக தொடுகிறதா பாருங்கள்.';
+    }
+    if (value.contains('electrode') &&
+        (value.contains('contact') || value.contains('check'))) {
+      return 'செடி சென்சார் செடியை சரியாக தொடுகிறதா பாருங்கள்.';
+    }
+    if (value.contains('reduced confidence') ||
+        value.contains('low confidence')) {
+      return 'சில சென்சார் தகவல்கள் தெளிவாக இல்லாததால் இந்த முடிவு குறைவாக உறுதியாக உள்ளது.';
+    }
+    if (value.contains('sensor') &&
+        (value.contains('unavailable') ||
+            value.contains('missing') ||
+            value.contains('fault'))) {
+      return 'ஒரு சென்சார் இப்போது வேலை செய்யவில்லை. அதன் இணைப்பை பாருங்கள்.';
+    }
+    if (value.contains('leaf wetness') && value.contains('calibrat')) {
+      return 'இலை சென்சாரை மீண்டும் அமைக்கவும்.';
+    }
+    if (value.contains('disease conducive')) {
+      return 'இந்த வானிலை நோய் வளர உதவலாம். இது நோயை உறுதி செய்யவில்லை.';
+    }
+    return null;
   }
 
   static const _en = <String, String>{

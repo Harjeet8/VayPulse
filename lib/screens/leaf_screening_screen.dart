@@ -16,6 +16,7 @@ import '../services/leaf_screening_service.dart';
 import '../services/multimodal_disease_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/phyto_ui.dart';
 
 class LeafScreeningScreen extends StatefulWidget {
   final bool sensorPrompt;
@@ -209,6 +210,8 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
   Widget build(BuildContext context) {
     final biotic = AppScope.of(context).sensors.source ==
                 SensorDataSource.esp32 &&
+            AppScope.of(context).sensors.connectionStatus ==
+                SensorConnectionStatus.ready &&
             AppScope.of(context)
                     .sensors
                     .edgeIntelligence
@@ -221,44 +224,15 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
       appBar: AppBar(title: Text(context.tr('leaf_screening_title'))),
       body: PageFrame(
         children: [
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF12523B), Color(0xFF2B9366)],
-              ),
-              borderRadius: BorderRadius.circular(26),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.document_scanner_outlined,
-                    color: Colors.white, size: 42),
-                const SizedBox(width: 15),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.tr('leaf_screening_hero'),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                              color: Colors.white,
-                              fontWeight: FontWeight.w900,
-                            ),
-                      ),
-                      const SizedBox(height: 5),
-                      Text(
-                        context.tr('leaf_screening_hero_body'),
-                        style: TextStyle(
-                          color: Colors.white.withValues(alpha: 0.82),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+          PhytoPageIntro(
+            eyebrow: FarmerLanguage.isTamil(context)
+                ? 'கேமரா சோதனை'
+                : 'CAMERA CHECK',
+            title: context.tr('leaf_screening_hero'),
+            body: context.tr('leaf_screening_hero_body'),
+            icon: Icons.document_scanner_outlined,
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 20),
           _ScreeningProgress(
             activeStep: !cropConfirmed
                 ? 0

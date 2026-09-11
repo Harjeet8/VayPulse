@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   validate-build:
@@ -15,24 +15,26 @@ jobs:
     timeout-minutes: 50
 
     steps:
-      - name: Checkout integrated Verdant source
+      - name: Checkout authoritative Verdant source
         uses: actions/checkout@v4
 
-      - name: Verify newest integrated lineage
+      - name: Verify authoritative lineage and locked contracts
         shell: bash
         run: |
           set -euo pipefail
-          grep -q '^version: 9.1.4+905$' pubspec.yaml
+          test "$GITHUB_REF_NAME" = "phytosense-verdant-remote-final"
+          grep -q '^version: 10.0.0+1000$' pubspec.yaml
           test -f assets/branding/phytosense_icon.png
           test -f assets/fonts/NotoSansTamil-Regular.ttf
-          grep -Fq "TimePhaseCard" lib/screens/live_node_home_screen.dart
-          grep -Fq "Full plant intelligence" lib/screens/live_node_home_screen.dart
+          test -f android/app/src/main/res/drawable/ic_stat_phytosense.xml
           grep -Fq "Real Time Signal" lib/models/sensor_reading.dart
           grep -Fq "HardwareTransportMode" lib/services/esp32_sensor_provider.dart
           grep -Fq "FirebaseRemoteClient" lib/services/esp32_sensor_provider.dart
           grep -Fq "phytosense-ai-1b0d8" lib/services/firebase_remote_client.dart
           grep -Fq "schemaVersion! <= 9" lib/models/edge_intelligence.dart
           grep -Fq "192.168.29.5" lib/services/esp32_client.dart
+          grep -Fq ".setSmallIcon(R.drawable.ic_stat_phytosense)" \
+            android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt
 
       - name: Set up Java 17
         uses: actions/setup-java@v4
@@ -51,27 +53,37 @@ jobs:
         run: flutter pub get
 
       - name: Format sources
-        run: dart format lib test
+        shell: bash
+        run: |
+          set -euo pipefail
+          dart format lib test
+          if ! git diff --quiet -- lib test; then
+            git config user.name "PhytoSense CI"
+            git config user.email "actions@users.noreply.github.com"
+            git add lib test
+            git commit -m "Format market redesign sources"
+            git push origin HEAD:phytosense-verdant-remote-final
+          fi
 
       - name: Analyze
         run: flutter analyze --no-fatal-infos
 
-      - name: Run regression tests
+      - name: Run full regression suite
         run: flutter test
 
-      - name: Create temporary install signing key
+      - name: Create release install signing key
         shell: bash
         run: |
           set -euo pipefail
           PASS="$(openssl rand -hex 24)"
-          KEYSTORE="$RUNNER_TEMP/phytosense-verdant-remote.jks"
+          KEYSTORE="$RUNNER_TEMP/phytosense-verdant-market.jks"
           keytool -genkeypair -noprompt \
             -keystore "$KEYSTORE" \
             -storepass "$PASS" \
             -keypass "$PASS" \
             -alias phytosense \
             -keyalg RSA -keysize 2048 -validity 3650 \
-            -dname "CN=PhytoSense AI Verdant Remote Build,O=PhytoSense AI,C=IN"
+            -dname "CN=PhytoSense AI Verdant Market Build,O=PhytoSense AI,C=IN"
           {
             echo "ANDROID_KEYSTORE_PATH=$KEYSTORE"
             echo "ANDROID_STORE_PASSWORD=$PASS"
@@ -79,18 +91,18 @@ jobs:
             echo "ANDROID_KEY_PASSWORD=$PASS"
           } >> "$GITHUB_ENV"
 
-      - name: Build newest release APK
+      - name: Build obfuscated Android release APK
         run: >
           flutter build apk --release
           --obfuscate
           --split-debug-info="$RUNNER_TEMP/symbols"
 
-      - name: Verify APK
+      - name: Verify APK identity, signature, and release flags
         shell: bash
         run: |
           set -euo pipefail
           SRC="build/app/outputs/flutter-apk/app-release.apk"
-          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.4-905.apk"
+          OUT="PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk"
           test -s "$SRC"
           cp "$SRC" "$OUT"
           unzip -t "$OUT" >/dev/null
@@ -101,24 +113,40 @@ jobs:
           test "$app_id" = "com.harjeet.phytosense"
           "$sdk_root/cmdline-tools/latest/bin/apkanalyzer" manifest debuggable "$OUT" | grep -qx 'false'
           sha256sum "$OUT" | tee "$OUT.sha256"
+          size="$(stat -c%s "$OUT")"
+          {
+            echo "## Verified PhytoSense Android release"
+            echo "- Branch: $GITHUB_REF_NAME"
+            echo "- Commit: $(git rev-parse HEAD)"
+            echo "- Version: 10.0.0+1000"
+            echo "- Package: com.harjeet.phytosense"
+            echo "- Debuggable: false"
+            echo "- APK bytes: $size"
+            echo "- SHA-256: $(cut -d' ' -f1 "$OUT.sha256")"
+          } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish verified APK handoff
+      - name: Upload verified APK handoff
+        uses: actions/upload-artifact@v4
+        with:
+          name: PhytoSense-AI-VERDANT-MARKET-10.0.0-1000
+          path: |
+            PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk
+            PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Optional external APK handoff
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
-          OUT="PhytoSense-AI-VERDANT-REMOTE-FINAL-9.1.4-905.apk"
-          test -s "$OUT"
-
-          url="$(curl --fail-with-body --silent --show-error             -F "reqtype=fileupload"             -F "fileToUpload=@$OUT"             https://catbox.moe/user/api.php || true)"
-
-          if [[ ! "$url" =~ ^https:// ]]; then
-            response="$(curl --fail-with-body --silent --show-error               -F "file=@$OUT"               https://tmpfiles.org/api/v1/upload || true)"
-            url="$(python3 -c 'import json,sys; d=json.loads(sys.argv[1]); print(d.get("data",{}).get("url",""))' "$response" 2>/dev/null || true)"
+          OUT="PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk"
+          url="$(curl --fail-with-body --silent --show-error \
+            -F "reqtype=fileupload" \
+            -F "fileToUpload=@$OUT" \
+            https://catbox.moe/user/api.php || true)"
+          if [[ "$url" =~ ^https:// ]]; then
+            echo "PHYTO_APK_URL=$url"
+          else
+            echo "External mirror unavailable; GitHub artifact is authoritative."
           fi
-
-          if [[ ! "$url" =~ ^https:// ]]; then
-            echo "No external handoff service accepted the verified APK."
-            exit 1
-          fi
-
-          echo "PHYTO_APK_URL=$url"
