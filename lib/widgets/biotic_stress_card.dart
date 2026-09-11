@@ -58,8 +58,7 @@ class BioticStressCard extends StatelessWidget {
               FarmerLanguage.firmware(
                 context,
                 info.farmerResult ?? info.reason,
-                fallback:
-                    FarmerLanguage.label(context, 'possible_biotic_body'),
+                fallback: FarmerLanguage.label(context, 'possible_biotic_body'),
               ),
             ),
             const SizedBox(height: 14),

@@ -75,7 +75,6 @@ class AlertService extends ChangeNotifier {
     _evaluateNodeHealth(reading.nodeId);
   }
 
-
   void _evaluateEdgeIntelligence(SensorReading reading) {
     final edge = sensors.edgeIntelligence;
     if (edge == null) return;
@@ -119,20 +118,29 @@ class AlertService extends ChangeNotifier {
     }
     if (bioticNow) return;
 
-    final cause = (edge.rootCause.primary ?? edge.farmerSummary ?? '').toUpperCase();
-    if (cause.contains('WATER') || cause.contains('DRY') || cause.contains('MOISTURE')) {
+    final cause =
+        (edge.rootCause.primary ?? edge.farmerSummary ?? '').toUpperCase();
+    if (cause.contains('WATER') ||
+        cause.contains('DRY') ||
+        cause.contains('MOISTURE')) {
       _addAlert(
         nodeId: reading.nodeId,
         titleKey: 'alert_water_stress_edge',
         messageKey: 'alert_water_stress_edge_message',
-        severity: state.contains('CRITICAL') ? AlertSeverity.critical : AlertSeverity.warning,
+        severity: state.contains('CRITICAL')
+            ? AlertSeverity.critical
+            : AlertSeverity.warning,
       );
-    } else if (cause.contains('HEAT') || cause.contains('HOT') || cause.contains('THERMAL')) {
+    } else if (cause.contains('HEAT') ||
+        cause.contains('HOT') ||
+        cause.contains('THERMAL')) {
       _addAlert(
         nodeId: reading.nodeId,
         titleKey: 'alert_heat_stress_edge',
         messageKey: 'alert_heat_stress_edge_message',
-        severity: state.contains('CRITICAL') ? AlertSeverity.critical : AlertSeverity.warning,
+        severity: state.contains('CRITICAL')
+            ? AlertSeverity.critical
+            : AlertSeverity.warning,
       );
     } else if (cause.contains('ROOT')) {
       _addAlert(
@@ -141,12 +149,16 @@ class AlertService extends ChangeNotifier {
         messageKey: 'alert_root_stress_edge_message',
         severity: AlertSeverity.warning,
       );
-    } else if (state.contains('STRESS') || state.contains('ATTENTION') || state.contains('CRITICAL')) {
+    } else if (state.contains('STRESS') ||
+        state.contains('ATTENTION') ||
+        state.contains('CRITICAL')) {
       _addAlert(
         nodeId: reading.nodeId,
         titleKey: 'alert_plant_stress_edge',
         messageKey: 'alert_plant_stress_edge_message',
-        severity: state.contains('CRITICAL') ? AlertSeverity.critical : AlertSeverity.warning,
+        severity: state.contains('CRITICAL')
+            ? AlertSeverity.critical
+            : AlertSeverity.warning,
       );
     }
   }

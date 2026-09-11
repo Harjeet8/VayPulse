@@ -259,8 +259,10 @@ void main() {
   });
 
   test('farmer-facing Real Time Signal card uses mV as the primary value', () {
-    final home = File('lib/screens/live_node_home_screen.dart').readAsStringSync();
-    final sensors = File('lib/screens/live_sensors_screen.dart').readAsStringSync();
+    final home =
+        File('lib/screens/live_node_home_screen.dart').readAsStringSync();
+    final sensors =
+        File('lib/screens/live_sensors_screen.dart').readAsStringSync();
 
     expect(home, contains("bio.voltageMv!.round()} mV"));
     expect(home, contains('NORMAL • STABLE'));

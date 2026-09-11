@@ -50,12 +50,10 @@ class Esp32ControlClient {
 
   Future<Map<String, dynamic>?> _getJson(String path) async {
     try {
-      final response = await http
-          .get(
-            Uri.parse('$baseUrl$path'),
-            headers: const {'Accept': 'application/json'},
-          )
-          .timeout(const Duration(seconds: 4));
+      final response = await http.get(
+        Uri.parse('$baseUrl$path'),
+        headers: const {'Accept': 'application/json'},
+      ).timeout(const Duration(seconds: 4));
       if (response.statusCode != 200) return null;
       final decoded = jsonDecode(response.body);
       return decoded is Map ? Map<String, dynamic>.from(decoded) : null;
@@ -83,10 +81,8 @@ class Esp32ControlClient {
   }
 
   static String _normalizeCrop(String value) {
-    final normalized = value
-        .trim()
-        .toLowerCase()
-        .replaceAll(RegExp(r'[^a-z0-9]'), '');
+    final normalized =
+        value.trim().toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
     if (normalized == 'brinjal' || normalized == 'aubergine') {
       return 'eggplant';
     }

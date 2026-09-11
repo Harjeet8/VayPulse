@@ -44,8 +44,8 @@ class FarmRepository extends ChangeNotifier {
       if (raw != null) {
         final decoded = jsonDecode(raw) as List;
         final restored = decoded
-            .map((item) =>
-                Farm.fromJson(Map<String, dynamic>.from(item as Map)))
+            .map(
+                (item) => Farm.fromJson(Map<String, dynamic>.from(item as Map)))
             .toList(growable: false);
         if (restored.isNotEmpty) {
           farms

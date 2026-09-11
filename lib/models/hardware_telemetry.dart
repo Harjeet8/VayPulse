@@ -122,15 +122,28 @@ class HardwareTelemetry {
     ]);
 
     final aliases = <String, List<String>>{
-      'airTemperature': const ['airTemperature', 'temperature', 'air', 'thermal'],
+      'airTemperature': const [
+        'airTemperature',
+        'temperature',
+        'air',
+        'thermal'
+      ],
       'humidity': const ['humidity', 'relativeHumidity', 'atmospheric'],
       'light': const ['light', 'lux', 'daylight'],
       'soilMoisture': const ['soilMoisture', 'soil', 'water'],
-      'rootTemperature': const ['rootTemperature', 'soilTemperature', 'rootZone'],
+      'rootTemperature': const [
+        'rootTemperature',
+        'soilTemperature',
+        'rootZone'
+      ],
       'leafWetness': const ['leafWetness', 'leaf'],
       'plantSignal': const ['plantSignal', 'bioelectric', 'bio'],
       'vpd': const ['vpd', 'airDryingDemand', 'atmosphericDryingDemand'],
-      'airDryingDemand': const ['airDryingDemand', 'vpd', 'atmosphericDryingDemand'],
+      'airDryingDemand': const [
+        'airDryingDemand',
+        'vpd',
+        'atmosphericDryingDemand'
+      ],
     };
 
     HardwareSensorDetail build(
@@ -411,7 +424,8 @@ dynamic _lookupChannel(dynamic source, List<String> aliases) {
   return null;
 }
 
-String _norm(String value) => value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
+String _norm(String value) =>
+    value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
 
 Map<String, dynamic> _map(dynamic value) =>
     value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};

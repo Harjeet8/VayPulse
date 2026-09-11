@@ -88,7 +88,10 @@ class MultimodalDiseaseService {
             matchScore: 88,
           ),
         ],
-        evidenceKeys: const ['disease_evidence_camera', 'disease_evidence_visual_balanced'],
+        evidenceKeys: const [
+          'disease_evidence_camera',
+          'disease_evidence_visual_balanced'
+        ],
         usedSensorEvidence: false,
         usedWeatherEvidence: false,
         sensorTriggered: false,
@@ -112,7 +115,8 @@ class MultimodalDiseaseService {
     final ranked = candidates.take(3).toList(growable: false);
     final isInconclusive = ranked.isEmpty ||
         ranked.first.matchScore < 60 ||
-        (ranked.length > 1 && ranked.first.matchScore - ranked[1].matchScore < 8);
+        (ranked.length > 1 &&
+            ranked.first.matchScore - ranked[1].matchScore < 8);
 
     return DiseaseAssessment(
       crop: crop,
@@ -332,7 +336,9 @@ class MultimodalDiseaseService {
         thirdScore: 12 + yellow * 84 + brown * 60,
       );
     }
-    if (crop.contains('chilli') || crop.contains('chili') || crop.contains('pepper')) {
+    if (crop.contains('chilli') ||
+        crop.contains('chili') ||
+        crop.contains('pepper')) {
       return _threeCropCandidates(
         first: 'disease_chilli_leaf_curl',
         firstCategory: 'disease_category_viral',

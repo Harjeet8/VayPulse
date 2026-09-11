@@ -407,13 +407,12 @@ class Esp32SensorProvider extends HardwareSensorProvider {
 
   String? _trendFor(EdgeIntelligence edge, List<String> aliases) {
     final normalized = aliases
-        .map((value) =>
-            value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ''))
+        .map(
+            (value) => value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), ''))
         .toSet();
     for (final trend in edge.trends) {
-      final channel = trend.channel
-          .toLowerCase()
-          .replaceAll(RegExp(r'[^a-z0-9]'), '');
+      final channel =
+          trend.channel.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '');
       if (normalized.contains(channel)) return trend.state;
     }
     return null;

@@ -292,7 +292,8 @@ class _CreatorBuild extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
+                Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 2),
                 Text(description),
               ],

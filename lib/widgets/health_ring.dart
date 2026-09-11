@@ -32,7 +32,8 @@ class HealthRing extends StatelessWidget {
       label: '$label ${score.round()}',
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: score.clamp(0, 100).toDouble()),
-        duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 720),
+        duration:
+            reduceMotion ? Duration.zero : const Duration(milliseconds: 720),
         curve: Curves.easeOutCubic,
         builder: (context, animatedScore, _) => SizedBox.square(
           dimension: size,

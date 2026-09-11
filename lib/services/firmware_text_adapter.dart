@@ -15,7 +15,8 @@ class FirmwareTextAdapter {
     return values[key] ?? _en[key] ?? key;
   }
 
-  static String text(BuildContext context, String? raw, {String fallback = ''}) {
+  static String text(BuildContext context, String? raw,
+      {String fallback = ''}) {
     if (raw == null || raw.trim().isEmpty) return fallback;
     if (!_tamil(context)) return farmerEnglish(raw, fallback: fallback);
     final clean = raw.trim();
@@ -52,18 +53,26 @@ class FirmwareTextAdapter {
   }
 
   static String _softenEnglish(String clean) => clean
-        .replaceAll(RegExp(r'\bADC\b', caseSensitive: false), 'sensor reading')
-        .replaceAll(RegExp(r'\bEMA\b', caseSensitive: false), 'recent trend')
-        .replaceAll(RegExp(r'\bVPD\b', caseSensitive: false), 'air drying level')
-        .replaceAll(RegExp(r'\bZ[- ]?score\b', caseSensitive: false), 'unusual change')
-        .replaceAll(RegExp(r'\bbioelectric\b', caseSensitive: false), 'plant signal')
-        .replaceAll(RegExp(r'\bbiotic\b', caseSensitive: false), 'pest or disease')
-        .replaceAll(RegExp(r'\bcorroborated\b', caseSensitive: false), 'supported')
-        .replaceAll(RegExp(r'\banomaly\b', caseSensitive: false), 'unusual change')
-        .replaceAll(RegExp(r'\btelemetry\b', caseSensitive: false), 'sensor data')
-        .replaceAll(RegExp(r'feature vector', caseSensitive: false), 'sensor pattern')
-        .replaceAll(RegExp(r'regression slope', caseSensitive: false), 'rate of change')
-        .replaceAll(RegExp(r'weighted fusion', caseSensitive: false), 'combined sensor evidence');
+      .replaceAll(RegExp(r'\bADC\b', caseSensitive: false), 'sensor reading')
+      .replaceAll(RegExp(r'\bEMA\b', caseSensitive: false), 'recent trend')
+      .replaceAll(RegExp(r'\bVPD\b', caseSensitive: false), 'air drying level')
+      .replaceAll(
+          RegExp(r'\bZ[- ]?score\b', caseSensitive: false), 'unusual change')
+      .replaceAll(
+          RegExp(r'\bbioelectric\b', caseSensitive: false), 'plant signal')
+      .replaceAll(
+          RegExp(r'\bbiotic\b', caseSensitive: false), 'pest or disease')
+      .replaceAll(
+          RegExp(r'\bcorroborated\b', caseSensitive: false), 'supported')
+      .replaceAll(
+          RegExp(r'\banomaly\b', caseSensitive: false), 'unusual change')
+      .replaceAll(RegExp(r'\btelemetry\b', caseSensitive: false), 'sensor data')
+      .replaceAll(
+          RegExp(r'feature vector', caseSensitive: false), 'sensor pattern')
+      .replaceAll(
+          RegExp(r'regression slope', caseSensitive: false), 'rate of change')
+      .replaceAll(RegExp(r'weighted fusion', caseSensitive: false),
+          'combined sensor evidence');
 
   static String? _plainEnglish(String value) {
     if (value.contains('collecting live sensor data') ||
@@ -346,17 +355,21 @@ class FirmwareTextAdapter {
     'active_channels': 'Active channels',
     'sensor_issues': 'Sensor issues',
     'environmental_risk': 'Environmental disease risk',
-    'environmental_note': 'This describes favourable conditions, not a confirmed disease.',
+    'environmental_note':
+        'This describes favourable conditions, not a confirmed disease.',
     'vpd': 'VPD (derived)',
     'air_drying': 'Air drying demand',
     'baseline': 'Adaptive baseline',
     'tinyml': 'TinyML model',
     'model_loaded': 'Loaded',
     'model_not_loaded': 'Not loaded',
-    'explainable_engine': 'Current edge intelligence uses explainable sensor fusion, root-cause analysis and recovery verification.',
+    'explainable_engine':
+        'Current edge intelligence uses explainable sensor fusion, root-cause analysis and recovery verification.',
     'irrigation_detected': 'Probable watering detected',
-    'no_action_from_node': 'The ESP32 has not issued a specific action. Keep monitoring.',
-    'low_confidence_warning': 'Check unreliable sensors before making a major decision.',
+    'no_action_from_node':
+        'The ESP32 has not issued a specific action. Keep monitoring.',
+    'low_confidence_warning':
+        'Check unreliable sensors before making a major decision.',
     'disconnected': 'ESP32 disconnected',
     'last_reading': 'Last reading',
   };
@@ -395,17 +408,21 @@ class FirmwareTextAdapter {
     'active_channels': 'செயலில் உள்ள channels',
     'sensor_issues': 'சென்சார் பிரச்சினைகள்',
     'environmental_risk': 'சுற்றுச்சூழல் நோய் அபாயம்',
-    'environmental_note': 'இது நோய்க்கு சாதகமான சூழலை மட்டும் குறிக்கும்; உறுதியான நோய் கண்டறிதல் அல்ல.',
+    'environmental_note':
+        'இது நோய்க்கு சாதகமான சூழலை மட்டும் குறிக்கும்; உறுதியான நோய் கண்டறிதல் அல்ல.',
     'vpd': 'VPD (கணக்கிடப்பட்டது)',
     'air_drying': 'காற்றின் உலர்த்தும் தாக்கம்',
     'baseline': 'தகவமைக்கும் baseline',
     'tinyml': 'TinyML model',
     'model_loaded': 'Loaded',
     'model_not_loaded': 'Load செய்யப்படவில்லை',
-    'explainable_engine': 'தற்போதைய edge intelligence விளக்கக்கூடிய sensor fusion மற்றும் prediction பயன்படுத்துகிறது.',
+    'explainable_engine':
+        'தற்போதைய edge intelligence விளக்கக்கூடிய sensor fusion மற்றும் prediction பயன்படுத்துகிறது.',
     'irrigation_detected': 'நீர்ப்பாய்ச்சி நடந்திருக்கலாம்',
-    'no_action_from_node': 'ESP32 குறிப்பிட்ட செயலை இன்னும் சொல்லவில்லை. தொடர்ந்து கண்காணிக்கவும்.',
-    'low_confidence_warning': 'பெரிய முடிவு எடுப்பதற்கு முன் நம்பகமற்ற சென்சார்களைச் சரிபார்க்கவும்.',
+    'no_action_from_node':
+        'ESP32 குறிப்பிட்ட செயலை இன்னும் சொல்லவில்லை. தொடர்ந்து கண்காணிக்கவும்.',
+    'low_confidence_warning':
+        'பெரிய முடிவு எடுப்பதற்கு முன் நம்பகமற்ற சென்சார்களைச் சரிபார்க்கவும்.',
     'disconnected': 'ESP32 இணைப்பு துண்டிக்கப்பட்டது',
     'last_reading': 'கடைசி reading',
   };
@@ -430,7 +447,8 @@ class FirmwareTextAdapter {
     'IMPROVE_AIRFLOW': 'Improve airflow and keep leaves dry where possible.',
     'LEARNING_BASELINE': 'Learning this plant’s normal electrical pattern',
     'BASELINE_STABLE': 'Electrical pattern is close to its learned baseline',
-    'STRESS_CORROBORATED': 'Electrical change supports stress seen by other sensors',
+    'STRESS_CORROBORATED':
+        'Electrical change supports stress seen by other sensors',
     'COMPOUND_HEAT_AND_WATER_STRESS':
         'Heat and dry soil are stressing the plant',
     'VERY_LOW_SOIL_MOISTURE_HIGH_TEMPERATURE_AND_HIGH_VPD_AGREE':
@@ -456,13 +474,18 @@ class FirmwareTextAdapter {
     'CONTINUE_MONITORING': 'தொடர்ந்து கண்காணிக்கவும்.',
     'WATER_THE_ROOT_ZONE': 'வேர் பகுதியை சமமாக நீர்ப்பாய்ச்சவும்.',
     'WATER_ROOT_ZONE': 'வேர் பகுதியை சமமாக நீர்ப்பாய்ச்சவும்.',
-    'CHECK_SOIL_SENSOR': 'மண் ஈரப்பத சென்சார் மற்றும் இணைப்பைச் சரிபார்க்கவும்.',
-    'CHECK_DRAINAGE': 'மேலும் நீர் சேர்ப்பதற்கு முன் drainage-ஐ சரிபார்க்கவும்.',
+    'CHECK_SOIL_SENSOR':
+        'மண் ஈரப்பத சென்சார் மற்றும் இணைப்பைச் சரிபார்க்கவும்.',
+    'CHECK_DRAINAGE':
+        'மேலும் நீர் சேர்ப்பதற்கு முன் drainage-ஐ சரிபார்க்கவும்.',
     'REDUCE_HEAT_EXPOSURE': 'முடிந்தால் அதிக வெப்ப தாக்கத்தை குறைக்கவும்.',
-    'IMPROVE_AIRFLOW': 'காற்றோட்டத்தை மேம்படுத்தி இலைகளை இயன்றவரை உலர வைத்திருக்கவும்.',
-    'LEARNING_BASELINE': 'இந்த செடியின் இயல்பான மின்சார pattern கற்றுக்கொள்ளப்படுகிறது',
+    'IMPROVE_AIRFLOW':
+        'காற்றோட்டத்தை மேம்படுத்தி இலைகளை இயன்றவரை உலர வைத்திருக்கவும்.',
+    'LEARNING_BASELINE':
+        'இந்த செடியின் இயல்பான மின்சார pattern கற்றுக்கொள்ளப்படுகிறது',
     'BASELINE_STABLE': 'மின்சார pattern கற்ற baseline-க்கு அருகில் உள்ளது',
-    'STRESS_CORROBORATED': 'மற்ற சென்சார்கள் காட்டும் stress-ஐ மின்சார மாற்றமும் ஆதரிக்கிறது',
+    'STRESS_CORROBORATED':
+        'மற்ற சென்சார்கள் காட்டும் stress-ஐ மின்சார மாற்றமும் ஆதரிக்கிறது',
     'NO_DATA': 'நம்பகமான reading இல்லை',
   };
 }

@@ -58,8 +58,7 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     if (cropInitialized) return;
     final scope = AppScope.of(context);
     final fieldCrop = scope.farms.selectedField.crop;
-    final hardwareCrop = scope
-            .sensors.edgeIntelligence?.cameraHandoff.crop ??
+    final hardwareCrop = scope.sensors.edgeIntelligence?.cameraHandoff.crop ??
         scope.sensors.hardwareTelemetry?.cropProfile ??
         scope.sensors.edgeIntelligence?.cropProfile.profile;
     final preferredCrop = scope.sensors.source == SensorDataSource.esp32
@@ -164,13 +163,14 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
     if (widget.sensorPrompt &&
         scope.sensors.source == SensorDataSource.esp32 &&
         scope.sensors.edgeIntelligence?.cameraInspectionRecommended == true) {
-      final top = completed.candidates.isEmpty ? null : completed.candidates.first;
+      final top =
+          completed.candidates.isEmpty ? null : completed.candidates.first;
       unawaited(scope.inspectionHistory.recordCompleted(
         scope.sensors.selectedNodeId,
-        visualResultKey: completed.isInconclusive ||
-                top?.nameKey == 'disease_no_clear_match'
-            ? null
-            : top?.nameKey,
+        visualResultKey:
+            completed.isInconclusive || top?.nameKey == 'disease_no_clear_match'
+                ? null
+                : top?.nameKey,
       ));
     }
   }
@@ -208,18 +208,18 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final biotic = AppScope.of(context).sensors.source ==
-                SensorDataSource.esp32 &&
-            AppScope.of(context).sensors.connectionStatus ==
-                SensorConnectionStatus.ready &&
-            AppScope.of(context)
-                    .sensors
-                    .edgeIntelligence
-                    ?.bioticStress
-                    .suspected ==
-                true
-        ? AppScope.of(context).sensors.edgeIntelligence!.bioticStress
-        : null;
+    final biotic =
+        AppScope.of(context).sensors.source == SensorDataSource.esp32 &&
+                AppScope.of(context).sensors.connectionStatus ==
+                    SensorConnectionStatus.ready &&
+                AppScope.of(context)
+                        .sensors
+                        .edgeIntelligence
+                        ?.bioticStress
+                        .suspected ==
+                    true
+            ? AppScope.of(context).sensors.edgeIntelligence!.bioticStress
+            : null;
     return Scaffold(
       appBar: AppBar(title: Text(context.tr('leaf_screening_title'))),
       body: PageFrame(
@@ -452,7 +452,8 @@ class _BioticCameraOutcomeCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final top = assessment.candidates.isEmpty ? null : assessment.candidates.first;
+    final top =
+        assessment.candidates.isEmpty ? null : assessment.candidates.first;
     final noClearResult = assessment.isInconclusive ||
         top == null ||
         top.nameKey == 'disease_no_clear_match';
@@ -751,8 +752,7 @@ class _HibiscusSymptomCard extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: FilledButton.icon(
-                  onPressed:
-                      answers.isHibiscusComplete ? onSubmit : null,
+                  onPressed: answers.isHibiscusComplete ? onSubmit : null,
                   icon: const Icon(Icons.manage_search_rounded),
                   label: Text(context.tr('rank_potential_issues')),
                 ),

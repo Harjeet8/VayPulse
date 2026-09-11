@@ -99,9 +99,8 @@ class _TimePhaseCardState extends State<TimePhaseCard> {
                       : Icons.dark_mode_outlined,
                   color: accent,
                   size: 27,
-                  style: isDay
-                      ? LiveMotionStyle.orbit
-                      : LiveMotionStyle.breathe,
+                  style:
+                      isDay ? LiveMotionStyle.orbit : LiveMotionStyle.breathe,
                 ),
               ),
             ),
@@ -115,10 +114,11 @@ class _TimePhaseCardState extends State<TimePhaseCard> {
                     child: Text(
                       time,
                       key: ValueKey(time),
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.55,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.55,
+                              ),
                     ),
                   ),
                   const SizedBox(height: 2),

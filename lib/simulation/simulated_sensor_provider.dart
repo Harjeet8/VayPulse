@@ -123,7 +123,8 @@ class SimulationSensorProvider extends SensorDataProvider {
     if (reading == null) return null;
     final history = _history[_selectedNodeId] ?? const <SensorReading>[];
     final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
-    final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
+    final stage =
+        _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
     return SimulationIntelligenceV2.build(
       reading: reading,
       history: history,
@@ -139,7 +140,8 @@ class SimulationSensorProvider extends SensorDataProvider {
     if (reading == null) return null;
     final history = _history[_selectedNodeId] ?? const <SensorReading>[];
     final crop = _selectedNodeId.startsWith('node-rice') ? 'Rice' : 'Tomato';
-    final stage = _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
+    final stage =
+        _selectedNodeId.startsWith('node-rice') ? 'tillering' : 'vegetative';
     return SimulationIntelligenceV2.buildTelemetry(
       reading: reading,
       history: history,
@@ -205,9 +207,10 @@ class SimulationSensorProvider extends SensorDataProvider {
     final zoneOffset = (_nodes.indexOf(node) - 1.5) * 0.8;
     double noise(double amount) => (_random.nextDouble() - 0.5) * amount;
 
-    final soil = (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
-        .clamp(0, 100)
-        .toDouble();
+    final soil =
+        (target.soilMoisture + zoneOffset + historicalWave + noise(3.2))
+            .clamp(0, 100)
+            .toDouble();
     final temperature = (target.temperature + zoneOffset * 0.10 + noise(0.7))
         .clamp(-10, 60)
         .toDouble();
@@ -230,9 +233,8 @@ class SimulationSensorProvider extends SensorDataProvider {
       DemoMode.critical => (68 + noise(8)).clamp(0, 100).toDouble(),
       DemoMode.atmosphericDrying => (8 + noise(4)).clamp(0, 100).toDouble(),
       DemoMode.bioResponse => (18 + noise(5)).clamp(0, 100).toDouble(),
-      _ => (14 + _max(0, humidity - 70) * 0.7 + noise(5))
-          .clamp(0, 100)
-          .toDouble(),
+      _ =>
+        (14 + _max(0, humidity - 70) * 0.7 + noise(5)).clamp(0, 100).toDouble(),
     };
     final wetSeconds = leafWetness >= 60
         ? switch (_mode) {
@@ -278,9 +280,8 @@ class SimulationSensorProvider extends SensorDataProvider {
       analysisOrigin: 'simulation',
       recoveryActive: _mode == DemoMode.recovery,
       vpdKpa: _calculateVpd(temperature, humidity),
-      bioticState: _mode == DemoMode.bioticRisk
-          ? 'POSSIBLE_BIOTIC_STRESS'
-          : 'NONE',
+      bioticState:
+          _mode == DemoMode.bioticRisk ? 'POSSIBLE_BIOTIC_STRESS' : 'NONE',
       soilRaw: (3200 - soil * 18.5).round().clamp(0, 4095).toInt(),
       leafRaw: (3900 - leafWetness * 27).round().clamp(0, 4095).toInt(),
       soilCalibrated: true,
@@ -288,10 +289,8 @@ class SimulationSensorProvider extends SensorDataProvider {
       daytime: daytime,
       leafWetDurationSeconds: wetSeconds,
       recentWetExposureSeconds: wetSeconds,
-      bioBaselineReady:
-          !sensorFault && _mode != DemoMode.baselineLearning,
-      bioBaselineSamples:
-          _mode == DemoMode.baselineLearning ? 28 : 60,
+      bioBaselineReady: !sensorFault && _mode != DemoMode.baselineLearning,
+      bioBaselineSamples: _mode == DemoMode.baselineLearning ? 28 : 60,
       bioBaselineMv: baselineMv,
       bioDeviationMv: plantVoltageMv - baselineMv,
       bioNoiseMv: 2.2,
@@ -323,9 +322,7 @@ class SimulationSensorProvider extends SensorDataProvider {
   double _calculateVpd(double temperature, double humidity) {
     final saturation =
         0.6108 * exp((17.27 * temperature) / (temperature + 237.3));
-    return (saturation * (1 - humidity / 100))
-        .clamp(0.0, 8.0)
-        .toDouble();
+    return (saturation * (1 - humidity / 100)).clamp(0.0, 8.0).toDouble();
   }
 
   @override

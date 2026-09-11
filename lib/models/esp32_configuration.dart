@@ -117,13 +117,21 @@ class Esp32Diagnostics {
 
   factory Esp32Diagnostics.fromJson(Map<String, dynamic> root) {
     final data = _map(root['data']).isNotEmpty ? _map(root['data']) : root;
-    final wifi = _map(data['wifi']).isNotEmpty ? _map(data['wifi']) : _map(data['network']);
+    final wifi = _map(data['wifi']).isNotEmpty
+        ? _map(data['wifi'])
+        : _map(data['network']);
     final history = _map(data['history']);
-    final crop = _map(data['crop']).isNotEmpty ? _map(data['crop']) : _map(data['cropProfile']);
-    final baseline = _map(data['baseline']).isNotEmpty ? _map(data['baseline']) : _map(data['adaptiveBaseline']);
+    final crop = _map(data['crop']).isNotEmpty
+        ? _map(data['crop'])
+        : _map(data['cropProfile']);
+    final baseline = _map(data['baseline']).isNotEmpty
+        ? _map(data['baseline'])
+        : _map(data['adaptiveBaseline']);
     final quality = _map(data['analysisQuality']);
     final rtc = _map(data['rtc']);
-    final tiny = _map(data['tinyMl']).isNotEmpty ? _map(data['tinyMl']) : _map(data['tinyML']);
+    final tiny = _map(data['tinyMl']).isNotEmpty
+        ? _map(data['tinyMl'])
+        : _map(data['tinyML']);
 
     final availability = <String, bool>{};
     final availabilityRaw = _first([
@@ -148,8 +156,10 @@ class Esp32Diagnostics {
         final details = _map(entry.value);
         final value = _num(details.isEmpty
             ? entry.value
-            : _first([details['confidence'], details['percent'], details['score']]));
-        if (value != null) confidence['${entry.key}'] = value.clamp(0, 100).toDouble();
+            : _first(
+                [details['confidence'], details['percent'], details['score']]));
+        if (value != null)
+          confidence['${entry.key}'] = value.clamp(0, 100).toDouble();
       }
     }
 
@@ -177,9 +187,9 @@ class Esp32Diagnostics {
       data['tinyMLStatus'],
     ]));
     final modelLoaded = _bool(_first([
-      tiny['modelLoaded'],
-      data['tinyMlModelLoaded'],
-    ])) ==
+          tiny['modelLoaded'],
+          data['tinyMlModelLoaded'],
+        ])) ==
         true;
     final tinyStatus = modelLoaded
         ? (tinyExplicit ?? 'Model loaded')
@@ -193,22 +203,37 @@ class Esp32Diagnostics {
             root['firmwareVersion'],
           ])) ??
           'Unknown',
-      uptimeSeconds: _int(_first([data['uptimeSeconds'], data['uptimeSec'], data['uptime']])),
-      freeHeapBytes: _int(_first([data['freeHeap'], data['freeHeapBytes'], data['heapFree']])),
-      wifiStatus: _text(_first([wifi['status'], data['wifiStatus'], data['networkStatus']])),
+      uptimeSeconds: _int(
+          _first([data['uptimeSeconds'], data['uptimeSec'], data['uptime']])),
+      freeHeapBytes: _int(
+          _first([data['freeHeap'], data['freeHeapBytes'], data['heapFree']])),
+      wifiStatus: _text(
+          _first([wifi['status'], data['wifiStatus'], data['networkStatus']])),
       wifiRssi: _int(_first([wifi['rssi'], data['wifiRssi'], data['rssi']])),
-      ipAddress: _text(_first([wifi['ip'], wifi['ipAddress'], data['ip'], data['ipAddress']])),
+      ipAddress: _text(_first(
+          [wifi['ip'], wifi['ipAddress'], data['ip'], data['ipAddress']])),
       sensorAvailability: availability,
       sensorConfidence: confidence,
       sensorAgeSeconds: ages,
       sensorErrorCounts: errors,
-      historySamples: _int(_first([history['samples'], history['fill'], data['historySamples']])),
-      historyCapacity: _int(_first([history['capacity'], data['historyCapacity']])),
-      cropProfile: _text(_first([crop['name'], crop['id'], data['cropProfileName']])),
-      growthStage: _text(_first([crop['stage'], crop['growthStage'], data['growthStage']])),
-      baselineStatus: _text(_first([baseline['status'], data['baselineStatus']])),
-      analysisQuality: _text(_first([quality['level'], quality['label'], data['analysisQualityLevel']])),
-      degradedMode: _bool(_first([quality['degraded'], data['degradedMode'], data['degradedAnalysis']])) == true,
+      historySamples: _int(_first(
+          [history['samples'], history['fill'], data['historySamples']])),
+      historyCapacity:
+          _int(_first([history['capacity'], data['historyCapacity']])),
+      cropProfile:
+          _text(_first([crop['name'], crop['id'], data['cropProfileName']])),
+      growthStage: _text(
+          _first([crop['stage'], crop['growthStage'], data['growthStage']])),
+      baselineStatus:
+          _text(_first([baseline['status'], data['baselineStatus']])),
+      analysisQuality: _text(_first(
+          [quality['level'], quality['label'], data['analysisQualityLevel']])),
+      degradedMode: _bool(_first([
+            quality['degraded'],
+            data['degradedMode'],
+            data['degradedAnalysis']
+          ])) ==
+          true,
       rtcStatus: _text(_first([rtc['status'], data['rtcStatus']])),
       tinyMlStatus: tinyStatus,
     );
@@ -247,14 +272,23 @@ bool? _bool(dynamic value) {
   if (value is bool) return value;
   if (value is num) return value != 0;
   final text = _text(value)?.toLowerCase();
-  if (text == 'true' || text == 'yes' || text == '1' || text == 'online' || text == 'ready') return true;
-  if (text == 'false' || text == 'no' || text == '0' || text == 'offline') return false;
+  if (text == 'true' ||
+      text == 'yes' ||
+      text == '1' ||
+      text == 'online' ||
+      text == 'ready') return true;
+  if (text == 'false' || text == 'no' || text == '0' || text == 'offline')
+    return false;
   return null;
 }
 
 List<String> _strings(dynamic value) {
   if (value is List) {
-    return value.map(_text).whereType<String>().map(_normalId).toList(growable: false);
+    return value
+        .map(_text)
+        .whereType<String>()
+        .map(_normalId)
+        .toList(growable: false);
   }
   return const [];
 }
@@ -267,16 +301,27 @@ String _normalId(String value) => value
 
 String _displayCrop(String id) {
   switch (_normalId(id)) {
-    case 'tomato': return 'Tomato';
-    case 'hibiscus': return 'Hibiscus';
-    case 'rice': return 'Rice';
-    case 'sugarcane': return 'Sugarcane';
-    case 'banana': return 'Banana';
-    case 'papaya': return 'Papaya';
-    case 'eggplant': return 'Eggplant';
-    case 'okra': return 'Okra';
-    case 'maize': return 'Maize';
-    case 'groundnut': return 'Groundnut';
-    default: return 'Universal';
+    case 'tomato':
+      return 'Tomato';
+    case 'hibiscus':
+      return 'Hibiscus';
+    case 'rice':
+      return 'Rice';
+    case 'sugarcane':
+      return 'Sugarcane';
+    case 'banana':
+      return 'Banana';
+    case 'papaya':
+      return 'Papaya';
+    case 'eggplant':
+      return 'Eggplant';
+    case 'okra':
+      return 'Okra';
+    case 'maize':
+      return 'Maize';
+    case 'groundnut':
+      return 'Groundnut';
+    default:
+      return 'Universal';
   }
 }

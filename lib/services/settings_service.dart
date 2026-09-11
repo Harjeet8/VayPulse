@@ -108,7 +108,6 @@ class SettingsService extends ChangeNotifier {
     notifyListeners();
   }
 
-
   Future<void> setReducedMotion(bool enabled) async {
     value.reducedMotion = enabled;
     final p = await SharedPreferences.getInstance();
@@ -122,6 +121,4 @@ class SettingsService extends ChangeNotifier {
     await p.setBool('largeText', enabled);
     notifyListeners();
   }
-
-
 }

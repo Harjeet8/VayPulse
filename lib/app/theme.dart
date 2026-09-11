@@ -61,48 +61,49 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     fontFamily: languageCode == 'ta' ? 'NotoSansTamil' : null,
   );
   final cardColor = dark ? const Color(0xFF16271E) : const Color(0xFFFFFDF9);
-  final typography = base.textTheme.copyWith(
-    displaySmall: base.textTheme.displaySmall?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -1.2,
-      height: 1.06,
-    ),
-    headlineLarge: base.textTheme.headlineLarge?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.9,
-      height: 1.1,
-    ),
-    headlineMedium: base.textTheme.headlineMedium?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.65,
-      height: 1.13,
-    ),
-    headlineSmall: base.textTheme.headlineSmall?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.45,
-      height: 1.18,
-    ),
-    titleLarge: base.textTheme.titleLarge?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: -0.35,
-    ),
-    titleMedium: base.textTheme.titleMedium?.copyWith(
-      fontWeight: FontWeight.w700,
-    ),
-    bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.48),
-    bodyMedium: base.textTheme.bodyMedium?.copyWith(height: 1.44),
-    labelLarge: base.textTheme.labelLarge?.copyWith(
-      fontWeight: FontWeight.w800,
-      letterSpacing: 0.05,
-    ),
-  ).apply(
-    bodyColor: scheme.onSurface,
-    displayColor: scheme.onSurface,
-  );
+  final typography = base.textTheme
+      .copyWith(
+        displaySmall: base.textTheme.displaySmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -1.2,
+          height: 1.06,
+        ),
+        headlineLarge: base.textTheme.headlineLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.9,
+          height: 1.1,
+        ),
+        headlineMedium: base.textTheme.headlineMedium?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.65,
+          height: 1.13,
+        ),
+        headlineSmall: base.textTheme.headlineSmall?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.45,
+          height: 1.18,
+        ),
+        titleLarge: base.textTheme.titleLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: -0.35,
+        ),
+        titleMedium: base.textTheme.titleMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+        ),
+        bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.48),
+        bodyMedium: base.textTheme.bodyMedium?.copyWith(height: 1.44),
+        labelLarge: base.textTheme.labelLarge?.copyWith(
+          fontWeight: FontWeight.w800,
+          letterSpacing: 0.05,
+        ),
+      )
+      .apply(
+        bodyColor: scheme.onSurface,
+        displayColor: scheme.onSurface,
+      );
 
   return base.copyWith(
-    scaffoldBackgroundColor:
-        dark ? const Color(0xFF0B1510) : phytoCream,
+    scaffoldBackgroundColor: dark ? const Color(0xFF0B1510) : phytoCream,
     visualDensity: VisualDensity.standard,
     focusColor: scheme.primary.withValues(alpha: 0.18),
     hoverColor: scheme.primary.withValues(alpha: dark ? 0.1 : 0.06),

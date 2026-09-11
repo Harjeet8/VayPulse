@@ -30,8 +30,8 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
         final reading = sensors.current;
         final edge = sensors.edgeIntelligence;
         final live = sensors.source == SensorDataSource.esp32;
-        final canShowCurrent = !live ||
-            sensors.connectionStatus == SensorConnectionStatus.ready;
+        final canShowCurrent =
+            !live || sensors.connectionStatus == SensorConnectionStatus.ready;
         return Scaffold(
           appBar: AppBar(
             title: Text(
@@ -163,9 +163,8 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
     final possibleBiotic = edge?.bioticStress.suspected == true;
     final recovering = edge?.recovery.active == true ||
         rawState.toUpperCase().contains('RECOVER');
-    final healthy = !possibleBiotic &&
-        !recovering &&
-        _isFarmerHealthyState(rawState);
+    final healthy =
+        !possibleBiotic && !recovering && _isFarmerHealthyState(rawState);
     final problem = _farmerProblem(
       context,
       possibleBiotic
@@ -225,9 +224,8 @@ class _FarmerResultHero extends StatelessWidget {
     final possibleBiotic = edge?.bioticStress.suspected == true;
     final recovering = edge?.recovery.active == true ||
         rawState.toUpperCase().contains('RECOVER');
-    final healthy = !possibleBiotic &&
-        !recovering &&
-        _isFarmerHealthyState(rawState);
+    final healthy =
+        !possibleBiotic && !recovering && _isFarmerHealthyState(rawState);
     final rawProblem = possibleBiotic
         ? FarmerLanguage.label(context, 'possible_biotic_title')
         : edge?.rootCause.primary ??
@@ -262,9 +260,8 @@ class _FarmerResultHero extends StatelessWidget {
     final crop = edge?.cropProfile.profile ?? 'Universal';
     final stage = edge?.cropProfile.growthStage;
     final accent = _conditionColor(context, rawState);
-    final sourceColor = live
-        ? const Color(0xFF2879B9)
-        : const Color(0xFFE17A22);
+    final sourceColor =
+        live ? const Color(0xFF2879B9) : const Color(0xFFE17A22);
 
     return Semantics(
       key: const Key('farmer-care-summary'),
@@ -274,166 +271,168 @@ class _FarmerResultHero extends StatelessWidget {
         color: accent.withValues(alpha: 0.075),
         padding: const EdgeInsets.all(20),
         child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.grass_rounded, color: accent, size: 21),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  stage == null || stage.trim().isEmpty
-                      ? FarmerLanguage.firmware(context, crop)
-                      : '${FarmerLanguage.firmware(context, crop)}  •  ${FarmerLanguage.firmware(context, stage)}',
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(fontWeight: FontWeight.w900),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                decoration: BoxDecoration(
-                  color: sourceColor.withValues(alpha: 0.11),
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Text(
-                  live ? 'LIVE ESP32' : 'DEMO DATA',
-                  style: TextStyle(
-                    color: sourceColor,
-                    fontSize: 8.5,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.45,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.13),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  healthy
-                      ? Icons.check_rounded
-                      : recovering
-                          ? Icons.trending_up_rounded
-                          : Icons.priority_high_rounded,
-                  color: accent,
-                ),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _analysisText(
-                        context,
-                        'PLANT CONDITION',
-                        'செடியின் நிலை',
-                      ),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: accent,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.9,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      status,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                            color: accent,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          Divider(color: accent.withValues(alpha: 0.18)),
-          const SizedBox(height: 18),
-          Text(
-            _analysisText(context, 'WHAT IS WRONG?', 'என்ன பிரச்சினை?'),
-            style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.75,
-                ),
-          ),
-          const SizedBox(height: 7),
-          Text(
-            problem,
-            key: const Key('farmer-main-problem'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontSize: 23,
-                  height: 1.24,
-                ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(17),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.13),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Text(
-                  _analysisText(
-                    context,
-                    'WHAT TO DO NOW',
-                    'இப்போது என்ன செய்ய வேண்டும்',
-                  ),
-                  style: TextStyle(
-                    color: accent,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.7,
+                Icon(Icons.grass_rounded, color: accent, size: 21),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    stage == null || stage.trim().isEmpty
+                        ? FarmerLanguage.firmware(context, crop)
+                        : '${FarmerLanguage.firmware(context, crop)}  •  ${FarmerLanguage.firmware(context, stage)}',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ),
-                const SizedBox(height: 7),
-                Text(
-                  action,
-                  key: const Key('farmer-immediate-action'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontSize: 18,
-                        height: 1.38,
-                      ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: sourceColor.withValues(alpha: 0.11),
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    live ? 'LIVE ESP32' : 'DEMO DATA',
+                    style: TextStyle(
+                      color: sourceColor,
+                      fontSize: 8.5,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.45,
+                    ),
+                  ),
                 ),
               ],
             ),
-          ),
-          const SizedBox(height: 13),
-          Row(
-            children: [
-              Expanded(
-                child: _ResultMetric(
-                  label: FarmerLanguage.label(context, 'confidence'),
-                  value: confidence == null
-                      ? FarmerLanguage.label(context, 'not_available')
-                      : '${FarmerLanguage.confidence(context, confidence)} • ${confidence.round()}%',
+            const SizedBox(height: 18),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: accent.withValues(alpha: 0.13),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(
+                    healthy
+                        ? Icons.check_rounded
+                        : recovering
+                            ? Icons.trending_up_rounded
+                            : Icons.priority_high_rounded,
+                    color: accent,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: _ResultMetric(
-                  label: FarmerLanguage.label(context, 'trend'),
-                  value: _conditionTrend(context, edge),
+                const SizedBox(width: 13),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        _analysisText(
+                          context,
+                          'PLANT CONDITION',
+                          'செடியின் நிலை',
+                        ),
+                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              color: accent,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 0.9,
+                            ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        status,
+                        style:
+                            Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                  color: accent,
+                                ),
+                      ),
+                    ],
+                  ),
                 ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            Divider(color: accent.withValues(alpha: 0.18)),
+            const SizedBox(height: 18),
+            Text(
+              _analysisText(context, 'WHAT IS WRONG?', 'என்ன பிரச்சினை?'),
+              style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                    color: accent,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: 0.75,
+                  ),
+            ),
+            const SizedBox(height: 7),
+            Text(
+              problem,
+              key: const Key('farmer-main-problem'),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontSize: 23,
+                    height: 1.24,
+                  ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(17),
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.13),
+                borderRadius: BorderRadius.circular(18),
               ),
-            ],
-          ),
-        ],
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _analysisText(
+                      context,
+                      'WHAT TO DO NOW',
+                      'இப்போது என்ன செய்ய வேண்டும்',
+                    ),
+                    style: TextStyle(
+                      color: accent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.7,
+                    ),
+                  ),
+                  const SizedBox(height: 7),
+                  Text(
+                    action,
+                    key: const Key('farmer-immediate-action'),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontSize: 18,
+                          height: 1.38,
+                        ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 13),
+            Row(
+              children: [
+                Expanded(
+                  child: _ResultMetric(
+                    label: FarmerLanguage.label(context, 'confidence'),
+                    value: confidence == null
+                        ? FarmerLanguage.label(context, 'not_available')
+                        : '${FarmerLanguage.confidence(context, confidence)} • ${confidence.round()}%',
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: _ResultMetric(
+                    label: FarmerLanguage.label(context, 'trend'),
+                    value: _conditionTrend(context, edge),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -509,15 +508,16 @@ class _EvidencePanel extends StatelessWidget {
       items.add(
         _EvidenceItem(
           icon: Icons.air_rounded,
-          label: _analysisText(context, 'Air around plant', 'செடியை சுற்றிய காற்று'),
+          label: _analysisText(
+              context, 'Air around plant', 'செடியை சுற்றிய காற்று'),
           value: airValues.join(' • '),
         ),
       );
     }
 
     final bio = edge?.bioelectric;
-    final presentationSignal = bio?.presentationOnly == true ||
-        reading.bioIsPresentation;
+    final presentationSignal =
+        bio?.presentationOnly == true || reading.bioIsPresentation;
     if (bio?.hasData == true || reading.plantSignalAvailable) {
       final voltage = bio?.voltageMv ?? reading.plantVoltageMv;
       final signalValue = presentationSignal
@@ -598,8 +598,7 @@ class _EvidencePanel extends StatelessWidget {
           else
             for (var index = 0; index < items.take(3).length; index++) ...[
               _EvidenceRow(item: items[index]),
-              if (index < items.take(3).length - 1)
-                const Divider(height: 22),
+              if (index < items.take(3).length - 1) const Divider(height: 22),
             ],
           const SizedBox(height: 14),
           Container(
@@ -682,7 +681,8 @@ class _EvidenceRow extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 2),
-                Text(item.value, style: Theme.of(context).textTheme.titleMedium),
+                Text(item.value,
+                    style: Theme.of(context).textTheme.titleMedium),
                 if (item.note != null) ...[
                   const SizedBox(height: 3),
                   Text(
@@ -887,7 +887,8 @@ class _WaterBalanceCard extends StatelessWidget {
                     const SizedBox(height: 5),
                     Text(
                       '${waterBalance.score!.round()} / 100',
-                      style: TextStyle(color: color, fontWeight: FontWeight.w900),
+                      style:
+                          TextStyle(color: color, fontWeight: FontWeight.w900),
                     ),
                   ],
                   if (waterBalance.explanation != null) ...[
@@ -918,7 +919,8 @@ class _FirmwareCompatibilityNotice extends StatelessWidget {
     return Card(
       color: colors.errorContainer,
       child: ListTile(
-        leading: Icon(Icons.system_update_alt_rounded, color: colors.onErrorContainer),
+        leading: Icon(Icons.system_update_alt_rounded,
+            color: colors.onErrorContainer),
         title: Text(
           FarmerLanguage.label(context, 'firmware_compatibility_title'),
           style: TextStyle(
@@ -1094,7 +1096,8 @@ class _ConfidenceCard extends StatelessWidget {
                       FarmerLanguage.firmware(
                         context,
                         degradedReason,
-                        fallback: FarmerLanguage.label(context, 'degraded_body'),
+                        fallback:
+                            FarmerLanguage.label(context, 'degraded_body'),
                       ),
                     ),
                   ],
@@ -1124,7 +1127,8 @@ class _AdvancedDetails extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bio = edge?.bioelectric;
-    final exactConfidence = edge?.overallConfidence ?? reading.esp32HealthConfidence;
+    final exactConfidence =
+        edge?.overallConfidence ?? reading.esp32HealthConfidence;
     return Card(
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -1142,8 +1146,7 @@ class _AdvancedDetails extends StatelessWidget {
           _Row('Firmware', edge?.firmwareVersion ?? 'Unknown'),
           if (edge?.schemaVersion != null)
             _Row('API schema', 'v${edge!.schemaVersion}'),
-          if (edge?.apiVersion != null)
-            _Row('API version', edge!.apiVersion!),
+          if (edge?.apiVersion != null) _Row('API version', edge!.apiVersion!),
           if (edge?.compatibilityIssue != null)
             _Row('Compatibility', edge!.compatibilityIssue!),
           if (edge?.healthScore != null)
@@ -1166,9 +1169,11 @@ class _AdvancedDetails extends StatelessWidget {
               '${edge!.rootCause.primaryCandidate!.confidence!.round()}%',
             ),
           if (edge?.rootCause.primaryCandidate?.evidenceFor != null)
-            _Row('Evidence for', edge!.rootCause.primaryCandidate!.evidenceFor!),
+            _Row(
+                'Evidence for', edge!.rootCause.primaryCandidate!.evidenceFor!),
           if (edge?.rootCause.primaryCandidate?.evidenceAgainst != null)
-            _Row('Evidence against', edge!.rootCause.primaryCandidate!.evidenceAgainst!),
+            _Row('Evidence against',
+                edge!.rootCause.primaryCandidate!.evidenceAgainst!),
           if (edge?.rootCause.secondary != null)
             _Row('Secondary cause', edge!.rootCause.secondary!),
           if (edge?.rootCause.secondaryCandidate?.confidence != null)
@@ -1189,20 +1194,25 @@ class _AdvancedDetails extends StatelessWidget {
           if (edge?.degradedReason != null)
             _Row('Reduced-confidence reason', edge!.degradedReason!),
           if (edge?.degradedReasons.isNotEmpty == true)
-            _Row('Reduced-confidence reasons', edge!.degradedReasons.join(' • ')),
+            _Row('Reduced-confidence reasons',
+                edge!.degradedReasons.join(' • ')),
           if (edge?.derivedEnvironment.vpdKpa != null)
             _Row(
               'VPD',
               '${edge!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa',
             ),
           if (bio?.voltageMv != null)
-            _Row('Plant amplifier output', '${bio!.voltageMv!.toStringAsFixed(1)} mV'),
+            _Row('Plant amplifier output',
+                '${bio!.voltageMv!.toStringAsFixed(1)} mV'),
           if (bio?.baselineMv != null)
-            _Row('Bioelectric baseline', '${bio!.baselineMv!.toStringAsFixed(1)} mV'),
+            _Row('Bioelectric baseline',
+                '${bio!.baselineMv!.toStringAsFixed(1)} mV'),
           if (bio?.signedChangeMv != null)
-            _Row('Signed change', '${bio!.signedChangeMv!.toStringAsFixed(1)} mV'),
+            _Row('Signed change',
+                '${bio!.signedChangeMv!.toStringAsFixed(1)} mV'),
           if (bio?.normalizedDeviation != null)
-            _Row('Normalized deviation', '${bio!.normalizedDeviation!.toStringAsFixed(1)}%'),
+            _Row('Normalized deviation',
+                '${bio!.normalizedDeviation!.toStringAsFixed(1)}%'),
           if (bio?.noiseMv != null)
             _Row('Bioelectric noise', '${bio!.noiseMv!.toStringAsFixed(1)} mV'),
           if (bio?.signalQuality != null)
@@ -1335,7 +1345,8 @@ class _AdvancedDetails extends StatelessWidget {
           if (edge?.recovery.state != null)
             _Row('Recovery state', edge!.recovery.state!),
           if (edge?.recovery.confidence != null)
-            _Row('Recovery confidence', '${edge!.recovery.confidence!.round()}%'),
+            _Row('Recovery confidence',
+                '${edge!.recovery.confidence!.round()}%'),
           if (edge?.recovery.environmentImproved != null)
             _Row(
               'Environment improved',
@@ -1351,7 +1362,8 @@ class _AdvancedDetails extends StatelessWidget {
           if (edge?.compoundStress.state != null)
             _Row('Compound stress', edge!.compoundStress.state!),
           if (edge?.compoundStress.severity != null)
-            _Row('Compound severity', '${edge!.compoundStress.severity!.round()} / 100'),
+            _Row('Compound severity',
+                '${edge!.compoundStress.severity!.round()} / 100'),
           if (edge?.prediction.hasData == true)
             _Row(
               'Prediction',
@@ -1662,8 +1674,8 @@ String _farmerAction(
     );
   }
   final recommendation = edge?.recommendation?.toUpperCase() ?? '';
-  final value = '${edge?.rootCause.primary ?? ''} $problem $recommendation'
-      .toUpperCase();
+  final value =
+      '${edge?.rootCause.primary ?? ''} $problem $recommendation'.toUpperCase();
   if (recommendation.contains('WATER_ROOT') ||
       recommendation.contains('WATER SOON') ||
       recommendation.contains('WATER THE ROOT')) {

@@ -89,7 +89,8 @@ void main() {
     expect(edge.bioticStress.suspected, isTrue);
   });
 
-  test('biotic suspicion is not retained after explicit confirmation fields', () {
+  test('biotic suspicion is not retained after explicit confirmation fields',
+      () {
     final edge = EdgeIntelligence.fromPayload(
       root: const <String, dynamic>{},
       data: const <String, dynamic>{
@@ -112,7 +113,8 @@ void main() {
         'bioticEvidence': 72,
         'bioticReason': 'Unexplained persistent bioelectric stress',
         'bioticConfidence': 81,
-        'bioticRecommendation': 'Inspect plant visually and run camera analysis',
+        'bioticRecommendation':
+            'Inspect plant visually and run camera analysis',
       },
       firmwareVersion: '8.0.0-ULTRA-FINAL',
     );
@@ -268,7 +270,8 @@ void main() {
     expect(restored.value.demoNodeId, 'node-rice-a1');
   });
 
-  testWidgets('farmer analysis stays rendered and keeps details open on refresh',
+  testWidgets(
+      'farmer analysis stays rendered and keeps details open on refresh',
       (tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 844));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -643,14 +646,16 @@ void main() {
     }
   });
 
-  test('unknown firmware crops fall back to Universal, never Rice or Tomato', () {
+  test('unknown firmware crops fall back to Universal, never Rice or Tomato',
+      () {
     expect(CropCatalog.profileFor('New experimental crop').name, 'Universal');
     expect(CropCatalog.profileFor('').name, 'Universal');
     expect(CropCatalog.normalize('செம்பருத்தி'), 'Hibiscus');
     expect(CropCatalog.normalize('Lady finger'), 'Okra');
   });
 
-  test('hibiscus visible whitefly observation stays a possible camera match', () {
+  test('hibiscus visible whitefly observation stays a possible camera match',
+      () {
     final assessment = MultimodalDiseaseService.assess(
       visual: LeafScreeningResult(
         riskKey: 'leaf_result_low_risk',

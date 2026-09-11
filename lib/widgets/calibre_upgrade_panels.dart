@@ -35,9 +35,8 @@ class CalibreUpgradePanels extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final recent = history.length <= 36
-        ? history
-        : history.sublist(history.length - 36);
+    final recent =
+        history.length <= 36 ? history : history.sublist(history.length - 36);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -142,9 +141,7 @@ class DigitalPlantTwinCard extends StatelessWidget {
         .toDouble();
     final bio = edge?.bioelectric;
     final vpd = edge?.derivedEnvironment.vpdKpa ?? current.vpdKpa;
-    final root = current.soilMoistureAvailable
-        ? current.soilMoisture
-        : null;
+    final root = current.soilMoistureAvailable ? current.soilMoisture : null;
     final leaf = current.leafWetnessAvailable ? current.leafWetness : null;
     final state = edge?.plantState ?? current.healthStatus;
     final accent = _stateColor(context, state);
@@ -279,8 +276,11 @@ class TrendProjectionCard extends StatelessWidget {
         edge?.prediction.available == true;
     final projection = firmwarePrediction
         ? _ProviderProjection(
-            title: edge?.prediction.state?.replaceAll('_', ' ') ?? 'Projection available',
-            body: edge?.prediction.explanation ?? edge?.prediction.message ?? 'ESP32 projection is available.',
+            title: edge?.prediction.state?.replaceAll('_', ' ') ??
+                'Projection available',
+            body: edge?.prediction.explanation ??
+                edge?.prediction.message ??
+                'ESP32 projection is available.',
             confidence: edge?.prediction.confidence,
             minutes: edge?.prediction.minutesToWarning,
             source: 'ESP32 PREDICTION',
@@ -387,11 +387,29 @@ class SensorFusionMapCard extends StatelessWidget {
         item.channel: item.percent,
     };
     final channels = <_FusionChannel>[
-      _FusionChannel('AIR', Icons.air_rounded, current.temperatureAvailable && current.humidityAvailable, _lookupConfidence(confidences, ['airTemperature', 'humidity'])),
-      _FusionChannel('SOIL', Icons.water_drop_outlined, current.soilMoistureAvailable, _lookupConfidence(confidences, ['soilMoisture'])),
-      _FusionChannel('ROOT', Icons.device_thermostat_rounded, current.soilTemperatureAvailable, _lookupConfidence(confidences, ['rootTemperature'])),
-      _FusionChannel('LEAF', Icons.grass_rounded, current.leafWetnessAvailable, _lookupConfidence(confidences, ['leafWetness'])),
-      _FusionChannel('BIO', Icons.electric_bolt_rounded, current.plantSignalAvailable && edge?.bioelectric.excludedByFirmware != true, _lookupConfidence(confidences, ['bioelectric', 'plantSignal'])),
+      _FusionChannel(
+          'AIR',
+          Icons.air_rounded,
+          current.temperatureAvailable && current.humidityAvailable,
+          _lookupConfidence(confidences, ['airTemperature', 'humidity'])),
+      _FusionChannel(
+          'SOIL',
+          Icons.water_drop_outlined,
+          current.soilMoistureAvailable,
+          _lookupConfidence(confidences, ['soilMoisture'])),
+      _FusionChannel(
+          'ROOT',
+          Icons.device_thermostat_rounded,
+          current.soilTemperatureAvailable,
+          _lookupConfidence(confidences, ['rootTemperature'])),
+      _FusionChannel('LEAF', Icons.grass_rounded, current.leafWetnessAvailable,
+          _lookupConfidence(confidences, ['leafWetness'])),
+      _FusionChannel(
+          'BIO',
+          Icons.electric_bolt_rounded,
+          current.plantSignalAvailable &&
+              edge?.bioelectric.excludedByFirmware != true,
+          _lookupConfidence(confidences, ['bioelectric', 'plantSignal'])),
     ];
     final finding = edge?.rootCause.primary ??
         edge?.farmerSummary ??
@@ -401,14 +419,16 @@ class SensorFusionMapCard extends StatelessWidget {
     return _PremiumCard(
       icon: Icons.hub_outlined,
       title: 'Sensor Fusion Map',
-      subtitle: 'See which evidence channels are allowed into the current decision.',
+      subtitle:
+          'See which evidence channels are allowed into the current decision.',
       child: Column(
         children: [
           Wrap(
             alignment: WrapAlignment.center,
             spacing: 8,
             runSpacing: 8,
-            children: channels.map((item) => _FusionInputChip(item: item)).toList(),
+            children:
+                channels.map((item) => _FusionInputChip(item: item)).toList(),
           ),
           const SizedBox(height: 12),
           const Icon(Icons.keyboard_double_arrow_down_rounded, size: 28),
@@ -458,22 +478,33 @@ class SensorFusionMapCard extends StatelessWidget {
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
               border: Border.all(
-                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.25),
+                color: Theme.of(context)
+                    .colorScheme
+                    .primary
+                    .withValues(alpha: 0.25),
               ),
               borderRadius: BorderRadius.circular(18),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('CURRENT OUTPUT', style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.2)),
+                const Text('CURRENT OUTPUT',
+                    style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: 1.2)),
                 const SizedBox(height: 5),
                 Text(
                   finding,
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium
+                      ?.copyWith(fontWeight: FontWeight.w900),
                 ),
                 if (edge?.overallConfidence != null) ...[
                   const SizedBox(height: 6),
-                  Text('Provider confidence ${edge!.overallConfidence!.toStringAsFixed(0)}%'),
+                  Text(
+                      'Provider confidence ${edge!.overallConfidence!.toStringAsFixed(0)}%'),
                 ],
               ],
             ),
@@ -498,9 +529,12 @@ class CounterfactualAndWhyNotCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final whatIf = edge?.prediction.whatIfExplanation ?? _fallbackWhatIf(current, edge);
+    final whatIf =
+        edge?.prediction.whatIfExplanation ?? _fallbackWhatIf(current, edge);
     final alternatives = _whyNot(current, edge);
-    final main = edge?.rootCause.primary ?? edge?.farmerSummary ?? current.primaryRootCause;
+    final main = edge?.rootCause.primary ??
+        edge?.farmerSummary ??
+        current.primaryRootCause;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -516,11 +550,14 @@ class CounterfactualAndWhyNotCard extends StatelessWidget {
         const SizedBox(height: 10),
         _ReasoningBlock(
           icon: Icons.help_outline_rounded,
-          title: main == null ? 'Why not another cause?' : 'Why not something else?',
+          title: main == null
+              ? 'Why not another cause?'
+              : 'Why not something else?',
           body: alternatives.isEmpty
               ? 'The provider has not supplied enough counter-evidence to reject another cause confidently.'
               : alternatives.join('\n\n'),
-          footnote: '“Not dominant” means lower current support — not impossible or permanently ruled out.',
+          footnote:
+              '“Not dominant” means lower current support — not impossible or permanently ruled out.',
         ),
       ],
     );
@@ -543,11 +580,14 @@ class PlantBaselineMemoryCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final bio = edge?.bioelectric;
     final baseline = edge?.baseline;
-    final ready = bio?.baselineReady ?? baseline?.ready ?? current.bioBaselineReady;
+    final ready =
+        bio?.baselineReady ?? baseline?.ready ?? current.bioBaselineReady;
     final samples = bio?.baselineSamples ?? current.bioBaselineSamples;
     final target = bio?.baselineTarget;
     final baselineEvent = edge?.recentEvents
-        .where((event) => event.type.toUpperCase().contains('BASELINE') && event.timestamp != null)
+        .where((event) =>
+            event.type.toUpperCase().contains('BASELINE') &&
+            event.timestamp != null)
         .firstOrNull;
     final age = baselineEvent?.timestamp == null
         ? null
@@ -563,11 +603,21 @@ class PlantBaselineMemoryCard extends StatelessWidget {
           runSpacing: 8,
           children: [
             _DataTile('STATUS', ready ? 'READY' : 'LEARNING'),
-            _DataTile('SAMPLES', target == null ? '$samples' : '$samples/$target'),
-            _DataTile('LEARNED NORMAL', bio?.baselineMv == null ? '—' : '${bio!.baselineMv!.toStringAsFixed(1)} mV'),
-            _DataTile('DEVIATION', bio?.deviationMv == null ? '—' : '${bio!.deviationMv!.toStringAsFixed(1)} mV'),
+            _DataTile(
+                'SAMPLES', target == null ? '$samples' : '$samples/$target'),
+            _DataTile(
+                'LEARNED NORMAL',
+                bio?.baselineMv == null
+                    ? '—'
+                    : '${bio!.baselineMv!.toStringAsFixed(1)} mV'),
+            _DataTile(
+                'DEVIATION',
+                bio?.deviationMv == null
+                    ? '—'
+                    : '${bio!.deviationMv!.toStringAsFixed(1)} mV'),
             _DataTile('SIGNAL QUALITY', bio?.signalQualityState ?? '—'),
-            _DataTile('BASELINE AGE', age == null ? 'Not reported' : _duration(age)),
+            _DataTile(
+                'BASELINE AGE', age == null ? 'Not reported' : _duration(age)),
           ],
         ),
         const SizedBox(height: 12),
@@ -576,8 +626,14 @@ class PlantBaselineMemoryCard extends StatelessWidget {
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
             color: protected
-                ? Theme.of(context).colorScheme.tertiaryContainer.withValues(alpha: 0.65)
-                : Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.55),
+                ? Theme.of(context)
+                    .colorScheme
+                    .tertiaryContainer
+                    .withValues(alpha: 0.65)
+                : Theme.of(context)
+                    .colorScheme
+                    .surfaceContainerHighest
+                    .withValues(alpha: 0.55),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -592,7 +648,8 @@ class PlantBaselineMemoryCard extends StatelessWidget {
                       : ready
                           ? 'This plant has a learned electrical reference available for comparison.'
                           : 'The electrical reference is still learning; stress interpretation should remain limited until it is ready.',
-                  style: const TextStyle(fontWeight: FontWeight.w700, height: 1.35),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, height: 1.35),
                 ),
               ),
             ],
@@ -629,8 +686,10 @@ class ConfidenceDecompositionCard extends StatelessWidget {
         ? 0.0
         : edge?.bioelectric.confidence ?? current.bioSignalQuality;
     final persistenceSeconds = edge?.bioelectric.persistenceSeconds ?? 0;
-    final persistenceSupport = math.min(100.0, persistenceSeconds / 90 * 100).toDouble();
-    final finalConfidence = edge?.overallConfidence ?? current.analysisConfidence;
+    final persistenceSupport =
+        math.min(100.0, persistenceSeconds / 90 * 100).toDouble();
+    final finalConfidence =
+        edge?.overallConfidence ?? current.analysisConfidence;
 
     return Column(
       children: [
@@ -640,13 +699,17 @@ class ConfidenceDecompositionCard extends StatelessWidget {
         const SizedBox(height: 9),
         _ConfidenceBar(label: 'Bioelectric quality', value: bioQuality),
         const SizedBox(height: 9),
-        _ConfidenceBar(label: 'Temporal persistence support', value: persistenceSupport),
+        _ConfidenceBar(
+            label: 'Temporal persistence support', value: persistenceSupport),
         const SizedBox(height: 13),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(13),
           decoration: BoxDecoration(
-            color: Theme.of(context).colorScheme.primaryContainer.withValues(alpha: 0.55),
+            color: Theme.of(context)
+                .colorScheme
+                .primaryContainer
+                .withValues(alpha: 0.55),
             borderRadius: BorderRadius.circular(16),
           ),
           child: Row(
@@ -692,17 +755,21 @@ class _DecisionReplayCardState extends State<DecisionReplayCard> {
   }
 
   List<SensorReading> get _snapshots {
-    final source = widget.history.isEmpty ? <SensorReading>[widget.current] : widget.history;
+    final source = widget.history.isEmpty
+        ? <SensorReading>[widget.current]
+        : widget.history;
     return source.length <= 12 ? source : source.sublist(source.length - 12);
   }
 
   @override
   Widget build(BuildContext context) {
     final snapshots = _snapshots;
-    final index = (snapshots.length - 1 - _offset).clamp(0, snapshots.length - 1).toInt();
+    final index =
+        (snapshots.length - 1 - _offset).clamp(0, snapshots.length - 1).toInt();
     final reading = snapshots[index];
     final maxOffset = math.max(0, snapshots.length - 1);
-    final finding = reading.primaryRootCause ?? 'Historical root-cause text was not stored in this snapshot.';
+    final finding = reading.primaryRootCause ??
+        'Historical root-cause text was not stored in this snapshot.';
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -711,7 +778,8 @@ class _DecisionReplayCardState extends State<DecisionReplayCard> {
           children: [
             IconButton(
               tooltip: 'Older snapshot',
-              onPressed: _offset < maxOffset ? () => setState(() => _offset++) : null,
+              onPressed:
+                  _offset < maxOffset ? () => setState(() => _offset++) : null,
               icon: const Icon(Icons.chevron_left_rounded),
             ),
             Expanded(
@@ -722,7 +790,9 @@ class _DecisionReplayCardState extends State<DecisionReplayCard> {
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                   Text(
-                    _offset == 0 ? 'Latest recorded snapshot' : 'Recorded snapshot $_offset step${_offset == 1 ? '' : 's'} back',
+                    _offset == 0
+                        ? 'Latest recorded snapshot'
+                        : 'Recorded snapshot $_offset step${_offset == 1 ? '' : 's'} back',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -741,11 +811,15 @@ class _DecisionReplayCardState extends State<DecisionReplayCard> {
           runSpacing: 8,
           children: [
             _DataTile('STATE', reading.healthStatus),
-            _DataTile('HEALTH', '${reading.healthScore.toStringAsFixed(0)}/100'),
-            _DataTile('STRESS', '${reading.stressScore.toStringAsFixed(0)}/100'),
-            _DataTile('CONFIDENCE', '${reading.analysisConfidence.toStringAsFixed(0)}%'),
+            _DataTile(
+                'HEALTH', '${reading.healthScore.toStringAsFixed(0)}/100'),
+            _DataTile(
+                'STRESS', '${reading.stressScore.toStringAsFixed(0)}/100'),
+            _DataTile('CONFIDENCE',
+                '${reading.analysisConfidence.toStringAsFixed(0)}%'),
             _DataTile('SOURCE', reading.analysisOrigin.toUpperCase()),
-            if (reading.vpdKpa != null) _DataTile('VPD', '${reading.vpdKpa!.toStringAsFixed(2)} kPa'),
+            if (reading.vpdKpa != null)
+              _DataTile('VPD', '${reading.vpdKpa!.toStringAsFixed(2)} kPa'),
           ],
         ),
         const SizedBox(height: 12),
@@ -753,7 +827,8 @@ class _DecisionReplayCardState extends State<DecisionReplayCard> {
           icon: Icons.fact_check_outlined,
           title: 'Recorded finding',
           body: finding,
-          footnote: 'Decision Replay shows stored values only. Missing historical firmware evidence is never invented by the app.',
+          footnote:
+              'Decision Replay shows stored values only. Missing historical firmware evidence is never invented by the app.',
         ),
       ],
     );
@@ -785,10 +860,12 @@ class CompetitionPresentationLauncher extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 10),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Theme.of(context).colorScheme.error),
+                  Icon(Icons.warning_amber_rounded,
+                      color: Theme.of(context).colorScheme.error),
                   const SizedBox(width: 8),
                   const Expanded(
-                    child: Text('Live presentation will show the current connection state rather than pretending stale data is live.'),
+                    child: Text(
+                        'Live presentation will show the current connection state rather than pretending stale data is live.'),
                   ),
                 ],
               ),
@@ -799,7 +876,8 @@ class CompetitionPresentationLauncher extends StatelessWidget {
                 child: FilledButton.icon(
                   onPressed: () => Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const CompetitionPresentationScreen()),
+                    MaterialPageRoute(
+                        builder: (_) => const CompetitionPresentationScreen()),
                   ),
                   icon: const Icon(Icons.fullscreen_rounded),
                   label: const Text('Presentation View'),
@@ -845,7 +923,10 @@ class CompetitionPresentationScreen extends StatelessWidget {
         }
         final state = edge?.plantState ?? reading.healthStatus;
         final accent = _stateColor(context, state);
-        final finding = edge?.rootCause.primary ?? edge?.farmerSummary ?? reading.primaryRootCause ?? state;
+        final finding = edge?.rootCause.primary ??
+            edge?.farmerSummary ??
+            reading.primaryRootCause ??
+            state;
         final action = edge?.recommendation ?? 'Continue monitoring.';
         final packetAge = DateTime.now().difference(reading.timestamp);
         final stale = live && packetAge > const Duration(seconds: 6);
@@ -896,16 +977,27 @@ class CompetitionPresentationScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('DO THIS NOW', style: TextStyle(color: accent, fontWeight: FontWeight.w900, letterSpacing: 1)),
+                      Text('DO THIS NOW',
+                          style: TextStyle(
+                              color: accent,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: 1)),
                       const SizedBox(height: 7),
-                      Text(action, style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w800)),
+                      Text(action,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w800)),
                     ],
                   ),
                 ),
                 const SizedBox(height: 22),
                 DigitalPlantTwinCard(current: reading, edge: edge, live: live),
                 const SizedBox(height: 12),
-                SensorFusionMapCard(current: reading, edge: edge, telemetry: sensors.hardwareTelemetry),
+                SensorFusionMapCard(
+                    current: reading,
+                    edge: edge,
+                    telemetry: sensors.hardwareTelemetry),
               ],
             ),
           ),
@@ -926,7 +1018,14 @@ class _JuryStoryScreenState extends State<JuryStoryScreen> {
   int _stage = 0;
   Timer? _timer;
 
-  static const _titles = ['SENSE', 'LEARN', 'FUSE', 'EXPLAIN', 'ACT', 'RECOVER'];
+  static const _titles = [
+    'SENSE',
+    'LEARN',
+    'FUSE',
+    'EXPLAIN',
+    'ACT',
+    'RECOVER'
+  ];
 
   @override
   void didChangeDependencies() {
@@ -970,11 +1069,14 @@ class _JuryStoryScreenState extends State<JuryStoryScreen> {
                           children: [
                             _SourceBadge(live: live, stale: false),
                             const Spacer(),
-                            Text('${_stage + 1}/${_titles.length}', style: const TextStyle(fontWeight: FontWeight.w900)),
+                            Text('${_stage + 1}/${_titles.length}',
+                                style: const TextStyle(
+                                    fontWeight: FontWeight.w900)),
                           ],
                         ),
                         const SizedBox(height: 20),
-                        LinearProgressIndicator(value: (_stage + 1) / _titles.length, minHeight: 6),
+                        LinearProgressIndicator(
+                            value: (_stage + 1) / _titles.length, minHeight: 6),
                         const Spacer(),
                         AnimatedSwitcher(
                           duration: const Duration(milliseconds: 420),
@@ -991,7 +1093,9 @@ class _JuryStoryScreenState extends State<JuryStoryScreen> {
                         Row(
                           children: [
                             IconButton(
-                              onPressed: () => setState(() => _stage = (_stage - 1 + _titles.length) % _titles.length),
+                              onPressed: () => setState(() => _stage =
+                                  (_stage - 1 + _titles.length) %
+                                      _titles.length),
                               icon: const Icon(Icons.chevron_left_rounded),
                             ),
                             Expanded(
@@ -1002,7 +1106,8 @@ class _JuryStoryScreenState extends State<JuryStoryScreen> {
                               ),
                             ),
                             IconButton(
-                              onPressed: () => setState(() => _stage = (_stage + 1) % _titles.length),
+                              onPressed: () => setState(
+                                  () => _stage = (_stage + 1) % _titles.length),
                               icon: const Icon(Icons.chevron_right_rounded),
                             ),
                           ],
@@ -1057,8 +1162,13 @@ class _JuryStage extends StatelessWidget {
         ),
       3 => (
           Icons.psychology_alt_outlined,
-          edge?.rootCause.primary ?? edge?.farmerSummary ?? reading.primaryRootCause ?? 'No dominant cause reported.',
-          edge?.rootCause.primaryCandidate?.evidenceFor ?? edge?.decisionExplanation ?? 'The provider explanation is shown without replacing it.'
+          edge?.rootCause.primary ??
+              edge?.farmerSummary ??
+              reading.primaryRootCause ??
+              'No dominant cause reported.',
+          edge?.rootCause.primaryCandidate?.evidenceFor ??
+              edge?.decisionExplanation ??
+              'The provider explanation is shown without replacing it.'
         ),
       4 => (
           Icons.agriculture_outlined,
@@ -1067,8 +1177,12 @@ class _JuryStage extends StatelessWidget {
         ),
       _ => (
           Icons.restore_rounded,
-          edge?.recovery.active == true ? 'Recovery is being verified.' : 'PhytoSense keeps watching for recovery or a new change.',
-          edge?.recovery.improved ?? edge?.recovery.remainingConcern ?? 'The loop continues: sense → learn → fuse → explain.'
+          edge?.recovery.active == true
+              ? 'Recovery is being verified.'
+              : 'PhytoSense keeps watching for recovery or a new change.',
+          edge?.recovery.improved ??
+              edge?.recovery.remainingConcern ??
+              'The loop continues: sense → learn → fuse → explain.'
         ),
     };
 
@@ -1082,18 +1196,25 @@ class _JuryStage extends StatelessWidget {
             shape: BoxShape.circle,
             color: Theme.of(context).colorScheme.primaryContainer,
           ),
-          child: Icon(content.$1, size: 48, color: Theme.of(context).colorScheme.primary),
+          child: Icon(content.$1,
+              size: 48, color: Theme.of(context).colorScheme.primary),
         ),
         const SizedBox(height: 22),
         Text(
           title,
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2),
+          style: Theme.of(context)
+              .textTheme
+              .displaySmall
+              ?.copyWith(fontWeight: FontWeight.w900, letterSpacing: 2),
         ),
         const SizedBox(height: 15),
         Text(
           content.$2,
           textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900, height: 1.2),
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.w900, height: 1.2),
         ),
         const SizedBox(height: 13),
         Text(
@@ -1151,7 +1272,8 @@ class _PremiumCard extends StatelessWidget {
     final colors = theme.colorScheme;
     final reduceMotion = MediaQuery.disableAnimationsOf(context);
     return TweenAnimationBuilder<double>(
-      duration: reduceMotion ? Duration.zero : const Duration(milliseconds: 460),
+      duration:
+          reduceMotion ? Duration.zero : const Duration(milliseconds: 460),
       curve: Curves.easeOutCubic,
       tween: Tween(begin: 0.975, end: 1),
       builder: (context, value, content) => Opacity(
@@ -1173,7 +1295,8 @@ class _PremiumCard extends StatelessWidget {
               colors.surface,
             ],
           ),
-          border: Border.all(color: colors.outlineVariant.withValues(alpha: 0.46)),
+          border:
+              Border.all(color: colors.outlineVariant.withValues(alpha: 0.46)),
           boxShadow: [
             BoxShadow(
               color: colors.primary.withValues(alpha: 0.045),
@@ -1196,7 +1319,8 @@ class _PremiumCard extends StatelessWidget {
                     decoration: BoxDecoration(
                       color: colors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(15),
-                      border: Border.all(color: colors.primary.withValues(alpha: 0.14)),
+                      border: Border.all(
+                          color: colors.primary.withValues(alpha: 0.14)),
                     ),
                     child: Icon(icon, color: colors.primary),
                   ),
@@ -1205,9 +1329,13 @@ class _PremiumCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+                        Text(title,
+                            style: const TextStyle(
+                                fontWeight: FontWeight.w900, fontSize: 16)),
                         const SizedBox(height: 3),
-                        Text(subtitle, style: theme.textTheme.bodySmall?.copyWith(height: 1.35)),
+                        Text(subtitle,
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(height: 1.35)),
                       ],
                     ),
                   ),
@@ -1258,7 +1386,8 @@ class _BreathingTwinCoreState extends State<_BreathingTwinCore>
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, _) {
-        final phase = reduceMotion ? 0.35 : Curves.easeInOut.transform(_controller.value);
+        final phase =
+            reduceMotion ? 0.35 : Curves.easeInOut.transform(_controller.value);
         final severity = (widget.stress / 100).clamp(0.0, 1.0).toDouble();
         final scale = 1 + phase * (0.018 + severity * 0.018);
         return Transform.scale(
@@ -1344,8 +1473,15 @@ class _TwinBadge extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(label, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 9, letterSpacing: 0.8)),
-              Text(value, style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 11)),
+              Text(label,
+                  style: TextStyle(
+                      color: color,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 9,
+                      letterSpacing: 0.8)),
+              Text(value,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w800, fontSize: 11)),
             ],
           ),
         ],
@@ -1415,14 +1551,17 @@ class _FusionInputChip extends StatelessWidget {
         children: [
           Icon(item.icon, size: 20, color: color),
           const SizedBox(height: 4),
-          Text(item.label, style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+          Text(item.label,
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.w900, fontSize: 10)),
           Text(
             !item.active
                 ? 'EXCLUDED'
                 : item.confidence == null
                     ? 'ACTIVE'
                     : '${item.confidence!.toStringAsFixed(0)}%',
-            style: TextStyle(color: color, fontWeight: FontWeight.w700, fontSize: 9),
+            style: TextStyle(
+                color: color, fontWeight: FontWeight.w700, fontSize: 9),
           ),
         ],
       ),
@@ -1449,7 +1588,10 @@ class _ReasoningBlock extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.42),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.42),
         borderRadius: BorderRadius.circular(18),
       ),
       child: Column(
@@ -1463,9 +1605,14 @@ class _ReasoningBlock extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(body, style: const TextStyle(height: 1.4, fontWeight: FontWeight.w700)),
+          Text(body,
+              style: const TextStyle(height: 1.4, fontWeight: FontWeight.w700)),
           const SizedBox(height: 9),
-          Text(footnote, style: Theme.of(context).textTheme.bodySmall?.copyWith(fontStyle: FontStyle.italic)),
+          Text(footnote,
+              style: Theme.of(context)
+                  .textTheme
+                  .bodySmall
+                  ?.copyWith(fontStyle: FontStyle.italic)),
         ],
       ),
     );
@@ -1486,8 +1633,11 @@ class _ConfidenceBar extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w800))),
-            Text('${bounded.toStringAsFixed(0)}%', style: const TextStyle(fontWeight: FontWeight.w900)),
+            Expanded(
+                child: Text(label,
+                    style: const TextStyle(fontWeight: FontWeight.w800))),
+            Text('${bounded.toStringAsFixed(0)}%',
+                style: const TextStyle(fontWeight: FontWeight.w900)),
           ],
         ),
         const SizedBox(height: 5),
@@ -1495,7 +1645,8 @@ class _ConfidenceBar extends StatelessWidget {
           duration: const Duration(milliseconds: 650),
           curve: Curves.easeOutCubic,
           tween: Tween(begin: 0, end: bounded / 100),
-          builder: (context, value, _) => LinearProgressIndicator(value: value, minHeight: 7),
+          builder: (context, value, _) =>
+              LinearProgressIndicator(value: value, minHeight: 7),
         ),
       ],
     );
@@ -1514,13 +1665,20 @@ class _DataTile extends StatelessWidget {
       constraints: const BoxConstraints(minWidth: 104),
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
+        color: Theme.of(context)
+            .colorScheme
+            .surfaceContainerHighest
+            .withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 9, fontWeight: FontWeight.w900, letterSpacing: 0.7)),
+          Text(label,
+              style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.7)),
           const SizedBox(height: 2),
           Text(value, style: const TextStyle(fontWeight: FontWeight.w800)),
         ],
@@ -1544,7 +1702,9 @@ class _MetricPill extends StatelessWidget {
         color: color.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(99),
       ),
-      child: Text('$label • $value', style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+      child: Text('$label • $value',
+          style: TextStyle(
+              color: color, fontWeight: FontWeight.w900, fontSize: 10)),
     );
   }
 }
@@ -1571,9 +1731,23 @@ class _SourceBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(!live ? Icons.science_outlined : stale ? Icons.schedule_rounded : Icons.wifi_tethering_rounded, size: 16, color: color),
+          Icon(
+              !live
+                  ? Icons.science_outlined
+                  : stale
+                      ? Icons.schedule_rounded
+                      : Icons.wifi_tethering_rounded,
+              size: 16,
+              color: color),
           const SizedBox(width: 6),
-          Text(!live ? 'SIMULATION' : stale ? 'STALE LIVE SOURCE' : 'ESP32 LIVE', style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 10)),
+          Text(
+              !live
+                  ? 'SIMULATION'
+                  : stale
+                      ? 'STALE LIVE SOURCE'
+                      : 'ESP32 LIVE',
+              style: TextStyle(
+                  color: color, fontWeight: FontWeight.w900, fontSize: 10)),
         ],
       ),
     );
@@ -1612,9 +1786,8 @@ _ProviderProjection _trendProjection(
   SensorReading current,
   EdgeIntelligence? edge,
 ) {
-  final recent = history.length <= 8
-      ? history
-      : history.sublist(history.length - 8);
+  final recent =
+      history.length <= 8 ? history : history.sublist(history.length - 8);
   if (recent.length < 2) {
     return const _ProviderProjection(
       title: 'Building trend history',
@@ -1628,7 +1801,8 @@ _ProviderProjection _trendProjection(
   if (delta > 6) {
     return _ProviderProjection(
       title: 'Stress direction is increasing',
-      body: 'Recent validated stress values are moving upward. This is a direction signal, not a forecast.',
+      body:
+          'Recent validated stress values are moving upward. This is a direction signal, not a forecast.',
       confidence: edge?.overallConfidence ?? current.analysisConfidence,
       source: 'TREND PROJECTION',
       direction: 1,
@@ -1637,7 +1811,8 @@ _ProviderProjection _trendProjection(
   if (delta < -6) {
     return _ProviderProjection(
       title: 'Recovery direction is improving',
-      body: 'Recent validated stress values are moving downward. Continue monitoring for persistence.',
+      body:
+          'Recent validated stress values are moving downward. Continue monitoring for persistence.',
       confidence: edge?.overallConfidence ?? current.analysisConfidence,
       source: 'TREND PROJECTION',
       direction: -1,
@@ -1684,17 +1859,26 @@ List<String> _whyNot(SensorReading current, EdgeIntelligence? edge) {
     );
   }
   final main = (edge?.rootCause.primary ?? '').toLowerCase();
-  if (!main.contains('water') && !main.contains('moisture') && current.soilMoistureAvailable && current.soilMoisture >= 42) {
-    result.add('Water stress is not dominant right now: root-zone moisture is ${current.soilMoisture.toStringAsFixed(0)}%, so the current reading does not strongly support a dry-root cause.');
+  if (!main.contains('water') &&
+      !main.contains('moisture') &&
+      current.soilMoistureAvailable &&
+      current.soilMoisture >= 42) {
+    result.add(
+        'Water stress is not dominant right now: root-zone moisture is ${current.soilMoisture.toStringAsFixed(0)}%, so the current reading does not strongly support a dry-root cause.');
   }
-  if (!main.contains('heat') && current.temperatureAvailable && current.temperature < 31) {
-    result.add('Heat is not dominant right now: air temperature is ${current.temperature.toStringAsFixed(1)} °C and does not provide strong heat-stress evidence.');
+  if (!main.contains('heat') &&
+      current.temperatureAvailable &&
+      current.temperature < 31) {
+    result.add(
+        'Heat is not dominant right now: air temperature is ${current.temperature.toStringAsFixed(1)} °C and does not provide strong heat-stress evidence.');
   }
   if (edge?.bioelectric.excludedByFirmware == true) {
-    result.add('Bioelectric stress is not used in the decision because the provider marked the plant signal unreliable or unavailable.');
+    result.add(
+        'Bioelectric stress is not used in the decision because the provider marked the plant signal unreliable or unavailable.');
   }
   if (edge?.bioticStress.suspected != true) {
-    result.add('Biotic stress is not currently dominant: the provider has not reported a supported biotic-suspicion state.');
+    result.add(
+        'Biotic stress is not currently dominant: the provider has not reported a supported biotic-suspicion state.');
   }
   return result.toSet().take(4).toList(growable: false);
 }
@@ -1709,7 +1893,9 @@ double? _lookupConfidence(Map<String, double?> values, List<String> names) {
 Color _stateColor(BuildContext context, String raw) {
   final value = raw.toUpperCase();
   if (value.contains('CRITICAL')) return Theme.of(context).colorScheme.error;
-  if (value.contains('STRESS') || value.contains('WATCH') || value.contains('ATTENTION')) {
+  if (value.contains('STRESS') ||
+      value.contains('WATCH') ||
+      value.contains('ATTENTION')) {
     return Theme.of(context).colorScheme.tertiary;
   }
   return Theme.of(context).colorScheme.primary;

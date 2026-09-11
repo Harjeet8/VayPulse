@@ -48,8 +48,7 @@ class BottomNav extends StatelessWidget {
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
-              icon:
-                  const LiveMotionIcon(icon: Icons.psychology_alt_outlined),
+              icon: const LiveMotionIcon(icon: Icons.psychology_alt_outlined),
               selectedIcon:
                   const LiveMotionIcon(icon: Icons.psychology_alt_rounded),
               label: FarmerLanguage.label(context, 'analysis'),

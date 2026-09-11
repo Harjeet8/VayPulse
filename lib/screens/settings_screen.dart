@@ -86,7 +86,8 @@ class SettingsScreen extends StatelessWidget {
                     Text(
                       scope.sensorManager.source == SensorDataSource.esp32
                           ? context.tr('esp32_description')
-                          : FarmerLanguage.label(context, 'simulation_description'),
+                          : FarmerLanguage.label(
+                              context, 'simulation_description'),
                       style: Theme.of(context).textTheme.bodySmall,
                     ),
                   ],
@@ -401,8 +402,7 @@ class _ThemeOption extends StatelessWidget {
         duration: const Duration(milliseconds: 180),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 13),
         decoration: BoxDecoration(
-          color:
-              selected ? scheme.primaryContainer : scheme.surface,
+          color: selected ? scheme.primaryContainer : scheme.surface,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: selected ? scheme.primary : scheme.outlineVariant,
@@ -582,10 +582,7 @@ class _HardwareConnectionCardState extends State<_HardwareConnectionCard> {
                   ],
                   selected: {
                     HardwareTransportModeX.parse(
-                      AppScope.of(context)
-                          .settings
-                          .value
-                          .hardwareTransportMode,
+                      AppScope.of(context).settings.value.hardwareTransportMode,
                     ),
                   },
                   onSelectionChanged: (selection) {

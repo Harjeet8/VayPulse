@@ -119,7 +119,8 @@ class SimulationCommandDeck extends StatelessWidget {
                           color: demo.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(14),
                         ),
-                        child: const Icon(Icons.agriculture_rounded, color: demo),
+                        child:
+                            const Icon(Icons.agriculture_rounded, color: demo),
                       ),
                       const SizedBox(width: 11),
                       Expanded(
@@ -165,7 +166,10 @@ class SimulationCommandDeck extends StatelessWidget {
                               profile.details,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
                                     color: scheme.onSurfaceVariant,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -201,7 +205,8 @@ class SimulationCommandDeck extends StatelessWidget {
                               meta.title,
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(fontWeight: FontWeight.w900),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.w900),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -260,7 +265,8 @@ class SimulationCommandDeck extends StatelessWidget {
                                 ),
                               ),
                               SizedBox(height: 3),
-                              Text('Choose the field situation to demonstrate.'),
+                              Text(
+                                  'Choose the field situation to demonstrate.'),
                             ],
                           ),
                         ),
@@ -288,8 +294,8 @@ class SimulationCommandDeck extends StatelessWidget {
                         final active = id == selected;
                         return ListTile(
                           selected: active,
-                          selectedTileColor: const Color(0xFF176B4D)
-                              .withValues(alpha: 0.09),
+                          selectedTileColor:
+                              const Color(0xFF176B4D).withValues(alpha: 0.09),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),

@@ -41,7 +41,8 @@ class CompetitionIntelligencePanels extends StatelessWidget {
         CompetitionStateHaptics(
           live: live,
           plantState: edge?.plantState ?? current.healthStatus,
-          recoveryActive: edge?.recovery.active == true || current.recoveryActive,
+          recoveryActive:
+              edge?.recovery.active == true || current.recoveryActive,
         ),
         const SizedBox(height: 12),
         PlantStressTimelineCard(history: recent, current: current),
@@ -83,7 +84,8 @@ class CompetitionStateHaptics extends StatefulWidget {
   });
 
   @override
-  State<CompetitionStateHaptics> createState() => _CompetitionStateHapticsState();
+  State<CompetitionStateHaptics> createState() =>
+      _CompetitionStateHapticsState();
 }
 
 class _CompetitionStateHapticsState extends State<CompetitionStateHaptics> {
@@ -180,7 +182,8 @@ class PlantStressTimelineCard extends StatelessWidget {
             const SizedBox(height: 11),
             _SparkMetric(
               label: 'VPD',
-              valueText: '${(current.vpdKpa ?? vpd.last).toStringAsFixed(2)} kPa',
+              valueText:
+                  '${(current.vpdKpa ?? vpd.last).toStringAsFixed(2)} kPa',
               values: vpd,
             ),
           ],
@@ -268,7 +271,8 @@ class BioelectricPulseCard extends StatelessWidget {
                     .withValues(alpha: 0.35),
                 borderRadius: BorderRadius.circular(16),
               ),
-              child: Text(tamil ? 'மேலும் samples தேவை' : 'Waiting for more samples'),
+              child: Text(
+                  tamil ? 'மேலும் samples தேவை' : 'Waiting for more samples'),
             ),
           const SizedBox(height: 12),
           Wrap(
@@ -283,7 +287,9 @@ class BioelectricPulseCard extends StatelessWidget {
               _MetricChip(
                 label: tamil ? 'Signal' : 'Signal',
                 value: info?.signalQualityState ??
-                    (current.plantSignalAvailable ? 'AVAILABLE' : 'UNAVAILABLE'),
+                    (current.plantSignalAvailable
+                        ? 'AVAILABLE'
+                        : 'UNAVAILABLE'),
                 accent: accent,
               ),
               if (info?.signalQuality != null)
@@ -358,11 +364,14 @@ class FusionEvidenceCard extends StatelessWidget {
     final tamil = FarmerLanguage.isTamil(context);
     final evidence = <_EvidenceItem>[
       if (edge.stressEvidence.water != null)
-        _EvidenceItem(tamil ? 'நீர் stress' : 'Water stress', edge.stressEvidence.water!),
+        _EvidenceItem(
+            tamil ? 'நீர் stress' : 'Water stress', edge.stressEvidence.water!),
       if (edge.stressEvidence.heat != null)
-        _EvidenceItem(tamil ? 'வெப்ப stress' : 'Heat stress', edge.stressEvidence.heat!),
+        _EvidenceItem(
+            tamil ? 'வெப்ப stress' : 'Heat stress', edge.stressEvidence.heat!),
       if (edge.stressEvidence.rootZone != null)
-        _EvidenceItem(tamil ? 'Root-zone' : 'Root-zone', edge.stressEvidence.rootZone!),
+        _EvidenceItem(
+            tamil ? 'Root-zone' : 'Root-zone', edge.stressEvidence.rootZone!),
       if (edge.derivedEnvironment.airDryingDemand != null)
         _EvidenceItem(
           tamil ? 'Air drying demand' : 'Air drying demand',
@@ -408,7 +417,8 @@ class FusionEvidenceCard extends StatelessWidget {
             ),
             if (confidence != null) ...[
               const SizedBox(height: 5),
-              Text('${tamil ? 'Confidence' : 'Confidence'}: ${_percent(confidence).round()}%'),
+              Text(
+                  '${tamil ? 'Confidence' : 'Confidence'}: ${_percent(confidence).round()}%'),
             ],
             const SizedBox(height: 14),
           ],
@@ -504,9 +514,8 @@ class PlantStateJourneyCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final tamil = FarmerLanguage.isTamil(context);
     final journey = _buildJourney(history, edge);
-    final visible = journey.length <= 4
-        ? journey
-        : journey.sublist(journey.length - 4);
+    final visible =
+        journey.length <= 4 ? journey : journey.sublist(journey.length - 4);
     return _CompetitionCard(
       icon: Icons.route_rounded,
       title: tamil ? 'சமீபத்திய செடி மாற்றங்கள்' : 'Recent plant changes',
@@ -556,10 +565,12 @@ class ReliabilityGuardCard extends StatelessWidget {
     final rawAge = now.difference(current.timestamp);
     final age = rawAge.isNegative ? Duration.zero : rawAge;
     final stale = live && age > const Duration(seconds: 6);
-    final disconnected = live && connectionStatus != SensorConnectionStatus.ready;
+    final disconnected =
+        live && connectionStatus != SensorConnectionStatus.ready;
     final bioExcluded = edge?.bioelectric.excludedByFirmware == true;
     final faults = edge?.sensorFaults.length ?? 0;
-    final activeSensors = telemetry?.sensors.length ?? edge?.activeSensorChannels.length ?? 0;
+    final activeSensors =
+        telemetry?.sensors.length ?? edge?.activeSensorChannels.length ?? 0;
     final rows = <_GuardRow>[
       _GuardRow(
         Icons.update_rounded,
@@ -588,7 +599,9 @@ class ReliabilityGuardCard extends StatelessWidget {
       _GuardRow(
         Icons.sensors_rounded,
         tamil ? 'Sensor coverage' : 'Sensor coverage',
-        faults > 0 ? '$activeSensors channels • $faults fault(s)' : '$activeSensors channels • no reported faults',
+        faults > 0
+            ? '$activeSensors channels • $faults fault(s)'
+            : '$activeSensors channels • no reported faults',
         faults == 0,
       ),
       _GuardRow(
@@ -648,25 +661,33 @@ class JudgeEvidenceMatrix extends StatelessWidget {
     final reading = current;
     if (e == null && reading == null) return const SizedBox.shrink();
     final matrix = <_JudgeMetric>[
-      _JudgeMetric('Decision origin', live ? 'ESP32 / firmware' : 'Simulation provider'),
+      _JudgeMetric(
+          'Decision origin', live ? 'ESP32 / firmware' : 'Simulation provider'),
       if (e?.overallConfidence != null)
         _JudgeMetric('Overall confidence', '${e!.overallConfidence!.round()}%'),
       if (e?.rootCause.primary != null)
         _JudgeMetric('Primary cause', e!.rootCause.primary!),
       if (e?.rootCause.primaryCandidate?.confidence != null)
-        _JudgeMetric('Cause confidence', '${e!.rootCause.primaryCandidate!.confidence!.round()}%'),
+        _JudgeMetric('Cause confidence',
+            '${e!.rootCause.primaryCandidate!.confidence!.round()}%'),
       if (e?.bioelectric.stressScore != null)
-        _JudgeMetric('Bioelectric stress', '${e!.bioelectric.stressScore!.toStringAsFixed(1)} / 100'),
+        _JudgeMetric('Bioelectric stress',
+            '${e!.bioelectric.stressScore!.toStringAsFixed(1)} / 100'),
       if (e?.bioelectric.normalizedDeviation != null)
-        _JudgeMetric('Bio deviation', '${e!.bioelectric.normalizedDeviation!.toStringAsFixed(1)}%'),
+        _JudgeMetric('Bio deviation',
+            '${e!.bioelectric.normalizedDeviation!.toStringAsFixed(1)}%'),
       if (e?.derivedEnvironment.vpdKpa != null)
-        _JudgeMetric('VPD', '${e!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa'),
+        _JudgeMetric(
+            'VPD', '${e!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa'),
       if (e?.recovery.hasData == true)
-        _JudgeMetric('Recovery', e!.recovery.state ?? (e.recovery.active ? 'ACTIVE' : 'INACTIVE')),
+        _JudgeMetric('Recovery',
+            e!.recovery.state ?? (e.recovery.active ? 'ACTIVE' : 'INACTIVE')),
       _JudgeMetric('History buffer', '${history.length} validated sample(s)'),
-      _JudgeMetric('Telemetry channels', '${telemetry?.sensors.length ?? e?.activeSensorChannels.length ?? 0}'),
+      _JudgeMetric('Telemetry channels',
+          '${telemetry?.sensors.length ?? e?.activeSensorChannels.length ?? 0}'),
       _JudgeMetric('Sensor faults', '${e?.sensorFaults.length ?? 0}'),
-      _JudgeMetric('Source state', live ? connectionStatus.name.toUpperCase() : 'SIMULATION'),
+      _JudgeMetric('Source state',
+          live ? connectionStatus.name.toUpperCase() : 'SIMULATION'),
     ];
 
     return Card(
@@ -678,7 +699,8 @@ class JudgeEvidenceMatrix extends StatelessWidget {
           'Evidence matrix',
           style: TextStyle(fontWeight: FontWeight.w900),
         ),
-        subtitle: const Text('One-screen jury proof of decision provenance and reliability.'),
+        subtitle: const Text(
+            'One-screen jury proof of decision provenance and reliability.'),
         childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         children: [
           GridView.builder(
@@ -691,10 +713,12 @@ class JudgeEvidenceMatrix extends StatelessWidget {
               crossAxisSpacing: 9,
               mainAxisSpacing: 9,
             ),
-            itemBuilder: (context, index) => _JudgeMetricTile(metric: matrix[index]),
+            itemBuilder: (context, index) =>
+                _JudgeMetricTile(metric: matrix[index]),
           ),
           if (e != null &&
-              (e.stressEvidence.hasData || e.rootCause.primaryCandidate?.hasData == true)) ...[
+              (e.stressEvidence.hasData ||
+                  e.rootCause.primaryCandidate?.hasData == true)) ...[
             const SizedBox(height: 14),
             FusionEvidenceCard(edge: e),
           ],
@@ -815,7 +839,8 @@ class _SparkMetric extends StatelessWidget {
                       ),
                 ),
                 const SizedBox(height: 3),
-                Text(valueText, style: const TextStyle(fontWeight: FontWeight.w900)),
+                Text(valueText,
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
               ],
             ),
           ),
@@ -827,7 +852,9 @@ class _SparkMetric extends StatelessWidget {
                   ? Center(
                       child: Text(
                         '—',
-                        style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                        style: TextStyle(
+                            color:
+                                Theme.of(context).colorScheme.onSurfaceVariant),
                       ),
                     )
                   : _MiniLineChart(
@@ -867,7 +894,8 @@ class _MiniLineChart extends StatelessWidget {
     final lower = minY ?? (computedMin - spread * 0.18);
     final upper = maxY ?? (computedMax + spread * 0.18);
     final spots = <FlSpot>[
-      for (var i = 0; i < safeValues.length; i++) FlSpot(i.toDouble(), safeValues[i]),
+      for (var i = 0; i < safeValues.length; i++)
+        FlSpot(i.toDouble(), safeValues[i]),
     ];
     return LineChart(
       LineChartData(
@@ -930,7 +958,9 @@ class _MetricChip extends StatelessWidget {
                   fontWeight: FontWeight.w700,
                 ),
               ),
-              TextSpan(text: value, style: const TextStyle(fontWeight: FontWeight.w900)),
+              TextSpan(
+                  text: value,
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
             ],
           ),
           style: Theme.of(context).textTheme.bodySmall,
@@ -963,8 +993,11 @@ class _AnimatedEvidenceBar extends StatelessWidget {
         children: [
           Row(
             children: [
-              Expanded(child: Text(item.label, style: const TextStyle(fontWeight: FontWeight.w800))),
-              Text('${(animated * 100).round()}%', style: const TextStyle(fontWeight: FontWeight.w900)),
+              Expanded(
+                  child: Text(item.label,
+                      style: const TextStyle(fontWeight: FontWeight.w800))),
+              Text('${(animated * 100).round()}%',
+                  style: const TextStyle(fontWeight: FontWeight.w900)),
             ],
           ),
           const SizedBox(height: 6),
@@ -988,7 +1021,8 @@ class _EvidenceText extends StatelessWidget {
   final String label;
   final String text;
 
-  const _EvidenceText({required this.icon, required this.label, required this.text});
+  const _EvidenceText(
+      {required this.icon, required this.label, required this.text});
 
   @override
   Widget build(BuildContext context) => Row(
@@ -1000,7 +1034,9 @@ class _EvidenceText extends StatelessWidget {
             child: Text.rich(
               TextSpan(
                 children: [
-                  TextSpan(text: '$label: ', style: const TextStyle(fontWeight: FontWeight.w900)),
+                  TextSpan(
+                      text: '$label: ',
+                      style: const TextStyle(fontWeight: FontWeight.w900)),
                   TextSpan(text: text),
                 ],
               ),
@@ -1015,7 +1051,8 @@ class _JourneyItem {
   final String label;
   final String type;
 
-  const _JourneyItem({required this.timestamp, required this.label, required this.type});
+  const _JourneyItem(
+      {required this.timestamp, required this.label, required this.type});
 }
 
 class _JourneyNode extends StatelessWidget {
@@ -1116,7 +1153,8 @@ class _GuardTile extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(row.label, style: const TextStyle(fontWeight: FontWeight.w800)),
+              Text(row.label,
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
               const SizedBox(height: 2),
               AnimatedSwitcher(
                 duration: const Duration(milliseconds: 260),
@@ -1192,7 +1230,8 @@ List<SensorReading> _recentHistory(
   SensorReading current,
 ) {
   final sorted = [...history];
-  if (sorted.every((r) => r.timestamp != current.timestamp)) sorted.add(current);
+  if (sorted.every((r) => r.timestamp != current.timestamp))
+    sorted.add(current);
   sorted.sort((a, b) => a.timestamp.compareTo(b.timestamp));
   final cutoff = DateTime.now().subtract(const Duration(minutes: 12));
   final recent = sorted.where((r) => !r.timestamp.isBefore(cutoff)).toList();
@@ -1201,7 +1240,8 @@ List<SensorReading> _recentHistory(
   return selected.sublist(selected.length - 42);
 }
 
-List<_JourneyItem> _buildJourney(List<SensorReading> history, EdgeIntelligence edge) {
+List<_JourneyItem> _buildJourney(
+    List<SensorReading> history, EdgeIntelligence edge) {
   final items = <_JourneyItem>[];
   String? last;
   for (final reading in history) {
@@ -1209,16 +1249,21 @@ List<_JourneyItem> _buildJourney(List<SensorReading> history, EdgeIntelligence e
       reading.recoveryActive ? 'RECOVERING' : reading.healthStatus,
     );
     if (state.isEmpty || state == last) continue;
-    items.add(_JourneyItem(timestamp: reading.timestamp, label: state, type: 'STATE'));
+    items.add(_JourneyItem(
+        timestamp: reading.timestamp, label: state, type: 'STATE'));
     last = state;
   }
   for (final event in edge.recentEvents) {
-    final label = event.message.trim().isNotEmpty ? event.message.trim() : event.type;
+    final label =
+        event.message.trim().isNotEmpty ? event.message.trim() : event.type;
     if (label.isEmpty) continue;
-    items.add(_JourneyItem(timestamp: event.timestamp, label: label, type: event.type));
+    items.add(_JourneyItem(
+        timestamp: event.timestamp, label: label, type: event.type));
   }
-  if (edge.recovery.active && !items.any((i) => _normalized(i.label).contains('RECOVER'))) {
-    items.add(const _JourneyItem(timestamp: null, label: 'RECOVERING', type: 'RECOVERY'));
+  if (edge.recovery.active &&
+      !items.any((i) => _normalized(i.label).contains('RECOVER'))) {
+    items.add(const _JourneyItem(
+        timestamp: null, label: 'RECOVERING', type: 'RECOVERY'));
   }
   items.sort((a, b) {
     if (a.timestamp == null && b.timestamp == null) return 0;

@@ -43,7 +43,8 @@ class WeatherCenterScreen extends StatelessWidget {
           body: PageFrame(
             children: [
               PhytoPageIntro(
-                eyebrow: _weatherText(context, 'LOCAL WEATHER', 'உள்ளூர் வானிலை'),
+                eyebrow:
+                    _weatherText(context, 'LOCAL WEATHER', 'உள்ளூர் வானிலை'),
                 title: _weatherText(
                   context,
                   'Weather around your plant',
@@ -774,7 +775,8 @@ class _WeatherHero extends StatelessWidget {
                   ),
                   Text(
                     snapshot.apparentTemperature == null
-                        ? _weatherText(context, 'Current farm weather', 'தற்போதைய பண்ணை வானிலை')
+                        ? _weatherText(context, 'Current farm weather',
+                            'தற்போதைய பண்ணை வானிலை')
                         : '${_weatherText(context, 'Feels like', 'உணரும் வெப்பம்')} ${snapshot.apparentTemperature!.round()}°C',
                     style: const TextStyle(color: Colors.white),
                   ),

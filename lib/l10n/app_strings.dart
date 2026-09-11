@@ -726,8 +726,7 @@ class AppStrings {
           'Your observation of clustered insects on tender growth is consistent with possible aphid activity.',
       'disease_hibiscus_aphid_inspect':
           'Check new shoots and buds closely and compare several parts of the plant.',
-      'disease_hibiscus_visible_symptom':
-          'Possible visible leaf symptom',
+      'disease_hibiscus_visible_symptom': 'Possible visible leaf symptom',
       'disease_hibiscus_visible_symptom_reason':
           'Visible spots or surface damage may be consistent with a pest or disease symptom, but the cause is uncertain.',
       'disease_hibiscus_visible_symptom_inspect':
@@ -1518,7 +1517,8 @@ class AppStrings {
       'about_body':
           'தெளிவான ஆரம்பகட்ட வயல் முடிவுகளுக்கான விவசாயி மைய செடி கண்காணிப்பு தளம்.',
       'version': 'PhytoSense AI • செடி நுண்ணறிவு தளம்',
-      'splash_quote': 'அழுத்தம் கண்ணுக்குத் தெரிவதற்கு முன் செடியைக் கேளுங்கள்.',
+      'splash_quote':
+          'அழுத்தம் கண்ணுக்குத் தெரிவதற்கு முன் செடியைக் கேளுங்கள்.',
       'devices_title': 'சென்சார் முனைகள்',
       'devices_demo_note':
           'இப்போது simulation செயலில் உள்ளது. Physical node தயார் ஆனதும் ESP32 Live-க்கு மாறலாம்.',

@@ -99,8 +99,9 @@ class WeatherSnapshot {
 
   WeatherDay? get today => forecast.isEmpty ? null : forecast.first;
 
-  double? get currentRainChance =>
-      hourly.isEmpty ? today?.precipitationProbability : hourly.first.precipitationProbability;
+  double? get currentRainChance => hourly.isEmpty
+      ? today?.precipitationProbability
+      : hourly.first.precipitationProbability;
 
   double? get uvIndex => today?.uvIndex;
 

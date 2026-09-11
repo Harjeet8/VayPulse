@@ -41,7 +41,8 @@ class FirmwareCapabilities {
     this.growthStage = false,
   });
 
-  bool get advanced => sensorConfidence ||
+  bool get advanced =>
+      sensorConfidence ||
       trends ||
       rootCause ||
       recovery ||
@@ -106,7 +107,10 @@ class RootCauseCandidate {
   });
 
   bool get hasData =>
-      name != null || confidence != null || evidenceFor != null || evidenceAgainst != null;
+      name != null ||
+      confidence != null ||
+      evidenceFor != null ||
+      evidenceAgainst != null;
 }
 
 class RootCauseAnalysis {
@@ -304,7 +308,6 @@ class RuntimeHealthInfo {
       i2cWarning != null ||
       issue != null;
 }
-
 
 class BioelectricIntelligence {
   final String? source;
@@ -672,7 +675,13 @@ class PlantBaselineInfo {
     this.changePointDetected = false,
   });
 
-  bool get hasData => status != null || ready != null || learnedNormal != null || deviation != null || anomalyDetected || changePointDetected;
+  bool get hasData =>
+      status != null ||
+      ready != null ||
+      learnedNormal != null ||
+      deviation != null ||
+      anomalyDetected ||
+      changePointDetected;
 }
 
 class PlantModelInfo {
@@ -775,7 +784,12 @@ class StressEvidence {
     this.sensorFault,
   });
 
-  bool get hasData => water != null || heat != null || rootZone != null || diseaseEnvironment != null || sensorFault != null;
+  bool get hasData =>
+      water != null ||
+      heat != null ||
+      rootZone != null ||
+      diseaseEnvironment != null ||
+      sensorFault != null;
 }
 
 class SensorFaultInfo {
@@ -838,7 +852,10 @@ class CameraHandoffInfo {
   });
 
   bool get hasData =>
-      recommended != null || reason != null || recommendation != null || crop != null;
+      recommended != null ||
+      reason != null ||
+      recommendation != null ||
+      crop != null;
 }
 
 class PhytoEvent {
@@ -917,7 +934,8 @@ class TinyMlInfo {
     this.featureVectorAvailable = false,
   });
 
-  bool get hasData => status != null || ready || modelLoaded || featureVectorAvailable;
+  bool get hasData =>
+      status != null || ready || modelLoaded || featureVectorAvailable;
 }
 
 class EdgeIntelligence {
@@ -1356,22 +1374,24 @@ class EdgeIntelligence {
       data['rootCauses'],
     ]));
     final rootCause = RootCauseAnalysis(
-      primary: primaryCandidate?.name ?? _text(_first([
-        rootCauseMap['primary'],
-        rootCauseMap['primaryCause'],
-        edge['primaryCause'],
-        data['primaryCause'],
-        data['rootCausePrimary'],
-        data['primaryFinding'],
-      ])),
-      secondary: secondaryCandidate?.name ?? _text(_first([
-        rootCauseMap['secondary'],
-        rootCauseMap['secondaryCause'],
-        edge['secondaryCause'],
-        data['secondaryCause'],
-        data['secondaryCause1'],
-        data['rootCauseSecondary'],
-      ])),
+      primary: primaryCandidate?.name ??
+          _text(_first([
+            rootCauseMap['primary'],
+            rootCauseMap['primaryCause'],
+            edge['primaryCause'],
+            data['primaryCause'],
+            data['rootCausePrimary'],
+            data['primaryFinding'],
+          ])),
+      secondary: secondaryCandidate?.name ??
+          _text(_first([
+            rootCauseMap['secondary'],
+            rootCauseMap['secondaryCause'],
+            edge['secondaryCause'],
+            data['secondaryCause'],
+            data['secondaryCause1'],
+            data['rootCauseSecondary'],
+          ])),
       additionalContributor: _text(_first([
         rootCauseMap['additionalContributor'],
         rootCauseMap['contributor'],
@@ -1392,11 +1412,11 @@ class EdgeIntelligence {
     final normalizedRecoveryState = _normalizedState(recoveryState);
     final recovery = RecoveryInfo(
       active: _bool(_first([
-            recoveryMap['active'],
-            edge['recoveryActive'],
-            data['recoveryActive'],
-          ])) ==
-          true ||
+                recoveryMap['active'],
+                edge['recoveryActive'],
+                data['recoveryActive'],
+              ])) ==
+              true ||
           (plantState?.toUpperCase() == 'RECOVERING') ||
           normalizedRecoveryState == 'CONDITIONS_IMPROVING' ||
           normalizedRecoveryState == 'RECOVERING' ||
@@ -1505,7 +1525,6 @@ class EdgeIntelligence {
       i2cWarning: _bool(runtimeHealthMap['i2cWarning']),
       issue: _text(runtimeHealthMap['issue']),
     );
-
 
     final bioelectric = BioelectricIntelligence(
       source: bioSource,
@@ -1808,9 +1827,11 @@ class EdgeIntelligence {
 
     final anomaly = AnomalyInfo(
       state: _text(_first([anomalyMap['state'], anomalyMap['status']])),
-      detected: _bool(_first([anomalyMap['detected'], anomalyMap['anomalyDetected']])),
+      detected: _bool(
+          _first([anomalyMap['detected'], anomalyMap['anomalyDetected']])),
       changePointDetected: _bool(anomalyMap['changePointDetected']),
-      score: _percent(_first([anomalyMap['score'], anomalyMap['anomalyScore']])),
+      score:
+          _percent(_first([anomalyMap['score'], anomalyMap['anomalyScore']])),
       confidence: _percent(anomalyMap['confidence']),
       reason: _text(_first([anomalyMap['reason'], anomalyMap['explanation']])),
     );
@@ -2241,11 +2262,7 @@ class EdgeIntelligence {
       data['reliability'],
       plantHealth['reliabilityMode'],
       plantHealth['reliability'],
-    ]))
-        ?.trim()
-        .toUpperCase()
-        .replaceAll(' ', '_')
-        .replaceAll('-', '_');
+    ]))?.trim().toUpperCase().replaceAll(' ', '_').replaceAll('-', '_');
     final reliabilityMode = explicitReliability == 'FULL' ||
             explicitReliability == 'DEGRADED' ||
             explicitReliability == 'RECOVERING'
@@ -2261,8 +2278,7 @@ class EdgeIntelligence {
           recommendation != null ||
           explanation != null ||
           rootCause.hasAny ||
-          (bioelectric.farmerResult != null &&
-              !bioelectric.presentationOnly) ||
+          (bioelectric.farmerResult != null && !bioelectric.presentationOnly) ||
           bioticStress.hasData,
       plantState: plantState != null,
       sensorConfidence: sensorConfidence.isNotEmpty,
@@ -2280,8 +2296,10 @@ class EdgeIntelligence {
       irrigation: irrigation.hasData,
       events: events.isNotEmpty,
       tinyMl: tinyMl.hasData,
-      cropProfile: cropProfile.profile != null || cropProfile.supportedProfiles.isNotEmpty,
-      growthStage: cropProfile.growthStage != null || cropProfile.supportedStages.isNotEmpty,
+      cropProfile: cropProfile.profile != null ||
+          cropProfile.supportedProfiles.isNotEmpty,
+      growthStage: cropProfile.growthStage != null ||
+          cropProfile.supportedStages.isNotEmpty,
     );
 
     return EdgeIntelligence(
@@ -2369,11 +2387,14 @@ RootCauseCandidate? _rootCauseCandidate(dynamic raw) {
   final map = _map(raw);
   if (map.isEmpty) return null;
   final candidate = RootCauseCandidate(
-    name: _text(_first([map['name'], map['cause'], map['label'], map['result']])),
-    confidence: _percent(_first([map['confidence'], map['score'], map['probability']])),
-    evidenceFor: _text(_first([map['evidenceFor'], map['for'], map['supportingEvidence']])),
-    evidenceAgainst:
-        _text(_first([map['evidenceAgainst'], map['against'], map['counterEvidence']])),
+    name:
+        _text(_first([map['name'], map['cause'], map['label'], map['result']])),
+    confidence:
+        _percent(_first([map['confidence'], map['score'], map['probability']])),
+    evidenceFor: _text(
+        _first([map['evidenceFor'], map['for'], map['supportingEvidence']])),
+    evidenceAgainst: _text(_first(
+        [map['evidenceAgainst'], map['against'], map['counterEvidence']])),
   );
   return candidate.hasData ? candidate : null;
 }
@@ -2394,11 +2415,13 @@ List<SensorConfidence> _parseConfidences(dynamic raw) {
       final details = _map(entry.value);
       result.add(SensorConfidence(
         channel: channel,
-        percent: _percent(details.isEmpty ? entry.value : _first([
-          details['confidence'],
-          details['percent'],
-          details['score'],
-        ])),
+        percent: _percent(details.isEmpty
+            ? entry.value
+            : _first([
+                details['confidence'],
+                details['percent'],
+                details['score'],
+              ])),
         decayPercent: _percent(_first([
           details['decay'],
           details['confidenceDecay'],
@@ -2411,12 +2434,15 @@ List<SensorConfidence> _parseConfidences(dynamic raw) {
   } else if (raw is List) {
     for (final item in raw) {
       final details = _map(item);
-      final channel = _text(_first([details['channel'], details['sensor'], details['name']]));
+      final channel = _text(
+          _first([details['channel'], details['sensor'], details['name']]));
       if (channel == null) continue;
       result.add(SensorConfidence(
         channel: channel,
-        percent: _percent(_first([details['confidence'], details['percent'], details['score']])),
-        decayPercent: _percent(_first([details['decay'], details['confidenceDecay']])),
+        percent: _percent(_first(
+            [details['confidence'], details['percent'], details['score']])),
+        decayPercent:
+            _percent(_first([details['decay'], details['confidenceDecay']])),
         state: _text(_first([details['state'], details['quality']])),
         valid: _bool(details['valid']),
       ));
@@ -2432,9 +2458,13 @@ List<SensorTrend> _parseTrends(dynamic raw) {
       final details = _map(entry.value);
       result.add(SensorTrend(
         channel: '${entry.key}',
-        state: _text(details.isEmpty ? entry.value : _first([details['state'], details['trend']])),
-        slope: _num(_first([details['slope'], details['rate'], details['ratePerMinute']])),
-        variability: _num(_first([details['variability'], details['variance'], details['noise']])),
+        state: _text(details.isEmpty
+            ? entry.value
+            : _first([details['state'], details['trend']])),
+        slope: _num(_first(
+            [details['slope'], details['rate'], details['ratePerMinute']])),
+        variability: _num(_first(
+            [details['variability'], details['variance'], details['noise']])),
         ratePerMinute: _num(details['ratePerMinute']),
         shortSlopePerMinute: _num(details['shortSlopePerMinute']),
         longSlopePerMinute: _num(details['longSlopePerMinute']),
@@ -2444,13 +2474,16 @@ List<SensorTrend> _parseTrends(dynamic raw) {
   } else if (raw is List) {
     for (final item in raw) {
       final details = _map(item);
-      final channel = _text(_first([details['channel'], details['sensor'], details['name']]));
+      final channel = _text(
+          _first([details['channel'], details['sensor'], details['name']]));
       if (channel == null) continue;
       result.add(SensorTrend(
         channel: channel,
         state: _text(_first([details['state'], details['trend']])),
-        slope: _num(_first([details['slope'], details['rate'], details['ratePerMinute']])),
-        variability: _num(_first([details['variability'], details['variance']])),
+        slope: _num(_first(
+            [details['slope'], details['rate'], details['ratePerMinute']])),
+        variability:
+            _num(_first([details['variability'], details['variance']])),
         ratePerMinute: _num(details['ratePerMinute']),
         shortSlopePerMinute: _num(details['shortSlopePerMinute']),
         longSlopePerMinute: _num(details['longSlopePerMinute']),
@@ -2464,7 +2497,9 @@ List<SensorTrend> _parseTrends(dynamic raw) {
 List<SensorFaultInfo> _parseFaults(dynamic raw) {
   final result = <SensorFaultInfo>[];
   if (raw is Map) {
-    final looksLikeSingle = raw.containsKey('channel') || raw.containsKey('sensor') || raw.containsKey('type');
+    final looksLikeSingle = raw.containsKey('channel') ||
+        raw.containsKey('sensor') ||
+        raw.containsKey('type');
     if (looksLikeSingle) {
       final details = Map<String, dynamic>.from(raw);
       result.add(_faultFromMap(details, fallbackChannel: 'system'));
@@ -2472,25 +2507,33 @@ List<SensorFaultInfo> _parseFaults(dynamic raw) {
       for (final entry in raw.entries) {
         final details = _map(entry.value);
         if (details.isEmpty && entry.value == false) continue;
-        result.add(_faultFromMap(details, fallbackChannel: '${entry.key}', fallbackType: _text(entry.value)));
+        result.add(_faultFromMap(details,
+            fallbackChannel: '${entry.key}', fallbackType: _text(entry.value)));
       }
     }
   } else if (raw is List) {
     for (final item in raw) {
       final details = _map(item);
-      if (details.isNotEmpty) result.add(_faultFromMap(details, fallbackChannel: 'system'));
+      if (details.isNotEmpty)
+        result.add(_faultFromMap(details, fallbackChannel: 'system'));
     }
   }
   return result;
 }
 
-SensorFaultInfo _faultFromMap(Map<String, dynamic> details, {required String fallbackChannel, String? fallbackType}) {
+SensorFaultInfo _faultFromMap(Map<String, dynamic> details,
+    {required String fallbackChannel, String? fallbackType}) {
   return SensorFaultInfo(
-    channel: _text(_first([details['channel'], details['sensor'], details['name']])) ?? fallbackChannel,
+    channel: _text(
+            _first([details['channel'], details['sensor'], details['name']])) ??
+        fallbackChannel,
     type: _text(_first([details['type'], details['faultType'], fallbackType])),
-    explanation: _text(_first([details['explanation'], details['message'], details['reason']])),
+    explanation: _text(_first(
+        [details['explanation'], details['message'], details['reason']])),
     confidence: _percent(_first([details['confidence'], details['score']])),
-    crossSensorConflict: _bool(_first([details['crossSensorConflict'], details['conflict']])) == true,
+    crossSensorConflict:
+        _bool(_first([details['crossSensorConflict'], details['conflict']])) ==
+            true,
   );
 }
 
@@ -2519,8 +2562,7 @@ List<PhytoEvent> _parseEvents(dynamic raw) {
         id: _text(details['id']),
         timestamp: _date(_first([details['timestamp'], details['time']])),
         uptimeMs: _int(details['uptimeMs']),
-        type:
-            _text(_first([details['type'], details['eventType']])) ?? 'event',
+        type: _text(_first([details['type'], details['eventType']])) ?? 'event',
         message: message,
         severity: _text(_first([details['severity'], details['level']])),
       );
@@ -2568,7 +2610,8 @@ Map<String, String> _parseChannelStates(dynamic raw) {
   return Map<String, String>.unmodifiable(states);
 }
 
-Map<String, dynamic> _map(dynamic value) => value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
+Map<String, dynamic> _map(dynamic value) =>
+    value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 
 Map<String, dynamic> _firstMap(List<dynamic> values) {
   for (final value in values) {
@@ -2629,17 +2672,17 @@ String? _text(dynamic value) {
   return text.isEmpty || text.toLowerCase() == 'null' ? null : text;
 }
 
-String? _normalizedState(dynamic value) => _text(value)
-    ?.toUpperCase()
-    .replaceAll(' ', '_')
-    .replaceAll('-', '_');
+String? _normalizedState(dynamic value) =>
+    _text(value)?.toUpperCase().replaceAll(' ', '_').replaceAll('-', '_');
 
 bool? _bool(dynamic value) {
   if (value is bool) return value;
   if (value is num) return value != 0;
   final text = _text(value)?.toLowerCase();
-  if (text == 'true' || text == 'yes' || text == '1' || text == 'active') return true;
-  if (text == 'false' || text == 'no' || text == '0' || text == 'inactive') return false;
+  if (text == 'true' || text == 'yes' || text == '1' || text == 'active')
+    return true;
+  if (text == 'false' || text == 'no' || text == '0' || text == 'inactive')
+    return false;
   return null;
 }
 
@@ -2653,12 +2696,19 @@ List<String> _strings(dynamic value) {
     return value.map(_text).whereType<String>().toList(growable: false);
   }
   if (value is Map) {
-    return value.entries.where((entry) => entry.value == true || entry.value is num).map((entry) => '${entry.key}').toList(growable: false);
+    return value.entries
+        .where((entry) => entry.value == true || entry.value is num)
+        .map((entry) => '${entry.key}')
+        .toList(growable: false);
   }
   final text = _text(value);
   if (text == null) return const [];
   if (text.contains(',')) {
-    return text.split(',').map((part) => part.trim()).where((part) => part.isNotEmpty).toList(growable: false);
+    return text
+        .split(',')
+        .map((part) => part.trim())
+        .where((part) => part.isNotEmpty)
+        .toList(growable: false);
   }
   return <String>[text];
 }

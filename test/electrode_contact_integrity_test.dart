@@ -155,7 +155,8 @@ void main() {
 
   test('Engineering View distinguishes electrical quality from plant contact',
       () {
-    final source = File('lib/screens/judge_view_screen.dart').readAsStringSync();
+    final source =
+        File('lib/screens/judge_view_screen.dart').readAsStringSync();
 
     expect(source, contains("'Electrical signal quality'"));
     expect(source, contains("'Electrode contact state'"));

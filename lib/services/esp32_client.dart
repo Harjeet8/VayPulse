@@ -63,12 +63,10 @@ class Esp32Client {
     final responses = await Future.wait(
       _candidateBaseUrls.map((candidate) async {
         try {
-          return await http
-              .get(
-                Uri.parse('$candidate$path'),
-                headers: const {'Accept': 'application/json'},
-              )
-              .timeout(const Duration(milliseconds: 1500));
+          return await http.get(
+            Uri.parse('$candidate$path'),
+            headers: const {'Accept': 'application/json'},
+          ).timeout(const Duration(milliseconds: 1500));
         } catch (_) {
           return null;
         }
@@ -195,8 +193,8 @@ class Esp32Client {
     final rootValid = soil['temperatureValid'] != false &&
         soil['valid'] != false &&
         _flatSensorStatusUsable(data['ds18b20Status']);
-    final lightValid =
-        light['valid'] != false && _flatSensorStatusUsable(data['bh1750Status']);
+    final lightValid = light['valid'] != false &&
+        _flatSensorStatusUsable(data['bh1750Status']);
     final leafValid =
         leaf['valid'] != false && _flatSensorStatusUsable(data['leafStatus']);
     final bioAvailable =
@@ -248,7 +246,8 @@ class Esp32Client {
         luxValue == null &&
         leafValue == null &&
         voltageValue == null) {
-      throw const FormatException('ESP32 payload contains no usable sensor channels');
+      throw const FormatException(
+          'ESP32 payload contains no usable sensor channels');
     }
 
     final espHealth = _asDouble(first([
@@ -267,8 +266,12 @@ class Esp32Client {
     ]));
 
     final normalized = <String, dynamic>{
-      'nodeId':
-          '${first([data['deviceId'], root['deviceId'], data['device'], 'PHYTO-NODE-001'])}',
+      'nodeId': '${first([
+            data['deviceId'],
+            root['deviceId'],
+            data['device'],
+            'PHYTO-NODE-001'
+          ])}',
       'timestamp': _timestamp(data),
       'soilMoisture': soilValue,
       'temperature': tempValue,
@@ -279,17 +282,23 @@ class Esp32Client {
       'leafWetness': leafValue,
       'plantSignal': stabilityValue,
       'plantVoltageMv': voltageValue,
-      'bioSource': '${first([data['bioSource'], data['bioelectricSource'], bio['source'], bio['bioSource'], 'real'])}',
+      'bioSource': '${first([
+            data['bioSource'],
+            data['bioelectricSource'],
+            bio['source'],
+            bio['bioSource'],
+            'real'
+          ])}',
       'healthScore': espHealth,
       'healthStatus': '${first([
-        data['plantState'],
-        data['plantCondition'],
-        data['healthStatus'],
-        data['status'],
-        plantHealth['plantCondition'],
-        plantHealth['status'],
-        'starting',
-      ])}',
+            data['plantState'],
+            data['plantCondition'],
+            data['healthStatus'],
+            data['status'],
+            plantHealth['plantCondition'],
+            plantHealth['status'],
+            'starting',
+          ])}',
       'analysisConfidence': espConfidence ?? 0,
       'esp32HealthScore': espHealth,
       'esp32HealthConfidence': espConfidence,
@@ -375,30 +384,37 @@ class Esp32Client {
             data['baselineSamples'],
           ])) ??
           0,
-      'bioBaselineMv': _asDouble(first([bio['baselineMv'], data['bioBaselineMv']])),
-      'bioDeviationMv': _asDouble(first([bio['deviationMv'], data['bioDeviationMv']])),
-      'bioNoiseMv': _asDouble(first([bio['noiseMv'], bio['noise'], bio['batchNoiseMv']])),
+      'bioBaselineMv':
+          _asDouble(first([bio['baselineMv'], data['bioBaselineMv']])),
+      'bioDeviationMv':
+          _asDouble(first([bio['deviationMv'], data['bioDeviationMv']])),
+      'bioNoiseMv':
+          _asDouble(first([bio['noiseMv'], bio['noise'], bio['batchNoiseMv']])),
       'bioSignalQuality': qualityValue ?? 0,
     };
 
     final firmwareVersion = '${first([
-      data['firmware'],
-      data['firmwareVersion'],
-      root['firmware'],
-      root['firmwareVersion'],
-      'unknown',
-    ])}';
+          data['firmware'],
+          data['firmwareVersion'],
+          root['firmware'],
+          root['firmwareVersion'],
+          'unknown',
+        ])}';
 
     return Esp32Snapshot(
       reading: SensorReading.fromJson(normalized),
-      batteryPercent: _percentInt(first([
-        data['batteryPercent'],
-        root['batteryPercent'],
-      ]), 100),
-      signalPercent: _percentInt(first([
-        data['signalPercent'],
-        root['signalPercent'],
-      ]), 100),
+      batteryPercent: _percentInt(
+          first([
+            data['batteryPercent'],
+            root['batteryPercent'],
+          ]),
+          100),
+      signalPercent: _percentInt(
+          first([
+            data['signalPercent'],
+            root['signalPercent'],
+          ]),
+          100),
       firmwareVersion: firmwareVersion,
       endpoint: endpoint,
       sensorCount: [
@@ -445,8 +461,11 @@ class Esp32Client {
     data['decisionExplanation'] ??= data['because'];
 
     if (environment.isNotEmpty) {
-      data['airTemperatureC'] ??=
-          _first([environment['airTemperature'], environment['temperatureC'], environment['temperature']]);
+      data['airTemperatureC'] ??= _first([
+        environment['airTemperature'],
+        environment['temperatureC'],
+        environment['temperature']
+      ]);
       data['humidityPercent'] ??=
           _first([environment['humidity'], environment['relativeHumidity']]);
       data['lux'] ??= _first([environment['lux'], environment['lightLux']]);
@@ -463,8 +482,8 @@ class Esp32Client {
           _first([rootZone['soilMoisture'], rootZone['moisturePercent']]);
       data['soilTemperatureC'] ??=
           _first([rootZone['rootTemperature'], rootZone['soilTemperature']]);
-      data['airRootTemperatureDifferenceC'] ??=
-          _first([rootZone['airRootDelta'], rootZone['airRootTemperatureDifference']]);
+      data['airRootTemperatureDifferenceC'] ??= _first(
+          [rootZone['airRootDelta'], rootZone['airRootTemperatureDifference']]);
     }
 
     if (leafTop.isNotEmpty) {
@@ -479,7 +498,8 @@ class Esp32Client {
           leafTop['wetDurationSeconds'],
           leafTop['continuousWetSeconds'],
         ]));
-        data['leafWetDurationSeconds'] = seconds ?? (minutes == null ? null : minutes * 60);
+        data['leafWetDurationSeconds'] =
+            seconds ?? (minutes == null ? null : minutes * 60);
       }
     }
 
@@ -510,7 +530,8 @@ class Esp32Client {
       data['bioStaticEvidence'] ??= bioTop['staticEvidence'];
       data['adaptiveBaselineStatus'] ??= bioTop['baselineStatus'];
       if (!data.containsKey('baselineReady')) {
-        data['baselineReady'] = '${bioTop['baselineStatus'] ?? ''}'.toUpperCase() == 'READY';
+        data['baselineReady'] =
+            '${bioTop['baselineStatus'] ?? ''}'.toUpperCase() == 'READY';
       }
     }
 
@@ -522,7 +543,8 @@ class Esp32Client {
       };
       data['cropProfile'] ??= cropProfile;
       data['cropProfileName'] ??= _first([cropTop['name'], cropTop['id']]);
-      data['growthStage'] ??= _first([cropTop['stage'], cropTop['growthStage']]);
+      data['growthStage'] ??=
+          _first([cropTop['stage'], cropTop['growthStage']]);
       data['regionProfile'] ??=
           _first([cropTop['regionProfile'], cropTop['region']]);
     }
@@ -584,7 +606,8 @@ class Esp32Client {
           normalizedTrends[entry.key] = entry.value;
         } else {
           final copy = Map<String, dynamic>.from(trend);
-          copy['rate'] ??= _first([trend['ratePerHour'], trend['slopePerHour']]);
+          copy['rate'] ??=
+              _first([trend['ratePerHour'], trend['slopePerHour']]);
           normalizedTrends[entry.key] = copy;
         }
       }
@@ -631,7 +654,8 @@ class Esp32Client {
     final mergedLight = <String, dynamic>{
       ...light,
       if (environment.isNotEmpty) ...{
-        'lux': _first([light['lux'], environment['lux'], environment['lightLux']]),
+        'lux':
+            _first([light['lux'], environment['lux'], environment['lightLux']]),
         'phase': _first([light['phase'], environment['dayPhase']]),
         'daytime': data['daytime'],
       },
@@ -727,9 +751,8 @@ class Esp32Client {
     return true;
   }
 
-  static Map<String, dynamic> _map(dynamic value) => value is Map
-      ? Map<String, dynamic>.from(value)
-      : <String, dynamic>{};
+  static Map<String, dynamic> _map(dynamic value) =>
+      value is Map ? Map<String, dynamic>.from(value) : <String, dynamic>{};
 
   static Map<String, dynamic> _firstNonEmptyMap(List<dynamic> values) {
     for (final value in values) {
@@ -762,7 +785,8 @@ class Esp32Client {
 
   static String _timestamp(Map<String, dynamic> payload) {
     final direct = payload['timestamp'];
-    if (direct != null && DateTime.tryParse('$direct') != null) return '$direct';
+    if (direct != null && DateTime.tryParse('$direct') != null)
+      return '$direct';
     return DateTime.now().toIso8601String();
   }
 }

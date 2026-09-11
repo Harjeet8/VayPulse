@@ -73,22 +73,21 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
             ),
           if (scope.sensors.current case final reading?)
             if (scope.sensors.source != SensorDataSource.esp32 ||
-                scope.sensors.connectionStatus ==
-                    SensorConnectionStatus.ready)
-            _TimelineEntry(
-              time: reading.timestamp,
-              type: _TimelineFilter.sensor,
-              icon: Icons.sensors_rounded,
-              title: scope.sensors.source == SensorDataSource.esp32
-                  ? (FarmerLanguage.isTamil(context)
-                      ? 'சமீப நேரடி அளவீடு'
-                      : 'Latest live reading')
-                  : (FarmerLanguage.isTamil(context)
-                      ? 'சமீப மாதிரி அளவீடு'
-                      : 'Latest simulation reading'),
-              body: _latestReadingBody(context, scope, reading),
-              color: Theme.of(context).colorScheme.primary,
-            ),
+                scope.sensors.connectionStatus == SensorConnectionStatus.ready)
+              _TimelineEntry(
+                time: reading.timestamp,
+                type: _TimelineFilter.sensor,
+                icon: Icons.sensors_rounded,
+                title: scope.sensors.source == SensorDataSource.esp32
+                    ? (FarmerLanguage.isTamil(context)
+                        ? 'சமீப நேரடி அளவீடு'
+                        : 'Latest live reading')
+                    : (FarmerLanguage.isTamil(context)
+                        ? 'சமீப மாதிரி அளவீடு'
+                        : 'Latest simulation reading'),
+                body: _latestReadingBody(context, scope, reading),
+                color: Theme.of(context).colorScheme.primary,
+              ),
         ]..sort((a, b) => b.time.compareTo(a.time));
 
         final visible = filter == _TimelineFilter.all
@@ -109,15 +108,15 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
                     : 'See how the plant condition and root soil are changing.',
                 icon: Icons.timeline_rounded,
                 trailing: PhytoStatusBadge(
-                    label: scope.sensors.source == SensorDataSource.esp32
-                        ? 'ESP32 LIVE'
-                        : FarmerLanguage.label(context, 'simulated'),
-                    icon: scope.sensors.source == SensorDataSource.esp32
-                        ? Icons.memory_rounded
-                        : Icons.science_outlined,
-                    color: scope.sensors.source == SensorDataSource.esp32
-                        ? const Color(0xFF397FC0)
-                        : Theme.of(context).colorScheme.primary,
+                  label: scope.sensors.source == SensorDataSource.esp32
+                      ? 'ESP32 LIVE'
+                      : FarmerLanguage.label(context, 'simulated'),
+                  icon: scope.sensors.source == SensorDataSource.esp32
+                      ? Icons.memory_rounded
+                      : Icons.science_outlined,
+                  color: scope.sensors.source == SensorDataSource.esp32
+                      ? const Color(0xFF397FC0)
+                      : Theme.of(context).colorScheme.primary,
                 ),
               ),
               const SizedBox(height: 16),
@@ -314,7 +313,8 @@ class _HistoryCharts extends StatelessWidget {
             children: [
               const Icon(Icons.show_chart_rounded),
               const SizedBox(width: 12),
-              Expanded(child: Text(FarmerLanguage.label(context, 'no_history'))),
+              Expanded(
+                  child: Text(FarmerLanguage.label(context, 'no_history'))),
             ],
           ),
         ),

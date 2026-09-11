@@ -276,7 +276,8 @@ void main() {
   });
 
   test('Judge View exposes reliability, runtime and deduplicated events', () {
-    final source = File('lib/screens/judge_view_screen.dart').readAsStringSync();
+    final source =
+        File('lib/screens/judge_view_screen.dart').readAsStringSync();
     expect(source, contains("title: 'Node reliability'"));
     expect(source, contains("_Metric('Sensor plausibility'"));
     expect(source, contains("'Sensor-cycle latency'"));

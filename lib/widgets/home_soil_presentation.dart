@@ -68,10 +68,8 @@ class HomeSoilPresentation {
       };
     }
     return switch (state) {
-      HomeSoilState.veryDry =>
-        'Root-zone moisture is critically low.',
-      HomeSoilState.dry =>
-        'Root-zone moisture is below the preferred range.',
+      HomeSoilState.veryDry => 'Root-zone moisture is critically low.',
+      HomeSoilState.dry => 'Root-zone moisture is below the preferred range.',
       HomeSoilState.low => 'Root-zone moisture is low.',
       HomeSoilState.good => 'Root-zone moisture is in the preferred range.',
       HomeSoilState.wet => 'Root-zone moisture is high.',

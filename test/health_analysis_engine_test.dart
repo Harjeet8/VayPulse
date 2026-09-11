@@ -99,7 +99,8 @@ void main() {
       expect(wet.diseaseRisk, greaterThan(50));
     });
 
-    test('bioelectric baseline deviation lowers stability only when available', () {
+    test('bioelectric baseline deviation lowers stability only when available',
+        () {
       final stable = HealthAnalysisEngine.analyze(
         _reading(bioStability: 92),
         const [],

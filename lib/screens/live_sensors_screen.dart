@@ -25,8 +25,8 @@ class LiveSensorsScreen extends StatelessWidget {
         final edge = sensors.edgeIntelligence;
         final telemetry = sensors.hardwareTelemetry;
         final live = sensors.source == SensorDataSource.esp32;
-        final canShowCurrent = !live ||
-            sensors.connectionStatus == SensorConnectionStatus.ready;
+        final canShowCurrent =
+            !live || sensors.connectionStatus == SensorConnectionStatus.ready;
         return Scaffold(
           appBar: AppBar(
             title: Text(FarmerLanguage.label(context, 'live_sensors')),
@@ -80,7 +80,8 @@ class LiveSensorsScreen extends StatelessWidget {
                 else if (reading == null)
                   _WaitingCard(live: live)
                 else ...[
-                  _OverallCard(reading: reading, edge: edge, telemetry: telemetry),
+                  _OverallCard(
+                      reading: reading, edge: edge, telemetry: telemetry),
                   const SizedBox(height: 16),
                   _Section(
                     title: FarmerLanguage.label(context, 'air'),
@@ -104,10 +105,13 @@ class LiveSensorsScreen extends StatelessWidget {
                       ),
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'vpd'),
-                        value: (telemetry?.vpdKpa ?? edge?.derivedEnvironment.vpdKpa) == null
+                        value: (telemetry?.vpdKpa ??
+                                    edge?.derivedEnvironment.vpdKpa) ==
+                                null
                             ? null
                             : '${(telemetry?.vpdKpa ?? edge!.derivedEnvironment.vpdKpa)!.toStringAsFixed(2)} kPa',
-                        result: telemetry?.sensor('vpd')?.result ?? telemetry?.sensor('airDryingDemand')?.result,
+                        result: telemetry?.sensor('vpd')?.result ??
+                            telemetry?.sensor('airDryingDemand')?.result,
                         note: FarmerLanguage.label(context, 'vpd_note'),
                       ),
                     ],
@@ -118,16 +122,19 @@ class LiveSensorsScreen extends StatelessWidget {
                     cards: [
                       _SensorCard(
                         title: FarmerLanguage.label(context, 'light_lux'),
-                        value: reading.lightAvailable && reading.lightLux != null
-                            ? '${reading.lightLux!.toStringAsFixed(0)} lux'
-                            : null,
+                        value:
+                            reading.lightAvailable && reading.lightLux != null
+                                ? '${reading.lightLux!.toStringAsFixed(0)} lux'
+                                : null,
                         detail: telemetry?.sensor('light'),
                         timestamp: reading.timestamp,
                       ),
                       _DerivedCard(
                         title: FarmerLanguage.label(context, 'day_phase'),
-                        value: telemetry?.dayPhase ?? (reading.daytime ? 'DAY' : 'NIGHT'),
-                        result: telemetry?.dayPhase ?? (reading.daytime ? 'DAY' : 'NIGHT'),
+                        value: telemetry?.dayPhase ??
+                            (reading.daytime ? 'DAY' : 'NIGHT'),
+                        result: telemetry?.dayPhase ??
+                            (reading.daytime ? 'DAY' : 'NIGHT'),
                       ),
                     ],
                   ),
@@ -167,7 +174,8 @@ class LiveSensorsScreen extends StatelessWidget {
                     cards: [
                       _SensorCard(
                         title: FarmerLanguage.label(context, 'leaf_wetness'),
-                        value: reading.leafWetnessAvailable && reading.leafWetness != null
+                        value: reading.leafWetnessAvailable &&
+                                reading.leafWetness != null
                             ? '${reading.leafWetness!.toStringAsFixed(0)} %'
                             : null,
                         detail: telemetry?.sensor('leafWetness'),
@@ -212,7 +220,8 @@ class LiveSensorsScreen extends StatelessWidget {
                                 : reading.healthStatus),
                       ),
                       _DerivedCard(
-                        title: FarmerLanguage.label(context, 'analysis_confidence'),
+                        title: FarmerLanguage.label(
+                            context, 'analysis_confidence'),
                         value: _confidenceValue(reading, edge),
                         result: FarmerLanguage.confidence(
                           context,
@@ -220,11 +229,14 @@ class LiveSensorsScreen extends StatelessWidget {
                         ),
                       ),
                       _DerivedCard(
-                        title: FarmerLanguage.label(context, 'analysis_quality'),
-                        value: edge?.analysisQuality ?? telemetry?.analysisQuality,
+                        title:
+                            FarmerLanguage.label(context, 'analysis_quality'),
+                        value:
+                            edge?.analysisQuality ?? telemetry?.analysisQuality,
                         result: edge?.degradedAnalysis == true
                             ? 'DEGRADED'
-                            : edge?.analysisQuality ?? telemetry?.analysisQuality,
+                            : edge?.analysisQuality ??
+                                telemetry?.analysisQuality,
                         note: edge?.degradedReasons.isNotEmpty == true
                             ? edge!.degradedReasons.join(' • ')
                             : edge?.degradedReason,
@@ -260,12 +272,14 @@ class LiveSensorsScreen extends StatelessWidget {
                           result: edge.compoundStress.severity == null
                               ? edge.compoundStress.state
                               : '${edge.compoundStress.severity!.round()} / 100',
-                          note: 'ESP32 confidence-weighted combination of measured stress evidence.',
+                          note:
+                              'ESP32 confidence-weighted combination of measured stress evidence.',
                         ),
                       if (edge?.prediction.hasData == true)
                         _DerivedCard(
                           title: 'Trend prediction',
-                          value: edge!.prediction.message ?? edge.prediction.explanation,
+                          value: edge!.prediction.message ??
+                              edge.prediction.explanation,
                           result: edge.prediction.available == false
                               ? 'UNAVAILABLE'
                               : edge.prediction.state,
@@ -317,7 +331,8 @@ class _OverallCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final crop = telemetry?.cropProfile ?? edge?.cropProfile.profile ?? 'Universal';
+    final crop =
+        telemetry?.cropProfile ?? edge?.cropProfile.profile ?? 'Universal';
     final condition = FarmerLanguage.firmware(
       context,
       edge?.plantState ?? reading.healthStatus,
@@ -335,7 +350,8 @@ class _OverallCard extends StatelessWidget {
                     .titleLarge
                     ?.copyWith(fontWeight: FontWeight.w900)),
             const SizedBox(height: 12),
-            _Summary(FarmerLanguage.label(context, 'plant_condition'), condition),
+            _Summary(
+                FarmerLanguage.label(context, 'plant_condition'), condition),
             _Summary(
               FarmerLanguage.label(context, 'main_finding'),
               FarmerLanguage.firmware(
@@ -368,7 +384,8 @@ class _Section extends StatelessWidget {
   final IconData icon;
   final List<Widget> cards;
 
-  const _Section({required this.title, required this.icon, required this.cards});
+  const _Section(
+      {required this.title, required this.icon, required this.cards});
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -436,72 +453,77 @@ class _SensorCard extends StatelessWidget {
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 8),
-            Text(value ?? '—',
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900)),
-            const SizedBox(height: 6),
-            Text('${FarmerLanguage.label(context, 'result')}: $result',
-                style: const TextStyle(fontWeight: FontWeight.w800)),
-            const SizedBox(height: 7),
-            Wrap(
-              spacing: 14,
-              runSpacing: 6,
-              children: [
-                _Meta('${FarmerLanguage.label(context, 'trend')}: $trend'),
-                _Meta('${FarmerLanguage.label(context, 'confidence')}: $confidence'),
-                _Meta('${FarmerLanguage.label(context, 'data_age')}: ${_age(timestamp)}'),
-                if (detail?.ratePerHour != null)
-                  _Meta('${FarmerLanguage.label(context, 'rate')}: ${_signed(detail!.ratePerHour!)} /h'),
-                if (detail?.ratePerHour == null && detail?.ratePerMinute != null)
-                  _Meta('${FarmerLanguage.label(context, 'rate')}: ${_signed(detail!.ratePerMinute!)} /min'),
-              ],
-            ),
-            if (extra != null) ...[
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
               const SizedBox(height: 8),
-              Text(extra!),
-            ],
-            if (detail?.explanation != null) ...[
-              const SizedBox(height: 8),
-              Text(FarmerLanguage.firmware(context, detail!.explanation)),
-            ],
-            if (detail?.contribution != null) ...[
-              const SizedBox(height: 8),
-              Text(
-                '${FarmerLanguage.label(context, 'effect')}: ${FarmerLanguage.firmware(context, detail!.contribution)}',
-                style: const TextStyle(fontWeight: FontWeight.w700),
-              ),
-            ],
-            if (detail?.rawValue != null ||
-                detail?.quality != null ||
-                detail?.shortSlopePerMinute != null ||
-                detail?.longSlopePerMinute != null)
-              ExpansionTile(
-                tilePadding: EdgeInsets.zero,
-                title: Text(FarmerLanguage.label(context, 'technical')),
+              Text(value ?? '—',
+                  style: Theme.of(context)
+                      .textTheme
+                      .headlineSmall
+                      ?.copyWith(fontWeight: FontWeight.w900)),
+              const SizedBox(height: 6),
+              Text('${FarmerLanguage.label(context, 'result')}: $result',
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+              const SizedBox(height: 7),
+              Wrap(
+                spacing: 14,
+                runSpacing: 6,
                 children: [
-                  if (detail?.rawValue != null)
-                    _Technical(FarmerLanguage.label(context, 'raw'),
-                        detail!.rawValue!.toStringAsFixed(0)),
-                  if (detail?.quality != null)
-                    _Technical('Quality / noise', detail!.quality!),
-                  if (detail?.shortSlopePerMinute != null)
-                    _Technical(
-                      'Short trend slope',
-                      '${_signed(detail!.shortSlopePerMinute!)} /min',
-                    ),
-                  if (detail?.longSlopePerMinute != null)
-                    _Technical(
-                      'Long trend slope',
-                      '${_signed(detail!.longSlopePerMinute!)} /min',
-                    ),
+                  _Meta('${FarmerLanguage.label(context, 'trend')}: $trend'),
+                  _Meta(
+                      '${FarmerLanguage.label(context, 'confidence')}: $confidence'),
+                  _Meta(
+                      '${FarmerLanguage.label(context, 'data_age')}: ${_age(timestamp)}'),
+                  if (detail?.ratePerHour != null)
+                    _Meta(
+                        '${FarmerLanguage.label(context, 'rate')}: ${_signed(detail!.ratePerHour!)} /h'),
+                  if (detail?.ratePerHour == null &&
+                      detail?.ratePerMinute != null)
+                    _Meta(
+                        '${FarmerLanguage.label(context, 'rate')}: ${_signed(detail!.ratePerMinute!)} /min'),
                 ],
               ),
+              if (extra != null) ...[
+                const SizedBox(height: 8),
+                Text(extra!),
+              ],
+              if (detail?.explanation != null) ...[
+                const SizedBox(height: 8),
+                Text(FarmerLanguage.firmware(context, detail!.explanation)),
+              ],
+              if (detail?.contribution != null) ...[
+                const SizedBox(height: 8),
+                Text(
+                  '${FarmerLanguage.label(context, 'effect')}: ${FarmerLanguage.firmware(context, detail!.contribution)}',
+                  style: const TextStyle(fontWeight: FontWeight.w700),
+                ),
+              ],
+              if (detail?.rawValue != null ||
+                  detail?.quality != null ||
+                  detail?.shortSlopePerMinute != null ||
+                  detail?.longSlopePerMinute != null)
+                ExpansionTile(
+                  tilePadding: EdgeInsets.zero,
+                  title: Text(FarmerLanguage.label(context, 'technical')),
+                  children: [
+                    if (detail?.rawValue != null)
+                      _Technical(FarmerLanguage.label(context, 'raw'),
+                          detail!.rawValue!.toStringAsFixed(0)),
+                    if (detail?.quality != null)
+                      _Technical('Quality / noise', detail!.quality!),
+                    if (detail?.shortSlopePerMinute != null)
+                      _Technical(
+                        'Short trend slope',
+                        '${_signed(detail!.shortSlopePerMinute!)} /min',
+                      ),
+                    if (detail?.longSlopePerMinute != null)
+                      _Technical(
+                        'Long trend slope',
+                        '${_signed(detail!.longSlopePerMinute!)} /min',
+                      ),
+                  ],
+                ),
             ],
           ),
         ),
@@ -509,7 +531,6 @@ class _SensorCard extends StatelessWidget {
     );
   }
 }
-
 
 class _BioelectricCard extends StatelessWidget {
   final SensorReading reading;
@@ -699,7 +720,8 @@ class _BioelectricCard extends StatelessWidget {
                 if (bio?.stressLoadState != null)
                   _Technical('Stress load state', bio!.stressLoadState!),
                 if (bio?.stressLoad != null)
-                  _Technical('Stress load', bio!.stressLoad!.toStringAsFixed(1)),
+                  _Technical(
+                      'Stress load', bio!.stressLoad!.toStringAsFixed(1)),
                 if (bio?.baselineReady != null)
                   _Technical(
                     'Baseline ready',
@@ -715,7 +737,8 @@ class _BioelectricCard extends StatelessWidget {
                 if (bio?.zScore != null)
                   _Technical('Z-score', bio!.zScore!.toStringAsFixed(2)),
                 if (bio?.spanMv != null)
-                  _Technical('Signal span', '${bio!.spanMv!.toStringAsFixed(1)} mV'),
+                  _Technical(
+                      'Signal span', '${bio!.spanMv!.toStringAsFixed(1)} mV'),
                 if (bio?.includedInFusion != null)
                   _Technical(
                     'Included in fusion',
@@ -754,14 +777,18 @@ String _bioState(BuildContext context, BioelectricIntelligence? bio) {
     return FarmerLanguage.label(context, 'learning_baseline');
   }
   final state = bio.stressState?.toUpperCase() ?? '';
-  if (state.contains('RECOVER')) return FarmerLanguage.label(context, 'recovering');
-  if (state.contains('STRONG') || (bio.stressScore != null && bio.stressScore! >= 80)) {
+  if (state.contains('RECOVER'))
+    return FarmerLanguage.label(context, 'recovering');
+  if (state.contains('STRONG') ||
+      (bio.stressScore != null && bio.stressScore! >= 80)) {
     return FarmerLanguage.label(context, 'strongly_stressed');
   }
-  if (state.contains('STRESS') || (bio.stressScore != null && bio.stressScore! >= 55)) {
+  if (state.contains('STRESS') ||
+      (bio.stressScore != null && bio.stressScore! >= 55)) {
     return FarmerLanguage.label(context, 'stressed');
   }
-  if (state.contains('MILD') || (bio.stressScore != null && bio.stressScore! >= 30)) {
+  if (state.contains('MILD') ||
+      (bio.stressScore != null && bio.stressScore! >= 30)) {
     return FarmerLanguage.label(context, 'mild_response');
   }
   return FarmerLanguage.label(context, 'calm');
@@ -782,23 +809,24 @@ class _DerivedCard extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(title, style: const TextStyle(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 7),
-              Text(value ?? '—',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w900)),
-              const SizedBox(height: 5),
-              Text(
-                '${FarmerLanguage.label(context, 'result')}: ${result == null ? FarmerLanguage.label(context, 'no_interpretation') : FarmerLanguage.firmware(context, result)}',
-              ),
-              if (note != null) ...[
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title,
+                    style: const TextStyle(fontWeight: FontWeight.w900)),
                 const SizedBox(height: 7),
-                Text(note!, style: Theme.of(context).textTheme.bodySmall),
-              ],
+                Text(value ?? '—',
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleLarge
+                        ?.copyWith(fontWeight: FontWeight.w900)),
+                const SizedBox(height: 5),
+                Text(
+                  '${FarmerLanguage.label(context, 'result')}: ${result == null ? FarmerLanguage.label(context, 'no_interpretation') : FarmerLanguage.firmware(context, result)}',
+                ),
+                if (note != null) ...[
+                  const SizedBox(height: 7),
+                  Text(note!, style: Theme.of(context).textTheme.bodySmall),
+                ],
               ],
             ),
           ),
@@ -872,7 +900,9 @@ class _ConnectionCard extends StatelessWidget {
         child: Row(
           children: [
             Icon(
-              live ? Icons.portable_wifi_off_rounded : Icons.hourglass_top_rounded,
+              live
+                  ? Icons.portable_wifi_off_rounded
+                  : Icons.hourglass_top_rounded,
               color: Theme.of(context).colorScheme.tertiary,
             ),
             const SizedBox(width: 12),
@@ -922,7 +952,9 @@ class _WaitingCard extends StatelessWidget {
 
 String? _airRootDelta(SensorReading r, HardwareTelemetry? t) {
   if (t?.airRootDeltaC != null) return '${_signed(t!.airRootDeltaC!)} °C';
-  if (!r.temperatureAvailable || !r.soilTemperatureAvailable || r.soilTemperature == null) {
+  if (!r.temperatureAvailable ||
+      !r.soilTemperatureAvailable ||
+      r.soilTemperature == null) {
     return null;
   }
   return '${_signed(r.temperature - r.soilTemperature!)} °C';

@@ -61,7 +61,8 @@ class JudgeViewScreen extends StatelessWidget {
               const PhytoPageIntro(
                 eyebrow: 'ADVANCED DETAILS',
                 title: 'Engineering evidence',
-                body: 'Raw ESP32 decisions, confidence, sensor health, and source traceability.',
+                body:
+                    'Raw ESP32 decisions, confidence, sensor health, and source traceability.',
                 icon: Icons.data_object_rounded,
               ),
               const SizedBox(height: 16),
@@ -72,7 +73,8 @@ class JudgeViewScreen extends StatelessWidget {
                 endpoint: live ? scope.sensorManager.hardwareEndpoint : null,
               ),
               const SizedBox(height: 12),
-              _DecisionCard(edge: edge, analysisOrigin: reading?.analysisOrigin),
+              _DecisionCard(
+                  edge: edge, analysisOrigin: reading?.analysisOrigin),
               const SizedBox(height: 12),
               _BioCard(edge: edge, bioSource: reading?.bioSource),
               const SizedBox(height: 12),
@@ -177,7 +179,8 @@ class _SourceHeader extends StatelessWidget {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
                   color: accent.withValues(alpha: 0.12),
                   borderRadius: BorderRadius.circular(99),
@@ -234,12 +237,14 @@ class _DecisionCard extends StatelessWidget {
       icon: Icons.psychology_alt_rounded,
       title: 'Decision engine',
       children: [
-        _Metric('Analysis origin', analysisOrigin ?? (e?.generatedOnDevice == true ? 'esp32' : null)),
+        _Metric('Analysis origin',
+            analysisOrigin ?? (e?.generatedOnDevice == true ? 'esp32' : null)),
         _Metric('Firmware', e?.firmwareVersion),
         if (e?.schemaVersion != null) _Metric('Schema', 'v${e!.schemaVersion}'),
         _Metric('Plant state', e?.plantState),
         if (e?.healthScore != null)
-          _Metric('Health index', '${e!.healthScore!.toStringAsFixed(1)} / 100'),
+          _Metric(
+              'Health index', '${e!.healthScore!.toStringAsFixed(1)} / 100'),
         if (e?.overallConfidence != null)
           _Metric('Analysis confidence', '${e!.overallConfidence!.round()}%'),
         _Metric('Analysis quality', e?.analysisQuality),
@@ -251,10 +256,15 @@ class _DecisionCard extends StatelessWidget {
           ),
         _Metric('Recommendation', e?.recommendation),
         if (e?.derivedEnvironment.vpdKpa != null)
-          _Metric('VPD', '${e!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa'),
-        _Metric('VPD state', e?.derivedEnvironment.vpdState ?? e?.derivedEnvironment.dryingDemandState),
+          _Metric(
+              'VPD', '${e!.derivedEnvironment.vpdKpa!.toStringAsFixed(2)} kPa'),
+        _Metric(
+            'VPD state',
+            e?.derivedEnvironment.vpdState ??
+                e?.derivedEnvironment.dryingDemandState),
         if (e?.recovery.active == true)
-          _Metric('Recovery', e?.recovery.farmerResult ?? e?.recovery.improved ?? 'Active'),
+          _Metric('Recovery',
+              e?.recovery.farmerResult ?? e?.recovery.improved ?? 'Active'),
         if (e?.degradedAnalysis == true)
           _Metric('Reduced confidence', e?.degradedReason ?? 'Active'),
       ],
@@ -282,10 +292,10 @@ class _BioCard extends StatelessWidget {
           : presentation
               ? 'PRESENTATION'
               : excluded
-              ? 'EXCLUDED'
-              : bio.learningBaseline
-                  ? 'LEARNING'
-                  : 'IN FUSION',
+                  ? 'EXCLUDED'
+                  : bio.learningBaseline
+                      ? 'LEARNING'
+                      : 'IN FUSION',
       children: [
         _Metric('Signal source', _bioSourceDescription(source)),
         _Metric('Signal state', bio?.signalQualityState),
@@ -319,21 +329,24 @@ class _BioCard extends StatelessWidget {
           _Metric('Bio confidence', '${bio!.confidence!.round()}%'),
         _Metric('Stress state', bio?.stressState),
         if (bio?.stressScore != null)
-          _Metric('Stress score', '${bio!.stressScore!.toStringAsFixed(1)} / 100'),
+          _Metric(
+              'Stress score', '${bio!.stressScore!.toStringAsFixed(1)} / 100'),
         if (bio?.baselineMv != null)
-          _Metric('Learned baseline', '${bio!.baselineMv!.toStringAsFixed(1)} mV'),
+          _Metric(
+              'Learned baseline', '${bio!.baselineMv!.toStringAsFixed(1)} mV'),
         if (bio?.normalizedDeviation != null)
-          _Metric('Baseline deviation', '${bio!.normalizedDeviation!.toStringAsFixed(1)}%'),
+          _Metric('Baseline deviation',
+              '${bio!.normalizedDeviation!.toStringAsFixed(1)}%'),
         _Metric('Trend', bio?.trend),
         _Metric(
           'Used by fusion',
           presentation
               ? 'No — presentation source'
               : bio?.includedInFusion == null
-              ? null
-              : bio!.includedInFusion!
-                  ? 'Yes'
-                  : 'No',
+                  ? null
+                  : bio!.includedInFusion!
+                      ? 'Yes'
+                      : 'No',
         ),
         if (presentation)
           const _Metric(
@@ -410,8 +423,7 @@ class _AdaptiveEdgeIntelligenceCard extends StatelessWidget {
           _Metric(
             'Environment → bio lag',
             _duration(Duration(
-              milliseconds:
-                  (temporal.environmentToBioLagSec! * 1000).round(),
+              milliseconds: (temporal.environmentToBioLagSec! * 1000).round(),
             )),
           )
         else if (responseLag.environmentToBioResponseSeconds != null)
@@ -419,16 +431,14 @@ class _AdaptiveEdgeIntelligenceCard extends StatelessWidget {
             'Environment → bio lag',
             _duration(Duration(
               milliseconds:
-                  (responseLag.environmentToBioResponseSeconds! * 1000)
-                      .round(),
+                  (responseLag.environmentToBioResponseSeconds! * 1000).round(),
             )),
           ),
         if (temporal.actionToRecoveryLagSec != null)
           _Metric(
             'Action → recovery lag',
             _duration(Duration(
-              milliseconds:
-                  (temporal.actionToRecoveryLagSec! * 1000).round(),
+              milliseconds: (temporal.actionToRecoveryLagSec! * 1000).round(),
             )),
           )
         else if (responseLag.irrigationToBioDecreaseSeconds != null)
@@ -436,8 +446,7 @@ class _AdaptiveEdgeIntelligenceCard extends StatelessWidget {
             'Action → bio-response lag',
             _duration(Duration(
               milliseconds:
-                  (responseLag.irrigationToBioDecreaseSeconds! * 1000)
-                      .round(),
+                  (responseLag.irrigationToBioDecreaseSeconds! * 1000).round(),
             )),
           ),
         _Metric('Temporal explanation', temporal.explanation),
@@ -680,13 +689,15 @@ class _FusionCard extends StatelessWidget {
           _Metric(
             'Sensor faults',
             e!.sensorFaults
-                .map((fault) => '${fault.channel}: ${fault.type ?? fault.explanation ?? 'fault'}')
+                .map((fault) =>
+                    '${fault.channel}: ${fault.type ?? fault.explanation ?? 'fault'}')
                 .join(' • '),
           ),
         if (e?.riskFlags.isNotEmpty == true)
           _Metric('Risk flags', e!.riskFlags.join(', ')),
         _Metric('Primary evidence', e?.rootCause.primaryCandidate?.evidenceFor),
-        _Metric('Counter-evidence', e?.rootCause.primaryCandidate?.evidenceAgainst),
+        _Metric(
+            'Counter-evidence', e?.rootCause.primaryCandidate?.evidenceAgainst),
       ],
     );
   }
@@ -705,7 +716,8 @@ class _SensorEvidenceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final sensors = telemetry?.sensors.values.toList() ?? <HardwareSensorDetail>[];
+    final sensors =
+        telemetry?.sensors.values.toList() ?? <HardwareSensorDetail>[];
     sensors.sort((a, b) => a.channel.compareTo(b.channel));
     final fallback = edge?.sensorConfidence ?? const <SensorConfidence>[];
 
@@ -765,12 +777,14 @@ class _SensorRow extends StatelessWidget {
                 if (sensor.confidence != null)
                   Text('Confidence: ${sensor.confidence!.round()}%'),
                 if (sensor.trend != null) Text('Trend: ${sensor.trend}'),
-                if (packetAge != null) Text('Updated: ${_duration(packetAge!)} ago'),
+                if (packetAge != null)
+                  Text('Updated: ${_duration(packetAge!)} ago'),
               ],
             ),
             if (sensor.explanation != null) ...[
               const SizedBox(height: 4),
-              Text(sensor.explanation!, style: Theme.of(context).textTheme.bodySmall),
+              Text(sensor.explanation!,
+                  style: Theme.of(context).textTheme.bodySmall),
             ],
             const Divider(height: 18),
           ],
@@ -834,7 +848,8 @@ class _TechnicalCard extends StatelessWidget {
                   ),
                   if (badge != null)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 9, vertical: 5),
                       decoration: BoxDecoration(
                         color: Theme.of(context)
                             .colorScheme
@@ -844,14 +859,17 @@ class _TechnicalCard extends StatelessWidget {
                       ),
                       child: Text(
                         badge!,
-                        style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                            fontSize: 10, fontWeight: FontWeight.w900),
                       ),
                     ),
                 ],
               ),
               const SizedBox(height: 12),
               ...children.where((widget) {
-                if (widget is _Metric) return widget.value != null && widget.value!.trim().isNotEmpty;
+                if (widget is _Metric)
+                  return widget.value != null &&
+                      widget.value!.trim().isNotEmpty;
                 return true;
               }),
             ],
@@ -876,13 +894,15 @@ class _Metric extends StatelessWidget {
               flex: 4,
               child: Text(
                 label,
-                style: TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant),
+                style: TextStyle(
+                    color: Theme.of(context).colorScheme.onSurfaceVariant),
               ),
             ),
             const SizedBox(width: 12),
             Expanded(
               flex: 6,
-              child: Text(value ?? '—', style: const TextStyle(fontWeight: FontWeight.w700)),
+              child: Text(value ?? '—',
+                  style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
           ],
         ),
@@ -933,7 +953,11 @@ String _formatBytes(int bytes) {
   return '$bytes B';
 }
 
-String? _yesNo(bool? value) => value == null ? null : value ? 'Yes' : 'No';
+String? _yesNo(bool? value) => value == null
+    ? null
+    : value
+        ? 'Yes'
+        : 'No';
 
 String _eventTime(PhytoEvent event) {
   final time = event.timestamp?.toLocal();
@@ -950,7 +974,8 @@ String _eventTime(PhytoEvent event) {
 String _pretty(String value) {
   final spaced = value
       .replaceAll('_', ' ')
-      .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m.group(1)} ${m.group(2)}')
+      .replaceAllMapped(
+          RegExp(r'([a-z])([A-Z])'), (m) => '${m.group(1)} ${m.group(2)}')
       .trim();
   if (spaced.isEmpty) return value;
   return '${spaced[0].toUpperCase()}${spaced.substring(1)}';

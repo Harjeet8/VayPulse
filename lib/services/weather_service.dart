@@ -58,8 +58,7 @@ class WeatherService extends ChangeNotifier {
         'longitude': '$longitude',
         'current':
             'temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,precipitation',
-        'hourly':
-            'temperature_2m,precipitation_probability,weather_code',
+        'hourly': 'temperature_2m,precipitation_probability,weather_code',
         'daily':
             'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,uv_index_max',
         'forecast_days': '5',
@@ -111,7 +110,8 @@ class WeatherService extends ChangeNotifier {
               hours.length < 12;
           index++) {
         final time = DateTime.tryParse('${hourTimes[index]}');
-        if (time == null || time.isBefore(now.subtract(const Duration(hours: 1)))) {
+        if (time == null ||
+            time.isBefore(now.subtract(const Duration(hours: 1)))) {
           continue;
         }
         hours.add(WeatherHour(

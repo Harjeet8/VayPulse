@@ -21,9 +21,10 @@ class SimulationIntelligenceV2 {
   }) {
     final previous = history.length >= 2 ? history[history.length - 2] : null;
     final vpd = _vpd(reading.temperature, reading.humidity);
-    final bioStress = (100 - (reading.bioelectricStability ?? reading.plantSignal))
-        .clamp(0.0, 100.0)
-        .toDouble();
+    final bioStress =
+        (100 - (reading.bioelectricStability ?? reading.plantSignal))
+            .clamp(0.0, 100.0)
+            .toDouble();
     final sensorFault = mode == DemoMode.sensorFault;
     final baselineLearning = mode == DemoMode.baselineLearning;
     final recovering = mode == DemoMode.recovery;
@@ -157,8 +158,10 @@ class SimulationIntelligenceV2 {
             farmerResult: 'The plant response is easing as conditions improve.',
             quality: 'GOOD',
             durationSeconds: 150,
-            improved: 'Atmospheric demand and plant electrical response are decreasing.',
-            remainingConcern: 'Continue monitoring until the plant signal settles near baseline.',
+            improved:
+                'Atmospheric demand and plant electrical response are decreasing.',
+            remainingConcern:
+                'Continue monitoring until the plant signal settles near baseline.',
           )
         : const RecoveryInfo(active: false);
 
@@ -173,7 +176,8 @@ class SimulationIntelligenceV2 {
             diseaseConduciveSupport: true,
             reason:
                 'Persistent leaf wetness and high humidity create a disease-conducive environment. This is not a confirmed infection.',
-            farmerResult: 'Possible biotic stress — inspect the plant visually.',
+            farmerResult:
+                'Possible biotic stress — inspect the plant visually.',
             recommendation:
                 'Inspect leaves and stems for symptoms and improve airflow where practical.',
             pestIdentified: false,
@@ -202,7 +206,11 @@ class SimulationIntelligenceV2 {
               : 'Recent readings do not show a strong worsening direction.',
       whatIfExplanation: analysis.whatIf,
       confidence: sensorFault ? null : math.min(92.0, overallConfidence),
-      minutesToWarning: severe ? 5 : mode == DemoMode.dry ? 18 : null,
+      minutesToWarning: severe
+          ? 5
+          : mode == DemoMode.dry
+              ? 18
+              : null,
       minutesToWaterStressWarning: mode == DemoMode.dry ? 18 : null,
     );
 
@@ -259,7 +267,9 @@ class SimulationIntelligenceV2 {
           ? 'Simulation scenario intentionally removes selected sensor channels.'
           : null,
       degradedReasons: sensorFault
-          ? const ['Soil, root, leaf and bioelectric channels are intentionally unavailable.']
+          ? const [
+              'Soil, root, leaf and bioelectric channels are intentionally unavailable.'
+            ]
           : const [],
       analysisQuality: sensorFault
           ? 'DEGRADED'
@@ -304,9 +314,12 @@ class SimulationIntelligenceV2 {
         baselineReady: baselineReady,
         baselineSamples: baselineSamples,
         baselineTarget: 60,
-        zScore: baselineLearning || reading.bioNoiseMv == null || reading.bioNoiseMv == 0
+        zScore: baselineLearning ||
+                reading.bioNoiseMv == null ||
+                reading.bioNoiseMv == 0
             ? null
-            : (reading.bioDeviationMv ?? 0) / math.max(1.0, reading.bioNoiseMv!),
+            : (reading.bioDeviationMv ?? 0) /
+                math.max(1.0, reading.bioNoiseMv!),
         spanMv: reading.bioNoiseMv == null ? null : reading.bioNoiseMv! * 6,
         includedInFusion: !sensorFault && baselineReady,
         interpretation: baselineLearning
@@ -334,10 +347,15 @@ class SimulationIntelligenceV2 {
             : mode == DemoMode.atmosphericDrying
                 ? 'ATMOSPHERIC_DOMINANT'
                 : 'NONE',
-        severity: severe ? 91 : math.max(_waterEvidence(reading.soilMoisture), _heatEvidence(reading.temperature)),
+        severity: severe
+            ? 91
+            : math.max(_waterEvidence(reading.soilMoisture),
+                _heatEvidence(reading.temperature)),
         waterEvidence: _waterEvidence(reading.soilMoisture),
         heatEvidence: _heatEvidence(reading.temperature),
-        rootEvidence: reading.soilTemperature == null ? 0 : _heatEvidence(reading.soilTemperature!),
+        rootEvidence: reading.soilTemperature == null
+            ? 0
+            : _heatEvidence(reading.soilTemperature!),
         atmosphericEvidence: (vpd * 30).clamp(0.0, 100.0).toDouble(),
       ),
       responseLag: ResponseLagInfo(
@@ -352,10 +370,15 @@ class SimulationIntelligenceV2 {
             : null,
       ),
       anomaly: AnomalyInfo(
-        state: mode == DemoMode.bioResponse || severe ? 'CHANGE_DETECTED' : 'NONE',
+        state:
+            mode == DemoMode.bioResponse || severe ? 'CHANGE_DETECTED' : 'NONE',
         detected: mode == DemoMode.bioResponse || severe,
         changePointDetected: mode == DemoMode.bioResponse || severe,
-        score: mode == DemoMode.bioResponse ? 72 : severe ? 94 : 8,
+        score: mode == DemoMode.bioResponse
+            ? 72
+            : severe
+                ? 94
+                : 8,
         confidence: sensorFault ? 25 : 88,
         reason: mode == DemoMode.bioResponse
             ? 'Plant electrical response shifted while environmental evidence remains mixed.'
@@ -394,8 +417,10 @@ class SimulationIntelligenceV2 {
       cameraHandoff: bioticRisk
           ? CameraHandoffInfo(
               recommended: true,
-              reason: 'Environmental and plant-response evidence supports visual inspection.',
-              recommendation: 'Use the camera inspection flow to look for visible symptoms.',
+              reason:
+                  'Environmental and plant-response evidence supports visual inspection.',
+              recommendation:
+                  'Use the camera inspection flow to look for visible symptoms.',
               crop: crop,
             )
           : const CameraHandoffInfo(recommended: false),
@@ -404,14 +429,18 @@ class SimulationIntelligenceV2 {
         SensorTrend(channel: 'soilMoisture', state: soilTrend, confidence: 91),
         SensorTrend(channel: 'airTemperature', state: airTrend, confidence: 94),
         SensorTrend(channel: 'humidity', state: humidityTrend, confidence: 92),
-        SensorTrend(channel: 'bioelectric', state: bioTrend, confidence: sensorFault ? 18 : 88),
+        SensorTrend(
+            channel: 'bioelectric',
+            state: bioTrend,
+            confidence: sensorFault ? 18 : 88),
       ],
       sensorFaults: sensorFault
           ? const [
               SensorFaultInfo(
                 channel: 'simulation-group',
                 type: 'INTENTIONAL_SENSOR_FAULT',
-                explanation: 'Selected channels are unavailable to demonstrate degraded analysis.',
+                explanation:
+                    'Selected channels are unavailable to demonstrate degraded analysis.',
                 confidence: 100,
               ),
             ]
@@ -571,7 +600,9 @@ class SimulationIntelligenceV2 {
           confidence: 94,
           rawValue: reading.soilMoisture,
           quality: reading.soilCalibrated ? 'CALIBRATED' : 'ESTIMATED',
-          contribution: reading.soilMoisture < 35 ? 'Supports water-stress evidence' : 'Counters water-stress evidence',
+          contribution: reading.soilMoisture < 35
+              ? 'Supports water-stress evidence'
+              : 'Counters water-stress evidence',
         ),
         'rootTemperature': detail(
           channel: 'rootTemperature',
@@ -590,7 +621,9 @@ class SimulationIntelligenceV2 {
           confidence: 92,
           rawValue: reading.leafWetness,
           quality: 'GOOD',
-          contribution: (reading.leafWetness ?? 0) >= 60 ? 'Supports disease-conducive risk' : 'Low surface-wetness evidence',
+          contribution: (reading.leafWetness ?? 0) >= 60
+              ? 'Supports disease-conducive risk'
+              : 'Low surface-wetness evidence',
         ),
         'plantSignal': detail(
           channel: 'plantSignal',
@@ -599,12 +632,17 @@ class SimulationIntelligenceV2 {
               ? 'LEARNING_BASELINE'
               : mode == DemoMode.sensorFault
                   ? 'SIGNAL_NOISY'
-                  : _bioState(100 - (reading.bioelectricStability ?? reading.plantSignal), mode == DemoMode.recovery),
+                  : _bioState(
+                      100 -
+                          (reading.bioelectricStability ?? reading.plantSignal),
+                      mode == DemoMode.recovery),
           trend: mode == DemoMode.recovery ? 'FALLING' : 'STABLE',
           confidence: mode == DemoMode.sensorFault ? 18 : 92,
           rawValue: reading.plantVoltageMv,
           quality: mode == DemoMode.sensorFault ? 'NOISY' : 'GOOD',
-          contribution: mode == DemoMode.sensorFault ? 'Excluded from fusion' : 'Available to fusion',
+          contribution: mode == DemoMode.sensorFault
+              ? 'Excluded from fusion'
+              : 'Available to fusion',
         ),
         'vpd': detail(
           channel: 'vpd',
@@ -614,7 +652,8 @@ class SimulationIntelligenceV2 {
           confidence: 96,
           rawValue: vpd,
           quality: 'DERIVED',
-          explanation: 'Derived from simulated air temperature and relative humidity.',
+          explanation:
+              'Derived from simulated air temperature and relative humidity.',
         ),
       },
     );
@@ -631,11 +670,16 @@ class SimulationIntelligenceV2 {
         return const _ScenarioAnalysis(
           primary: 'No active stress detected',
           primaryConfidence: 78,
-          evidenceFor: 'Environmental readings are broadly stable while the plant electrical baseline is still learning.',
-          evidenceAgainst: 'Bioelectric stress classification is intentionally withheld until baseline learning completes.',
-          action: 'Keep the electrodes stable and allow baseline learning to finish.',
-          explanation: 'Simulation is demonstrating protected plant-baseline learning.',
-          whatIf: 'If a strong environmental stress appears during learning, baseline adaptation pauses instead of learning the stressed state.',
+          evidenceFor:
+              'Environmental readings are broadly stable while the plant electrical baseline is still learning.',
+          evidenceAgainst:
+              'Bioelectric stress classification is intentionally withheld until baseline learning completes.',
+          action:
+              'Keep the electrodes stable and allow baseline learning to finish.',
+          explanation:
+              'Simulation is demonstrating protected plant-baseline learning.',
+          whatIf:
+              'If a strong environmental stress appears during learning, baseline adaptation pauses instead of learning the stressed state.',
         );
       case DemoMode.atmosphericDrying:
         return _ScenarioAnalysis(
@@ -643,16 +687,31 @@ class SimulationIntelligenceV2 {
           secondary: 'Air temperature is increasing water demand',
           primaryConfidence: 91,
           secondaryConfidence: 78,
-          evidenceFor: 'VPD is ${vpd.toStringAsFixed(2)} kPa while root-zone moisture remains adequate.',
-          evidenceAgainst: 'Soil moisture does not currently support root-zone drought as the dominant cause.',
-          secondaryEvidence: 'Air temperature is ${reading.temperature.toStringAsFixed(1)} °C.',
-          secondaryCounterEvidence: 'Root-zone moisture remains adequate, so air demand is a contributor rather than a complete water-deficit diagnosis.',
-          action: 'Check root-zone moisture first. If the soil is drying, irrigate during the cooler part of the day; otherwise reduce avoidable heat, wind or direct exposure where practical.',
-          explanation: 'Atmospheric demand is high, but the root zone is not currently dry.',
-          whatIf: 'If soil moisture also fell below the preferred range, water stress would gain much stronger support.',
+          evidenceFor:
+              'VPD is ${vpd.toStringAsFixed(2)} kPa while root-zone moisture remains adequate.',
+          evidenceAgainst:
+              'Soil moisture does not currently support root-zone drought as the dominant cause.',
+          secondaryEvidence:
+              'Air temperature is ${reading.temperature.toStringAsFixed(1)} °C.',
+          secondaryCounterEvidence:
+              'Root-zone moisture remains adequate, so air demand is a contributor rather than a complete water-deficit diagnosis.',
+          action:
+              'Check root-zone moisture first. If the soil is drying, irrigate during the cooler part of the day; otherwise reduce avoidable heat, wind or direct exposure where practical.',
+          explanation:
+              'Atmospheric demand is high, but the root zone is not currently dry.',
+          whatIf:
+              'If soil moisture also fell below the preferred range, water stress would gain much stronger support.',
           ranked: const [
-            RootCauseCandidate(name: 'High atmospheric drying demand', confidence: 91, evidenceFor: 'High VPD', evidenceAgainst: 'Soil moisture remains adequate'),
-            RootCauseCandidate(name: 'Root-zone water stress', confidence: 24, evidenceFor: 'High water demand', evidenceAgainst: 'Soil moisture is not low'),
+            RootCauseCandidate(
+                name: 'High atmospheric drying demand',
+                confidence: 91,
+                evidenceFor: 'High VPD',
+                evidenceAgainst: 'Soil moisture remains adequate'),
+            RootCauseCandidate(
+                name: 'Root-zone water stress',
+                confidence: 24,
+                evidenceFor: 'High water demand',
+                evidenceAgainst: 'Soil moisture is not low'),
           ],
         );
       case DemoMode.dry:
@@ -661,15 +720,26 @@ class SimulationIntelligenceV2 {
           secondary: 'Atmospheric demand is adding pressure',
           primaryConfidence: 94,
           secondaryConfidence: vpd >= 1.5 ? 74 : 42,
-          evidenceFor: 'Soil moisture is ${reading.soilMoisture.toStringAsFixed(0)}% and remains below the preferred range.',
-          evidenceAgainst: 'No evidence currently contradicts the low root-zone reading.',
+          evidenceFor:
+              'Soil moisture is ${reading.soilMoisture.toStringAsFixed(0)}% and remains below the preferred range.',
+          evidenceAgainst:
+              'No evidence currently contradicts the low root-zone reading.',
           secondaryEvidence: 'VPD is ${vpd.toStringAsFixed(2)} kPa.',
-          action: 'Confirm the root zone is actually dry, then irrigate appropriately for the plant and pot.',
-          explanation: 'Low root-zone moisture is the strongest simulated cause.',
-          whatIf: 'If soil moisture recovered while bioelectric stress stayed high, another cause would become more important.',
+          action:
+              'Confirm the root zone is actually dry, then irrigate appropriately for the plant and pot.',
+          explanation:
+              'Low root-zone moisture is the strongest simulated cause.',
+          whatIf:
+              'If soil moisture recovered while bioelectric stress stayed high, another cause would become more important.',
           ranked: const [
-            RootCauseCandidate(name: 'Root-zone moisture is low', confidence: 94, evidenceFor: 'Low soil moisture'),
-            RootCauseCandidate(name: 'Atmospheric drying demand', confidence: 68, evidenceFor: 'Elevated VPD'),
+            RootCauseCandidate(
+                name: 'Root-zone moisture is low',
+                confidence: 94,
+                evidenceFor: 'Low soil moisture'),
+            RootCauseCandidate(
+                name: 'Atmospheric drying demand',
+                confidence: 68,
+                evidenceFor: 'Elevated VPD'),
           ],
         );
       case DemoMode.overwatered:
@@ -678,12 +748,16 @@ class SimulationIntelligenceV2 {
           secondary: 'Persistent leaf wetness is increasing environmental risk',
           primaryConfidence: 92,
           secondaryConfidence: 80,
-          evidenceFor: 'Soil moisture is ${reading.soilMoisture.toStringAsFixed(0)}%.',
+          evidenceFor:
+              'Soil moisture is ${reading.soilMoisture.toStringAsFixed(0)}%.',
           evidenceAgainst: 'Dry-root evidence is absent.',
           secondaryEvidence: 'Leaf wetness remains elevated.',
-          action: 'Avoid unnecessary watering and check drainage and root-zone aeration.',
-          explanation: 'Excess root-zone moisture is the dominant simulated condition.',
-          whatIf: 'If root-zone moisture returned to range while leaf wetness stayed high, environmental disease risk would remain relevant.',
+          action:
+              'Avoid unnecessary watering and check drainage and root-zone aeration.',
+          explanation:
+              'Excess root-zone moisture is the dominant simulated condition.',
+          whatIf:
+              'If root-zone moisture returned to range while leaf wetness stayed high, environmental disease risk would remain relevant.',
         );
       case DemoMode.heatStress:
         return _ScenarioAnalysis(
@@ -691,12 +765,16 @@ class SimulationIntelligenceV2 {
           secondary: 'Atmospheric drying demand is elevated',
           primaryConfidence: 89,
           secondaryConfidence: 84,
-          evidenceFor: 'Air temperature is ${reading.temperature.toStringAsFixed(1)} °C.',
+          evidenceFor:
+              'Air temperature is ${reading.temperature.toStringAsFixed(1)} °C.',
           evidenceAgainst: 'Root-zone moisture is not critically low.',
           secondaryEvidence: 'VPD is ${vpd.toStringAsFixed(2)} kPa.',
-          action: 'Check root-zone moisture and reduce avoidable heat exposure where practical.',
-          explanation: 'Heat and atmospheric demand are stronger than water-deficit evidence.',
-          whatIf: 'If root-zone moisture also dropped, the condition would become a compound heat + water stress event.',
+          action:
+              'Check root-zone moisture and reduce avoidable heat exposure where practical.',
+          explanation:
+              'Heat and atmospheric demand are stronger than water-deficit evidence.',
+          whatIf:
+              'If root-zone moisture also dropped, the condition would become a compound heat + water stress event.',
         );
       case DemoMode.bioResponse:
         return _ScenarioAnalysis(
@@ -704,12 +782,18 @@ class SimulationIntelligenceV2 {
           secondary: 'Environmental evidence is mixed',
           primaryConfidence: 76,
           secondaryConfidence: 48,
-          evidenceFor: 'Bioelectric stress score is ${bioStress.toStringAsFixed(0)}/100 with usable signal quality.',
-          evidenceAgainst: 'No single environmental channel is severe enough to fully explain the response.',
-          secondaryEvidence: 'Soil, temperature and VPD evidence are not strongly aligned.',
-          action: 'Keep monitoring the plant response and inspect the plant if the signal persists without an environmental explanation.',
-          explanation: 'This scenario demonstrates a plant-response anomaly without pretending it is a disease diagnosis.',
-          whatIf: 'If leaf wetness and humidity also became strongly disease-conducive, visual inspection would become more important.',
+          evidenceFor:
+              'Bioelectric stress score is ${bioStress.toStringAsFixed(0)}/100 with usable signal quality.',
+          evidenceAgainst:
+              'No single environmental channel is severe enough to fully explain the response.',
+          secondaryEvidence:
+              'Soil, temperature and VPD evidence are not strongly aligned.',
+          action:
+              'Keep monitoring the plant response and inspect the plant if the signal persists without an environmental explanation.',
+          explanation:
+              'This scenario demonstrates a plant-response anomaly without pretending it is a disease diagnosis.',
+          whatIf:
+              'If leaf wetness and humidity also became strongly disease-conducive, visual inspection would become more important.',
         );
       case DemoMode.recovery:
         return const _ScenarioAnalysis(
@@ -717,12 +801,18 @@ class SimulationIntelligenceV2 {
           secondary: 'Environmental pressure is easing',
           primaryConfidence: 90,
           secondaryConfidence: 85,
-          evidenceFor: 'Stress direction is falling and environmental conditions are improving.',
-          evidenceAgainst: 'The plant signal has not fully returned to its learned baseline yet.',
-          secondaryEvidence: 'VPD and temperature are moving toward a lower-demand range.',
-          action: 'Continue monitoring and avoid unnecessary intervention while recovery continues.',
-          explanation: 'The simulator is demonstrating before → stress → recovery behaviour.',
-          whatIf: 'If the plant response rose again while the environment stayed improved, PhytoSense would reopen competing causes.',
+          evidenceFor:
+              'Stress direction is falling and environmental conditions are improving.',
+          evidenceAgainst:
+              'The plant signal has not fully returned to its learned baseline yet.',
+          secondaryEvidence:
+              'VPD and temperature are moving toward a lower-demand range.',
+          action:
+              'Continue monitoring and avoid unnecessary intervention while recovery continues.',
+          explanation:
+              'The simulator is demonstrating before → stress → recovery behaviour.',
+          whatIf:
+              'If the plant response rose again while the environment stayed improved, PhytoSense would reopen competing causes.',
         );
       case DemoMode.bioticRisk:
         return const _ScenarioAnalysis(
@@ -730,22 +820,32 @@ class SimulationIntelligenceV2 {
           secondary: 'Possible unexplained plant response',
           primaryConfidence: 82,
           secondaryConfidence: 68,
-          evidenceFor: 'High humidity and persistent leaf wetness support environmental risk.',
-          evidenceAgainst: 'Environmental risk alone cannot confirm disease or infection.',
-          secondaryEvidence: 'Plant-response evidence is present but not diagnostic.',
-          action: 'Improve airflow where practical and inspect leaves and stems for visible symptoms.',
-          explanation: 'PhytoSense reports risk and suspicion, never a confirmed disease from these sensors alone.',
-          whatIf: 'If visible symptoms are captured by the camera workflow, they can be assessed separately from the sensor risk signal.',
+          evidenceFor:
+              'High humidity and persistent leaf wetness support environmental risk.',
+          evidenceAgainst:
+              'Environmental risk alone cannot confirm disease or infection.',
+          secondaryEvidence:
+              'Plant-response evidence is present but not diagnostic.',
+          action:
+              'Improve airflow where practical and inspect leaves and stems for visible symptoms.',
+          explanation:
+              'PhytoSense reports risk and suspicion, never a confirmed disease from these sensors alone.',
+          whatIf:
+              'If visible symptoms are captured by the camera workflow, they can be assessed separately from the sensor risk signal.',
         );
       case DemoMode.lowLight:
         return const _ScenarioAnalysis(
           primary: 'Light availability is low',
           primaryConfidence: 86,
-          evidenceFor: 'Daylight reading remains below the normal simulated range.',
-          evidenceAgainst: 'Water and temperature conditions remain broadly acceptable.',
+          evidenceFor:
+              'Daylight reading remains below the normal simulated range.',
+          evidenceAgainst:
+              'Water and temperature conditions remain broadly acceptable.',
           action: 'Check shade, cover or placement before changing irrigation.',
-          explanation: 'Low light is the dominant simulated environmental condition.',
-          whatIf: 'If low light is temporary or it is night, it should not be treated as plant stress.',
+          explanation:
+              'Low light is the dominant simulated environmental condition.',
+          whatIf:
+              'If low light is temporary or it is night, it should not be treated as plant stress.',
         );
       case DemoMode.critical:
         return const _ScenarioAnalysis(
@@ -754,26 +854,43 @@ class SimulationIntelligenceV2 {
           additional: 'Atmospheric drying demand is extreme',
           primaryConfidence: 97,
           secondaryConfidence: 91,
-          evidenceFor: 'Very low soil moisture, high temperature and high VPD agree.',
-          evidenceAgainst: 'There is little counter-evidence in this simulated scenario.',
-          secondaryEvidence: 'Bioelectric response is strong and corroborated by environmental channels.',
-          action: 'Inspect the root zone immediately and reduce heat exposure where practical.',
-          explanation: 'Multiple independent channels agree on a high-stress condition.',
-          whatIf: 'If root-zone moisture improves, the system should verify whether heat or plant-response stress remains.',
+          evidenceFor:
+              'Very low soil moisture, high temperature and high VPD agree.',
+          evidenceAgainst:
+              'There is little counter-evidence in this simulated scenario.',
+          secondaryEvidence:
+              'Bioelectric response is strong and corroborated by environmental channels.',
+          action:
+              'Inspect the root zone immediately and reduce heat exposure where practical.',
+          explanation:
+              'Multiple independent channels agree on a high-stress condition.',
+          whatIf:
+              'If root-zone moisture improves, the system should verify whether heat or plant-response stress remains.',
           ranked: [
-            RootCauseCandidate(name: 'Compound heat and water stress', confidence: 97, evidenceFor: 'Water + heat + VPD agreement'),
-            RootCauseCandidate(name: 'Bioelectric plant response', confidence: 91, evidenceFor: 'Strong persistent plant signal'),
+            RootCauseCandidate(
+                name: 'Compound heat and water stress',
+                confidence: 97,
+                evidenceFor: 'Water + heat + VPD agreement'),
+            RootCauseCandidate(
+                name: 'Bioelectric plant response',
+                confidence: 91,
+                evidenceFor: 'Strong persistent plant signal'),
           ],
         );
       case DemoMode.sensorFault:
         return const _ScenarioAnalysis(
-          primary: 'Analysis is degraded because sensor information is unavailable',
+          primary:
+              'Analysis is degraded because sensor information is unavailable',
           primaryConfidence: 100,
           evidenceFor: 'The scenario intentionally removes multiple channels.',
-          evidenceAgainst: 'Missing channels cannot be interpreted as normal readings.',
-          action: 'Check sensor connections or switch back to a healthy simulation scenario.',
-          explanation: 'Faulty channels are excluded rather than converted into plant stress.',
-          whatIf: 'Restoring the missing channels increases evidence coverage and confidence.',
+          evidenceAgainst:
+              'Missing channels cannot be interpreted as normal readings.',
+          action:
+              'Check sensor connections or switch back to a healthy simulation scenario.',
+          explanation:
+              'Faulty channels are excluded rather than converted into plant stress.',
+          whatIf:
+              'Restoring the missing channels increases evidence coverage and confidence.',
         );
       case DemoMode.offline:
         return const _ScenarioAnalysis(
@@ -782,22 +899,27 @@ class SimulationIntelligenceV2 {
           evidenceFor: 'No new simulated packet is being generated.',
           action: 'Retry the simulation connection or choose another scenario.',
           explanation: 'Offline data is never represented as live.',
-          whatIf: 'When packets resume, the app updates from fresh simulated readings.',
+          whatIf:
+              'When packets resume, the app updates from fresh simulated readings.',
         );
       case DemoMode.healthy:
         return const _ScenarioAnalysis(
           primary: 'No important problem detected',
           primaryConfidence: 93,
-          evidenceFor: 'Root-zone, atmosphere and plant-response channels broadly agree on a stable state.',
+          evidenceFor:
+              'Root-zone, atmosphere and plant-response channels broadly agree on a stable state.',
           evidenceAgainst: 'No persistent high-severity evidence is present.',
           action: 'Continue normal monitoring.',
-          explanation: 'The simulated channels are within their broad operating ranges.',
-          whatIf: 'If one channel changes, PhytoSense compares it with the remaining evidence before changing the main finding.',
+          explanation:
+              'The simulated channels are within their broad operating ranges.',
+          whatIf:
+              'If one channel changes, PhytoSense compares it with the remaining evidence before changing the main finding.',
         );
     }
   }
 
-  static List<PhytoEvent> _eventsFor(DemoMode mode, DateTime now, String? primary) {
+  static List<PhytoEvent> _eventsFor(
+      DemoMode mode, DateTime now, String? primary) {
     final events = <PhytoEvent>[
       PhytoEvent(
         timestamp: now.subtract(const Duration(minutes: 8)),

@@ -181,10 +181,12 @@ class PhoneNotificationService {
     final disconnected = source == SensorDataSource.esp32 &&
         alerts.sensors.connectionStatus != SensorConnectionStatus.ready;
 
-    final friendlyTitle = disconnected && alert.titleKey == 'alert_sensor_attention'
-        ? 'ESP32 connection lost'
-        : _friendlyTitles[alert.titleKey];
-    final friendlyBody = disconnected && alert.titleKey == 'alert_sensor_attention'
+    final friendlyTitle =
+        disconnected && alert.titleKey == 'alert_sensor_attention'
+            ? 'ESP32 connection lost'
+            : _friendlyTitles[alert.titleKey];
+    final friendlyBody = disconnected &&
+            alert.titleKey == 'alert_sensor_attention'
         ? 'Live analysis is paused. Reconnect the PhytoSense node; old readings will not be treated as current plant data.'
         : _friendlyBodies[alert.messageKey];
 
@@ -205,9 +207,8 @@ class PhoneNotificationService {
         : _farmerAction(alert.messageKey, fallback: localizedMessage);
 
     final confidence = _confidence(edge, reading);
-    final sourceLabel = source == SensorDataSource.esp32
-        ? 'LIVE ESP32'
-        : 'DEMO DATA';
+    final sourceLabel =
+        source == SensorDataSource.esp32 ? 'LIVE ESP32' : 'DEMO DATA';
     final summaryParts = <String>[sourceLabel];
     if (metric != null) summaryParts.add(metric);
     if (confidence != null) {
@@ -252,10 +253,8 @@ class PhoneNotificationService {
   bool _isRawKey(String value, String key) =>
       value == key || value.startsWith('alert_') || value.contains('_message');
 
-  String _clean(String value) => value
-      .replaceAll('_', ' ')
-      .replaceAll(RegExp(r'\s+'), ' ')
-      .trim();
+  String _clean(String value) =>
+      value.replaceAll('_', ' ').replaceAll(RegExp(r'\s+'), ' ').trim();
 
   String _humanize(String key) {
     final words = key
@@ -361,8 +360,7 @@ class PhoneNotificationService {
   static const Map<String, String> _farmerActions = {
     'alert_severe_dryness_message':
         'Check soil near the roots and water if it is dry.',
-    'alert_low_moisture_message':
-        'Check soil near the roots before watering.',
+    'alert_low_moisture_message': 'Check soil near the roots before watering.',
     'alert_overwatering_message':
         'Pause watering and check the field drainage.',
     'alert_heat_stress_message':
@@ -383,8 +381,7 @@ class PhoneNotificationService {
     'alert_plant_stress_edge_message':
         'Open the analysis and check the main cause.',
     'alert_low_battery_message': 'Recharge the sensor node soon.',
-    'alert_weak_signal_message':
-        'Move the node closer to the Wi-Fi source.',
+    'alert_weak_signal_message': 'Move the node closer to the Wi-Fi source.',
   };
 
   String _farmerAction(String messageKey, {required String fallback}) {

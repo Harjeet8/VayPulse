@@ -331,7 +331,8 @@ class _BootIntelligencePainter extends CustomPainter {
       final angle = i / nodes * math.pi * 2 + phase * 0.18;
       final radiusX = 130.0 + (i % 3) * 18;
       final radiusY = 52.0 + (i % 4) * 8;
-      final p = center + Offset(math.cos(angle) * radiusX, math.sin(angle) * radiusY);
+      final p =
+          center + Offset(math.cos(angle) * radiusX, math.sin(angle) * radiusY);
       final localPulse = (math.sin(phase * math.pi * 2 + i * 0.72) + 1) / 2;
       final alpha = (0.025 + localPulse * 0.10) * (0.45 + scan * 0.55);
       nodePaint.color = primary.withValues(alpha: alpha);
@@ -364,10 +365,14 @@ class _BootIntelligencePainter extends CustomPainter {
       ..color = primary.withValues(alpha: 0.08 + fusion * 0.05);
     const inset = 17.0;
     const arm = 22.0;
-    canvas.drawLine(const Offset(inset, inset), const Offset(inset + arm, inset), cornerPaint);
-    canvas.drawLine(const Offset(inset, inset), const Offset(inset, inset + arm), cornerPaint);
-    canvas.drawLine(Offset(size.width - inset, inset), Offset(size.width - inset - arm, inset), cornerPaint);
-    canvas.drawLine(Offset(size.width - inset, inset), Offset(size.width - inset, inset + arm), cornerPaint);
+    canvas.drawLine(const Offset(inset, inset),
+        const Offset(inset + arm, inset), cornerPaint);
+    canvas.drawLine(const Offset(inset, inset),
+        const Offset(inset, inset + arm), cornerPaint);
+    canvas.drawLine(Offset(size.width - inset, inset),
+        Offset(size.width - inset - arm, inset), cornerPaint);
+    canvas.drawLine(Offset(size.width - inset, inset),
+        Offset(size.width - inset, inset + arm), cornerPaint);
   }
 
   @override

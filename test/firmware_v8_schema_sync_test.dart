@@ -70,7 +70,8 @@ void main() {
       'rawADC': 411,
       'corroborated': true,
       'corroboratedBy': <String>['vpd'],
-      'farmerResult': 'Plant stress detected — likely atmospheric drying stress',
+      'farmerResult':
+          'Plant stress detected — likely atmospheric drying stress',
     },
     'bioticStress': <String, dynamic>{
       'state': 'NONE',
@@ -138,7 +139,8 @@ void main() {
     },
   };
 
-  test('schema v8 authoritative intelligence parses without losing new fields', () {
+  test('schema v8 authoritative intelligence parses without losing new fields',
+      () {
     final edge = EdgeIntelligence.fromPayload(
       root: const <String, dynamic>{},
       data: payload,
@@ -182,7 +184,9 @@ void main() {
     expect(soilTrend.confidence, 94);
   });
 
-  test('schema v8 sensor effect and per-minute trend reach Live Sensors telemetry', () {
+  test(
+      'schema v8 sensor effect and per-minute trend reach Live Sensors telemetry',
+      () {
     final telemetry = HardwareTelemetry.fromPayload(
       root: const <String, dynamic>{},
       data: payload,

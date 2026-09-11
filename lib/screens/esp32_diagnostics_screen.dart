@@ -25,7 +25,8 @@ class _Esp32DiagnosticsScreenState extends State<Esp32DiagnosticsScreen> {
 
   Future<void> _refresh() async {
     setState(() => _loading = true);
-    final result = await AppScope.of(context).sensors.fetchHardwareDiagnostics();
+    final result =
+        await AppScope.of(context).sensors.fetchHardwareDiagnostics();
     if (!mounted) return;
     setState(() {
       _diagnostics = result;
@@ -85,7 +86,8 @@ class _Esp32DiagnosticsScreenState extends State<Esp32DiagnosticsScreen> {
                 _Row('Uptime', _uptime(d.uptimeSeconds)),
                 _Row('Free heap', _bytes(d.freeHeapBytes)),
                 _Row('Wi-Fi status', d.wifiStatus ?? 'Unavailable'),
-                _Row('Wi-Fi RSSI', d.wifiRssi == null ? 'Unavailable' : '${d.wifiRssi} dBm'),
+                _Row('Wi-Fi RSSI',
+                    d.wifiRssi == null ? 'Unavailable' : '${d.wifiRssi} dBm'),
                 _Row('IP address', d.ipAddress ?? 'Unavailable'),
                 _Row('RTC status', d.rtcStatus ?? 'Unavailable'),
               ],
@@ -99,7 +101,8 @@ class _Esp32DiagnosticsScreenState extends State<Esp32DiagnosticsScreen> {
                 _Row('Baseline status', d.baselineStatus ?? 'Unavailable'),
                 _Row('Analysis quality', d.analysisQuality ?? 'Unavailable'),
                 _Row('Degraded mode', d.degradedMode ? 'Active' : 'Not active'),
-                _Row('History buffer', _history(d.historySamples, d.historyCapacity)),
+                _Row('History buffer',
+                    _history(d.historySamples, d.historyCapacity)),
                 _Row('TinyML', d.tinyMlStatus),
               ],
             ),
@@ -237,21 +240,24 @@ String _uptime(int? seconds) {
 
 String _bytes(int? value) {
   if (value == null) return 'Unavailable';
-  if (value >= 1024 * 1024) return '${(value / (1024 * 1024)).toStringAsFixed(1)} MB';
+  if (value >= 1024 * 1024)
+    return '${(value / (1024 * 1024)).toStringAsFixed(1)} MB';
   if (value >= 1024) return '${(value / 1024).toStringAsFixed(1)} KB';
   return '$value B';
 }
 
 String _history(int? samples, int? capacity) {
   if (samples == null && capacity == null) return 'Unavailable';
-  if (samples != null && capacity != null) return '$samples / $capacity samples';
+  if (samples != null && capacity != null)
+    return '$samples / $capacity samples';
   return '${samples ?? capacity} samples';
 }
 
 String _pretty(String value) {
   final spaced = value
       .replaceAll('_', ' ')
-      .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m.group(1)} ${m.group(2)}')
+      .replaceAllMapped(
+          RegExp(r'([a-z])([A-Z])'), (m) => '${m.group(1)} ${m.group(2)}')
       .trim();
   if (spaced.isEmpty) return value;
   return '${spaced[0].toUpperCase()}${spaced.substring(1)}';

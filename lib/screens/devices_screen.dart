@@ -22,9 +22,8 @@ class DevicesScreen extends StatelessWidget {
         body: PageFrame(
           children: [
             PhytoPageIntro(
-              eyebrow: FarmerLanguage.isTamil(context)
-                  ? 'இணைப்பு'
-                  : 'CONNECTION',
+              eyebrow:
+                  FarmerLanguage.isTamil(context) ? 'இணைப்பு' : 'CONNECTION',
               title: FarmerLanguage.isTamil(context)
                   ? 'தரவு எங்கிருந்து வருகிறது'
                   : 'Choose where data comes from',

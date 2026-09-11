@@ -32,7 +32,8 @@ class SensorProviderManager extends SensorDataProvider {
 
   String get hardwareEndpoint => _hardware.endpoint;
   HardwareTransportMode get hardwareTransportMode => _hardwareTransportMode;
-  HardwareTransportKind get activeHardwareTransport => _hardware.activeTransport;
+  HardwareTransportKind get activeHardwareTransport =>
+      _hardware.activeTransport;
   HardwareConnectionMetadata get hardwareConnectionMetadata =>
       _hardware.connectionMetadata;
 

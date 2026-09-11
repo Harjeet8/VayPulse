@@ -53,7 +53,8 @@ class _BootMotionPainter extends CustomPainter {
     final pulse = (math.sin(phase * math.pi * 2) + 1) / 2;
     final haloColor = dark ? const Color(0xFFB9E7D4) : const Color(0xFF176B4D);
     final routeColor = dark ? const Color(0xFF8BD7B5) : const Color(0xFF2B8D64);
-    final packetColor = dark ? const Color(0xFFD7F7E9) : const Color(0xFF176B4D);
+    final packetColor =
+        dark ? const Color(0xFFD7F7E9) : const Color(0xFF176B4D);
     final glowColor = dark ? const Color(0xFF8FE1BD) : const Color(0xFF31A36F);
 
     final haloPaint = Paint()
@@ -122,7 +123,8 @@ class _BootMotionPainter extends CustomPainter {
 
     final packetPaint = Paint()..style = PaintingStyle.fill;
     for (var routeIndex = 0; routeIndex < routes.length; routeIndex++) {
-      final metrics = routes[routeIndex].computeMetrics().toList(growable: false);
+      final metrics =
+          routes[routeIndex].computeMetrics().toList(growable: false);
       if (metrics.isEmpty) continue;
       final metric = metrics.first;
       final local = (phase + routeIndex * 0.19) % 1.0;

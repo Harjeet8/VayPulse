@@ -87,7 +87,8 @@ void main() {
   });
 
   test('Judge View exposes model and cause-response intelligence', () {
-    final source = File('lib/screens/judge_view_screen.dart').readAsStringSync();
+    final source =
+        File('lib/screens/judge_view_screen.dart').readAsStringSync();
     expect(source, contains("'Individual Plant Model'"));
     expect(source, contains("'Cause-Response Intelligence'"));
     expect(source, contains("'Prediction confidence'"));

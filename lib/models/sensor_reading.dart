@@ -238,8 +238,7 @@ class SensorReading {
         _available(json, 'plantSignal') || _available(json, 'plantVoltageMv');
 
     final soil = soilAvailable ? _num(json['soilMoisture']) : 62.0;
-    final temperature =
-        temperatureAvailable ? _num(json['temperature']) : 25.0;
+    final temperature = temperatureAvailable ? _num(json['temperature']) : 25.0;
     final humidity = humidityAvailable ? _num(json['humidity']) : 58.0;
     final light = lightAvailable ? _num(json['light']) : 68.0;
     final plantSignal = _available(json, 'plantSignal')
@@ -306,8 +305,7 @@ class SensorReading {
       soilCalibrated: json['soilCalibrated'] == true,
       leafCalibrated: json['leafCalibrated'] == true,
       daytime: json['daytime'] != false,
-      leafWetDurationSeconds:
-          _nullableNum(json['leafWetDurationSeconds']) ?? 0,
+      leafWetDurationSeconds: _nullableNum(json['leafWetDurationSeconds']) ?? 0,
       recentWetExposureSeconds:
           _nullableNum(json['recentWetExposureSeconds']) ?? 0,
       bioBaselineReady: json['bioBaselineReady'] == true,
@@ -315,8 +313,7 @@ class SensorReading {
       bioBaselineMv: _nullableNum(json['bioBaselineMv']),
       bioDeviationMv: _nullableNum(json['bioDeviationMv']),
       bioNoiseMv: _nullableNum(json['bioNoiseMv']),
-      bioSignalQuality:
-          _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
+      bioSignalQuality: _bounded(_nullableNum(json['bioSignalQuality']) ?? 0),
       soilMoistureAvailable: soilAvailable,
       temperatureAvailable: temperatureAvailable,
       humidityAvailable: humidityAvailable,
@@ -340,8 +337,7 @@ class SensorReading {
 
   static double? _nullableNum(dynamic value) {
     if (value == null) return null;
-    final parsed =
-        value is num ? value.toDouble() : double.tryParse('$value');
+    final parsed = value is num ? value.toDouble() : double.tryParse('$value');
     return parsed?.isFinite == true ? parsed : null;
   }
 
@@ -373,10 +369,8 @@ class SensorReading {
       usedWeight += weight;
     }
 
-    add(100 - (soilMoisture - 62).abs() * 1.2, 0.4,
-        soilMoistureAvailable);
-    add(100 - (temperature - 25).abs() * 4.0, 0.3,
-        temperatureAvailable);
+    add(100 - (soilMoisture - 62).abs() * 1.2, 0.4, soilMoistureAvailable);
+    add(100 - (temperature - 25).abs() * 4.0, 0.3, temperatureAvailable);
     add(100 - (humidity - 60).abs() * 1.1, 0.2, humidityAvailable);
     add(100 - (light - 65).abs() * 0.8, 0.1, lightAvailable);
     return usedWeight == 0
@@ -483,8 +477,7 @@ class SensorReading {
       atmosphericScore: atmosphericScore ?? this.atmosphericScore,
       lightScore: lightScore ?? this.lightScore,
       diseaseRisk: diseaseRisk ?? this.diseaseRisk,
-      bioelectricStability:
-          bioelectricStability ?? this.bioelectricStability,
+      bioelectricStability: bioelectricStability ?? this.bioelectricStability,
       soilRaw: soilRaw ?? this.soilRaw,
       leafRaw: leafRaw ?? this.leafRaw,
       soilCalibrated: soilCalibrated ?? this.soilCalibrated,
@@ -502,16 +495,13 @@ class SensorReading {
       bioSignalQuality: bioSignalQuality ?? this.bioSignalQuality,
       soilMoistureAvailable:
           soilMoistureAvailable ?? this.soilMoistureAvailable,
-      temperatureAvailable:
-          temperatureAvailable ?? this.temperatureAvailable,
+      temperatureAvailable: temperatureAvailable ?? this.temperatureAvailable,
       humidityAvailable: humidityAvailable ?? this.humidityAvailable,
       lightAvailable: lightAvailable ?? this.lightAvailable,
       soilTemperatureAvailable:
           soilTemperatureAvailable ?? this.soilTemperatureAvailable,
-      leafWetnessAvailable:
-          leafWetnessAvailable ?? this.leafWetnessAvailable,
-      plantSignalAvailable:
-          plantSignalAvailable ?? this.plantSignalAvailable,
+      leafWetnessAvailable: leafWetnessAvailable ?? this.leafWetnessAvailable,
+      plantSignalAvailable: plantSignalAvailable ?? this.plantSignalAvailable,
     );
   }
 

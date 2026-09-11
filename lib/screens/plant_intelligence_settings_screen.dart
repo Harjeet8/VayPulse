@@ -119,7 +119,8 @@ class _PlantIntelligenceSettingsScreenState
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(tamil ? 'Baseline reset செய்யவா?' : 'Reset adaptive baseline?'),
+        title: Text(
+            tamil ? 'Baseline reset செய்யவா?' : 'Reset adaptive baseline?'),
         content: Text(
           tamil
               ? 'செடியின் கற்ற மின்சார baseline மறுபடியும் ஆரம்பிக்கும். புதிய normal pattern கற்க சிறிது நேரம் தேவைப்படும்.'
@@ -163,9 +164,8 @@ class _PlantIntelligenceSettingsScreenState
     final tamil = FarmerLanguage.isTamil(context);
     final live = sensors.source == SensorDataSource.esp32;
     final edge = sensors.edgeIntelligence;
-    final cropId = _config?.cropId ??
-        _normalId(edge?.cropProfile.profile) ??
-        'universal';
+    final cropId =
+        _config?.cropId ?? _normalId(edge?.cropProfile.profile) ?? 'universal';
     final stageId = _config?.growthStage ??
         _normalId(edge?.cropProfile.growthStage) ??
         'general';
@@ -188,7 +188,9 @@ class _PlantIntelligenceSettingsScreenState
         children: [
           PhytoPageIntro(
             eyebrow: 'ESP32',
-            title: tamil ? 'செடி நுண்ணறிவு அமைப்புகள்' : 'Plant intelligence settings',
+            title: tamil
+                ? 'செடி நுண்ணறிவு அமைப்புகள்'
+                : 'Plant intelligence settings',
             body: tamil
                 ? 'பயிர், வளர்ச்சி நிலை மற்றும் கற்றல் அமைப்புகளை மாற்றுங்கள்.'
                 : 'Manage crop, growth stage, and learning settings on the node.',
@@ -232,7 +234,8 @@ class _PlantIntelligenceSettingsScreenState
                     DropdownButtonFormField<String>(
                       isExpanded: true,
                       key: ValueKey('crop-$cropId'),
-                      initialValue: _crops.containsKey(cropId) ? cropId : 'universal',
+                      initialValue:
+                          _crops.containsKey(cropId) ? cropId : 'universal',
                       decoration: InputDecoration(
                         labelText: tamil ? 'Crop Profile' : 'Crop Profile',
                         prefixIcon: const Icon(Icons.eco_outlined),
@@ -251,7 +254,8 @@ class _PlantIntelligenceSettingsScreenState
                     DropdownButtonFormField<String>(
                       isExpanded: true,
                       key: ValueKey('stage-$stageId'),
-                      initialValue: _stages.containsKey(stageId) ? stageId : 'general',
+                      initialValue:
+                          _stages.containsKey(stageId) ? stageId : 'general',
                       decoration: InputDecoration(
                         labelText: tamil ? 'Growth Stage' : 'Growth Stage',
                         prefixIcon: const Icon(Icons.timeline_rounded),
@@ -278,7 +282,8 @@ class _PlantIntelligenceSettingsScreenState
                 ListTile(
                   leading: const Icon(Icons.check_circle_outline_rounded),
                   title: Text(tamil ? 'Active Crop' : 'Active Crop'),
-                  subtitle: Text(_crops[cropId] ?? _config?.cropName ?? 'Universal'),
+                  subtitle:
+                      Text(_crops[cropId] ?? _config?.cropName ?? 'Universal'),
                 ),
                 const Divider(height: 1),
                 ListTile(
@@ -289,8 +294,10 @@ class _PlantIntelligenceSettingsScreenState
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.monitor_heart_outlined),
-                  title: Text(tamil ? 'Adaptive Baseline' : 'Adaptive Baseline'),
-                  subtitle: Text(FarmerLanguage.firmware(context, baselineStatus)),
+                  title:
+                      Text(tamil ? 'Adaptive Baseline' : 'Adaptive Baseline'),
+                  subtitle:
+                      Text(FarmerLanguage.firmware(context, baselineStatus)),
                   trailing: TextButton(
                     onPressed: live && !_saving ? _resetBaseline : null,
                     child: Text(tamil ? 'Reset' : 'Reset'),

@@ -6,7 +6,8 @@ import 'package:phytosense_ai/models/hardware_transport.dart';
 import 'package:phytosense_ai/services/esp32_client.dart';
 
 void main() {
-  test('local Real Time Signal keeps voltage visible and health authoritative', () {
+  test('local Real Time Signal keeps voltage visible and health authoritative',
+      () {
     final payload = <String, dynamic>{
       'schemaVersion': 9,
       'bioSource': 'realtime',
@@ -48,8 +49,8 @@ void main() {
       'status': 'EXCELLENT',
       'airTemperature': 28.0,
     };
-    final snapshot = Esp32Client('https://firebase.transport.invalid')
-        .decodeSnapshot(
+    final snapshot =
+        Esp32Client('https://firebase.transport.invalid').decodeSnapshot(
       http.Response(
         jsonEncode(payload),
         200,
