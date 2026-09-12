@@ -2140,17 +2140,6 @@ IconData _homeWeatherIcon(int code) {
   return Icons.cloud_queue_rounded;
 }
 
-String _farmerTrend(BuildContext context, String raw) {
-  final value = raw.toUpperCase();
-  if (value.contains('IMPROV') || value.contains('RISING'))
-    return FarmerLanguage.label(context, 'improving');
-  if (value.contains('WORSE') || value.contains('FALLING_FAST'))
-    return FarmerLanguage.label(context, 'getting_worse_quickly');
-  if (value.contains('FALLING'))
-    return FarmerLanguage.label(context, 'getting_worse');
-  return FarmerLanguage.label(context, 'stable');
-}
-
 String _plantResponse(BuildContext context, BioelectricIntelligence bio) {
   if (bio.available == false)
     return FarmerLanguage.label(context, 'signal_unavailable');
@@ -2209,9 +2198,5 @@ String _relativeAge(Duration age) {
   if (age.inSeconds < 60) return '${age.inSeconds}s ago';
   if (age.inMinutes < 60) return '${age.inMinutes}m ago';
   return '${age.inHours}h ago';
-}
-
-extension _FirstOrNull<T> on Iterable<T> {
-  T? get firstOrNull => isEmpty ? null : first;
 }
 
