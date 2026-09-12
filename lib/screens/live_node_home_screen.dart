@@ -18,7 +18,6 @@ import '../widgets/biotic_stress_card.dart';
 import '../widgets/calibre_upgrade_panels.dart';
 import '../widgets/competition_intelligence_panels.dart';
 import '../widgets/page_frame.dart';
-import '../widgets/phyto_ui.dart';
 import '../widgets/verdant_care_hero.dart';
 import '../widgets/care_actions.dart';
 import 'settings_screen.dart';
@@ -727,36 +726,6 @@ class _PlantHealthMeterPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant _PlantHealthMeterPainter oldDelegate) =>
       oldDelegate.score != score;
-}
-
-class _StatusMetric extends StatelessWidget {
-  final String label;
-  final String value;
-
-  const _StatusMetric({required this.label, required this.value});
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 5),
-        child: Column(
-          children: [
-            Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: Theme.of(context).textTheme.labelSmall,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              value,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.w900),
-            ),
-          ],
-        ),
-      );
 }
 
 class _WeatherHomeCard extends StatelessWidget {
@@ -2095,44 +2064,6 @@ String _simpleConditionTitle(
   return FarmerLanguage.firmware(context, main ?? rawState);
 }
 
-String _simpleConditionSummary(
-  BuildContext context, {
-  required String raw,
-  required String title,
-  required bool healthy,
-}) {
-  if (healthy) {
-    return _competitionText(
-      context,
-      'Soil, climate and plant response look normal.',
-      'மண், வானிலை மற்றும் செடியின் பதில் இயல்பாக உள்ளன.',
-    );
-  }
-  final clean = FarmerLanguage.firmware(context, raw).trim();
-  if (clean.isEmpty ||
-      clean.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '') ==
-          title.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]'), '')) {
-    return '';
-  }
-  final value = raw.toUpperCase();
-  if ((value.contains('HEAT') && value.contains('WATER')) ||
-      value.contains('COMPOUND')) {
-    return _competitionText(
-      context,
-      'High heat and very dry soil are stressing the plant.',
-      'அதிக வெப்பமும் மிகவும் உலர்ந்த மண்ணும் செடிக்கு அழுத்தம் தருகின்றன.',
-    );
-  }
-  if (value.contains('ATMOSPHERIC') || value.contains('DRYING')) {
-    return _competitionText(
-      context,
-      'The air is pulling water from the plant quickly.',
-      'காற்று செடியிலிருந்து நீரை வேகமாக இழுக்கிறது.',
-    );
-  }
-  return clean;
-}
-
 String _simpleFarmerAction(
   BuildContext context,
   String raw, {
@@ -2209,29 +2140,6 @@ IconData _homeWeatherIcon(int code) {
   return Icons.cloud_queue_rounded;
 }
 
-String _conditionTrend(BuildContext context, EdgeIntelligence? edge) {
-  if (edge?.recovery.active == true ||
-      edge?.plantState?.toUpperCase() == 'RECOVERING') {
-    return FarmerLanguage.label(context, 'recovering');
-  }
-  final health = edge?.trends
-      .where((t) => t.channel.toLowerCase().contains('health'))
-      .firstOrNull;
-  if (health?.state != null) return _farmerTrend(context, health!.state!);
-  final bioTrend = edge?.bioelectric.trend;
-  if (bioTrend != null) {
-    final upper = bioTrend.toUpperCase();
-    if (upper.contains('RISING_FAST') || upper.contains('RISING_QUICK')) {
-      return FarmerLanguage.label(context, 'getting_worse_quickly');
-    }
-    if (upper.contains('RISING'))
-      return FarmerLanguage.label(context, 'getting_worse');
-    if (upper.contains('FALLING'))
-      return FarmerLanguage.label(context, 'improving');
-  }
-  return FarmerLanguage.label(context, 'stable');
-}
-
 String _farmerTrend(BuildContext context, String raw) {
   final value = raw.toUpperCase();
   if (value.contains('IMPROV') || value.contains('RISING'))
@@ -2241,23 +2149,6 @@ String _farmerTrend(BuildContext context, String raw) {
   if (value.contains('FALLING'))
     return FarmerLanguage.label(context, 'getting_worse');
   return FarmerLanguage.label(context, 'stable');
-}
-
-String _severity(
-    BuildContext context, String? urgency, String state, bool recovering) {
-  if (recovering) return FarmerLanguage.label(context, 'low');
-  final value = (urgency ?? state).toUpperCase();
-  if (value.contains('CRITICAL') ||
-      value.contains('HIGH') ||
-      value.contains('URGENT')) {
-    return FarmerLanguage.label(context, 'high');
-  }
-  if (value.contains('WATCH') ||
-      value.contains('ATTENTION') ||
-      value.contains('STRESS')) {
-    return FarmerLanguage.label(context, 'medium');
-  }
-  return FarmerLanguage.label(context, 'low');
 }
 
 String _plantResponse(BuildContext context, BioelectricIntelligence bio) {
@@ -2320,12 +2211,7 @@ String _relativeAge(Duration age) {
   return '${age.inHours}h ago';
 }
 
-String _duration(double seconds) {
-  if (seconds < 60) return '${seconds.round()} sec';
-  if (seconds < 3600) return '${(seconds / 60).round()} min';
-  return '${(seconds / 3600).toStringAsFixed(1)} h';
-}
-
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
 }
+
