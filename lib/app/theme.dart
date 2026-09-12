@@ -208,7 +208,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         disabledForegroundColor: scheme.onSurfaceVariant,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w700),
+        textStyle: typography.labelLarge?.copyWith(fontWeight: FontWeight.w700),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -217,13 +217,13 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         foregroundColor: scheme.primary,
         side: BorderSide(color: dark ? scheme.outline : scheme.outlineVariant),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        textStyle: typography.labelLarge,
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: scheme.primary,
-        textStyle: const TextStyle(fontWeight: FontWeight.w600),
+        textStyle: typography.labelLarge,
       ),
     ),
     chipTheme: base.chipTheme.copyWith(
@@ -396,3 +396,4 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     ),
   );
 }
+

@@ -2022,7 +2022,7 @@ String _simpleConditionTitle(
       value.contains('COMPOUND')) {
     return _competitionText(
       context,
-      'Heat and dry soil need urgent attention',
+      'The plant is too hot. The soil is too dry.',
       'வெப்பம் மற்றும் உலர் மண்ணை உடனே கவனிக்கவும்',
     );
   }
@@ -2090,7 +2090,7 @@ String _simpleFarmerAction(
       value.contains('URGENT')) {
     return _competitionText(
       context,
-      'Check the soil near the roots. If it is dry, water slowly and protect the plant from strong midday heat.',
+      'Check the soil near the roots. If dry, water slowly. Give shade during strong midday heat.',
       'வேர் அருகே மண்ணை பாருங்கள். உலர்ந்தால் மெதுவாக நீர் பாய்ச்சி, முடிந்தால் மதிய வெப்பத்தை குறைக்கவும்.',
     );
   }
@@ -2199,3 +2199,4 @@ String _relativeAge(Duration age) {
   if (age.inMinutes < 60) return '${age.inMinutes}m ago';
   return '${age.inHours}h ago';
 }
+

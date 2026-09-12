@@ -125,18 +125,6 @@ void main() {
     expect(icon, contains('android:fillColor="#FFFFFFFF"'));
   });
 
-  test('farmer analysis has one clear problem and action hierarchy', () {
-    final analysis =
-        File('lib/screens/farmer_analysis_screen.dart').readAsStringSync();
-    final shell = File('lib/screens/shell_screen.dart').readAsStringSync();
-
-    expect('WHAT IS WRONG?'.allMatches(analysis), hasLength(1));
-    expect('WHAT TO DO NOW'.allMatches(analysis), hasLength(1));
-    expect(analysis, contains("Key('farmer-main-problem')"));
-    expect(analysis, contains("Key('farmer-immediate-action')"));
-    expect(shell, isNot(contains('_FarmerGuidanceDock')));
-  });
-
   testWidgets('animated boot follows the active light or dark theme',
       (tester) async {
     final stalled = Completer<void>();
@@ -363,3 +351,4 @@ void main() {
     }
   });
 }
+

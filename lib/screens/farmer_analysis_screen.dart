@@ -39,19 +39,6 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
             title: Text(
               _analysisText(context, 'Plant care', 'செடி பராமரிப்பு'),
             ),
-            actions: [
-              IconButton(
-                tooltip: FarmerLanguage.label(context, 'speak_summary'),
-                onPressed: reading == null || !canShowCurrent
-                    ? null
-                    : () => _speakSummary(
-                          context,
-                          reading,
-                          edge,
-                        ),
-                icon: const Icon(Icons.volume_up_outlined),
-              ),
-            ],
           ),
           body: RefreshIndicator(
             onRefresh: () async {
@@ -130,58 +117,6 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
     );
   }
 
-  static Future<void> _speakSummary(
-    BuildContext context,
-    SensorReading reading,
-    EdgeIntelligence? edge,
-  ) async {
-    final scope = AppScope.of(context);
-    final rawState = edge?.plantState ?? reading.healthStatus;
-    final possibleBiotic = edge?.bioticStress.suspected == true;
-    final recovering = edge?.recovery.active == true ||
-        rawState.toUpperCase().contains('RECOVER');
-    final healthy =
-        !possibleBiotic && !recovering && _isFarmerHealthyState(rawState);
-    final problem = _farmerProblem(
-      context,
-      possibleBiotic
-          ? FarmerLanguage.label(context, 'possible_biotic_title')
-          : edge?.rootCause.primary ?? edge?.farmerSummary,
-      healthy: healthy,
-      possibleBiotic: possibleBiotic,
-    );
-    final action = _farmerAction(
-      context,
-      edge,
-      problem: problem,
-      healthy: healthy,
-      recovering: recovering,
-      possibleBiotic: possibleBiotic,
-    );
-    final phrases = <String>[
-      _farmerStatus(
-        context,
-        rawState,
-        healthy: healthy,
-        recovering: recovering,
-        possibleBiotic: possibleBiotic,
-      ),
-      problem,
-      action,
-    ].where((value) => value.trim().isNotEmpty).toSet().toList();
-    if (phrases.isEmpty) return;
-
-    final spoken = await scope.voice.speak(
-      text: phrases.join('. '),
-      languageCode: scope.settings.value.languageCode,
-    );
-    if (!context.mounted || spoken) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(FarmerLanguage.label(context, 'voice_unavailable')),
-      ),
-    );
-  }
 }
 
 class _FarmerResultHero extends StatelessWidget {
@@ -231,25 +166,12 @@ class _FarmerResultHero extends StatelessWidget {
     );
     final crop = edge?.cropProfile.profile ?? 'Universal';
     return Semantics(
-      key: const Key('farmer-care-summary'),
-      container: true,
+      key: const Key('farmer-care-summary'), container: true,
       child: VerdantCareHero(
-        condition: status,
-        problem: problem,
-        action: action,
-        crop: FarmerLanguage.firmware(context, crop),
-        source: _analysisText(context, live ? 'Live sensor' : 'Simulation',
-            live ? 'நேரடி சென்சார்' : 'சிமுலேஷன்'),
-        showMeter: false,
-        tamil: FarmerLanguage.isTamil(context),
-        accent: _conditionColor(context, rawState),
-        controls: CareActions(
-            condition: status,
-            problem: problem,
-            action: action,
-            plant: crop,
-            source: live ? 'hardware' : 'simulation',
-            timestamp: reading.timestamp),
+        condition: status, problem: problem, action: action, crop: FarmerLanguage.firmware(context, crop),
+        source: _analysisText(context, live ? 'Live sensor' : 'Simulation', live ? 'நேரடி சென்சார்' : 'சிமுலேஷன்'),
+        showMeter: false, tamil: FarmerLanguage.isTamil(context), accent: _conditionColor(context, rawState),
+        controls: CareActions(condition: status, problem: problem, action: action, plant: crop, source: live ? 'hardware' : 'simulation', timestamp: reading.timestamp),
       ),
     );
   }
@@ -1417,7 +1339,7 @@ String _farmerProblem(
       value.contains('COMPOUND')) {
     return _analysisText(
       context,
-      'Heat and dry soil are stressing the plant.',
+      'The plant is too hot. The soil is too dry.',
       'வெப்பமும் உலர்ந்த மண்ணும் செடிக்கு அழுத்தம் தருகின்றன.',
     );
   }
@@ -1536,7 +1458,7 @@ String _farmerAction(
       (value.contains('DRY') || value.contains('WATER'))) {
     return _analysisText(
       context,
-      'Check the soil near the roots. If it is dry, water slowly and protect the plant from strong midday heat.',
+      'Check the soil near the roots. If dry, water slowly. Give shade during strong midday heat.',
       'வேர் அருகே மண்ணை பாருங்கள். உலர்ந்தால் மெதுவாக நீர் பாய்ச்சி, முடிந்தால் மதிய வெப்பத்தை குறைக்கவும்.',
     );
   }
@@ -1621,3 +1543,4 @@ String _time(DateTime value) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${two(local.hour)}:${two(local.minute)}:${two(local.second)}';
 }
+
