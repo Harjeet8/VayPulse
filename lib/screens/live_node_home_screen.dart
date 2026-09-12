@@ -2352,7 +2352,8 @@ String _simpleFarmerAction(
   );
 }
 
-// ignore: unused_element\nString _simpleMeterStatus(BuildContext context, double score, String rawState) {
+// ignore: unused_element
+String _simpleMeterStatus(BuildContext context, double score, String rawState) {
   if (rawState.toUpperCase().contains('RECOVER')) {
     return FarmerLanguage.label(context, 'recovering');
   }
