@@ -126,6 +126,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload verified APK handoff
+        continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
           name: PhytoSense-AI-VERDANT-MARKET-10.0.0-1000
@@ -134,6 +135,25 @@ jobs:
             PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk.sha256
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish verified GitHub release handoff
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          OUT="PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk"
+          TAG="phytosense-v10.0.0-verdant-market"
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release upload "$TAG" "$OUT" "$OUT.sha256" \
+              --repo "$GITHUB_REPOSITORY" --clobber
+          else
+            gh release create "$TAG" "$OUT" "$OUT.sha256" \
+              --repo "$GITHUB_REPOSITORY" \
+              --target "$GITHUB_SHA" \
+              --title "PhytoSense AI 10.0.0 — Verdant Market" \
+              --notes "Verified farmer-first PhytoSense AI Android release from the authoritative phytosense-verdant-remote-final branch. Package com.harjeet.phytosense; release-obfuscated; debuggable=false."
+          fi
 
       - name: Optional external APK handoff
         continue-on-error: true
