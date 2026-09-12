@@ -55,7 +55,7 @@ class WeatherCenterScreen extends StatelessWidget {
                   'See heat, rain, and drying conditions in one place.',
                   'வெப்பம், மழை மற்றும் உலர் நிலையை ஒரே இடத்தில் பாருங்கள்.',
                 ),
-                icon: Icons.partly_cloudy_day_outlined,
+                icon: Icons.cloud_outlined,
               ),
               const SizedBox(height: 16),
               if (snapshot == null)

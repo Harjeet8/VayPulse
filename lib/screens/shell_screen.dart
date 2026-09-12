@@ -3,7 +3,6 @@ import 'package:flutter/services.dart';
 
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
-import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../widgets/bottom_nav.dart';
 import '../widgets/live_motion.dart';

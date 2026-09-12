@@ -786,7 +786,7 @@ class _ConditionCard extends StatelessWidget {
   }
 }
 
-class _PlantHealthMeter extends StatelessWidget {
+// Retained only as a reusable engineering visualization; Home intentionally\n// presents the ESP32 conclusion in words instead of a calculated-looking dial.\n// ignore: unused_element\nclass _PlantHealthMeter extends StatelessWidget {
   final double score;
   final String status;
 
@@ -2349,7 +2349,7 @@ String _simpleFarmerAction(
   );
 }
 
-String _simpleMeterStatus(BuildContext context, double score, String rawState) {
+// ignore: unused_element\nString _simpleMeterStatus(BuildContext context, double score, String rawState) {
   if (rawState.toUpperCase().contains('RECOVER')) {
     return FarmerLanguage.label(context, 'recovering');
   }

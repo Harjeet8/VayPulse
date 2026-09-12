@@ -699,7 +699,7 @@ class _EvidenceRow extends StatelessWidget {
       );
 }
 
-class _BioelectricHero extends StatelessWidget {
+// Kept as an engineering-view building block for firmware compatibility.\n// ignore: unused_element\nclass _BioelectricHero extends StatelessWidget {
   final BioelectricIntelligence bio;
 
   const _BioelectricHero({required this.bio});
@@ -847,7 +847,7 @@ class _BioelectricHero extends StatelessWidget {
   }
 }
 
-class _WaterBalanceCard extends StatelessWidget {
+// Kept for the optional advanced hardware view.\n// ignore: unused_element\nclass _WaterBalanceCard extends StatelessWidget {
   final WaterBalanceInfo waterBalance;
 
   const _WaterBalanceCard({required this.waterBalance});
@@ -983,7 +983,7 @@ class _CameraRecommendationCard extends StatelessWidget {
       );
 }
 
-class _AnswerCard extends StatelessWidget {
+// Kept for downstream extension screens without duplicating farmer guidance.\n// ignore: unused_element\nclass _AnswerCard extends StatelessWidget {
   final IconData icon;
   final String title;
   final String value;
@@ -1042,7 +1042,7 @@ class _AnswerCard extends StatelessWidget {
   }
 }
 
-class _ConfidenceCard extends StatelessWidget {
+// Kept for the optional engineering confidence surface.\n// ignore: unused_element\nclass _ConfidenceCard extends StatelessWidget {
   final double? value;
   final bool degraded;
   final String? degradedReason;
