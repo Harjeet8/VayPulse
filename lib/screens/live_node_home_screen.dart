@@ -786,7 +786,10 @@ class _ConditionCard extends StatelessWidget {
   }
 }
 
-// Retained only as a reusable engineering visualization; Home intentionally\n// presents the ESP32 conclusion in words instead of a calculated-looking dial.\n// ignore: unused_element\nclass _PlantHealthMeter extends StatelessWidget {
+// Retained only as a reusable engineering visualization; Home intentionally
+// presents the ESP32 conclusion in words instead of a calculated-looking dial.
+// ignore: unused_element
+class _PlantHealthMeter extends StatelessWidget {
   final double score;
   final String status;
 
