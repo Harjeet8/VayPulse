@@ -1,0 +1,42 @@
+name: Publish PhytoSense APK external mirror
+
+on:
+  push:
+    branches:
+      - phytosense-verdant-remote-final
+    paths:
+      - .github/workflows/external-apk-handoff.yml
+
+permissions:
+  contents: read
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Download the verified Verdant release APK
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          gh release download phytosense-v10.0.0-verdant-market \
+            --repo "$GITHUB_REPOSITORY" \
+            --pattern 'PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk' \
+            --pattern 'PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk.sha256'
+          sha256sum --check PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk.sha256
+
+      - name: Upload a non-GitHub download mirror
+        shell: bash
+        run: |
+          set -euo pipefail
+          OUT='PhytoSense-AI-VERDANT-MARKET-10.0.0-1000.apk'
+          response="$(curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 3 \
+            -F "file=@$OUT" https://upload.gofile.io/uploadfile)"
+          url="$(jq -r '.data.downloadPage // empty' <<<"$response")"
+          test "$url" != ""
+          echo "PHYTO_NONGITHUB_URL=$url"
+          echo "## Non-GitHub APK mirror" >> "$GITHUB_STEP_SUMMARY"
+          echo "$url" >> "$GITHUB_STEP_SUMMARY"
