@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 
 const phytoGreen = Color(0xFF1D684D);
 const phytoLeaf = Color(0xFF4C8F6D);
+const phytoWater = Color(0xFF397F96);
+const phytoLavender = Color(0xFF727AA3);
+const phytoSun = Color(0xFFAE7734);
 const phytoMint = Color(0xFFE3F0E7);
 const phytoAmber = Color(0xFFC88427);
 const phytoTerracotta = Color(0xFFB95F43);
@@ -64,27 +67,27 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
   final typography = base.textTheme
       .copyWith(
         displaySmall: base.textTheme.displaySmall?.copyWith(
-          fontWeight: FontWeight.w800,
-          letterSpacing: -1.2,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.7,
           height: 1.06,
         ),
         headlineLarge: base.textTheme.headlineLarge?.copyWith(
-          fontWeight: FontWeight.w800,
-          letterSpacing: -0.9,
+          fontWeight: FontWeight.w600,
+          letterSpacing: -0.5,
           height: 1.1,
         ),
         headlineMedium: base.textTheme.headlineMedium?.copyWith(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.65,
           height: 1.13,
         ),
         headlineSmall: base.textTheme.headlineSmall?.copyWith(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.45,
           height: 1.18,
         ),
         titleLarge: base.textTheme.titleLarge?.copyWith(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           letterSpacing: -0.35,
         ),
         titleMedium: base.textTheme.titleMedium?.copyWith(
@@ -93,7 +96,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         bodyLarge: base.textTheme.bodyLarge?.copyWith(height: 1.48),
         bodyMedium: base.textTheme.bodyMedium?.copyWith(height: 1.44),
         labelLarge: base.textTheme.labelLarge?.copyWith(
-          fontWeight: FontWeight.w800,
+          fontWeight: FontWeight.w600,
           letterSpacing: 0.05,
         ),
       )
@@ -142,7 +145,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       toolbarHeight: 68,
       titleTextStyle: typography.titleLarge?.copyWith(
         color: scheme.onSurface,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w700,
         letterSpacing: -0.4,
       ),
     ),
@@ -168,7 +171,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       labelStyle: TextStyle(color: scheme.onSurfaceVariant),
       floatingLabelStyle: TextStyle(
         color: scheme.primary,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
       ),
       hintStyle: TextStyle(
         color: scheme.onSurfaceVariant.withValues(alpha: 0.72),
@@ -205,7 +208,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         disabledForegroundColor: scheme.onSurfaceVariant,
         elevation: 0,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w900),
+        textStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
     ),
     outlinedButtonTheme: OutlinedButtonThemeData(
@@ -214,13 +217,13 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
         foregroundColor: scheme.primary,
         side: BorderSide(color: dark ? scheme.outline : scheme.outlineVariant),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
       ),
     ),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
         foregroundColor: scheme.primary,
-        textStyle: const TextStyle(fontWeight: FontWeight.w800),
+        textStyle: const TextStyle(fontWeight: FontWeight.w600),
       ),
     ),
     chipTheme: base.chipTheme.copyWith(
@@ -236,7 +239,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       ),
       secondaryLabelStyle: TextStyle(
         color: scheme.onPrimaryContainer,
-        fontWeight: FontWeight.w800,
+        fontWeight: FontWeight.w600,
       ),
     ),
     segmentedButtonTheme: SegmentedButtonThemeData(
@@ -266,7 +269,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
               : scheme.onSurfaceVariant,
         ),
         textStyle: const WidgetStatePropertyAll(
-          TextStyle(fontWeight: FontWeight.w800),
+          TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
     ),
@@ -295,7 +298,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       valueIndicatorColor: scheme.primaryContainer,
       valueIndicatorTextStyle: TextStyle(
         color: scheme.onPrimaryContainer,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w700,
       ),
     ),
     listTileTheme: ListTileThemeData(
@@ -323,7 +326,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
               : scheme.onSurfaceVariant,
           fontSize: 12,
           fontWeight: states.contains(WidgetState.selected)
-              ? FontWeight.w900
+              ? FontWeight.w700
               : FontWeight.w700,
         ),
       ),
@@ -336,7 +339,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       unselectedLabelTextStyle: TextStyle(color: scheme.onSurfaceVariant),
       selectedLabelTextStyle: TextStyle(
         color: scheme.primary,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w700,
       ),
     ),
     bottomSheetTheme: BottomSheetThemeData(
@@ -366,7 +369,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
       surfaceTintColor: Colors.transparent,
       titleTextStyle: base.textTheme.titleLarge?.copyWith(
         color: scheme.onSurface,
-        fontWeight: FontWeight.w900,
+        fontWeight: FontWeight.w700,
       ),
       contentTextStyle: base.textTheme.bodyMedium?.copyWith(
         color: scheme.onSurfaceVariant,
@@ -393,3 +396,4 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     ),
   );
 }
+

@@ -36,47 +36,44 @@ class BottomNav extends StatelessWidget {
         top: false,
         child: NavigationBar(
           height: 70,
-          labelBehavior: NavigationDestinationLabelBehavior.onlyShowSelected,
+          labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
           backgroundColor: Colors.transparent,
           indicatorColor: theme.colorScheme.primaryContainer,
-          selectedIndex: index,
+          selectedIndex: index > 4 ? 0 : index,
           onDestinationSelected: onChanged,
           destinations: [
             NavigationDestination(
-              icon: const LiveMotionIcon(icon: Icons.home_outlined),
-              selectedIcon: const LiveMotionIcon(icon: Icons.home_rounded),
+              icon: const LiveMotionIcon(animate: false, icon: Icons.home_outlined),
+              selectedIcon: const LiveMotionIcon(animate: false, icon: Icons.home_rounded),
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(icon: Icons.psychology_alt_outlined),
+              icon: const LiveMotionIcon(animate: false, icon: Icons.spa_outlined),
               selectedIcon:
-                  const LiveMotionIcon(icon: Icons.psychology_alt_rounded),
+                  const LiveMotionIcon(animate: false, icon: Icons.spa_rounded),
               label: FarmerLanguage.label(context, 'analysis'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(icon: Icons.sensors_outlined),
-              selectedIcon: const LiveMotionIcon(icon: Icons.sensors_rounded),
+              icon: const LiveMotionIcon(animate: false, icon: Icons.sensors_outlined),
+              selectedIcon: const LiveMotionIcon(animate: false, icon: Icons.sensors_rounded),
               label: FarmerLanguage.label(context, 'sensors'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(icon: Icons.timeline_outlined),
-              selectedIcon: const LiveMotionIcon(icon: Icons.timeline_rounded),
+              icon: const LiveMotionIcon(animate: false, icon: Icons.timeline_outlined),
+              selectedIcon: const LiveMotionIcon(animate: false, icon: Icons.timeline_rounded),
               label: FarmerLanguage.label(context, 'history'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(icon: Icons.photo_camera_outlined),
+              icon: const LiveMotionIcon(animate: false, icon: Icons.photo_camera_outlined),
               selectedIcon:
-                  const LiveMotionIcon(icon: Icons.photo_camera_rounded),
+                  const LiveMotionIcon(animate: false, icon: Icons.photo_camera_rounded),
               label: FarmerLanguage.label(context, 'camera'),
             ),
-            NavigationDestination(
-              icon: const LiveMotionIcon(icon: Icons.settings_outlined),
-              selectedIcon: const LiveMotionIcon(icon: Icons.settings_rounded),
-              label: FarmerLanguage.label(context, 'settings'),
-            ),
+
           ],
         ),
       ),
     );
   }
 }
+

@@ -9,6 +9,9 @@ import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
 import '../widgets/phyto_ui.dart';
 import 'about_screen.dart';
+import 'care_journal_screen.dart';
+import 'setup_guide_screen.dart';
+import 'voice_studio_screen.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -36,6 +39,12 @@ class SettingsScreen extends StatelessWidget {
                   : 'Choose the data source, language, appearance and alerts in one place.',
               icon: Icons.tune_rounded,
             ),
+            const SizedBox(height: 22),
+            Card(child: Column(children: [
+              ListTile(leading: const Icon(Icons.record_voice_over_outlined, color: phytoWater), title: Text(FarmerLanguage.isTamil(context) ? 'குரல் வழிகாட்டுதல்' : 'Voice guidance'), trailing: const Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const VoiceStudioScreen()))),
+              ListTile(leading: const Icon(Icons.auto_stories_outlined, color: phytoTerracotta), title: Text(FarmerLanguage.isTamil(context) ? 'பராமரிப்பு பதிவு மற்றும் காப்புப்பிரதி' : 'Care diary & backup'), trailing: const Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CareJournalScreen()))),
+              ListTile(leading: const Icon(Icons.explore_outlined, color: phytoSun), title: Text(FarmerLanguage.isTamil(context) ? 'தொடங்குவோம்' : 'Getting started'), trailing: const Icon(Icons.chevron_right), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SetupGuideScreen()))),
+            ])),
             const SizedBox(height: 22),
             _SettingsLabel(context.tr('source_control')),
             const SizedBox(height: 8),
@@ -844,3 +853,4 @@ class _SettingsOption extends StatelessWidget {
     );
   }
 }
+

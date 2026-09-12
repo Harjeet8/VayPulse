@@ -24,6 +24,13 @@ class PhytoPageIntro extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
+    final accent = switch (icon) {
+      Icons.photo_camera_outlined || Icons.camera_alt_outlined || Icons.camera_alt_rounded => phytoTerracotta,
+      Icons.timeline_rounded || Icons.history_rounded => phytoLavender,
+      Icons.sensors_outlined || Icons.sensors_rounded => phytoWater,
+      Icons.wb_sunny_outlined || Icons.cloud_outlined => phytoSun,
+      _ => colors.primary,
+    };
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -32,12 +39,12 @@ class PhytoPageIntro extends StatelessWidget {
             width: 48,
             height: 48,
             decoration: BoxDecoration(
-              color: colors.primaryContainer,
+              color: accent.withValues(alpha: .13),
               borderRadius: BorderRadius.circular(16),
             ),
             child: LiveMotionIcon(
               icon: icon!,
-              color: colors.onPrimaryContainer,
+              color: accent,
             ),
           ),
           const SizedBox(width: 14),
@@ -50,7 +57,7 @@ class PhytoPageIntro extends StatelessWidget {
                 eyebrow.toUpperCase(),
                 style: Theme.of(context).textTheme.labelSmall?.copyWith(
                       color: colors.primary,
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w600,
                       letterSpacing: 1.1,
                     ),
               ),
@@ -549,3 +556,4 @@ class FarmerActionCard extends StatelessWidget {
 const uiHealthy = phytoGreen;
 const uiAttention = phytoAmber;
 const uiCritical = phytoTerracotta;
+

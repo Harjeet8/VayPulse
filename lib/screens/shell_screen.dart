@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import '../app/theme.dart';
+import '../services/app_scope.dart';
 import '../l10n/app_strings.dart';
 import '../services/farmer_language.dart';
 import '../widgets/bottom_nav.dart';
@@ -28,6 +29,7 @@ class _ShellScreenState extends State<ShellScreen> {
 
   void _select(int value) {
     if (value == index) return;
+    AppScope.of(context).voice.stop();
     setState(() => index = value);
   }
 
@@ -193,3 +195,4 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 }
+

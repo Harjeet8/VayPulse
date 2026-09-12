@@ -8,6 +8,8 @@ import '../services/sensor_data_provider.dart';
 import '../widgets/biotic_stress_card.dart';
 import '../widgets/page_frame.dart';
 import '../widgets/phyto_ui.dart';
+import '../widgets/verdant_care_hero.dart';
+import '../widgets/care_actions.dart';
 import 'leaf_screening_screen.dart';
 
 class FarmerAnalysisScreen extends StatefulWidget {
@@ -40,7 +42,7 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
             actions: [
               IconButton(
                 tooltip: FarmerLanguage.label(context, 'speak_summary'),
-                onPressed: reading == null
+                onPressed: reading == null || !canShowCurrent
                     ? null
                     : () => _speakSummary(
                           context,
@@ -58,31 +60,6 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
             },
             child: PageFrame(
               children: [
-                PhytoPageIntro(
-                  eyebrow: live
-                      ? _analysisText(
-                          context,
-                          'Real sensor guidance',
-                          'நேரடி சென்சார் வழிகாட்டுதல்',
-                        )
-                      : _analysisText(
-                          context,
-                          'Simulation practice',
-                          'சிமுலேஷன் பயிற்சி',
-                        ),
-                  title: _analysisText(
-                    context,
-                    'See the problem. Know what to do.',
-                    'பிரச்சினையை அறிந்து, என்ன செய்ய வேண்டும் என்று தெரிந்துகொள்ளுங்கள்.',
-                  ),
-                  body: _analysisText(
-                    context,
-                    'The most important answer is shown first in simple words.',
-                    'முக்கியமான பதில் எளிய வார்த்தைகளில் முதலில் காட்டப்படும்.',
-                  ),
-                  icon: Icons.eco_rounded,
-                ),
-                const SizedBox(height: 18),
                 if (!canShowCurrent)
                   _ConnectionNotice(
                     reading: reading,
@@ -252,188 +229,14 @@ class _FarmerResultHero extends StatelessWidget {
       recovering: recovering,
       possibleBiotic: possibleBiotic,
     );
-    final confidence = _finitePercent(
-      edge?.overallConfidence ??
-          reading.esp32HealthConfidence ??
-          reading.analysisConfidence,
-    );
     final crop = edge?.cropProfile.profile ?? 'Universal';
-    final stage = edge?.cropProfile.growthStage;
-    final accent = _conditionColor(context, rawState);
-    final sourceColor =
-        live ? const Color(0xFF2879B9) : const Color(0xFFE17A22);
-
     return Semantics(
-      key: const Key('farmer-care-summary'),
-      container: true,
-      label: '$status. $problem. $action',
-      child: PhytoSurface(
-        color: accent.withValues(alpha: 0.075),
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.grass_rounded, color: accent, size: 21),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    stage == null || stage.trim().isEmpty
-                        ? FarmerLanguage.firmware(context, crop)
-                        : '${FarmerLanguage.firmware(context, crop)}  •  ${FarmerLanguage.firmware(context, stage)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ),
-                Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
-                  decoration: BoxDecoration(
-                    color: sourceColor.withValues(alpha: 0.11),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    live ? 'LIVE ESP32' : 'DEMO DATA',
-                    style: TextStyle(
-                      color: sourceColor,
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.45,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 18),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: accent.withValues(alpha: 0.13),
-                    shape: BoxShape.circle,
-                  ),
-                  child: Icon(
-                    healthy
-                        ? Icons.check_rounded
-                        : recovering
-                            ? Icons.trending_up_rounded
-                            : Icons.priority_high_rounded,
-                    color: accent,
-                  ),
-                ),
-                const SizedBox(width: 13),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _analysisText(
-                          context,
-                          'PLANT CONDITION',
-                          'செடியின் நிலை',
-                        ),
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              color: accent,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 0.9,
-                            ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        status,
-                        style:
-                            Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                  color: accent,
-                                ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            Divider(color: accent.withValues(alpha: 0.18)),
-            const SizedBox(height: 18),
-            Text(
-              _analysisText(context, 'WHAT IS WRONG?', 'என்ன பிரச்சினை?'),
-              style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                    color: accent,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 0.75,
-                  ),
-            ),
-            const SizedBox(height: 7),
-            Text(
-              problem,
-              key: const Key('farmer-main-problem'),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontSize: 23,
-                    height: 1.24,
-                  ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(17),
-              decoration: BoxDecoration(
-                color: accent.withValues(alpha: 0.13),
-                borderRadius: BorderRadius.circular(18),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _analysisText(
-                      context,
-                      'WHAT TO DO NOW',
-                      'இப்போது என்ன செய்ய வேண்டும்',
-                    ),
-                    style: TextStyle(
-                      color: accent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.7,
-                    ),
-                  ),
-                  const SizedBox(height: 7),
-                  Text(
-                    action,
-                    key: const Key('farmer-immediate-action'),
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontSize: 18,
-                          height: 1.38,
-                        ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 13),
-            Row(
-              children: [
-                Expanded(
-                  child: _ResultMetric(
-                    label: FarmerLanguage.label(context, 'confidence'),
-                    value: confidence == null
-                        ? FarmerLanguage.label(context, 'not_available')
-                        : '${FarmerLanguage.confidence(context, confidence)} • ${confidence.round()}%',
-                  ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: _ResultMetric(
-                    label: FarmerLanguage.label(context, 'trend'),
-                    value: _conditionTrend(context, edge),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+      key: const Key('farmer-care-summary'), container: true,
+      child: VerdantCareHero(
+        condition: status, problem: problem, action: action, crop: FarmerLanguage.firmware(context, crop),
+        source: _analysisText(context, live ? 'Live sensor' : 'Simulation', live ? 'நேரடி சென்சார்' : 'சிமுலேஷன்'),
+        showMeter: false, tamil: FarmerLanguage.isTamil(context), accent: _conditionColor(context, rawState),
+        controls: CareActions(condition: status, problem: problem, action: action, plant: crop, source: live ? 'hardware' : 'simulation', timestamp: reading.timestamp),
       ),
     );
   }
@@ -1805,3 +1608,4 @@ String _time(DateTime value) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${two(local.hour)}:${two(local.minute)}:${two(local.second)}';
 }
+

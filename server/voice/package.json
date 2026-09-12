@@ -1,0 +1,1 @@
+{"name":"phytosense-voice-gateway","private":true,"type":"module","engines":{"node":">=22"},"scripts":{"start":"node index.mjs","test":"node --test policy.test.mjs"},"dependencies":{"firebase-admin":"^13.0.0"}}

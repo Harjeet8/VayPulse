@@ -20,11 +20,14 @@ class MainActivity : FlutterActivity() {
         private const val PERMISSION_REQUEST_CODE = 7206
     }
 
+    private var carePlatform: CarePlatform? = null
+
     private var pendingPermissionResult: MethodChannel.Result? = null
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         createNotificationChannel()
+        carePlatform = CarePlatform(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/care"))
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -45,6 +48,15 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (carePlatform?.onResult(requestCode, resultCode, data) == true) return
+        super.onActivityResult(requestCode, resultCode, data)
+    }
+    override fun onStop() {
+        carePlatform?.stopAudio()
+        super.onStop()
     }
 
     private fun requestNotificationPermission(result: MethodChannel.Result) {

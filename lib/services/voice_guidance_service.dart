@@ -1,6 +1,22 @@
+import 'dart:convert';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
+import 'package:http/http.dart' as http;
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_tts/flutter_tts.dart';
 
-class VoiceGuidanceService {
+class VoiceGuidanceService extends ChangeNotifier {
+  static const _audio = MethodChannel('com.harjeet.phytosense/care');
+  static const cloudEndpoint = String.fromEnvironment('PHYTO_VOICE_ENDPOINT');
+  bool speaking = false;
+  bool usingCloud = false;
+  bool cloudFailed = false;
+  double rate = 0.47;
+  int _request = 0;
+  bool get cloudConfigured => Uri.tryParse(cloudEndpoint)?.scheme == 'https';
+  String statusLabel({bool tamil = false}) => cloudFailed ? (tamil ? 'இணையக் குரல் கிடைக்கவில்லை · தொலைபேசி குரல்' : 'Cloud voice unavailable · using phone voice') : usingCloud ? (tamil ? 'இயல்பான இணையக் குரல்' : 'Natural cloud voice') : (tamil ? 'தொலைபேசி குரல்' : 'Phone voice');
   final FlutterTts _tts = FlutterTts();
   final Map<String, Map<String, String>?> _voiceCache = {};
   bool _initialized = false;
@@ -12,13 +28,49 @@ class VoiceGuidanceService {
     required String text,
     required String languageCode,
   }) async {
+    final request = ++_request;
+    cloudFailed = false;
+    usingCloud = false;
+    speaking = true;
+    notifyListeners();
     try {
       await _tts.stop();
+      try { await _audio.invokeMethod('stopAudio'); } catch (_) {}
+      if (request != _request) return true;
+      if (cloudConfigured) {
+        try {
+          final prefs = await SharedPreferences.getInstance();
+          if (prefs.getBool('phyto.cloudVoiceConsent') == true) {
+            if (Firebase.apps.isEmpty) throw StateError('Voice sign-in unavailable');
+            final auth = FirebaseAuth.instance;
+            final user = auth.currentUser ?? (await auth.signInAnonymously()).user;
+            final token = await user?.getIdToken();
+            if (token == null) throw StateError('Voice sign-in unavailable');
+            final response = await http.post(Uri.parse(cloudEndpoint),
+              headers: {'Authorization':'Bearer $token','Content-Type':'application/json'},
+              body: jsonEncode({'text':text,'language':languageCode}))
+              .timeout(const Duration(seconds:18));
+            if (request != _request) return true;
+            if(response.statusCode != 200 || response.bodyBytes.length > 8000000 ||
+              !(response.headers['content-type'] ?? '').startsWith('audio/')) throw StateError('Voice unavailable');
+            usingCloud = true; notifyListeners();
+            final played = await _audio.invokeMethod<bool>('playAudio',{'bytes':response.bodyBytes});
+            if(request != _request) return true;
+            if(played == true) return true;
+            throw StateError('Could not play audio');
+          }
+        } catch (_) { if(request != _request)return true; cloudFailed=true; usingCloud=false; }
+      }
+      rate = (await SharedPreferences.getInstance()).getDouble('phyto.voiceRate') ?? 0.47;
       await _configure(languageCode);
+      if (request != _request) return true;
+      notifyListeners();
       final result = await _tts.speak(_speechFriendly(text));
       return result == null || result == 1;
     } catch (_) {
       return false;
+    } finally {
+      if (request == _request) { speaking = false; notifyListeners(); }
     }
   }
 
@@ -40,7 +92,7 @@ class VoiceGuidanceService {
 
     final locale = languageCode == 'ta' ? 'ta-IN' : 'en-IN';
     await _tts.setLanguage(locale);
-    await _tts.setSpeechRate(languageCode == 'ta' ? 0.43 : 0.47);
+    await _tts.setSpeechRate(languageCode == 'ta' ? rate * 0.92 : rate);
     await _tts.setPitch(languageCode == 'ta' ? 1.0 : 0.98);
 
     if (!_voiceCache.containsKey(locale)) {
@@ -104,7 +156,7 @@ class VoiceGuidanceService {
     if (searchable.contains('neural')) score += 450;
     if (searchable.contains('premium')) score += 300;
     if (searchable.contains('enhanced')) score += 260;
-    if (searchable.contains('online')) score += 180;
+    if (voice['network_required'] == 'true') score -= 1500;
     if (searchable.contains('microsoft')) score += 100;
     if (searchable.contains('google')) score += 90;
     if (searchable.contains('apple') || searchable.contains('siri')) {
@@ -134,6 +186,11 @@ class VoiceGuidanceService {
   }
 
   Future<void> stop() async {
+    ++_request;
+    speaking = false;
+    notifyListeners();
     await _tts.stop();
+    try { await _audio.invokeMethod('stopAudio'); } catch (_) {}
   }
 }
+

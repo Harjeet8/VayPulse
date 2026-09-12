@@ -19,6 +19,11 @@ import '../widgets/calibre_upgrade_panels.dart';
 import '../widgets/competition_intelligence_panels.dart';
 import '../widgets/page_frame.dart';
 import '../widgets/phyto_ui.dart';
+import '../widgets/verdant_care_hero.dart';
+import '../widgets/care_actions.dart';
+import 'settings_screen.dart';
+import 'care_journal_screen.dart';
+import 'setup_guide_screen.dart';
 import '../widgets/time_phase_card.dart';
 import 'judge_view_screen.dart';
 import 'leaf_screening_screen.dart';
@@ -78,6 +83,7 @@ class LiveNodeHomeScreen extends StatelessWidget {
           ),
         ),
         actions: [
+          IconButton(tooltip: _competitionText(context, 'Settings', 'அமைப்புகள்'), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())), icon: const Icon(Icons.settings_outlined)),
           if (live)
             IconButton(
               tooltip: 'Plant Intelligence',
@@ -111,24 +117,6 @@ class LiveNodeHomeScreen extends StatelessWidget {
         },
         child: PageFrame(
           children: [
-            PhytoPageIntro(
-              eyebrow: live ? 'LIVE FARM' : 'SIMULATION',
-              title: _competitionText(
-                context,
-                'Your plant at a glance',
-                'உங்கள் செடியின் சுருக்கம்',
-              ),
-              body: live
-                  ? 'Your plant condition and the next useful action, in simple words.'
-                  : FarmerLanguage.label(context, 'source_separation'),
-              icon: Icons.spa_rounded,
-            ),
-            const SizedBox(height: 18),
-            const DataSourceCard(),
-            if (!live) ...[
-              const SizedBox(height: 12),
-              const SimulationCommandDeck(),
-            ],
             if (live) ...[
               const SizedBox(height: 10),
               _ConnectionStrip(
@@ -166,6 +154,11 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 live: live,
               ),
               const SizedBox(height: 12),
+              Wrap(spacing: 8, runSpacing: 8, children: [
+                ActionChip(avatar: const Icon(Icons.edit_note_rounded), label: Text(_competitionText(context, 'Care diary', 'பராமரிப்பு பதிவு')), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CareJournalScreen()))),
+                ActionChip(avatar: const Icon(Icons.explore_outlined), label: Text(_competitionText(context, 'Getting started', 'தொடங்குவோம்')), onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SetupGuideScreen()))),
+              ]),
+              const SizedBox(height: 16),
               const _WeatherHomeCard(),
               const SizedBox(height: 12),
               TimePhaseCard(
@@ -237,6 +230,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 connectionStatus: sensors.connectionStatus,
               ),
             ],
+            const SizedBox(height: 16),
+            const DataSourceCard(),
+            if (!live) ...[const SizedBox(height: 12), const SimulationCommandDeck()],
+
           ],
         ),
       ),
@@ -358,30 +355,6 @@ class _ConditionCard extends StatelessWidget {
               )
             : edge?.recommendation ??
                 FarmerLanguage.label(context, 'keep_monitoring');
-    final confidence = edge?.overallConfidence ??
-        reading.esp32HealthConfidence ??
-        reading.analysisConfidence;
-    final trend = _conditionTrend(context, edge);
-    final severity = _severity(context, edge?.urgency, rawState, recovering);
-    final rawSummary = recovering
-        ? FarmerLanguage.firmware(
-            context,
-            edge?.recovery.farmerResult ?? edge?.recovery.improved,
-            fallback: FarmerLanguage.label(context, 'recovery_summary'),
-          )
-        : FarmerLanguage.firmware(
-            context,
-            edge?.farmerSummary ?? main,
-            fallback: '',
-          );
-    final summary = useSoilPresentation
-        ? soilPresentation.summary(tamil: FarmerLanguage.isTamil(context))
-        : _simpleConditionSummary(
-            context,
-            raw: rawSummary,
-            title: title,
-            healthy: healthy,
-          );
     final action = _simpleFarmerAction(
       context,
       rawAction,
@@ -395,258 +368,32 @@ class _ConditionCard extends StatelessWidget {
         telemetry?.cropProfile ?? edge?.cropProfile.profile ?? 'Universal';
     final stage = telemetry?.growthStage ?? edge?.cropProfile.growthStage;
 
-    return PhytoSurface(
-      color: accent.withValues(alpha: 0.075),
-      padding: const EdgeInsets.all(20),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 11),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(17),
-              border: Border.all(color: accent.withValues(alpha: 0.14)),
-            ),
-            child: Row(
-              children: [
-                LiveMotionIcon(
-                  icon: Icons.grass_rounded,
-                  color: accent,
-                  size: 21,
-                ),
-                const SizedBox(width: 9),
-                Expanded(
-                  child: Text(
-                    stage == null || stage.trim().isEmpty
-                        ? FarmerLanguage.firmware(context, crop)
-                        : '${FarmerLanguage.firmware(context, crop)}  •  ${FarmerLanguage.firmware(context, stage)}',
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 5,
-                  ),
-                  decoration: BoxDecoration(
-                    color: (live
-                            ? const Color(0xFF2879B9)
-                            : const Color(0xFF176B4D))
-                        .withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    _competitionText(
-                      context,
-                      live ? 'LIVE ESP32' : 'SIMULATION',
-                      live ? 'நேரடி ESP32' : 'சிமுலேஷன்',
-                    ),
-                    style: TextStyle(
-                      color: live
-                          ? const Color(0xFF2879B9)
-                          : const Color(0xFF176B4D),
-                      fontSize: 8.5,
-                      fontWeight: FontWeight.w900,
-                      letterSpacing: 0.45,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 18),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                width: 48,
-                height: 48,
-                decoration: BoxDecoration(
-                  color: accent.withValues(alpha: 0.13),
-                  shape: BoxShape.circle,
-                ),
-                child: Icon(
-                  healthy
-                      ? Icons.check_rounded
-                      : recovering
-                          ? Icons.trending_up_rounded
-                          : Icons.priority_high_rounded,
-                  color: accent,
-                ),
-              ),
-              const SizedBox(width: 13),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _competitionText(
-                        context,
-                        'PLANT CONDITION',
-                        'செடியின் நிலை',
-                      ),
-                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                            color: accent,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 0.8,
-                          ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      conditionStatus,
-                      style:
-                          Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                color: accent,
-                              ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Divider(color: accent.withValues(alpha: 0.18)),
-          const SizedBox(height: 15),
-          Text(
-            _competitionText(context, 'MAIN ISSUE', 'முக்கிய பிரச்சினை'),
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: accent,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.8,
-                ),
-          ),
-          const SizedBox(height: 6),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 360),
-            switchInCurve: Curves.easeOutCubic,
-            switchOutCurve: Curves.easeInCubic,
-            transitionBuilder: (child, animation) => FadeTransition(
-              opacity: animation,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(0, 0.08),
-                  end: Offset.zero,
-                ).animate(animation),
-                child: child,
-              ),
-            ),
-            child: SizedBox(
-              key: ValueKey(title),
-              width: double.infinity,
-              child: Text(
-                title,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: accent,
-                      height: 1.12,
-                    ),
-              ),
-            ),
-          ),
-          if (summary.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 320),
-              child: Text(
-                summary,
-                key: ValueKey(summary),
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                      fontWeight: FontWeight.w600,
-                      height: 1.38,
-                    ),
-              ),
-            ),
-          ],
-          const SizedBox(height: 16),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: 0.09),
-              borderRadius: BorderRadius.circular(18),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  FarmerLanguage.label(context, 'do_this_now'),
-                  style: TextStyle(color: accent, fontWeight: FontWeight.w900),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  action,
-                  style: const TextStyle(
-                      fontWeight: FontWeight.w800, height: 1.35),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 11),
-            decoration: BoxDecoration(
-              color:
-                  Theme.of(context).colorScheme.surface.withValues(alpha: 0.58),
-              borderRadius: BorderRadius.circular(17),
-              border: Border.all(
-                color: Theme.of(context).colorScheme.outlineVariant,
-              ),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: _StatusMetric(
-                    label: FarmerLanguage.label(context, 'severity'),
-                    value: severity,
-                  ),
-                ),
-                const SizedBox(height: 36, child: VerticalDivider(width: 1)),
-                Expanded(
-                  child: _StatusMetric(
-                    label: FarmerLanguage.label(context, 'confidence'),
-                    value: FarmerLanguage.confidence(context, confidence),
-                  ),
-                ),
-                const SizedBox(height: 36, child: VerticalDivider(width: 1)),
-                Expanded(
-                  child: _StatusMetric(
-                    label: FarmerLanguage.label(context, 'trend'),
-                    value: trend,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: OutlinedButton.icon(
-              onPressed: () => _showWhy(context, edge, live: live),
-              icon: const Icon(Icons.help_outline_rounded),
-              label: Text(
-                _competitionText(
-                  context,
-                  'Why this result?',
-                  'இந்த முடிவு ஏன்?',
-                ),
-              ),
-            ),
-          ),
-          if (edge?.recovery.active == true &&
-              edge?.recovery.durationSeconds != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              '${FarmerLanguage.label(context, 'recovery_time')}: ${_duration(edge!.recovery.durationSeconds!)}',
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ],
-        ],
+    return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      VerdantCareHero(
+        condition: conditionStatus, problem: title, action: action,
+        crop: stage == null ? FarmerLanguage.firmware(context, crop) : '${FarmerLanguage.firmware(context, crop)} · ${FarmerLanguage.firmware(context, stage)}',
+        source: _competitionText(context, live ? 'Live sensor' : 'Simulation', live ? 'நேரடி சென்சார்' : 'சிமுலேஷன்'),
+        score: live ? edge?.healthScore ?? reading.esp32HealthScore : reading.healthScore,
+        tamil: FarmerLanguage.isTamil(context), accent: accent,
+        controls: CareActions(condition: conditionStatus, problem: title, action: action, plant: crop, source: live ? 'hardware' : 'simulation', timestamp: reading.timestamp),
       ),
-    );
+      const SizedBox(height: 14),
+      LayoutBuilder(builder: (context, box) {
+        final columns = box.maxWidth < 350 || MediaQuery.textScalerOf(context).scale(1) > 1.2 ? 1 : 3;
+        final width = (box.maxWidth - 10 * (columns - 1)) / columns;
+        return Wrap(spacing: 10, runSpacing: 10, children: [
+          for (final item in [
+            (label: _competitionText(context, 'Soil moisture', 'மண் ஈரப்பதம்'), value: reading.soilMoistureAvailable ? '${reading.soilMoisture.round()}%' : '—', icon: Icons.water_drop_outlined, color: const Color(0xFF397F96)),
+            (label: _competitionText(context, 'Temperature', 'வெப்பநிலை'), value: reading.temperatureAvailable ? '${reading.temperature.round()}°C' : '—', icon: Icons.thermostat_rounded, color: const Color(0xFFAE703B)),
+            (label: _competitionText(context, 'Humidity', 'காற்று ஈரப்பதம்'), value: reading.humidityAvailable ? '${reading.humidity.round()}%' : '—', icon: Icons.air_rounded, color: const Color(0xFF727AA3)),
+          ]) SizedBox(width: width, child: Container(padding: const EdgeInsets.all(14), decoration: BoxDecoration(color: item.color.withValues(alpha: .10), borderRadius: BorderRadius.circular(18)), child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            Icon(item.icon, color: item.color), const SizedBox(height: 10), Text(item.value, style: Theme.of(context).textTheme.headlineSmall), const SizedBox(height: 4), Text(item.label, style: Theme.of(context).textTheme.bodySmall),
+          ]))),
+        ]);
+      }),
+      const SizedBox(height: 10),
+      TextButton.icon(onPressed: () => _showWhy(context, edge, live: live), icon: const Icon(Icons.info_outline), label: Text(_competitionText(context, 'Why this result?', 'இந்த முடிவு ஏன்?'))),
+    ]);
   }
 
   void _showWhy(
@@ -2504,3 +2251,4 @@ String _duration(double seconds) {
 extension _FirstOrNull<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
 }
+
