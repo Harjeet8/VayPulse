@@ -195,4 +195,3 @@ class _ShellScreenState extends State<ShellScreen> {
     );
   }
 }
-

@@ -16,7 +16,13 @@ class VoiceGuidanceService extends ChangeNotifier {
   double rate = 0.47;
   int _request = 0;
   bool get cloudConfigured => Uri.tryParse(cloudEndpoint)?.scheme == 'https';
-  String statusLabel({bool tamil = false}) => cloudFailed ? (tamil ? 'இணையக் குரல் கிடைக்கவில்லை · தொலைபேசி குரல்' : 'Cloud voice unavailable · using phone voice') : usingCloud ? (tamil ? 'இயல்பான இணையக் குரல்' : 'Natural cloud voice') : (tamil ? 'தொலைபேசி குரல்' : 'Phone voice');
+  String statusLabel({bool tamil = false}) => cloudFailed
+      ? (tamil
+          ? 'இணையக் குரல் கிடைக்கவில்லை · தொலைபேசி குரல்'
+          : 'Cloud voice unavailable · using phone voice')
+      : usingCloud
+          ? (tamil ? 'இயல்பான இணையக் குரல்' : 'Natural cloud voice')
+          : (tamil ? 'தொலைபேசி குரல்' : 'Phone voice');
   final FlutterTts _tts = FlutterTts();
   final Map<String, Map<String, String>?> _voiceCache = {};
   bool _initialized = false;
@@ -35,33 +41,51 @@ class VoiceGuidanceService extends ChangeNotifier {
     notifyListeners();
     try {
       await _tts.stop();
-      try { await _audio.invokeMethod('stopAudio'); } catch (_) {}
+      try {
+        await _audio.invokeMethod('stopAudio');
+      } catch (_) {}
       if (request != _request) return true;
       if (cloudConfigured) {
         try {
           final prefs = await SharedPreferences.getInstance();
           if (prefs.getBool('phyto.cloudVoiceConsent') == true) {
-            if (Firebase.apps.isEmpty) throw StateError('Voice sign-in unavailable');
+            if (Firebase.apps.isEmpty)
+              throw StateError('Voice sign-in unavailable');
             final auth = FirebaseAuth.instance;
-            final user = auth.currentUser ?? (await auth.signInAnonymously()).user;
+            final user =
+                auth.currentUser ?? (await auth.signInAnonymously()).user;
             final token = await user?.getIdToken();
             if (token == null) throw StateError('Voice sign-in unavailable');
-            final response = await http.post(Uri.parse(cloudEndpoint),
-              headers: {'Authorization':'Bearer $token','Content-Type':'application/json'},
-              body: jsonEncode({'text':text,'language':languageCode}))
-              .timeout(const Duration(seconds:18));
+            final response = await http
+                .post(Uri.parse(cloudEndpoint),
+                    headers: {
+                      'Authorization': 'Bearer $token',
+                      'Content-Type': 'application/json'
+                    },
+                    body: jsonEncode({'text': text, 'language': languageCode}))
+                .timeout(const Duration(seconds: 18));
             if (request != _request) return true;
-            if(response.statusCode != 200 || response.bodyBytes.length > 8000000 ||
-              !(response.headers['content-type'] ?? '').startsWith('audio/')) throw StateError('Voice unavailable');
-            usingCloud = true; notifyListeners();
-            final played = await _audio.invokeMethod<bool>('playAudio',{'bytes':response.bodyBytes});
-            if(request != _request) return true;
-            if(played == true) return true;
+            if (response.statusCode != 200 ||
+                response.bodyBytes.length > 8000000 ||
+                !(response.headers['content-type'] ?? '').startsWith('audio/'))
+              throw StateError('Voice unavailable');
+            usingCloud = true;
+            notifyListeners();
+            final played = await _audio
+                .invokeMethod<bool>('playAudio', {'bytes': response.bodyBytes});
+            if (request != _request) return true;
+            if (played == true) return true;
             throw StateError('Could not play audio');
           }
-        } catch (_) { if(request != _request)return true; cloudFailed=true; usingCloud=false; }
+        } catch (_) {
+          if (request != _request) return true;
+          cloudFailed = true;
+          usingCloud = false;
+        }
       }
-      rate = (await SharedPreferences.getInstance()).getDouble('phyto.voiceRate') ?? 0.47;
+      rate = (await SharedPreferences.getInstance())
+              .getDouble('phyto.voiceRate') ??
+          0.47;
       await _configure(languageCode);
       if (request != _request) return true;
       notifyListeners();
@@ -70,7 +94,10 @@ class VoiceGuidanceService extends ChangeNotifier {
     } catch (_) {
       return false;
     } finally {
-      if (request == _request) { speaking = false; notifyListeners(); }
+      if (request == _request) {
+        speaking = false;
+        notifyListeners();
+      }
     }
   }
 
@@ -190,7 +217,8 @@ class VoiceGuidanceService extends ChangeNotifier {
     speaking = false;
     notifyListeners();
     await _tts.stop();
-    try { await _audio.invokeMethod('stopAudio'); } catch (_) {}
+    try {
+      await _audio.invokeMethod('stopAudio');
+    } catch (_) {}
   }
 }
-

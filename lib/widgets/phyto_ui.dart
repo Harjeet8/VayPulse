@@ -25,7 +25,10 @@ class PhytoPageIntro extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).colorScheme;
     final accent = switch (icon) {
-      Icons.photo_camera_outlined || Icons.camera_alt_outlined || Icons.camera_alt_rounded => phytoTerracotta,
+      Icons.photo_camera_outlined ||
+      Icons.camera_alt_outlined ||
+      Icons.camera_alt_rounded =>
+        phytoTerracotta,
       Icons.timeline_rounded || Icons.history_rounded => phytoLavender,
       Icons.sensors_outlined || Icons.sensors_rounded => phytoWater,
       Icons.wb_sunny_outlined || Icons.cloud_outlined => phytoSun,
@@ -556,4 +559,3 @@ class FarmerActionCard extends StatelessWidget {
 const uiHealthy = phytoGreen;
 const uiAttention = phytoAmber;
 const uiCritical = phytoTerracotta;
-

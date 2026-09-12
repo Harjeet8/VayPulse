@@ -43,37 +43,43 @@ class BottomNav extends StatelessWidget {
           onDestinationSelected: onChanged,
           destinations: [
             NavigationDestination(
-              icon: const LiveMotionIcon(animate: false, icon: Icons.home_outlined),
-              selectedIcon: const LiveMotionIcon(animate: false, icon: Icons.home_rounded),
+              icon: const LiveMotionIcon(
+                  animate: false, icon: Icons.home_outlined),
+              selectedIcon: const LiveMotionIcon(
+                  animate: false, icon: Icons.home_rounded),
               label: context.tr('nav_home'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(animate: false, icon: Icons.spa_outlined),
+              icon: const LiveMotionIcon(
+                  animate: false, icon: Icons.spa_outlined),
               selectedIcon:
                   const LiveMotionIcon(animate: false, icon: Icons.spa_rounded),
               label: FarmerLanguage.label(context, 'analysis'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(animate: false, icon: Icons.sensors_outlined),
-              selectedIcon: const LiveMotionIcon(animate: false, icon: Icons.sensors_rounded),
+              icon: const LiveMotionIcon(
+                  animate: false, icon: Icons.sensors_outlined),
+              selectedIcon: const LiveMotionIcon(
+                  animate: false, icon: Icons.sensors_rounded),
               label: FarmerLanguage.label(context, 'sensors'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(animate: false, icon: Icons.timeline_outlined),
-              selectedIcon: const LiveMotionIcon(animate: false, icon: Icons.timeline_rounded),
+              icon: const LiveMotionIcon(
+                  animate: false, icon: Icons.timeline_outlined),
+              selectedIcon: const LiveMotionIcon(
+                  animate: false, icon: Icons.timeline_rounded),
               label: FarmerLanguage.label(context, 'history'),
             ),
             NavigationDestination(
-              icon: const LiveMotionIcon(animate: false, icon: Icons.photo_camera_outlined),
-              selectedIcon:
-                  const LiveMotionIcon(animate: false, icon: Icons.photo_camera_rounded),
+              icon: const LiveMotionIcon(
+                  animate: false, icon: Icons.photo_camera_outlined),
+              selectedIcon: const LiveMotionIcon(
+                  animate: false, icon: Icons.photo_camera_rounded),
               label: FarmerLanguage.label(context, 'camera'),
             ),
-
           ],
         ),
       ),
     );
   }
 }
-

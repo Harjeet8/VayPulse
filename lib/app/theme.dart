@@ -396,4 +396,3 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     ),
   );
 }
-
