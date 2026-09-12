@@ -2199,4 +2199,3 @@ String _relativeAge(Duration age) {
   if (age.inMinutes < 60) return '${age.inMinutes}m ago';
   return '${age.inHours}h ago';
 }
-
