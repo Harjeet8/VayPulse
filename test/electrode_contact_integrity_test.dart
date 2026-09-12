@@ -132,13 +132,13 @@ void main() {
     final source =
         File('lib/screens/live_node_home_screen.dart').readAsStringSync();
 
-    expect(source, contains("title: 'Electrodes open'"));
-    expect(source, contains("issue: 'Check plant contact'"));
-    expect(source, contains("title: 'Verify electrode contact'"));
+    expect(source, contains("title: 'Plant sensors are loose'"));
+    expect(source, contains("issue: 'The plant reading is not clear.'"));
+    expect(source, contains("title: 'Check the plant sensors'"));
     expect(source, contains("title: 'Static/test input'"));
     expect(source, contains("issue: 'Not used for plant analysis'"));
-    expect(source, contains("title: 'Electrode contact unstable'"));
-    expect(source, contains("title: 'Bio sensor saturated'"));
+    expect(source, contains("title: 'Plant sensors are moving'"));
+    expect(source, contains("title: 'Plant sensor needs attention'"));
     expect(source, contains('static _HomeSystemNotice? fromEdge'));
     expect(source, isNot(contains('class _ElectrodeContactCard')));
   });
