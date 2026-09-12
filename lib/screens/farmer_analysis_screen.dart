@@ -116,7 +116,6 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
       },
     );
   }
-
 }
 
 class _FarmerResultHero extends StatelessWidget {
@@ -166,12 +165,25 @@ class _FarmerResultHero extends StatelessWidget {
     );
     final crop = edge?.cropProfile.profile ?? 'Universal';
     return Semantics(
-      key: const Key('farmer-care-summary'), container: true,
+      key: const Key('farmer-care-summary'),
+      container: true,
       child: VerdantCareHero(
-        condition: status, problem: problem, action: action, crop: FarmerLanguage.firmware(context, crop),
-        source: _analysisText(context, live ? 'Live sensor' : 'Simulation', live ? 'நேரடி சென்சார்' : 'சிமுலேஷன்'),
-        showMeter: false, tamil: FarmerLanguage.isTamil(context), accent: _conditionColor(context, rawState),
-        controls: CareActions(condition: status, problem: problem, action: action, plant: crop, source: live ? 'hardware' : 'simulation', timestamp: reading.timestamp),
+        condition: status,
+        problem: problem,
+        action: action,
+        crop: FarmerLanguage.firmware(context, crop),
+        source: _analysisText(context, live ? 'Live sensor' : 'Simulation',
+            live ? 'நேரடி சென்சார்' : 'சிமுலேஷன்'),
+        showMeter: false,
+        tamil: FarmerLanguage.isTamil(context),
+        accent: _conditionColor(context, rawState),
+        controls: CareActions(
+            condition: status,
+            problem: problem,
+            action: action,
+            plant: crop,
+            source: live ? 'hardware' : 'simulation',
+            timestamp: reading.timestamp),
       ),
     );
   }
@@ -1543,4 +1555,3 @@ String _time(DateTime value) {
   String two(int n) => n.toString().padLeft(2, '0');
   return '${two(local.hour)}:${two(local.minute)}:${two(local.second)}';
 }
-
