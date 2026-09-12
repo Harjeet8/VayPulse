@@ -403,6 +403,7 @@ class _ConditionCard extends StatelessWidget {
         tamil: FarmerLanguage.isTamil(context),
         accent: accent,
         controls: CareActions(
+            compact: true,
             condition: conditionStatus,
             problem: title,
             action: action,
@@ -2199,3 +2200,4 @@ String _relativeAge(Duration age) {
   if (age.inMinutes < 60) return '${age.inMinutes}m ago';
   return '${age.inHours}h ago';
 }
+
