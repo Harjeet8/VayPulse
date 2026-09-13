@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../l10n/app_strings.dart';
 import '../services/farmer_language.dart';
 import 'live_motion.dart';
 
@@ -47,21 +46,21 @@ class BottomNav extends StatelessWidget {
                   animate: false, icon: Icons.home_outlined),
               selectedIcon: const LiveMotionIcon(
                   animate: false, icon: Icons.home_rounded),
-              label: context.tr('nav_home'),
+              label: FarmerLanguage.isTamil(context) ? 'முகப்பு' : 'Home',
             ),
             NavigationDestination(
               icon: const LiveMotionIcon(
                   animate: false, icon: Icons.spa_outlined),
               selectedIcon:
                   const LiveMotionIcon(animate: false, icon: Icons.spa_rounded),
-              label: FarmerLanguage.label(context, 'analysis'),
+              label: FarmerLanguage.isTamil(context) ? 'பராமரிப்பு' : 'Care',
             ),
             NavigationDestination(
               icon: const LiveMotionIcon(
                   animate: false, icon: Icons.sensors_outlined),
               selectedIcon: const LiveMotionIcon(
                   animate: false, icon: Icons.sensors_rounded),
-              label: FarmerLanguage.label(context, 'sensors'),
+              label: FarmerLanguage.isTamil(context) ? 'அளவுகள்' : 'Sensors',
             ),
             NavigationDestination(
               icon: const LiveMotionIcon(
@@ -83,3 +82,4 @@ class BottomNav extends StatelessWidget {
     );
   }
 }
+

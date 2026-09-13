@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
+import '../app/theme.dart';
 import '../models/edge_intelligence.dart';
 import '../models/sensor_reading.dart';
 import '../services/app_scope.dart';
@@ -109,7 +110,7 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
                 icon: Icons.timeline_rounded,
                 trailing: PhytoStatusBadge(
                   label: scope.sensors.source == SensorDataSource.esp32
-                      ? 'ESP32 LIVE'
+                      ? (FarmerLanguage.isTamil(context) ? 'கருவி பதிவுகள்' : 'Device history')
                       : FarmerLanguage.label(context, 'simulated'),
                   icon: scope.sensors.source == SensorDataSource.esp32
                       ? Icons.memory_rounded
@@ -374,6 +375,13 @@ class _TrendChartCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final dark = Theme.of(context).brightness == Brightness.dark;
+    final accent = icon == Icons.water_drop_outlined
+        ? (dark ? const Color(0xFF8EC9DD) : phytoWater)
+        : icon == Icons.monitor_heart_outlined
+            ? (dark ? const Color(0xFFE3A28C) : phytoTerracotta)
+            : colors.primary;
     final spots = <FlSpot>[];
     for (var i = 0; i < values.length; i++) {
       final value = values[i];
@@ -391,19 +399,19 @@ class _TrendChartCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(icon, size: 20),
+                Icon(icon, size: 20, color: accent),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     title,
-                    style: const TextStyle(fontWeight: FontWeight.w900),
+                    style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
                 ),
                 if (latest != null)
                   Text(
                     '${latest.round()}$suffix',
                     style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w600,
                         ),
                   ),
               ],
@@ -454,14 +462,11 @@ class _TrendChartCard extends StatelessWidget {
                         isCurved: true,
                         preventCurveOverShooting: true,
                         barWidth: 3,
-                        color: Theme.of(context).colorScheme.primary,
+                        color: accent,
                         dotData: const FlDotData(show: false),
                         belowBarData: BarAreaData(
                           show: true,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .primary
-                              .withValues(alpha: 0.08),
+                          color: accent.withValues(alpha: 0.09),
                         ),
                       ),
                     ],
@@ -586,3 +591,4 @@ class _TimelineEntry {
     required this.color,
   });
 }
+

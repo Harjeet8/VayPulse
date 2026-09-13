@@ -34,52 +34,26 @@ class PhytoPageIntro extends StatelessWidget {
       Icons.wb_sunny_outlined || Icons.cloud_outlined => phytoSun,
       _ => colors.primary,
     };
-    return Row(
+    final theme = Theme.of(context);
+    return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (icon != null) ...[
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: accent.withValues(alpha: .13),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: LiveMotionIcon(
-              icon: icon!,
-              color: accent,
-            ),
-          ),
-          const SizedBox(width: 14),
-        ],
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                eyebrow.toUpperCase(),
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                      color: colors.primary,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 1.1,
-                    ),
-              ),
-              const SizedBox(height: 5),
-              Text(title, style: Theme.of(context).textTheme.headlineSmall),
-              const SizedBox(height: 6),
-              Text(
-                body,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: colors.onSurfaceVariant,
-                    ),
-              ),
+        Wrap(spacing: 12, runSpacing: 10, crossAxisAlignment: WrapCrossAlignment.center, children: [
+          Row(mainAxisSize: MainAxisSize.min, children: [
+            if (icon != null) ...[
+              Container(width: 34, height: 34,
+                decoration: BoxDecoration(color: accent.withValues(alpha: .12), borderRadius: BorderRadius.circular(11)),
+                child: Icon(icon, color: accent, size: 19)),
+              const SizedBox(width: 10),
             ],
-          ),
-        ),
-        if (trailing != null) ...[
-          const SizedBox(width: 12),
-          trailing!,
-        ],
+            Flexible(child: Text(eyebrow.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant, fontWeight: FontWeight.w600, letterSpacing: .7))),
+          ]),
+          if (trailing != null) trailing!,
+        ]),
+        const SizedBox(height: 14),
+        Text(title, style: theme.textTheme.headlineMedium?.copyWith(height: 1.15)),
+        const SizedBox(height: 9),
+        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 620), child: Text(body, style: theme.textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant, height: 1.5))),
       ],
     );
   }
@@ -214,7 +188,7 @@ class PhytoSectionHeader extends StatelessWidget {
                 Text(
                   title,
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w900,
+                        fontWeight: FontWeight.w600,
                         letterSpacing: -0.35,
                       ),
                 ),
@@ -256,7 +230,7 @@ class PhytoStatusBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: color.withValues(alpha: 0.32)),
+          
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -273,7 +247,7 @@ class PhytoStatusBadge extends StatelessWidget {
                 style: TextStyle(
                   color: color,
                   fontSize: prominent ? 12 : 10,
-                  fontWeight: FontWeight.w900,
+                  fontWeight: FontWeight.w600,
                   letterSpacing: 0.25,
                 ),
               ),
@@ -390,7 +364,7 @@ class AnimatedMetricText extends StatelessWidget {
         Theme.of(context)
             .textTheme
             .headlineSmall
-            ?.copyWith(fontWeight: FontWeight.w900);
+            ?.copyWith(fontWeight: FontWeight.w600);
     if (!animate) {
       return Text('${value.toStringAsFixed(decimals)} $unit',
           style: resolvedStyle);
@@ -455,7 +429,7 @@ class PhytoEmptyState extends StatelessWidget {
                 title,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
+                      fontWeight: FontWeight.w600,
                     ),
               ),
               const SizedBox(height: 6),
@@ -522,7 +496,7 @@ class FarmerActionCard extends StatelessWidget {
                           color: color,
                           fontSize: 11,
                           letterSpacing: 0.6,
-                          fontWeight: FontWeight.w900,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                       const SizedBox(height: 3),
@@ -530,7 +504,7 @@ class FarmerActionCard extends StatelessWidget {
                         title,
                         style:
                             Theme.of(context).textTheme.titleMedium?.copyWith(
-                                  fontWeight: FontWeight.w900,
+                                  fontWeight: FontWeight.w600,
                                 ),
                       ),
                     ],
@@ -559,3 +533,4 @@ class FarmerActionCard extends StatelessWidget {
 const uiHealthy = phytoGreen;
 const uiAttention = phytoAmber;
 const uiCritical = phytoTerracotta;
+
