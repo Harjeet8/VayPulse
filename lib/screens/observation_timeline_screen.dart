@@ -110,7 +110,9 @@ class _ObservationTimelineScreenState extends State<ObservationTimelineScreen> {
                 icon: Icons.timeline_rounded,
                 trailing: PhytoStatusBadge(
                   label: scope.sensors.source == SensorDataSource.esp32
-                      ? (FarmerLanguage.isTamil(context) ? 'கருவி பதிவுகள்' : 'Device history')
+                      ? (FarmerLanguage.isTamil(context)
+                          ? 'கருவி பதிவுகள்'
+                          : 'Device history')
                       : FarmerLanguage.label(context, 'simulated'),
                   icon: scope.sensors.source == SensorDataSource.esp32
                       ? Icons.memory_rounded
@@ -591,4 +593,3 @@ class _TimelineEntry {
     required this.color,
   });
 }
-

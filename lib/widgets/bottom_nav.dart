@@ -82,4 +82,3 @@ class BottomNav extends StatelessWidget {
     );
   }
 }
-

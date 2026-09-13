@@ -38,22 +38,40 @@ class PhytoPageIntro extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Wrap(spacing: 12, runSpacing: 10, crossAxisAlignment: WrapCrossAlignment.center, children: [
-          Row(mainAxisSize: MainAxisSize.min, children: [
-            if (icon != null) ...[
-              Container(width: 34, height: 34,
-                decoration: BoxDecoration(color: accent.withValues(alpha: .12), borderRadius: BorderRadius.circular(11)),
-                child: Icon(icon, color: accent, size: 19)),
-              const SizedBox(width: 10),
-            ],
-            Flexible(child: Text(eyebrow.toUpperCase(), style: theme.textTheme.labelSmall?.copyWith(color: colors.onSurfaceVariant, fontWeight: FontWeight.w600, letterSpacing: .7))),
-          ]),
-          if (trailing != null) trailing!,
-        ]),
+        Wrap(
+            spacing: 12,
+            runSpacing: 10,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Row(mainAxisSize: MainAxisSize.min, children: [
+                if (icon != null) ...[
+                  Container(
+                      width: 34,
+                      height: 34,
+                      decoration: BoxDecoration(
+                          color: accent.withValues(alpha: .12),
+                          borderRadius: BorderRadius.circular(11)),
+                      child: Icon(icon, color: accent, size: 19)),
+                  const SizedBox(width: 10),
+                ],
+                Flexible(
+                    child: Text(eyebrow.toUpperCase(),
+                        style: theme.textTheme.labelSmall?.copyWith(
+                            color: colors.onSurfaceVariant,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: .7))),
+              ]),
+              if (trailing != null) trailing!,
+            ]),
         const SizedBox(height: 14),
-        Text(title, style: theme.textTheme.headlineMedium?.copyWith(height: 1.15)),
+        Text(title,
+            style: theme.textTheme.headlineMedium?.copyWith(height: 1.15)),
         const SizedBox(height: 9),
-        ConstrainedBox(constraints: const BoxConstraints(maxWidth: 620), child: Text(body, style: theme.textTheme.bodyMedium?.copyWith(color: colors.onSurfaceVariant, height: 1.5))),
+        ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 620),
+            child: Text(body,
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: colors.onSurfaceVariant, height: 1.5))),
       ],
     );
   }
@@ -230,7 +248,6 @@ class PhytoStatusBadge extends StatelessWidget {
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(99),
-          
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -533,4 +550,3 @@ class FarmerActionCard extends StatelessWidget {
 const uiHealthy = phytoGreen;
 const uiAttention = phytoAmber;
 const uiCritical = phytoTerracotta;
-
