@@ -171,14 +171,6 @@ class _SplashScreenState extends State<SplashScreen>
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  IgnorePointer(
-                    child: _LivingBootIcons(
-                      progress: progress,
-                      phase: phase,
-                      dark: isDark,
-                      reducedMotion: _reducedMotion,
-                    ),
-                  ),
                   SafeArea(
                     child: Center(
                       child: Padding(
@@ -186,11 +178,17 @@ class _SplashScreenState extends State<SplashScreen>
                         child: Column(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            _AnimatedLogo(
-                              progress: progress,
-                              phase: phase,
-                              reducedMotion: _reducedMotion,
-                              dark: isDark,
+                            SizedBox(
+                              height: 196,
+                              width: double.infinity,
+                              child: Stack(alignment: Alignment.center, children: [
+                                Positioned.fill(child: IgnorePointer(child: _LivingBootIcons(
+                                  progress: progress, phase: phase, dark: isDark,
+                                  reducedMotion: _reducedMotion,
+                                ))),
+                                _AnimatedLogo(progress: progress, phase: phase,
+                                  reducedMotion: _reducedMotion, dark: isDark),
+                              ]),
                             ),
                             const SizedBox(height: 8),
                             SizedBox(
@@ -246,10 +244,10 @@ class _LivingBootIcons extends StatelessWidget {
     );
     final color = dark ? const Color(0xFF9EE9C8) : const Color(0xFF1D684D);
     final icons = <(IconData, Alignment, double)>[
-      (Icons.water_drop_outlined, const Alignment(-0.72, -0.27), 0.0),
-      (Icons.wb_sunny_outlined, const Alignment(0.72, -0.29), 0.21),
-      (Icons.air_rounded, const Alignment(-0.72, 0.25), 0.42),
-      (Icons.sensors_rounded, const Alignment(0.72, 0.25), 0.63),
+      (Icons.water_drop_outlined, const Alignment(-0.98, -0.70), 0.0),
+      (Icons.wb_sunny_outlined, const Alignment(0.98, -0.70), 0.21),
+      (Icons.air_rounded, const Alignment(-0.98, 0.70), 0.42),
+      (Icons.sensors_rounded, const Alignment(0.98, 0.70), 0.63),
     ];
     return SafeArea(
       child: Center(
