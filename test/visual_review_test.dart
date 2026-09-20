@@ -28,17 +28,30 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (call) async {
+        .setMockMethodCallHandler(const MethodChannel('flutter_tts'),
+            (call) async {
       if (call.method == 'getVoices') {
         return [
-          {'name': 'english', 'locale': 'en-IN', 'quality': 500, 'network_required': false},
-          {'name': 'tamil', 'locale': 'ta-IN', 'quality': 400, 'network_required': false},
+          {
+            'name': 'english',
+            'locale': 'en-IN',
+            'quality': 500,
+            'network_required': false
+          },
+          {
+            'name': 'tamil',
+            'locale': 'ta-IN',
+            'quality': 400,
+            'network_required': false
+          },
         ];
       }
       return 1;
     });
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(const MethodChannel('com.harjeet.phytosense/care'), (_) async => null);
+        .setMockMethodCallHandler(
+            const MethodChannel('com.harjeet.phytosense/care'),
+            (_) async => null);
   });
   setUpAll(() async {
     final tamil = FontLoader('NotoSansTamil')
@@ -103,21 +116,26 @@ void main() {
                         child: RepaintBoundary(
                             key: boundary,
                             child: Scaffold(
-                                body: scene == 'voice' ? const VoiceStudioScreen() : home
-                                    ? const HomeScreen()
-                                    : const FarmerAnalysisScreen(),
+                                body: scene == 'voice'
+                                    ? const VoiceStudioScreen()
+                                    : home
+                                        ? const HomeScreen()
+                                        : const FarmerAnalysisScreen(),
                                 bottomNavigationBar: BottomNav(
                                     index: home ? 0 : 1,
                                     onChanged: (_) {})))))));
             await tester.pump(const Duration(milliseconds: 1200));
             expect(tester.takeException(), isNull);
             if (scene != 'voice') {
-            expect(
-                find.byKey(const Key('farmer-main-problem')), findsOneWidget);
-            expect(find.byKey(const Key('farmer-immediate-action')),
-                findsOneWidget);
+              expect(
+                  find.byKey(const Key('farmer-main-problem')), findsOneWidget);
+              expect(find.byKey(const Key('farmer-immediate-action')),
+                  findsOneWidget);
             }
-            if (scene == 'voice') { expect(find.byType(DropdownButtonFormField<String>), findsOneWidget); }
+            if (scene == 'voice') {
+              expect(
+                  find.byType(DropdownButtonFormField<String>), findsOneWidget);
+            }
             if (scene == 'care' && width == 390)
               expect(
                   tester
@@ -155,7 +173,9 @@ void main() {
 
   for (final brightness in [Brightness.light, Brightness.dark]) {
     for (final reduced in [false, true]) {
-      testWidgets('Growing boot $brightness reduced motion $reduced fits narrow phone', (tester) async {
+      testWidgets(
+          'Growing boot $brightness reduced motion $reduced fits narrow phone',
+          (tester) async {
         await tester.binding.setSurfaceSize(const Size(320, 640));
         addTearDown(() => tester.binding.setSurfaceSize(null));
         final waiting = Completer<void>();
@@ -163,8 +183,13 @@ void main() {
         await tester.pumpWidget(MaterialApp(
           theme: buildTheme(brightness, 'en'),
           home: MediaQuery(
-            data: MediaQueryData(size: const Size(320, 640), disableAnimations: reduced, textScaler: TextScaler.linear(1.3)),
-            child: RepaintBoundary(key: boundary, child: SplashScreen(initialization: waiting.future)),
+            data: MediaQueryData(
+                size: const Size(320, 640),
+                disableAnimations: reduced,
+                textScaler: TextScaler.linear(1.3)),
+            child: RepaintBoundary(
+                key: boundary,
+                child: SplashScreen(initialization: waiting.future)),
           ),
         ));
         await tester.pump(const Duration(milliseconds: 950));
@@ -174,9 +199,13 @@ void main() {
         expect(find.byType(SplashScreen), findsOneWidget);
         if (Platform.environment['PHYTO_PREVIEWS'] == '1' && !reduced) {
           await tester.runAsync(() async {
-            final picture = await (boundary.currentContext!.findRenderObject() as RenderRepaintBoundary).toImage(pixelRatio: 1);
-            final bytes = await picture.toByteData(format: ui.ImageByteFormat.png);
-            final file = File('build/visual-review/boot-${brightness.name}.png');
+            final picture = await (boundary.currentContext!.findRenderObject()
+                    as RenderRepaintBoundary)
+                .toImage(pixelRatio: 1);
+            final bytes =
+                await picture.toByteData(format: ui.ImageByteFormat.png);
+            final file =
+                File('build/visual-review/boot-${brightness.name}.png');
             await file.parent.create(recursive: true);
             await file.writeAsBytes(bytes!.buffer.asUint8List());
             picture.dispose();
