@@ -18,6 +18,14 @@ class CarePlatform(private val activity: Activity, private val channel: MethodCh
         channel.setMethodCallHandler { call, result ->
             try {
                 when(call.method) {
+                    "openVoiceSettings" -> {
+                        val settings = Intent("com.android.settings.TTS_SETTINGS")
+                        try { activity.startActivity(settings) }
+                        catch (_: ActivityNotFoundException) {
+                            activity.startActivity(Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                        }
+                        result.success(null)
+                    }
                     "share" -> {
                         activity.startActivity(Intent.createChooser(Intent(Intent.ACTION_SEND).apply {
                             type="text/plain"; putExtra(Intent.EXTRA_TEXT,call.argument<String>("text"))
