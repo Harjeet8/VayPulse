@@ -220,7 +220,7 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
                 await (await SharedPreferences.getInstance())
                     .setDouble('phyto.voiceRate', v);
               }),
-          SwitchListTile(
+          Material(type: MaterialType.transparency, child: SwitchListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(t('Allow internet-dependent phone voices',
                   'இணையம் தேவைப்படும் குரல்களை அனுமதி')),
@@ -233,7 +233,7 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
                 await (await SharedPreferences.getInstance())
                     .setBool('phyto.internetPhoneVoice', value);
                 await _load();
-              }),
+              })),
         ])),
         const SizedBox(height: 16),
         OutlinedButton.icon(
