@@ -220,20 +220,22 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
                 await (await SharedPreferences.getInstance())
                     .setDouble('phyto.voiceRate', v);
               }),
-          Material(type: MaterialType.transparency, child: SwitchListTile(
-              contentPadding: EdgeInsets.zero,
-              title: Text(t('Allow internet-dependent phone voices',
-                  'இணையம் தேவைப்படும் குரல்களை அனுமதி')),
-              subtitle: Text(t(
-                  'Optional. Your phone speech provider may receive the advice text. Internet data may cost money. No paid PhytoSense API is used.',
-                  'விருப்பம். தொலைபேசி குரல் சேவைக்கு ஆலோசனை உரை அனுப்பப்படலாம். இணையத் தரவுக்குக் கட்டணம் இருக்கலாம். கட்டண PhytoSense API பயன்படுத்தப்படாது.')),
-              value: internet,
-              onChanged: (value) async {
-                await voice!.stop();
-                await (await SharedPreferences.getInstance())
-                    .setBool('phyto.internetPhoneVoice', value);
-                await _load();
-              })),
+          Material(
+              type: MaterialType.transparency,
+              child: SwitchListTile(
+                  contentPadding: EdgeInsets.zero,
+                  title: Text(t('Allow internet-dependent phone voices',
+                      'இணையம் தேவைப்படும் குரல்களை அனுமதி')),
+                  subtitle: Text(t(
+                      'Optional. Your phone speech provider may receive the advice text. Internet data may cost money. No paid PhytoSense API is used.',
+                      'விருப்பம். தொலைபேசி குரல் சேவைக்கு ஆலோசனை உரை அனுப்பப்படலாம். இணையத் தரவுக்குக் கட்டணம் இருக்கலாம். கட்டண PhytoSense API பயன்படுத்தப்படாது.')),
+                  value: internet,
+                  onChanged: (value) async {
+                    await voice!.stop();
+                    await (await SharedPreferences.getInstance())
+                        .setBool('phyto.internetPhoneVoice', value);
+                    await _load();
+                  })),
         ])),
         const SizedBox(height: 16),
         OutlinedButton.icon(

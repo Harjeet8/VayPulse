@@ -181,13 +181,21 @@ class _SplashScreenState extends State<SplashScreen>
                             SizedBox(
                               height: 196,
                               width: double.infinity,
-                              child: Stack(alignment: Alignment.center, children: [
-                                Positioned.fill(child: IgnorePointer(child: _LivingBootIcons(
-                                  progress: progress, phase: phase, dark: isDark,
+                              child:
+                                  Stack(alignment: Alignment.center, children: [
+                                Positioned.fill(
+                                    child: IgnorePointer(
+                                        child: _LivingBootIcons(
+                                  progress: progress,
+                                  phase: phase,
+                                  dark: isDark,
                                   reducedMotion: _reducedMotion,
                                 ))),
-                                _AnimatedLogo(progress: progress, phase: phase,
-                                  reducedMotion: _reducedMotion, dark: isDark),
+                                _AnimatedLogo(
+                                    progress: progress,
+                                    phase: phase,
+                                    reducedMotion: _reducedMotion,
+                                    dark: isDark),
                               ]),
                             ),
                             const SizedBox(height: 8),
