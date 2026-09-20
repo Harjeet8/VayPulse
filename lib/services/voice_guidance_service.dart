@@ -16,15 +16,23 @@ class VoiceGuidanceService extends ChangeNotifier {
   bool cloudFailed = false;
   double rate = 0.47;
   int _request = 0;
-  static const freeVoiceBuild = bool.fromEnvironment('PHYTO_FREE_VOICE', defaultValue: true);
-  bool get cloudConfigured => !freeVoiceBuild && Uri.tryParse(cloudEndpoint)?.scheme == 'https';
+  static const freeVoiceBuild =
+      bool.fromEnvironment('PHYTO_FREE_VOICE', defaultValue: true);
+  bool get cloudConfigured =>
+      !freeVoiceBuild && Uri.tryParse(cloudEndpoint)?.scheme == 'https';
   String statusLabel({bool tamil = false}) => cloudFailed
       ? (tamil
           ? 'இணையக் குரல் கிடைக்கவில்லை · தொலைபேசி குரல்'
           : 'Cloud voice unavailable · using phone voice')
       : usingCloud
           ? (tamil ? 'இயல்பான இணையக் குரல்' : 'Natural cloud voice')
-          : (tamil ? (activeVoiceNeedsInternet ? 'இணையம் தேவை · தொலைபேசி குரல்' : 'தொலைபேசி குரல்') : (activeVoiceNeedsInternet ? 'Phone voice · internet required' : 'Phone voice'));
+          : (tamil
+              ? (activeVoiceNeedsInternet
+                  ? 'இணையம் தேவை · தொலைபேசி குரல்'
+                  : 'தொலைபேசி குரல்')
+              : (activeVoiceNeedsInternet
+                  ? 'Phone voice · internet required'
+                  : 'Phone voice'));
   final FlutterTts _tts = FlutterTts();
   bool activeVoiceNeedsInternet = false;
   bool _initialized = false;
@@ -129,18 +137,24 @@ class VoiceGuidanceService extends ChangeNotifier {
       {bool? allowInternet}) async {
     final prefs = await SharedPreferences.getInstance();
     return PhoneVoice.ranked(await _tts.getVoices, languageCode,
-        allowInternet: allowInternet ?? prefs.getBool('phyto.internetPhoneVoice') ?? false);
+        allowInternet: allowInternet ??
+            prefs.getBool('phyto.internetPhoneVoice') ??
+            false);
   }
 
   Future<void> selectPhoneVoice(String languageCode, String? name) async {
     await stop();
     final prefs = await SharedPreferences.getInstance();
     final key = 'phyto.phoneVoice.${languageCode == 'ta' ? 'ta' : 'en'}';
-    if (name == null) { await prefs.remove(key); }
-    else { await prefs.setString(key, name); }
+    if (name == null) {
+      await prefs.remove(key);
+    } else {
+      await prefs.setString(key, name);
+    }
   }
 
-  Future<void> _configure(String languageCode, {bool offlineOnly = false}) async {
+  Future<void> _configure(String languageCode,
+      {bool offlineOnly = false}) async {
     if (!_initialized) {
       await _tts.awaitSpeakCompletion(true);
       await _tts.setVolume(1);
@@ -157,13 +171,18 @@ class VoiceGuidanceService extends ChangeNotifier {
     final preferred = prefs.getString('phyto.phoneVoice.$language');
     var selected = candidates.first;
     for (final voice in candidates) {
-      if (voice.name == preferred) { selected = voice; break; }
+      if (voice.name == preferred) {
+        selected = voice;
+        break;
+      }
     }
     await _tts.setLanguage(selected.locale);
     await _tts.setSpeechRate(language == 'ta' ? rate * .92 : rate);
     await _tts.setPitch(1.0);
     final result = await _tts.setVoice(selected.engineValue);
-    if (result == 0) { throw StateError('Selected phone voice is unavailable'); }
+    if (result == 0) {
+      throw StateError('Selected phone voice is unavailable');
+    }
     _activeVoiceName = selected.name;
     activeVoiceNeedsInternet = selected.needsInternet;
   }
@@ -175,7 +194,8 @@ class VoiceGuidanceService extends ChangeNotifier {
     text = text.replaceAll('VayPulse', 'Vay Pulse');
     text = text.replaceAll('ESP32', 'E S P thirty two');
     text = text.replaceAll('•', ', ');
-    text = text.replaceAll('°C', tamil ? ' டிகிரி செல்சியஸ்' : ' degrees Celsius');
+    text =
+        text.replaceAll('°C', tamil ? ' டிகிரி செல்சியஸ்' : ' degrees Celsius');
     text = text.replaceAllMapped(
       RegExp(r'(\d+(?:\.\d+)?)\s*%'),
       (match) => '${match.group(1)} ${tamil ? 'சதவீதம்' : 'percent'}',
@@ -187,7 +207,9 @@ class VoiceGuidanceService extends ChangeNotifier {
     ++_request;
     speaking = false;
     notifyListeners();
-    try { await _tts.stop(); } catch (_) {}
+    try {
+      await _tts.stop();
+    } catch (_) {}
     try {
       await _audio.invokeMethod('stopAudio');
     } catch (_) {}

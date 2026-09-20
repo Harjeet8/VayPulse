@@ -193,11 +193,18 @@ class _SplashScreenState extends State<SplashScreen>
                               dark: isDark,
                             ),
                             const SizedBox(height: 8),
-                            SizedBox(width: 112, height: 54,
-                              child: CustomPaint(painter: _GrowingSproutPainter(
-                                progress: _reducedMotion ? 1 : _segment(progress, .15, .8),
-                                color: isDark ? const Color(0xFFBFD995) : const Color(0xFF4C765F),
-                              ))),
+                            SizedBox(
+                                width: 112,
+                                height: 54,
+                                child: CustomPaint(
+                                    painter: _GrowingSproutPainter(
+                                  progress: _reducedMotion
+                                      ? 1
+                                      : _segment(progress, .15, .8),
+                                  color: isDark
+                                      ? const Color(0xFFBFD995)
+                                      : const Color(0xFF4C765F),
+                                ))),
                             const SizedBox(height: 16),
                             _BootCopy(
                               progress: progress,
@@ -534,24 +541,42 @@ class _GrowingSproutPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final x = size.width / 2;
-    final stem = Path()..moveTo(x, size.height - 5)
+    final stem = Path()
+      ..moveTo(x, size.height - 5)
       ..cubicTo(x - 3, 36, x + 4, 23, x, 9);
-    final paint = Paint()..color = color..strokeWidth = 2.4
-      ..strokeCap = StrokeCap.round..style = PaintingStyle.stroke;
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 2.4
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
     final length = stem.computeMetrics().first;
     canvas.drawPath(length.extractPath(0, length.length * progress), paint);
     final grow = ((progress - .32) / .68).clamp(0.0, 1.0).toDouble();
-    if (grow <= 0) { return; }
+    if (grow <= 0) {
+      return;
+    }
     paint.style = PaintingStyle.fill;
     canvas.save();
     canvas.translate(x, 27);
     canvas.scale(grow);
-    canvas.drawPath(Path()..moveTo(0, 5)..cubicTo(-21, 4, -24, -5, -25, -15)
-      ..cubicTo(-10, -16, -1, -7, 0, 5)..close(), paint);
-    canvas.drawPath(Path()..moveTo(1, -5)..cubicTo(1, -19, 12, -22, 23, -22)
-      ..cubicTo(22, -9, 13, -5, 1, -5)..close(), paint);
+    canvas.drawPath(
+        Path()
+          ..moveTo(0, 5)
+          ..cubicTo(-21, 4, -24, -5, -25, -15)
+          ..cubicTo(-10, -16, -1, -7, 0, 5)
+          ..close(),
+        paint);
+    canvas.drawPath(
+        Path()
+          ..moveTo(1, -5)
+          ..cubicTo(1, -19, 12, -22, 23, -22)
+          ..cubicTo(22, -9, 13, -5, 1, -5)
+          ..close(),
+        paint);
     canvas.restore();
   }
+
   @override
-  bool shouldRepaint(_GrowingSproutPainter old) => old.progress != progress || old.color != color;
+  bool shouldRepaint(_GrowingSproutPainter old) =>
+      old.progress != progress || old.color != color;
 }
