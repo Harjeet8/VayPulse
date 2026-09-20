@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -17,12 +18,28 @@ import 'package:phytosense_ai/services/settings_service.dart';
 import 'package:phytosense_ai/services/voice_guidance_service.dart';
 import 'package:phytosense_ai/services/weather_service.dart';
 import 'package:phytosense_ai/screens/home_screen.dart';
+import 'package:phytosense_ai/screens/voice_studio_screen.dart';
+import 'package:phytosense_ai/screens/splash_screen.dart';
 import 'package:phytosense_ai/screens/farmer_analysis_screen.dart';
 import 'package:phytosense_ai/widgets/verdant_care_hero.dart';
 import 'package:phytosense_ai/widgets/bottom_nav.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUp(() {
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('flutter_tts'), (call) async {
+      if (call.method == 'getVoices') {
+        return [
+          {'name': 'english', 'locale': 'en-IN', 'quality': 500, 'network_required': false},
+          {'name': 'tamil', 'locale': 'ta-IN', 'quality': 400, 'network_required': false},
+        ];
+      }
+      return 1;
+    });
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('com.harjeet.phytosense/care'), (_) async => null);
+  });
   setUpAll(() async {
     final tamil = FontLoader('NotoSansTamil')
       ..addFont(rootBundle.load('assets/fonts/NotoSansTamil-Regular.ttf'));
@@ -45,7 +62,7 @@ void main() {
     for (final brightness in [Brightness.light, Brightness.dark])
       for (final width in [320.0, 390.0, 900.0]) {
         testWidgets(
-            'Home and Plant Care $language $brightness $width fit and render',
+            'Home, Plant Care and voice $language $brightness $width fit and render',
             (tester) async {
           SharedPreferences.setMockInitialValues({});
           await tester.binding.setSurfaceSize(Size(width, 844));
@@ -62,7 +79,8 @@ void main() {
           final offline = OfflineSyncService(sensors, settings),
               evidence = EngineeringEvidenceService(sensors),
               inspections = InspectionHistoryService();
-          for (final home in [true, false]) {
+          for (final scene in ['home', 'care', 'voice']) {
+            final home = scene == 'home';
             final boundary = GlobalKey();
             await tester.pumpWidget(MaterialApp(
                 theme: buildTheme(brightness, language),
@@ -85,7 +103,7 @@ void main() {
                         child: RepaintBoundary(
                             key: boundary,
                             child: Scaffold(
-                                body: home
+                                body: scene == 'voice' ? const VoiceStudioScreen() : home
                                     ? const HomeScreen()
                                     : const FarmerAnalysisScreen(),
                                 bottomNavigationBar: BottomNav(
@@ -93,11 +111,14 @@ void main() {
                                     onChanged: (_) {})))))));
             await tester.pump(const Duration(milliseconds: 1200));
             expect(tester.takeException(), isNull);
+            if (scene != 'voice') {
             expect(
                 find.byKey(const Key('farmer-main-problem')), findsOneWidget);
             expect(find.byKey(const Key('farmer-immediate-action')),
                 findsOneWidget);
-            if (!home && width == 390)
+            }
+            if (scene == 'voice') { expect(find.byType(DropdownButtonFormField<String>), findsOneWidget); }
+            if (scene == 'care' && width == 390)
               expect(
                   tester
                       .getBottomLeft(
@@ -115,7 +136,7 @@ void main() {
                 final data =
                     await image.toByteData(format: ui.ImageByteFormat.png);
                 final file = File(
-                    'build/visual-review/${home ? 'home' : 'care'}-$language-${brightness.name}.png');
+                    'build/visual-review/$scene-$language-${brightness.name}.png');
                 await file.parent.create(recursive: true);
                 await file.writeAsBytes(data!.buffer.asUint8List());
                 image.dispose();
@@ -128,8 +149,46 @@ void main() {
           offline.dispose();
           evidence.dispose();
           inspections.dispose();
+          voice.dispose();
         });
       }
+
+  for (final brightness in [Brightness.light, Brightness.dark]) {
+    for (final reduced in [false, true]) {
+      testWidgets('Growing boot $brightness reduced motion $reduced fits narrow phone', (tester) async {
+        await tester.binding.setSurfaceSize(const Size(320, 640));
+        addTearDown(() => tester.binding.setSurfaceSize(null));
+        final waiting = Completer<void>();
+        final boundary = GlobalKey();
+        await tester.pumpWidget(MaterialApp(
+          theme: buildTheme(brightness, 'en'),
+          home: MediaQuery(
+            data: MediaQueryData(size: const Size(320, 640), disableAnimations: reduced, textScaler: TextScaler.linear(1.3)),
+            child: RepaintBoundary(key: boundary, child: SplashScreen(initialization: waiting.future)),
+          ),
+        ));
+        await tester.pump(const Duration(milliseconds: 950));
+        expect(tester.takeException(), isNull);
+        await tester.pump(const Duration(milliseconds: 1000));
+        expect(tester.takeException(), isNull);
+        expect(find.byType(SplashScreen), findsOneWidget);
+        if (Platform.environment['PHYTO_PREVIEWS'] == '1' && !reduced) {
+          await tester.runAsync(() async {
+            final picture = await (boundary.currentContext!.findRenderObject() as RenderRepaintBoundary).toImage(pixelRatio: 1);
+            final bytes = await picture.toByteData(format: ui.ImageByteFormat.png);
+            final file = File('build/visual-review/boot-${brightness.name}.png');
+            await file.parent.create(recursive: true);
+            await file.writeAsBytes(bytes!.buffer.asUint8List());
+            picture.dispose();
+          });
+        }
+        await tester.pumpWidget(const SizedBox.shrink());
+        waiting.complete();
+        await tester.pump();
+      });
+    }
+  }
+
   testWidgets(
       'missing hardware score stays unavailable rather than becoming zero',
       (tester) async {
