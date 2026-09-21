@@ -305,7 +305,8 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     listTileTheme: ListTileThemeData(
       iconColor: scheme.primary,
       textColor: scheme.onSurface,
-      subtitleTextStyle: typography.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
+      subtitleTextStyle:
+          typography.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
     navigationBarTheme: NavigationBarThemeData(
