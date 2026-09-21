@@ -125,6 +125,8 @@ void main() {
                                     index: home ? 0 : 1,
                                     onChanged: (_) {})))))));
             await tester.pump(const Duration(milliseconds: 1200));
+            // Let controls finish their loading-to-ready colour transition.
+            await tester.pump(const Duration(milliseconds: 300));
             expect(tester.takeException(), isNull);
             if (scene != 'voice') {
               expect(

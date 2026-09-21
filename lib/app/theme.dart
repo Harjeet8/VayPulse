@@ -61,7 +61,8 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     useMaterial3: true,
     brightness: brightness,
     colorScheme: scheme,
-    fontFamily: languageCode == 'ta' ? 'NotoSansTamil' : null,
+    fontFamily: languageCode == 'ta' ? 'NotoSansTamil' : 'Roboto',
+    fontFamilyFallback: const ['NotoSansTamil'],
   );
   final cardColor = dark ? const Color(0xFF16271E) : const Color(0xFFFFFDF9);
   final typography = base.textTheme
@@ -268,8 +269,8 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
               ? scheme.primary
               : scheme.onSurfaceVariant,
         ),
-        textStyle: const WidgetStatePropertyAll(
-          TextStyle(fontWeight: FontWeight.w600),
+        textStyle: WidgetStatePropertyAll(
+          typography.labelLarge?.copyWith(fontWeight: FontWeight.w600),
         ),
       ),
     ),
@@ -304,7 +305,7 @@ ThemeData buildTheme(Brightness brightness, String languageCode) {
     listTileTheme: ListTileThemeData(
       iconColor: scheme.primary,
       textColor: scheme.onSurface,
-      subtitleTextStyle: TextStyle(color: scheme.onSurfaceVariant),
+      subtitleTextStyle: typography.bodyMedium?.copyWith(color: scheme.onSurfaceVariant),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
     ),
     navigationBarTheme: NavigationBarThemeData(
