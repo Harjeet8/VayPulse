@@ -9,6 +9,7 @@ import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
 import '../widgets/phyto_ui.dart';
 import 'about_screen.dart';
+import '../services/phone_notification_service.dart';
 import 'care_journal_screen.dart';
 import 'setup_guide_screen.dart';
 import 'voice_studio_screen.dart';
@@ -169,6 +170,22 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 10),
             const _VoicePreviewCard(),
+            const SizedBox(height: 12),
+            Card(child: ListTile(
+              leading: const Icon(Icons.notifications_active_outlined),
+              title: Text(FarmerLanguage.isTamil(context) ? 'அறிவிப்பு மாதிரியைப் பார்' : 'Preview a notification'),
+              subtitle: Text(FarmerLanguage.isTamil(context) ? 'உங்கள் தொலைபேசியில் தோற்றத்தைச் சரிபார்க்கவும்' : 'Check how alerts look on your phone'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () async {
+                final tamil = FarmerLanguage.isTamil(context);
+                final ok = await PhoneNotificationService.showPreview(scope.settings.value.languageCode);
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(ok
+                    ? (tamil ? 'மாதிரி அனுப்பப்பட்டது. அறிவிப்புப் பகுதியைப் பாருங்கள்.' : 'Preview sent. Open your notification shade.')
+                    : (tamil ? 'தொலைபேசி அமைப்பில் PhytoSense அறிவிப்புகளை அனுமதிக்கவும்.' : 'Allow PhytoSense notifications in phone settings.'))));
+              },
+            )),
+
             const SizedBox(height: 18),
             _SettingsLabel(context.tr('about')),
             const SizedBox(height: 8),

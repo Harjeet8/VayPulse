@@ -18,6 +18,9 @@ import 'package:phytosense_ai/services/settings_service.dart';
 import 'package:phytosense_ai/services/voice_guidance_service.dart';
 import 'package:phytosense_ai/services/weather_service.dart';
 import 'package:phytosense_ai/screens/home_screen.dart';
+import 'package:phytosense_ai/screens/about_screen.dart';
+import 'package:phytosense_ai/services/firmware_text_adapter.dart';
+import 'package:phytosense_ai/services/farmer_language.dart';
 import 'package:phytosense_ai/screens/voice_studio_screen.dart';
 import 'package:phytosense_ai/screens/splash_screen.dart';
 import 'package:phytosense_ai/screens/farmer_analysis_screen.dart';
@@ -92,7 +95,7 @@ void main() {
           final offline = OfflineSyncService(sensors, settings),
               evidence = EngineeringEvidenceService(sensors),
               inspections = InspectionHistoryService();
-          for (final scene in ['home', 'care', 'voice']) {
+          for (final scene in ['home', 'care', 'voice', 'creator']) {
             final home = scene == 'home';
             final boundary = GlobalKey();
             await tester.pumpWidget(MaterialApp(
@@ -116,7 +119,7 @@ void main() {
                         child: RepaintBoundary(
                             key: boundary,
                             child: Scaffold(
-                                body: scene == 'voice'
+                                body: scene == 'creator' ? const SingleChildScrollView(padding: EdgeInsets.all(20), child: CreatorProfile()) : scene == 'voice'
                                     ? const VoiceStudioScreen()
                                     : home
                                         ? const HomeScreen()
@@ -128,11 +131,21 @@ void main() {
             // Let controls finish their loading-to-ready colour transition.
             await tester.pump(const Duration(milliseconds: 300));
             expect(tester.takeException(), isNull);
-            if (scene != 'voice') {
+            if (scene == 'home' || scene == 'care') {
               expect(
                   find.byKey(const Key('farmer-main-problem')), findsOneWidget);
               expect(find.byKey(const Key('farmer-immediate-action')),
                   findsOneWidget);
+            }
+            if (scene == 'creator') {
+              expect(find.text('Harjeet D.'), findsOneWidget);
+              expect(find.text(language == 'ta' ? 'எனது அணுகுமுறை' : 'How I build'), findsOneWidget);
+            }
+            if (home && language == 'ta') {
+              final context = tester.element(find.byType(HomeScreen));
+              expect(FarmerLanguage.firmware(context, 'Tomato'), 'தக்காளி');
+              expect(FarmerLanguage.firmware(context, 'vegetative'), 'இலை வளர்ச்சி');
+              expect(FirmwareTextAdapter.text(context, 'Inspect the root zone immediately and reduce heat exposure where practical.'), isNot(matches(RegExp('[A-Za-z]'))));
             }
             if (scene == 'voice') {
               expect(

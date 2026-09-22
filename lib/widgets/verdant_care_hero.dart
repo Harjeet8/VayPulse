@@ -249,7 +249,7 @@ class _ArcPainter extends CustomPainter {
     final rect = Rect.fromCircle(center: center, radius: radius);
     final track = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 13
+      ..strokeWidth = 14
       ..strokeCap = StrokeCap.round
       ..color = const Color(0xFF718078);
     canvas.drawArc(rect, math.pi, math.pi, false, track);
@@ -261,16 +261,16 @@ class _ArcPainter extends CustomPainter {
     track.shader = const SweepGradient(
       startAngle: math.pi,
       endAngle: math.pi * 2,
-      colors: [Color(0xFFE5937A), Color(0xFFEAC45F), Color(0xFF83D5A6)],
+      colors: [Color(0xFFE98570), Color(0xFFF0C35D), Color(0xFF66C794)],
       stops: [0, .5, 1],
     ).createShader(rect);
     canvas.drawArc(rect, math.pi, math.pi, false, track);
 
     // Explicit end caps avoid the sweep shader wrapping red onto the green end.
-    canvas.drawCircle(center + Offset(-radius, 0), 6.5,
-        Paint()..color = const Color(0xFFE5937A));
-    canvas.drawCircle(center + Offset(radius, 0), 6.5,
-        Paint()..color = const Color(0xFF83D5A6));
+    canvas.drawCircle(center + Offset(-radius, 0), 7,
+        Paint()..color = const Color(0xFFE98570));
+    canvas.drawCircle(center + Offset(radius, 0), 7,
+        Paint()..color = const Color(0xFF66C794));
 
     final angle = math.pi + math.pi * value / 100;
     final point = center + Offset(math.cos(angle), math.sin(angle)) * radius;

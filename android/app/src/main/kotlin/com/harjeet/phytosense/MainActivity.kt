@@ -5,6 +5,10 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
@@ -35,11 +39,15 @@ class MainActivity : FlutterActivity() {
         ).setMethodCallHandler { call, result ->
             when (call.method) {
                 "requestPermission" -> requestNotificationPermission(result)
+                "notificationsEnabled" -> result.success(notificationsEnabled())
                 "showNotification" -> {
                     showNotification(
                         title = call.argument<String>("title") ?: "PhytoSense AI",
                         body = call.argument<String>("body") ?: "Open PhytoSense AI for details.",
                         severity = call.argument<String>("severity") ?: "warning",
+                        summary = call.argument<String>("summary") ?: "",
+                        sourceLabel = call.argument<String>("sourceLabel") ?: "",
+                        actionLabel = call.argument<String>("actionLabel") ?: "Open PhytoSense",
                         notificationTag = call.argument<String>("notificationTag")
                             ?: "phytosense:current",
                     )
@@ -59,16 +67,25 @@ class MainActivity : FlutterActivity() {
         super.onStop()
     }
 
+    private fun notificationsEnabled(): Boolean {
+        val manager = getSystemService(NotificationManager::class.java)
+        if (!manager.areNotificationsEnabled()) return false
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+            manager.getNotificationChannel(NOTIFICATION_CHANNEL_ID)?.importance == NotificationManager.IMPORTANCE_NONE) return false
+        return Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU ||
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
+    }
+
     private fun requestNotificationPermission(result: MethodChannel.Result) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU) {
-            result.success(true)
+            result.success(notificationsEnabled())
             return
         }
 
         if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) ==
             PackageManager.PERMISSION_GRANTED
         ) {
-            result.success(true)
+            result.success(notificationsEnabled())
             return
         }
 
@@ -110,10 +127,25 @@ class MainActivity : FlutterActivity() {
             .createNotificationChannel(channel)
     }
 
+    private fun notificationBadge(accent: Int): Bitmap {
+        val bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        canvas.drawCircle(48f, 48f, 46f, Paint(Paint.ANTI_ALIAS_FLAG).apply { color = accent })
+        getDrawable(R.drawable.ic_stat_phytosense)?.mutate()?.apply {
+            setTint(Color.WHITE)
+            setBounds(20, 18, 76, 74)
+            draw(canvas)
+        }
+        return bitmap
+    }
+
     private fun showNotification(
         title: String,
         body: String,
         severity: String,
+        summary: String,
+        sourceLabel: String,
+        actionLabel: String,
         notificationTag: String,
     ) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
@@ -148,15 +180,23 @@ class MainActivity : FlutterActivity() {
             Notification.PRIORITY_DEFAULT
         }
 
+        val accent = when (severity.lowercase()) {
+            "critical" -> Color.rgb(185, 95, 67)
+            "warning" -> Color.rgb(174, 119, 52)
+            else -> Color.rgb(29, 104, 77)
+        }
         builder
             // Android status bars mask this artwork to a single visible colour.
             // The full-colour launcher icon can become blank here, so always use
             // the dedicated PhytoSense notification silhouette.
             .setSmallIcon(R.drawable.ic_stat_phytosense)
-            .setColor(resources.getColor(R.color.phytosense_notification_accent, theme))
+            .setColor(accent)
+            .setLargeIcon(notificationBadge(accent))
+            .setSubText(sourceLabel)
+            .setShowWhen(true)
             .setContentTitle(title)
             .setContentText(body)
-            .setStyle(Notification.BigTextStyle().bigText(body))
+            .setStyle(Notification.BigTextStyle().setBigContentTitle(title).bigText(body).setSummaryText(summary))
             .setAutoCancel(true)
             .setOnlyAlertOnce(true)
             .setPriority(priority)
@@ -166,6 +206,8 @@ class MainActivity : FlutterActivity() {
 
         if (contentIntent != null) {
             builder.setContentIntent(contentIntent)
+            @Suppress("DEPRECATION")
+            builder.addAction(R.drawable.ic_stat_phytosense, actionLabel, contentIntent)
         }
 
         val manager = getSystemService(NotificationManager::class.java)

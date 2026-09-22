@@ -23,7 +23,7 @@ jobs:
         run: |
           set -euo pipefail
           test "$GITHUB_REF_NAME" = "phytosense-verdant-remote-final"
-          grep -q '^version: 10.2.1+1004$' pubspec.yaml
+          grep -q '^version: 10.2.2+1005$' pubspec.yaml
           test -f assets/branding/phytosense_icon.png
           test -f assets/fonts/NotoSansTamil-Regular.ttf
           test -f android/app/src/main/res/drawable/ic_stat_phytosense.xml
@@ -121,7 +121,7 @@ jobs:
         run: |
           set -euo pipefail
           SRC="build/app/outputs/flutter-apk/app-release.apk"
-          OUT="PhytoSense-AI-VERDANT-MARKET-10.2.1-1004.apk"
+          OUT="PhytoSense-AI-VERDANT-MARKET-10.2.2-1005.apk"
           test -s "$SRC"
           cp "$SRC" "$OUT"
           unzip -t "$OUT" >/dev/null
@@ -137,7 +137,7 @@ jobs:
             echo "## Verified PhytoSense Android release"
             echo "- Branch: $GITHUB_REF_NAME"
             echo "- Commit: $(git rev-parse HEAD)"
-            echo "- Version: 10.2.1+1004"
+            echo "- Version: 10.2.2+1005"
             echo "- Package: com.harjeet.phytosense"
             echo "- Debuggable: false"
             echo "- APK bytes: $size"
@@ -148,10 +148,10 @@ jobs:
         continue-on-error: true
         uses: actions/upload-artifact@v4
         with:
-          name: PhytoSense-AI-VERDANT-MARKET-10.2.1-1004
+          name: PhytoSense-AI-VERDANT-MARKET-10.2.2-1005
           path: |
-            PhytoSense-AI-VERDANT-MARKET-10.2.1-1004.apk
-            PhytoSense-AI-VERDANT-MARKET-10.2.1-1004.apk.sha256
+            PhytoSense-AI-VERDANT-MARKET-10.2.2-1005.apk
+            PhytoSense-AI-VERDANT-MARKET-10.2.2-1005.apk.sha256
           if-no-files-found: error
           retention-days: 30
 
@@ -161,8 +161,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          OUT="PhytoSense-AI-VERDANT-MARKET-10.2.1-1004.apk"
-          TAG="phytosense-v10.2.1-verdant-care-$(git rev-parse --short HEAD)"
+          OUT="PhytoSense-AI-VERDANT-MARKET-10.2.2-1005.apk"
+          TAG="phytosense-v10.2.2-verdant-care-$(git rev-parse --short HEAD)"
           if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             gh release upload "$TAG" "$OUT" "$OUT.sha256" \
               --repo "$GITHUB_REPOSITORY" --clobber
@@ -170,7 +170,7 @@ jobs:
             gh release create "$TAG" "$OUT" "$OUT.sha256" \
               --repo "$GITHUB_REPOSITORY" \
               --target "$(git rev-parse HEAD)" \
-              --title "PhytoSense AI 10.2.1 — Verdant Market" \
+              --title "PhytoSense AI 10.2.2 — Verdant Market" \
               --notes "Verified farmer-first PhytoSense AI Android release from the authoritative phytosense-verdant-remote-final branch. Package com.harjeet.phytosense; release-obfuscated; debuggable=false."
           fi
 
@@ -178,7 +178,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          OUT="PhytoSense-AI-VERDANT-MARKET-10.2.1-1004.apk"
+          OUT="PhytoSense-AI-VERDANT-MARKET-10.2.2-1005.apk"
           response="$(curl --fail-with-body --silent --show-error --max-time 120 --retry 2 -F "file=@$OUT" https://upload.gofile.io/uploadfile)"
           url="$(jq -r '.data.downloadPage // empty' <<<"$response")"
           test -n "$url"

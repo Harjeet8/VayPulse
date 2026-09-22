@@ -1521,13 +1521,13 @@ class AppStrings {
           'அழுத்தம் கண்ணுக்குத் தெரிவதற்கு முன் செடியைக் கேளுங்கள்.',
       'devices_title': 'சென்சார் முனைகள்',
       'devices_demo_note':
-          'இப்போது simulation செயலில் உள்ளது. Physical node தயார் ஆனதும் ESP32 Live-க்கு மாறலாம்.',
+          'இப்போது மாதிரி முறை செயலில் உள்ளது. சாதனம் தயாரானதும் நேரடி ESP32 முறைக்கு மாறலாம்.',
       'battery': 'பேட்டரி',
       'signal': 'சிக்னல்',
       'last_seen': 'இப்போது தொடர்பில் இருந்தது',
       'hardware_ready': 'Hardware-ready architecture',
       'hardware_ready_body':
-          'அனைத்து திரைகளும் SensorDataProvider வழியாக தரவைப் பெறுகின்றன; dashboard மாற்றாமல் Simulation மற்றும் ESP32 Live இடையே மாறலாம்.',
+          'திரைகளை மாற்றாமல் மாதிரி தரவுக்கும் நேரடி ESP32 அளவீடுகளுக்கும் இடையே மாறலாம்.',
       'settings_title': 'அமைப்புகள்',
       'language': 'மொழி',
       'language_subtitle': 'விவசாயி இடைமுகம் முழுவதும் உடனே மாறும்',
@@ -1536,9 +1536,9 @@ class AppStrings {
       'appearance': 'தோற்றம்',
       'theme_picker_title': 'பார்வை முறையைத் தேர்வு செய்க',
       'theme_picker_body':
-          'Dark mode இப்போது குறைந்த வெளிச்ச வயல் பயன்பாட்டிற்கான high-contrast farm colours பயன்படுத்துகிறது.',
+          'இருண்ட தோற்றம் குறைந்த வெளிச்சத்திலும் தெளிவாகப் படிக்க உதவுகிறது.',
       'theme_preview_note':
-          'App உடனே மாறும்; Settings-இலிருந்து வெளியேறும் முன் readability-ஐ பார்க்கலாம்.',
+          'தோற்றம் உடனே மாறும். அமைப்பிலிருந்து வெளியேறும் முன் தெளிவாகப் படிக்க முடிகிறதா பாருங்கள்.',
       'system_theme': 'சாதன அமைப்பு',
       'light_theme': 'வெளிச்சம்',
       'dark_theme': 'இருள்',
@@ -1547,10 +1547,10 @@ class AppStrings {
       'notifications': 'பண்ணை எச்சரிக்கைகள்',
       'notifications_subtitle': 'முக்கிய மண்டல எச்சரிக்கைகளை காட்டவும்',
       'demo_controls': 'டெமோ கட்டுப்பாடுகள்',
-      'demo_scenario': 'Simulation நிலை',
+      'demo_scenario': 'மாதிரி நிலை',
       'replay_onboarding': 'அறிமுகத்தை மீண்டும் காண்க',
       'scenario_healthy': 'ஆரோக்கியமான பண்ணை',
-      'scenario_baseline_learning': 'Baseline கற்றல்',
+      'scenario_baseline_learning': 'இயல்பு அளவைக் கற்றல்',
       'scenario_atmospheric_drying': 'வளிமண்டல உலர்வு அழுத்தம்',
       'scenario_bio_response': 'செடி மின்சார பதில்',
       'scenario_recovery': 'மீட்பு',
@@ -1580,43 +1580,43 @@ class AppStrings {
       'ai_signal_stress_explanation':
           'செடி சிக்னலும் மண் ஈரமும் நல்ல வரம்பிற்கு கீழே உள்ளன.',
       'ai_signal_stress_action':
-          'வயல் முறையை மாற்றும் முன் electrode தொடர்பையும் செடியையும் பார்க்கவும்.',
+          'பராமரிப்பை மாற்றும் முன் செடி சென்சார் தொடுதலையும் செடியையும் பார்க்கவும்.',
       'evidence_signal_crosscheck':
           'குறைந்த செடி சிக்னல், குறைந்த மண் ஈரத்துடன் ஒப்பிடப்பட்டது.',
       'source_control': 'தரவு மூலம்',
       'source_control_body':
-          'Dashboard, chart, insight மற்றும் alert மதிப்புகள் எங்கிருந்து வர வேண்டும் என்பதைத் தேர்ந்தெடுக்கவும்.',
+          'திரைகள், வரைபடங்கள், ஆலோசனைகள், எச்சரிக்கைகளுக்கான தரவு மூலத்தைத் தேர்ந்தெடுக்கவும்.',
       'choose_data_source': 'தரவு மூலத்தைத் தேர்வு செய்க',
       'simulation_mode': 'Simulation demo',
       'esp32_live': 'ESP32 நேரடி',
       'simulation_description':
-          'விளக்கக்காட்சிக்கான கட்டுப்படுத்தக்கூடிய பண்ணை நிலைகள். இவை simulation மதிப்புகள் என்று தெளிவாக காட்டப்படும்.',
+          'விளக்கத்திற்கான பண்ணை நிலைகள். இவை மாதிரி அளவீடுகள் என்று தெளிவாகக் காட்டப்படும்.',
       'esp32_description':
           'உள்ளூர் வலையில் ESP32 தரவைப் பெற்று, பயன்படுத்தும் முன் ஒவ்வொரு அளவையும் சரிபார்க்கும்.',
       'source_demo_badge': 'SIM',
       'source_live_badge': 'LIVE',
       'simulation_active_scenario': 'நிலை: {value}',
       'live_data_connected': 'ESP32 தரவு பெறப்படுகிறது',
-      'live_data_waiting': 'ESP32 node இணைப்புக்காக காத்திருக்கிறது',
-      'connecting_sensor': 'Sensor node இணைக்கப்படுகிறது',
+      'live_data_waiting': 'ESP32 சாதன இணைப்புக்காக காத்திருக்கிறது',
+      'connecting_sensor': 'சென்சார் சாதனம் இணைக்கப்படுகிறது',
       'connecting_sensor_body':
           'PhytoSense AI முதல் சரிபார்க்கப்பட்ட அளவீட்டை பெறுகிறது.',
       'configure_esp32': 'ESP32 இணைப்பு',
       'configure_esp32_body':
-          'ESP32 காட்டும் address-ஐ இடுங்கள். /api/status மற்றும் /api/data தேவை.',
+          'ESP32 காட்டும் முகவரியை இடுங்கள். /api/status மற்றும் /api/data தேவை.',
       'esp32_endpoint': 'ESP32 முகவரி',
       'endpoint_invalid': 'சரியான http:// அல்லது https:// முகவரியை இடுங்கள்.',
       'save_and_test': 'சேமித்து இணைப்பைச் சோதிக்கவும்',
       'testing_connection': 'இணைப்பு சோதிக்கப்படுகிறது…',
       'connection_test_success': 'ESP32 பதிலளித்தது. நேரடி முறை தயார்.',
       'connection_test_failed':
-          'பதில் இல்லை. Power, Wi-Fi, address மற்றும் ESP32 API-ஐ சரிபார்க்கவும்.',
+          'பதில் இல்லை. மின்சாரம், வைஃபை, முகவரி, ESP32 தரவு சேவையைச் சரிபார்க்கவும்.',
       'hardware_unreachable': 'ESP32-ஐ தொடர்பு கொள்ள முடியவில்லை.',
       'hardware_invalid_data': 'ESP32 தவறான அளவீடு அனுப்பியது.',
       'devices_live_note':
           'ESP32 நேரடி முறை தேர்ந்தெடுக்கப்பட்டுள்ளது. விவசாயி திரைக்கு முன் மதிப்புகள் சரிபார்க்கப்படும்.',
-      'device_diagnostics': 'Node பரிசோதனை',
-      'diagnostic_provider': 'செயலில் உள்ள provider',
+      'device_diagnostics': 'சாதனப் பரிசோதனை',
+      'diagnostic_provider': 'செயலில் உள்ள தரவு மூலம்',
       'diagnostic_connection': 'இணைப்பு',
       'diagnostic_data_quality': 'தரவு தரம்',
       'about_settings_title': 'PhytoSense AI எவ்வாறு செயல்படுகிறது',

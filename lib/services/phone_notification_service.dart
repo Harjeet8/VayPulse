@@ -51,6 +51,25 @@ class PhoneNotificationService {
   bool get _supportedPlatform =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+  /// Explicit sample only: no sensor readings or plant claims are generated.
+  static Future<bool> showPreview(String languageCode) async {
+    final tamil = languageCode == 'ta';
+    try {
+      if (await _channel.invokeMethod<bool>('requestPermission') != true) return false;
+      await _channel.invokeMethod<void>('showNotification', {
+        'title': tamil ? 'அறிவிப்பு மாதிரி' : 'Notification preview',
+        'body': tamil ? 'செடி குறித்த அறிவிப்புகள் இங்கே தோன்றும். இது ஒரு மாதிரி மட்டுமே.' : 'Your plant alerts will appear here. This is a preview only.',
+        'severity': 'info',
+        'summary': tamil ? 'மாதிரி மட்டும் • நேரடி அளவீடு அல்ல' : 'Preview only • No live reading',
+        'sourceLabel': tamil ? 'மாதிரி மட்டும்' : 'Preview only',
+        'notificationTag': 'phytosense:preview',
+        'actionLabel': tamil ? 'செயலியைத் திற' : 'Open PhytoSense',
+      });
+      return true;
+    } on PlatformException { return false; }
+    on MissingPluginException { return false; }
+  }
+
   void start() {
     if (_started || !_supportedPlatform) return;
     _started = true;
@@ -110,7 +129,8 @@ class PhoneNotificationService {
           'sequence': sequence,
           'summary': copy.summary,
           'notificationTag': notificationTag,
-          'actionLabel': 'Open analysis',
+          'actionLabel': settings.value.languageCode == 'ta' ? 'செயலியைத் திற' : 'Open PhytoSense',
+          'sourceLabel': copy.summary.split(' • ').first,
         });
         _recordSend(chosen, source);
       } on MissingPluginException {
@@ -176,6 +196,7 @@ class PhoneNotificationService {
     AppStrings strings,
     SensorDataSource source,
   ) {
+    final tamil = strings.languageCode == 'ta';
     final edge = alerts.sensors.edgeIntelligence;
     final reading = alerts.sensors.current;
     final disconnected = source == SensorDataSource.esp32 &&
@@ -183,36 +204,36 @@ class PhoneNotificationService {
 
     final friendlyTitle =
         disconnected && alert.titleKey == 'alert_sensor_attention'
-            ? 'ESP32 connection lost'
-            : _friendlyTitles[alert.titleKey];
+            ? (tamil ? 'சென்சார் இணைப்பு துண்டிக்கப்பட்டது' : 'Sensor connection lost')
+            : (tamil ? _friendlyTitlesTa : _friendlyTitles)[alert.titleKey];
     final friendlyBody = disconnected &&
             alert.titleKey == 'alert_sensor_attention'
         ? 'Live analysis is paused. Reconnect the PhytoSense node; old readings will not be treated as current plant data.'
-        : _friendlyBodies[alert.messageKey];
+        : (tamil ? _farmerActionsTa[alert.messageKey] : _friendlyBodies[alert.messageKey]);
 
     final localizedTitle = strings.text(alert.titleKey);
     final localizedBody = strings.text(alert.messageKey);
     final titleText = friendlyTitle ??
         (_isRawKey(localizedTitle, alert.titleKey)
-            ? _humanize(alert.titleKey)
+            ? (tamil ? 'செடி குறித்த அறிவிப்பு' : _humanize(alert.titleKey))
             : localizedTitle);
     final localizedMessage = friendlyBody ??
         (_isRawKey(localizedBody, alert.messageKey)
-            ? _humanize(alert.messageKey)
+            ? (tamil ? 'விவரங்களை செயலியில் பார்க்கவும்.' : _humanize(alert.messageKey))
             : localizedBody);
 
-    final metric = _metricContext(alert, reading);
+    final metric = disconnected ? null : _metricContext(alert, reading, tamil: tamil);
     final bodyText = disconnected && alert.titleKey == 'alert_sensor_attention'
-        ? 'Reconnect the sensor to continue live monitoring.'
-        : _farmerAction(alert.messageKey, fallback: localizedMessage);
+        ? (tamil ? 'நேரடி கண்காணிப்பைத் தொடர சென்சாரை மீண்டும் இணைக்கவும்.' : 'Reconnect the sensor to continue live monitoring.')
+        : (tamil ? (_farmerActionsTa[alert.messageKey] ?? localizedMessage) : _farmerAction(alert.messageKey, fallback: localizedMessage));
 
-    final confidence = _confidence(edge, reading);
+    final confidence = disconnected ? null : _confidence(edge, reading);
     final sourceLabel =
-        source == SensorDataSource.esp32 ? 'LIVE ESP32' : 'DEMO DATA';
+        disconnected ? (tamil ? 'சென்சார் இணைக்கப்படவில்லை' : 'Sensor offline') : source == SensorDataSource.esp32 ? (tamil ? 'நேரடி சென்சார்' : 'Live sensor') : (tamil ? 'மாதிரி தரவு' : 'Simulation');
     final summaryParts = <String>[sourceLabel];
     if (metric != null) summaryParts.add(metric);
     if (confidence != null) {
-      summaryParts.add('${confidence.round()}% confidence');
+      summaryParts.add(tamil ? '${confidence.round()}% நம்பகத்தன்மை' : '${confidence.round()}% confidence');
     }
 
     return _PhoneCopy(
@@ -222,7 +243,7 @@ class PhoneNotificationService {
     );
   }
 
-  String? _metricContext(PlantAlert alert, SensorReading? reading) {
+  String? _metricContext(PlantAlert alert, SensorReading? reading, {required bool tamil}) {
     if (reading == null) return null;
     final key = alert.titleKey;
     if ((key.contains('water') ||
@@ -230,14 +251,14 @@ class PhoneNotificationService {
             key.contains('dry') ||
             key.contains('overwatering')) &&
         reading.soilMoistureAvailable) {
-      return 'Soil ${reading.soilMoisture.round()}%';
+      return '${tamil ? 'மண் ஈரம்' : 'Soil'} ${reading.soilMoisture.round()}%';
     }
     if ((key.contains('heat') || key.contains('temperature')) &&
         reading.temperatureAvailable) {
       return '${reading.temperature.toStringAsFixed(1)}°C';
     }
     if (key.contains('plant_stress') && reading.plantSignalAvailable) {
-      return 'Plant signal ${reading.bioSignalQuality.round()}%';
+      return '${tamil ? 'செடி சிக்னல்' : 'Plant signal'} ${reading.bioSignalQuality.round()}%';
     }
     return null;
   }
@@ -289,7 +310,13 @@ class PhoneNotificationService {
   }
 
   Future<bool> _ensurePermission() async {
-    if (_permissionResolved) return _permissionGranted;
+    if (_permissionResolved) {
+      try {
+        _permissionGranted = await _channel.invokeMethod<bool>('notificationsEnabled') ?? false;
+      } on PlatformException { _permissionGranted = false; }
+      on MissingPluginException { _permissionGranted = false; }
+      return _permissionGranted;
+    }
     _permissionResolved = true;
     try {
       _permissionGranted =
@@ -309,19 +336,52 @@ class PhoneNotificationService {
     _started = false;
   }
 
+  static const _friendlyTitlesTa = <String, String>{
+    'alert_severe_dryness': 'மண் மிகவும் உலர்ந்துள்ளது',
+    'alert_low_moisture': 'மண்ணில் ஈரம் குறைவு',
+    'alert_overwatering': 'மண் மிகவும் ஈரமாக உள்ளது',
+    'alert_heat_stress': 'செடிக்கு வெப்பம் அதிகம்',
+    'alert_low_light': 'பயிருக்கு வெளிச்சம் குறைவு',
+    'alert_sensor_attention': 'சென்சாரைச் சரிபார்க்கவும்',
+    'alert_plant_recovering': 'செடி மீண்டு வருகிறது',
+    'alert_possible_biotic': 'செடியில் பாதிப்பு உள்ளதா பாருங்கள்',
+    'alert_water_stress_edge': 'செடிக்கு நீர் பற்றாக்குறை',
+    'alert_heat_stress_edge': 'செடிக்கு வெப்பம் அதிகம்',
+    'alert_root_stress_edge': 'வேர் பகுதியை கவனிக்கவும்',
+    'alert_plant_stress_edge': 'செடிக்கு கவனம் தேவை',
+    'alert_low_battery': 'சென்சார் மின்கலத்தில் சார்ஜ் குறைவு',
+    'alert_weak_signal': 'சென்சார் இணைப்பு பலவீனமாக உள்ளது',
+  };
+  static const _farmerActionsTa = <String, String>{
+    'alert_severe_dryness_message': 'வேர் அருகே மண்ணை பாருங்கள். உலர்ந்தால் நீர் ஊற்றுங்கள்.',
+    'alert_low_moisture_message': 'நீர் ஊற்றும் முன் வேர் அருகே மண்ணை பாருங்கள்.',
+    'alert_overwatering_message': 'நீர் ஊற்றுவதை நிறுத்தி, அதிக நீர் வெளியேற வழி உள்ளதா பாருங்கள்.',
+    'alert_heat_stress_message': 'நீர் கிடைக்கிறதா பாருங்கள். முடிந்தால் அதிக வெப்பத்திலிருந்து பாதுகாக்கவும்.',
+    'alert_low_light_message': 'பயிரை அதிக நிழல் மறைக்கிறதா பாருங்கள்.',
+    'alert_sensor_attention_message': 'சென்சார் தொடுதலையும் இணைப்பையும் சரிபார்க்கவும்.',
+    'alert_plant_recovering_message': 'தொடர்ந்து கண்காணிக்கவும். இப்போது மாற்றம் தேவையில்லை.',
+    'alert_possible_biotic_message': 'சிகிச்சை தேர்வு செய்யும் முன் இலைகளையும் தண்டையும் பாருங்கள்.',
+    'alert_water_stress_edge_message': 'நீர் ஊற்றும் முன் வேர் அருகே மண்ணை பாருங்கள்.',
+    'alert_heat_stress_edge_message': 'நீர் கிடைக்கிறதா பாருங்கள். அதிக வெப்பத்திலிருந்து பயிரைப் பாதுகாக்கவும்.',
+    'alert_root_stress_edge_message': 'மண் ஈரம், வடிகால், வேர் வெப்பத்தைச் சரிபார்க்கவும்.',
+    'alert_plant_stress_edge_message': 'பகுப்பாய்வில் முக்கிய காரணத்தைப் பார்க்கவும்.',
+    'alert_low_battery_message': 'சென்சார் மின்கலத்தை விரைவில் சார்ஜ் செய்யவும்.',
+    'alert_weak_signal_message': 'சென்சாரை வைஃபை சாதனத்திற்கு அருகில் வைக்கவும்.',
+  };
+
   static const Map<String, String> _friendlyTitles = {
-    'alert_severe_dryness': 'Soil is critically dry',
+    'alert_severe_dryness': 'Soil is very dry',
     'alert_low_moisture': 'Soil moisture is low',
     'alert_overwatering': 'Soil is staying too wet',
-    'alert_heat_stress': 'Heat stress is rising',
+    'alert_heat_stress': 'The plant is too hot',
     'alert_low_light': 'The crop needs more light',
     'alert_sensor_attention': 'Check the plant sensor',
     'alert_plant_recovering': 'The plant is recovering',
     'alert_possible_biotic': 'Inspect the plant for damage',
-    'alert_water_stress_edge': 'Water stress is rising',
-    'alert_heat_stress_edge': 'Heat stress is rising',
-    'alert_root_stress_edge': 'The root zone needs attention',
-    'alert_plant_stress_edge': 'Plant stress is confirmed',
+    'alert_water_stress_edge': 'The plant needs water',
+    'alert_heat_stress_edge': 'The plant is too hot',
+    'alert_root_stress_edge': 'Check the soil near the roots',
+    'alert_plant_stress_edge': 'The plant needs attention',
     'alert_low_battery': 'Sensor battery is low',
     'alert_weak_signal': 'ESP32 signal is weak',
   };

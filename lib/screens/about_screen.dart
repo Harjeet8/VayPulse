@@ -86,12 +86,16 @@ class AboutVayPulseScreen extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(height: 12),
+            Text('10.2.2 • Verdant', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
             _AboutSection(
               icon: Icons.flag_outlined,
               title: context.tr('about_mission_title'),
               body: context.tr('about_mission_body'),
             ),
+            const SizedBox(height: 12),
+            const _CreatorCard(),
             const SizedBox(height: 12),
             const _FarmImpactEstimator(),
             const SizedBox(height: 12),
@@ -161,12 +165,11 @@ class AboutVayPulseScreen extends StatelessWidget {
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
                 subtitle: Text(FarmerLanguage.isTamil(context)
-                    ? 'ESP32 authoritative intelligence • விவசாயி மைய UI • English/தமிழ் • Sensor/visual evidence தனித்தனி'
+                    ? 'ESP32 வழங்கும் பகுப்பாய்வு • விவசாயிகளுக்கான எளிய செயலி • ஆங்கிலம்/தமிழ் • சென்சார் மற்றும் பட ஆதாரங்கள் தனித்தனி'
                     : 'ESP32-authoritative intelligence • Farmer-first UI • English/Tamil • Sensor and visual evidence kept separate'),
               ),
             ),
-            const SizedBox(height: 12),
-            const _CreatorCard(),
+
           ],
         ),
       );
@@ -174,98 +177,69 @@ class AboutVayPulseScreen extends StatelessWidget {
 
 class _CreatorCard extends StatelessWidget {
   const _CreatorCard();
-
   @override
   Widget build(BuildContext context) {
     final tamil = FarmerLanguage.isTamil(context);
-    final scheme = Theme.of(context).colorScheme;
-
     return Card(
       clipBehavior: Clip.antiAlias,
-      child: Theme(
-        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
-        child: ExpansionTile(
-          initiallyExpanded: false,
-          maintainState: true,
-          leading: Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: scheme.surfaceContainerHighest.withValues(alpha: 0.7),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(Icons.person_outline_rounded, color: scheme.primary),
-          ),
-          title: Text(
-            tamil ? 'உருவாக்குநர்' : 'Creator',
-            style: const TextStyle(fontWeight: FontWeight.w900),
-          ),
-          subtitle: Text(
-            tamil
-                ? 'திட்ட ஆசிரியர் மற்றும் தேர்ந்தெடுக்கப்பட்ட உருவாக்கங்கள்'
-                : 'Project authorship & selected builds',
-          ),
-          childrenPadding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-          children: [
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                'Harjeet D.',
-                style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w900,
-                    ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                tamil
-                    ? 'Raw sensor physics முதல் embedded intelligence மற்றும் user-facing software வரை end-to-end systems உருவாக்கும் student builder.'
-                    : 'Student builder creating end-to-end systems from raw sensor physics to embedded intelligence and user-facing software.',
-                style: TextStyle(color: scheme.onSurfaceVariant),
-              ),
-            ),
-            const SizedBox(height: 14),
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(13),
-              decoration: BoxDecoration(
-                color: scheme.primaryContainer.withValues(alpha: 0.32),
-                borderRadius: BorderRadius.circular(16),
-              ),
-              child: Text(
-                tamil
-                    ? 'தேர்ந்தெடுக்கப்பட்ட builds-ல்: Hardware • Firmware • Signal processing • AI logic • App.'
-                    : 'Across selected builds: Hardware • Firmware • Signal processing • AI logic • App.',
-                style: const TextStyle(fontWeight: FontWeight.w800),
-              ),
-            ),
-            const SizedBox(height: 16),
-            _CreatorBuild(
-              title: 'PhytoSense AI',
-              description: tamil
-                  ? 'ESP32 + Flutter plant-intelligence system — bioelectric sensing, environmental fusion மற்றும் farmer-first guidance.'
-                  : 'ESP32 + Flutter plant-intelligence system combining bioelectric sensing, environmental fusion and farmer-first guidance.',
-            ),
-            const SizedBox(height: 11),
-            _CreatorBuild(
-              title: 'EchoSkin AI',
-              description: tamil
-                  ? 'Piezo vibration sensing, ESP8266 signal analysis, Wi-Fi dashboard மற்றும் actuator response பயன்படுத்தும் structural-health monitoring prototype.'
-                  : 'Structural-health monitoring prototype using piezo vibration sensing, ESP8266 signal analysis, a Wi-Fi dashboard and actuator response.',
-            ),
-            const SizedBox(height: 11),
-            _CreatorBuild(
-              title: 'AURA',
-              description: tamil
-                  ? 'Software-only elder-care emergency-response app — camera-driven workflows மற்றும் safety-first interaction design.'
-                  : 'Software-only elder-care emergency-response app with camera-driven workflows and safety-first interaction design.',
-            ),
-          ],
-        ),
+      child: ExpansionTile(
+        key: const PageStorageKey('creator-details'),
+        maintainState: true,
+        leading: const Icon(Icons.person_outline_rounded),
+        title: Text(tamil ? 'உருவாக்குநர்' : 'Meet the creator'),
+        subtitle: Text(tamil ? 'Harjeet D. · மாணவர் பொறியாளர்' : 'Harjeet D. · Student engineer'),
+        childrenPadding: const EdgeInsets.all(20),
+        children: const [CreatorProfile()],
       ),
     );
+  }
+}
+
+/// Shared profile keeps the expandable About section compact and testable.
+class CreatorProfile extends StatelessWidget {
+  const CreatorProfile({super.key});
+  @override
+  Widget build(BuildContext context) {
+    final tamil = FarmerLanguage.isTamil(context);
+    final theme = Theme.of(context);
+    String t(String en, String ta) => tamil ? ta : en;
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Text('Harjeet D.', style: theme.textTheme.headlineSmall),
+      const SizedBox(height: 5),
+      Text(t('Student engineer from Tamil Nadu', 'தமிழ்நாட்டைச் சேர்ந்த மாணவர் பொறியாளர்'),
+          style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
+      const SizedBox(height: 12),
+      Text(t('I bring electronics, embedded programming and app design together to build practical tools that people can understand.',
+          'மின்னணுவியல், சாதன நிரலாக்கம், செயலி வடிவமைப்பு ஆகியவற்றை இணைத்து, மக்கள் எளிதாகப் பயன்படுத்தும் கருவிகளை உருவாக்குகிறேன்.')),
+      const SizedBox(height: 16),
+      Wrap(spacing: 8, runSpacing: 8, children: [
+        for (final label in [t('Electronics', 'மின்னணுவியல்'), t('Embedded systems', 'சாதன நிரலாக்கம்'), t('Apps & AI', 'செயலிகள் மற்றும் செயற்கை நுண்ணறிவு')])
+          Chip(label: Text(label, style: theme.textTheme.labelLarge)),
+      ]),
+      const SizedBox(height: 18),
+      Text(t('How I build', 'எனது அணுகுமுறை'), style: theme.textTheme.titleMedium),
+      const SizedBox(height: 7),
+      Text(t('Start with a real problem. Build a working prototype. Test it, learn from it, and make the result easier to use.',
+          'உண்மையான பிரச்சினையிலிருந்து தொடங்குவது. இயங்கும் மாதிரியை உருவாக்குவது. சோதித்து கற்றுக்கொண்டு, பயன்படுத்துவதை எளிதாக்குவது.')),
+      const SizedBox(height: 20),
+      Text(t('Selected projects', 'தேர்ந்தெடுக்கப்பட்ட திட்டங்கள்'), style: theme.textTheme.titleMedium),
+      const SizedBox(height: 12),
+      _CreatorBuild(title: 'PhytoSense AI', description: t(
+          'Plant sensing, ESP32 intelligence and clear guidance for farmers.',
+          'செடி அளவீடுகள், ESP32 பகுப்பாய்வு, விவசாயிகளுக்கான தெளிவான வழிகாட்டுதல்.')),
+      const SizedBox(height: 12),
+      _CreatorBuild(title: 'EchoSkin AI', description: t(
+          'A prototype that uses vibration sensing to explore structural monitoring.',
+          'அதிர்வு அளவீடுகள் மூலம் கட்டமைப்பைக் கண்காணிப்பதை ஆராயும் மாதிரி.')),
+      const SizedBox(height: 12),
+      _CreatorBuild(title: 'AURA', description: t(
+          'An elder-care app prototype focused on clear emergency-response steps.',
+          'அவசர நேரத்தில் தெளிவான செயல்படிகளை வழங்கும் முதியோர் பராமரிப்பு செயலி மாதிரி.')),
+      const SizedBox(height: 18),
+      Text(t('PhytoSense was developed with a student team and teacher guidance.',
+          'மாணவர் குழு மற்றும் ஆசிரியர் வழிகாட்டுதலுடன் PhytoSense உருவாக்கப்பட்டது.'),
+          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+    ]);
   }
 }
 

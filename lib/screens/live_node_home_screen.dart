@@ -748,7 +748,7 @@ class _WeatherHomeCard extends StatelessWidget {
                 'Tap to load local farm weather.',
                 'உள்ளூர் பண்ணை வானிலையைப் பார்க்க தொடவும்.',
               )
-            : '${snapshot.temperature.round()}°C  •  ${snapshot.humidity.round()}% humidity';
+            : '${snapshot.temperature.round()}°C  •  ${snapshot.humidity.round()}% ${_competitionText(context, 'humidity', 'ஈரப்பதம்')}';
         final freshness = weather.usingCachedData
             ? _competitionText(
                 context, 'Saved forecast', 'சேமித்த முன்னறிவிப்பு')
@@ -1718,7 +1718,7 @@ class _ConnectionStripState extends State<_ConnectionStrip> {
     final age = _age;
     final subtitle = age == null
         ? null
-        : '${_competitionText(context, 'Updated', 'புதுப்பிக்கப்பட்டது')} ${_relativeAge(age)}';
+        : '${_competitionText(context, 'Updated', 'புதுப்பிக்கப்பட்டது')} ${_relativeAge(context, age)}';
 
     return AnimatedContainer(
       duration: const Duration(milliseconds: 320),
@@ -2194,9 +2194,9 @@ Color _stateColor(BuildContext context, String raw) {
 String _competitionText(BuildContext context, String english, String tamil) =>
     FarmerLanguage.isTamil(context) ? tamil : english;
 
-String _relativeAge(Duration age) {
-  if (age.inSeconds < 2) return 'now';
-  if (age.inSeconds < 60) return '${age.inSeconds}s ago';
-  if (age.inMinutes < 60) return '${age.inMinutes}m ago';
-  return '${age.inHours}h ago';
+String _relativeAge(BuildContext context, Duration age) {
+  if (age.inSeconds < 2) return _competitionText(context, 'now', 'இப்போது');
+  if (age.inSeconds < 60) return _competitionText(context, '${age.inSeconds}s ago', '${age.inSeconds} விநாடிகளுக்கு முன்');
+  if (age.inMinutes < 60) return _competitionText(context, '${age.inMinutes}m ago', '${age.inMinutes} நிமிடங்களுக்கு முன்');
+  return _competitionText(context, '${age.inHours}h ago', '${age.inHours} மணி நேரத்திற்கு முன்');
 }
