@@ -257,6 +257,7 @@ class _ArcPainter extends CustomPainter {
 
     // Continuous visual scale only; no plant-state thresholds are inferred here.
     // The displayed condition and marker accent come from the existing source.
+    track.strokeCap = StrokeCap.butt;
     track.shader = const SweepGradient(
       startAngle: math.pi,
       endAngle: math.pi * 2,
@@ -264,6 +265,12 @@ class _ArcPainter extends CustomPainter {
       stops: [0, .5, 1],
     ).createShader(rect);
     canvas.drawArc(rect, math.pi, math.pi, false, track);
+
+    // Explicit end caps avoid the sweep shader wrapping red onto the green end.
+    canvas.drawCircle(center + Offset(-radius, 0), 6.5,
+        Paint()..color = const Color(0xFFE5937A));
+    canvas.drawCircle(center + Offset(radius, 0), 6.5,
+        Paint()..color = const Color(0xFF83D5A6));
 
     final angle = math.pi + math.pi * value / 100;
     final point = center + Offset(math.cos(angle), math.sin(angle)) * radius;

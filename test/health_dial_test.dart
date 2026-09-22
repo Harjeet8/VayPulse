@@ -1,6 +1,5 @@
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:phytosense_ai/widgets/verdant_care_hero.dart';
 
@@ -33,10 +32,15 @@ void main() {
         ))),
       )));
       await tester.pump();
+      final dialFinder = find.byKey(const ValueKey('health-dial-available'));
+      final painter = tester.widget<CustomPaint>(dialFinder).painter!;
+      final size = tester.getSize(dialFinder);
       await tester.runAsync(() async {
-        final picture = await (boundary.currentContext!.findRenderObject()
-                as RenderRepaintBoundary)
-            .toImage(pixelRatio: 1);
+        final recorder = ui.PictureRecorder();
+        painter.paint(Canvas(recorder), size);
+        final recording = recorder.endRecording();
+        final picture = await recording.toImage(size.width.round(), size.height.round());
+        recording.dispose();
         final pixels =
             (await picture.toByteData(format: ui.ImageByteFormat.rawRgba))!;
         // Two points away from the moving marker: terracotta left, leaf green right.
