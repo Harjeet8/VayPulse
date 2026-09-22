@@ -39,7 +39,8 @@ void main() {
         final recorder = ui.PictureRecorder();
         painter.paint(Canvas(recorder), size);
         final recording = recorder.endRecording();
-        final picture = await recording.toImage(size.width.round(), size.height.round());
+        final picture =
+            await recording.toImage(size.width.round(), size.height.round());
         recording.dispose();
         final pixels =
             (await picture.toByteData(format: ui.ImageByteFormat.rawRgba))!;
