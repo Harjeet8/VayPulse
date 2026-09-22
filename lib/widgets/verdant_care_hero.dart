@@ -83,7 +83,11 @@ class VerdantCareHero extends StatelessWidget {
                   ]);
                 }
                 return Row(children: [
-                  HealthArc(score: score, tamil: tamil, compact: true, statusColor: accent),
+                  HealthArc(
+                      score: score,
+                      tamil: tamil,
+                      compact: true,
+                      statusColor: accent),
                   const SizedBox(width: 18),
                   Expanded(child: status)
                 ]);
@@ -165,7 +169,11 @@ class HealthArc extends StatelessWidget {
   final bool tamil, compact;
   final Color? statusColor;
   const HealthArc(
-      {super.key, this.score, this.tamil = false, this.compact = false, this.statusColor});
+      {super.key,
+      this.score,
+      this.tamil = false,
+      this.compact = false,
+      this.statusColor});
   @override
   Widget build(BuildContext context) {
     final value =
@@ -190,17 +198,22 @@ class HealthArc extends StatelessWidget {
                   ? Duration.zero
                   : const Duration(milliseconds: 650),
               curve: Curves.easeOutCubic,
-              builder: (_, v, __) =>
-                  CustomPaint(
-                    key: ValueKey(value == null ? 'health-dial-unavailable' : 'health-dial-available'),
-                    painter: _ArcPainter(v, value != null, markerColor)),
+              builder: (_, v, __) => CustomPaint(
+                  key: ValueKey(value == null
+                      ? 'health-dial-unavailable'
+                      : 'health-dial-available'),
+                  painter: _ArcPainter(v, value != null, markerColor)),
             )),
             Positioned(
                 bottom: 2,
                 child: Column(children: [
                   if (!compact)
-                    Icon(value == null ? Icons.sensors_off_outlined : Icons.spa_outlined,
-                        size: 30, color: markerColor),
+                    Icon(
+                        value == null
+                            ? Icons.sensors_off_outlined
+                            : Icons.spa_outlined,
+                        size: 30,
+                        color: markerColor),
                   const SizedBox(height: 3),
                   Text(value == null ? '—' : '${value.round()}',
                       key: const Key('plant-health-score'),
@@ -209,7 +222,10 @@ class HealthArc extends StatelessWidget {
                           height: 1.05,
                           fontWeight: FontWeight.w600,
                           color: Colors.white)),
-                  Text(value == null ? (tamil ? 'காத்திருக்கிறது' : 'WAITING') : (tamil ? '100-க்கு' : 'OUT OF 100'),
+                  Text(
+                      value == null
+                          ? (tamil ? 'காத்திருக்கிறது' : 'WAITING')
+                          : (tamil ? '100-க்கு' : 'OUT OF 100'),
                       style: const TextStyle(
                           color: Color(0xFFC5D9CD),
                           fontSize: 10,
