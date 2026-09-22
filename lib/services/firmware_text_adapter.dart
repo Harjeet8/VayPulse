@@ -461,24 +461,41 @@ class FirmwareTextAdapter {
   };
 
   static const _knownTa = <String, String>{
-    'KEEP_THE_ELECTRODES_STABLE_AND_ALLOW_BASELINE_LEARNING_TO_FINISH': 'செடி சென்சாரை அசையாமல் வைத்து, இயல்பான சிக்னலைக் கற்றுக்கொள்ள விடுங்கள்.',
-    'CHECK_ROOT_ZONE_MOISTURE_FIRST_IF_THE_SOIL_IS_DRYING_IRRIGATE_DURING_THE_COOLER_PART_OF_THE_DAY_OTHERWISE_REDUCE_AVOIDABLE_HEAT_WIND_OR_DIRECT_EXPOSURE_WHERE_PRACTICAL': 'முதலில் வேர் அருகே மண் ஈரத்தைப் பாருங்கள். மண் உலர்ந்தால் குளிரான நேரத்தில் நீர் ஊற்றுங்கள். இல்லையெனில் முடிந்த அளவு அதிக வெப்பம், காற்று, நேரடி வெளிச்சத்திலிருந்து பாதுகாக்கவும்.',
-    'CONFIRM_THE_ROOT_ZONE_IS_ACTUALLY_DRY_THEN_IRRIGATE_APPROPRIATELY_FOR_THE_PLANT_AND_POT': 'வேர் அருகே மண் உலர்ந்துள்ளதா உறுதி செய்யுங்கள். பிறகு செடிக்கும் தொட்டிக்கும் ஏற்ற அளவு நீர் ஊற்றுங்கள்.',
-    'AVOID_UNNECESSARY_WATERING_AND_CHECK_DRAINAGE_AND_ROOT_ZONE_AERATION': 'தேவையின்றி நீர் ஊற்ற வேண்டாம். அதிக நீர் வெளியேறவும் வேர் பகுதியில் காற்று செல்லவும் வழி உள்ளதா பாருங்கள்.',
-    'CHECK_ROOT_ZONE_MOISTURE_AND_REDUCE_AVOIDABLE_HEAT_EXPOSURE_WHERE_PRACTICAL': 'வேர் அருகே மண் ஈரத்தைப் பாருங்கள். முடிந்தால் அதிக வெப்பத்திலிருந்து பாதுகாக்கவும்.',
-    'KEEP_MONITORING_THE_PLANT_RESPONSE_AND_INSPECT_THE_PLANT_IF_THE_SIGNAL_PERSISTS_WITHOUT_AN_ENVIRONMENTAL_EXPLANATION': 'செடி சிக்னலை தொடர்ந்து கவனிக்கவும். சூழலில் காரணம் தெரியாமல் சிக்னல் மாற்றம் தொடர்ந்தால் செடியை நேரில் பாருங்கள்.',
-    'CONTINUE_MONITORING_AND_AVOID_UNNECESSARY_INTERVENTION_WHILE_RECOVERY_CONTINUES': 'செடி மீண்டு வரும்போது தொடர்ந்து கண்காணிக்கவும். தேவையற்ற மாற்றங்களைத் தவிர்க்கவும்.',
-    'IMPROVE_AIRFLOW_WHERE_PRACTICAL_AND_INSPECT_LEAVES_AND_STEMS_FOR_VISIBLE_SYMPTOMS': 'முடிந்தால் காற்றோட்டத்தை அதிகரிக்கவும். இலைகளிலும் தண்டிலும் பாதிப்பு உள்ளதா பாருங்கள்.',
-    'CHECK_SHADE_COVER_OR_PLACEMENT_BEFORE_CHANGING_IRRIGATION': 'நீர் ஊற்றும் முறையை மாற்றும் முன் நிழல், மூடல், செடி வைக்கப்பட்ட இடத்தைப் பாருங்கள்.',
-    'INSPECT_THE_ROOT_ZONE_IMMEDIATELY_AND_REDUCE_HEAT_EXPOSURE_WHERE_PRACTICAL': 'வேர் அருகே மண்ணை உடனே பாருங்கள். முடிந்தால் அதிக வெப்பத்திலிருந்து செடியைப் பாதுகாக்கவும்.',
-    'CHECK_SENSOR_CONNECTIONS_OR_SWITCH_BACK_TO_A_HEALTHY_SIMULATION_SCENARIO': 'சென்சார் இணைப்புகளைச் சரிபார்க்கவும் அல்லது ஆரோக்கியமான மாதிரி நிலையைத் தேர்வு செய்யவும்.',
-    'RETRY_THE_SIMULATION_CONNECTION_OR_CHOOSE_ANOTHER_SCENARIO': 'மாதிரி இணைப்பை மீண்டும் முயற்சிக்கவும் அல்லது வேறு நிலையைத் தேர்வு செய்யவும்.',
+    'KEEP_THE_ELECTRODES_STABLE_AND_ALLOW_BASELINE_LEARNING_TO_FINISH':
+        'செடி சென்சாரை அசையாமல் வைத்து, இயல்பான சிக்னலைக் கற்றுக்கொள்ள விடுங்கள்.',
+    'CHECK_ROOT_ZONE_MOISTURE_FIRST_IF_THE_SOIL_IS_DRYING_IRRIGATE_DURING_THE_COOLER_PART_OF_THE_DAY_OTHERWISE_REDUCE_AVOIDABLE_HEAT_WIND_OR_DIRECT_EXPOSURE_WHERE_PRACTICAL':
+        'முதலில் வேர் அருகே மண் ஈரத்தைப் பாருங்கள். மண் உலர்ந்தால் குளிரான நேரத்தில் நீர் ஊற்றுங்கள். இல்லையெனில் முடிந்த அளவு அதிக வெப்பம், காற்று, நேரடி வெளிச்சத்திலிருந்து பாதுகாக்கவும்.',
+    'CONFIRM_THE_ROOT_ZONE_IS_ACTUALLY_DRY_THEN_IRRIGATE_APPROPRIATELY_FOR_THE_PLANT_AND_POT':
+        'வேர் அருகே மண் உலர்ந்துள்ளதா உறுதி செய்யுங்கள். பிறகு செடிக்கும் தொட்டிக்கும் ஏற்ற அளவு நீர் ஊற்றுங்கள்.',
+    'AVOID_UNNECESSARY_WATERING_AND_CHECK_DRAINAGE_AND_ROOT_ZONE_AERATION':
+        'தேவையின்றி நீர் ஊற்ற வேண்டாம். அதிக நீர் வெளியேறவும் வேர் பகுதியில் காற்று செல்லவும் வழி உள்ளதா பாருங்கள்.',
+    'CHECK_ROOT_ZONE_MOISTURE_AND_REDUCE_AVOIDABLE_HEAT_EXPOSURE_WHERE_PRACTICAL':
+        'வேர் அருகே மண் ஈரத்தைப் பாருங்கள். முடிந்தால் அதிக வெப்பத்திலிருந்து பாதுகாக்கவும்.',
+    'KEEP_MONITORING_THE_PLANT_RESPONSE_AND_INSPECT_THE_PLANT_IF_THE_SIGNAL_PERSISTS_WITHOUT_AN_ENVIRONMENTAL_EXPLANATION':
+        'செடி சிக்னலை தொடர்ந்து கவனிக்கவும். சூழலில் காரணம் தெரியாமல் சிக்னல் மாற்றம் தொடர்ந்தால் செடியை நேரில் பாருங்கள்.',
+    'CONTINUE_MONITORING_AND_AVOID_UNNECESSARY_INTERVENTION_WHILE_RECOVERY_CONTINUES':
+        'செடி மீண்டு வரும்போது தொடர்ந்து கண்காணிக்கவும். தேவையற்ற மாற்றங்களைத் தவிர்க்கவும்.',
+    'IMPROVE_AIRFLOW_WHERE_PRACTICAL_AND_INSPECT_LEAVES_AND_STEMS_FOR_VISIBLE_SYMPTOMS':
+        'முடிந்தால் காற்றோட்டத்தை அதிகரிக்கவும். இலைகளிலும் தண்டிலும் பாதிப்பு உள்ளதா பாருங்கள்.',
+    'CHECK_SHADE_COVER_OR_PLACEMENT_BEFORE_CHANGING_IRRIGATION':
+        'நீர் ஊற்றும் முறையை மாற்றும் முன் நிழல், மூடல், செடி வைக்கப்பட்ட இடத்தைப் பாருங்கள்.',
+    'INSPECT_THE_ROOT_ZONE_IMMEDIATELY_AND_REDUCE_HEAT_EXPOSURE_WHERE_PRACTICAL':
+        'வேர் அருகே மண்ணை உடனே பாருங்கள். முடிந்தால் அதிக வெப்பத்திலிருந்து செடியைப் பாதுகாக்கவும்.',
+    'CHECK_SENSOR_CONNECTIONS_OR_SWITCH_BACK_TO_A_HEALTHY_SIMULATION_SCENARIO':
+        'சென்சார் இணைப்புகளைச் சரிபார்க்கவும் அல்லது ஆரோக்கியமான மாதிரி நிலையைத் தேர்வு செய்யவும்.',
+    'RETRY_THE_SIMULATION_CONNECTION_OR_CHOOSE_ANOTHER_SCENARIO':
+        'மாதிரி இணைப்பை மீண்டும் முயற்சிக்கவும் அல்லது வேறு நிலையைத் தேர்வு செய்யவும்.',
     'CONTINUE_NORMAL_MONITORING': 'வழக்கம்போல் தொடர்ந்து கண்காணிக்கவும்.',
-    'INSPECT_LEAVES_AND_STEMS_FOR_SYMPTOMS_AND_IMPROVE_AIRFLOW_WHERE_PRACTICAL': 'இலைகளிலும் தண்டிலும் பாதிப்பு உள்ளதா பாருங்கள். முடிந்தால் காற்றோட்டத்தை அதிகரிக்கவும்.',
-    'USE_THE_CAMERA_INSPECTION_FLOW_TO_LOOK_FOR_VISIBLE_SYMPTOMS': 'கேமரா மூலம் செடியில் தெரியும் பாதிப்புகளைப் பாருங்கள்.',
-    'COMPOUND_HEAT_AND_WATER_STRESS': 'அதிக வெப்பமும் நீர் பற்றாக்குறையும் செடியை பாதிக்கின்றன',
-    'VERY_LOW_SOIL_MOISTURE_HIGH_TEMPERATURE_AND_HIGH_VPD_AGREE': 'மண்ணில் ஈரம் மிகக் குறைவு. காற்று சூடாகவும் உலர்ந்தும் உள்ளது.',
-    'BIOELECTRIC_RESPONSE_IS_STRONG_AND_CORROBORATED_BY_ENVIRONMENTAL_CHANNELS': 'செடி சிக்னல் மாற்றத்தை மற்ற சூழல் அளவீடுகளும் ஆதரிக்கின்றன.',
+    'INSPECT_LEAVES_AND_STEMS_FOR_SYMPTOMS_AND_IMPROVE_AIRFLOW_WHERE_PRACTICAL':
+        'இலைகளிலும் தண்டிலும் பாதிப்பு உள்ளதா பாருங்கள். முடிந்தால் காற்றோட்டத்தை அதிகரிக்கவும்.',
+    'USE_THE_CAMERA_INSPECTION_FLOW_TO_LOOK_FOR_VISIBLE_SYMPTOMS':
+        'கேமரா மூலம் செடியில் தெரியும் பாதிப்புகளைப் பாருங்கள்.',
+    'COMPOUND_HEAT_AND_WATER_STRESS':
+        'அதிக வெப்பமும் நீர் பற்றாக்குறையும் செடியை பாதிக்கின்றன',
+    'VERY_LOW_SOIL_MOISTURE_HIGH_TEMPERATURE_AND_HIGH_VPD_AGREE':
+        'மண்ணில் ஈரம் மிகக் குறைவு. காற்று சூடாகவும் உலர்ந்தும் உள்ளது.',
+    'BIOELECTRIC_RESPONSE_IS_STRONG_AND_CORROBORATED_BY_ENVIRONMENTAL_CHANNELS':
+        'செடி சிக்னல் மாற்றத்தை மற்ற சூழல் அளவீடுகளும் ஆதரிக்கின்றன.',
     'CONDITIONS_ARE_CURRENTLY_ACCEPTABLE': 'இப்போது நிலை ஏற்றதாக உள்ளது.',
     'HEALTHY': 'ஆரோக்கியமான நிலை',
     'EXCELLENT': 'மிக நல்ல நிலை',
@@ -495,14 +512,14 @@ class FirmwareTextAdapter {
     'WATER_ROOT_ZONE': 'வேர் பகுதியை சமமாக நீர்ப்பாய்ச்சவும்.',
     'CHECK_SOIL_SENSOR':
         'மண் ஈரப்பத சென்சார் மற்றும் இணைப்பைச் சரிபார்க்கவும்.',
-    'CHECK_DRAINAGE':
-        'மேலும் நீர் சேர்ப்பதற்கு முன் வடிகாலைச் சரிபார்க்கவும்.',
+    'CHECK_DRAINAGE': 'மேலும் நீர் சேர்ப்பதற்கு முன் வடிகாலைச் சரிபார்க்கவும்.',
     'REDUCE_HEAT_EXPOSURE': 'முடிந்தால் அதிக வெப்ப தாக்கத்தை குறைக்கவும்.',
     'IMPROVE_AIRFLOW':
         'காற்றோட்டத்தை மேம்படுத்தி இலைகளை இயன்றவரை உலர வைத்திருக்கவும்.',
     'LEARNING_BASELINE':
         'இந்த செடியின் இயல்பான மின்சார மாற்றம் கற்றுக்கொள்ளப்படுகிறது',
-    'BASELINE_STABLE': 'மின்சார மாற்றம் கற்றுக்கொண்ட இயல்பு நிலைக்கு அருகில் உள்ளது',
+    'BASELINE_STABLE':
+        'மின்சார மாற்றம் கற்றுக்கொண்ட இயல்பு நிலைக்கு அருகில் உள்ளது',
     'STRESS_CORROBORATED':
         'மற்ற சென்சார்கள் காட்டும் பாதிப்பை மின்சார மாற்றமும் ஆதரிக்கிறது',
     'NO_DATA': 'நம்பகமான அளவீடு இல்லை',

@@ -87,7 +87,9 @@ class AboutVayPulseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text('10.2.2 • Verdant', textAlign: TextAlign.center, style: Theme.of(context).textTheme.bodySmall),
+            Text('10.2.2 • Verdant',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
             _AboutSection(
               icon: Icons.flag_outlined,
@@ -169,7 +171,6 @@ class AboutVayPulseScreen extends StatelessWidget {
                     : 'ESP32-authoritative intelligence • Farmer-first UI • English/Tamil • Sensor and visual evidence kept separate'),
               ),
             ),
-
           ],
         ),
       );
@@ -187,7 +188,9 @@ class _CreatorCard extends StatelessWidget {
         maintainState: true,
         leading: const Icon(Icons.person_outline_rounded),
         title: Text(tamil ? 'உருவாக்குநர்' : 'Meet the creator'),
-        subtitle: Text(tamil ? 'Harjeet D. · மாணவர் பொறியாளர்' : 'Harjeet D. · Student engineer'),
+        subtitle: Text(tamil
+            ? 'Harjeet D. · மாணவர் பொறியாளர்'
+            : 'Harjeet D. · Student engineer'),
         childrenPadding: const EdgeInsets.all(20),
         children: const [CreatorProfile()],
       ),
@@ -206,39 +209,58 @@ class CreatorProfile extends StatelessWidget {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Text('Harjeet D.', style: theme.textTheme.headlineSmall),
       const SizedBox(height: 5),
-      Text(t('Student engineer from Tamil Nadu', 'தமிழ்நாட்டைச் சேர்ந்த மாணவர் பொறியாளர்'),
-          style: theme.textTheme.titleSmall?.copyWith(color: theme.colorScheme.primary)),
+      Text(
+          t('Student engineer from Tamil Nadu',
+              'தமிழ்நாட்டைச் சேர்ந்த மாணவர் பொறியாளர்'),
+          style: theme.textTheme.titleSmall
+              ?.copyWith(color: theme.colorScheme.primary)),
       const SizedBox(height: 12),
-      Text(t('I bring electronics, embedded programming and app design together to build practical tools that people can understand.',
+      Text(t(
+          'I bring electronics, embedded programming and app design together to build practical tools that people can understand.',
           'மின்னணுவியல், சாதன நிரலாக்கம், செயலி வடிவமைப்பு ஆகியவற்றை இணைத்து, மக்கள் எளிதாகப் பயன்படுத்தும் கருவிகளை உருவாக்குகிறேன்.')),
       const SizedBox(height: 16),
       Wrap(spacing: 8, runSpacing: 8, children: [
-        for (final label in [t('Electronics', 'மின்னணுவியல்'), t('Embedded systems', 'சாதன நிரலாக்கம்'), t('Apps & AI', 'செயலிகள் மற்றும் செயற்கை நுண்ணறிவு')])
+        for (final label in [
+          t('Electronics', 'மின்னணுவியல்'),
+          t('Embedded systems', 'சாதன நிரலாக்கம்'),
+          t('Apps & AI', 'செயலிகள் மற்றும் செயற்கை நுண்ணறிவு')
+        ])
           Chip(label: Text(label, style: theme.textTheme.labelLarge)),
       ]),
       const SizedBox(height: 18),
-      Text(t('How I build', 'எனது அணுகுமுறை'), style: theme.textTheme.titleMedium),
+      Text(t('How I build', 'எனது அணுகுமுறை'),
+          style: theme.textTheme.titleMedium),
       const SizedBox(height: 7),
-      Text(t('Start with a real problem. Build a working prototype. Test it, learn from it, and make the result easier to use.',
+      Text(t(
+          'Start with a real problem. Build a working prototype. Test it, learn from it, and make the result easier to use.',
           'உண்மையான பிரச்சினையிலிருந்து தொடங்குவது. இயங்கும் மாதிரியை உருவாக்குவது. சோதித்து கற்றுக்கொண்டு, பயன்படுத்துவதை எளிதாக்குவது.')),
       const SizedBox(height: 20),
-      Text(t('Selected projects', 'தேர்ந்தெடுக்கப்பட்ட திட்டங்கள்'), style: theme.textTheme.titleMedium),
+      Text(t('Selected projects', 'தேர்ந்தெடுக்கப்பட்ட திட்டங்கள்'),
+          style: theme.textTheme.titleMedium),
       const SizedBox(height: 12),
-      _CreatorBuild(title: 'PhytoSense AI', description: t(
-          'Plant sensing, ESP32 intelligence and clear guidance for farmers.',
-          'செடி அளவீடுகள், ESP32 பகுப்பாய்வு, விவசாயிகளுக்கான தெளிவான வழிகாட்டுதல்.')),
+      _CreatorBuild(
+          title: 'PhytoSense AI',
+          description: t(
+              'Plant sensing, ESP32 intelligence and clear guidance for farmers.',
+              'செடி அளவீடுகள், ESP32 பகுப்பாய்வு, விவசாயிகளுக்கான தெளிவான வழிகாட்டுதல்.')),
       const SizedBox(height: 12),
-      _CreatorBuild(title: 'EchoSkin AI', description: t(
-          'A prototype that uses vibration sensing to explore structural monitoring.',
-          'அதிர்வு அளவீடுகள் மூலம் கட்டமைப்பைக் கண்காணிப்பதை ஆராயும் மாதிரி.')),
+      _CreatorBuild(
+          title: 'EchoSkin AI',
+          description: t(
+              'A prototype that uses vibration sensing to explore structural monitoring.',
+              'அதிர்வு அளவீடுகள் மூலம் கட்டமைப்பைக் கண்காணிப்பதை ஆராயும் மாதிரி.')),
       const SizedBox(height: 12),
-      _CreatorBuild(title: 'AURA', description: t(
-          'An elder-care app prototype focused on clear emergency-response steps.',
-          'அவசர நேரத்தில் தெளிவான செயல்படிகளை வழங்கும் முதியோர் பராமரிப்பு செயலி மாதிரி.')),
+      _CreatorBuild(
+          title: 'AURA',
+          description: t(
+              'An elder-care app prototype focused on clear emergency-response steps.',
+              'அவசர நேரத்தில் தெளிவான செயல்படிகளை வழங்கும் முதியோர் பராமரிப்பு செயலி மாதிரி.')),
       const SizedBox(height: 18),
-      Text(t('PhytoSense was developed with a student team and teacher guidance.',
-          'மாணவர் குழு மற்றும் ஆசிரியர் வழிகாட்டுதலுடன் PhytoSense உருவாக்கப்பட்டது.'),
-          style: theme.textTheme.bodySmall?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+      Text(
+          t('PhytoSense was developed with a student team and teacher guidance.',
+              'மாணவர் குழு மற்றும் ஆசிரியர் வழிகாட்டுதலுடன் PhytoSense உருவாக்கப்பட்டது.'),
+          style: theme.textTheme.bodySmall
+              ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
     ]);
   }
 }

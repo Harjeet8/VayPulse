@@ -2196,7 +2196,12 @@ String _competitionText(BuildContext context, String english, String tamil) =>
 
 String _relativeAge(BuildContext context, Duration age) {
   if (age.inSeconds < 2) return _competitionText(context, 'now', 'இப்போது');
-  if (age.inSeconds < 60) return _competitionText(context, '${age.inSeconds}s ago', '${age.inSeconds} விநாடிகளுக்கு முன்');
-  if (age.inMinutes < 60) return _competitionText(context, '${age.inMinutes}m ago', '${age.inMinutes} நிமிடங்களுக்கு முன்');
-  return _competitionText(context, '${age.inHours}h ago', '${age.inHours} மணி நேரத்திற்கு முன்');
+  if (age.inSeconds < 60)
+    return _competitionText(context, '${age.inSeconds}s ago',
+        '${age.inSeconds} விநாடிகளுக்கு முன்');
+  if (age.inMinutes < 60)
+    return _competitionText(context, '${age.inMinutes}m ago',
+        '${age.inMinutes} நிமிடங்களுக்கு முன்');
+  return _competitionText(
+      context, '${age.inHours}h ago', '${age.inHours} மணி நேரத்திற்கு முன்');
 }

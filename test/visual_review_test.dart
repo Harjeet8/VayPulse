@@ -119,11 +119,15 @@ void main() {
                         child: RepaintBoundary(
                             key: boundary,
                             child: Scaffold(
-                                body: scene == 'creator' ? const SingleChildScrollView(padding: EdgeInsets.all(20), child: CreatorProfile()) : scene == 'voice'
-                                    ? const VoiceStudioScreen()
-                                    : home
-                                        ? const HomeScreen()
-                                        : const FarmerAnalysisScreen(),
+                                body: scene == 'creator'
+                                    ? const SingleChildScrollView(
+                                        padding: EdgeInsets.all(20),
+                                        child: CreatorProfile())
+                                    : scene == 'voice'
+                                        ? const VoiceStudioScreen()
+                                        : home
+                                            ? const HomeScreen()
+                                            : const FarmerAnalysisScreen(),
                                 bottomNavigationBar: BottomNav(
                                     index: home ? 0 : 1,
                                     onChanged: (_) {})))))));
@@ -139,13 +143,20 @@ void main() {
             }
             if (scene == 'creator') {
               expect(find.text('Harjeet D.'), findsOneWidget);
-              expect(find.text(language == 'ta' ? 'எனது அணுகுமுறை' : 'How I build'), findsOneWidget);
+              expect(
+                  find.text(
+                      language == 'ta' ? 'எனது அணுகுமுறை' : 'How I build'),
+                  findsOneWidget);
             }
             if (home && language == 'ta') {
               final context = tester.element(find.byType(HomeScreen));
               expect(FarmerLanguage.firmware(context, 'Tomato'), 'தக்காளி');
-              expect(FarmerLanguage.firmware(context, 'vegetative'), 'இலை வளர்ச்சி');
-              expect(FirmwareTextAdapter.text(context, 'Inspect the root zone immediately and reduce heat exposure where practical.'), isNot(matches(RegExp('[A-Za-z]'))));
+              expect(FarmerLanguage.firmware(context, 'vegetative'),
+                  'இலை வளர்ச்சி');
+              expect(
+                  FirmwareTextAdapter.text(context,
+                      'Inspect the root zone immediately and reduce heat exposure where practical.'),
+                  isNot(matches(RegExp('[A-Za-z]'))));
             }
             if (scene == 'voice') {
               expect(

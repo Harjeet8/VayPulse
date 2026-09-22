@@ -13,8 +13,13 @@ import 'package:phytosense_ai/services/weather_service.dart';
 class TestAlerts extends AlertService {
   TestAlerts(super.sensors, super.settings, super.weather, super.farms);
   void emit(String id) {
-    alerts.add(PlantAlert(id: id, nodeId: 'plant', timestamp: DateTime.now(),
-      titleKey: 'alert_severe_dryness', messageKey: 'alert_severe_dryness_message', severity: AlertSeverity.critical));
+    alerts.add(PlantAlert(
+        id: id,
+        nodeId: 'plant',
+        timestamp: DateTime.now(),
+        titleKey: 'alert_severe_dryness',
+        messageKey: 'alert_severe_dryness_message',
+        severity: AlertSeverity.critical));
     notifyListeners();
   }
 }
@@ -27,53 +32,78 @@ void main() {
   setUp(() {
     SharedPreferences.setMockInitialValues({});
     debugDefaultTargetPlatformOverride = TargetPlatform.android;
-    calls.clear(); permission = true;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, (call) async {
+    calls.clear();
+    permission = true;
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, (call) async {
       calls.add(call);
-      if (call.method == 'requestPermission' || call.method == 'notificationsEnabled') return permission;
+      if (call.method == 'requestPermission' ||
+          call.method == 'notificationsEnabled') return permission;
       return null;
     });
   });
   tearDown(() {
     debugDefaultTargetPlatformOverride = null;
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger.setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(channel, null);
   });
 
   for (final language in ['en', 'ta']) {
-    testWidgets('notification respects $language and suppresses duplicate conditions', (tester) async {
+    testWidgets(
+        'notification respects $language and suppresses duplicate conditions',
+        (tester) async {
       final settings = SettingsService()..value.languageCode = language;
-      final sensors = SensorProviderManager(), weather = WeatherService(), farms = FarmRepository();
+      final sensors = SensorProviderManager(),
+          weather = WeatherService(),
+          farms = FarmRepository();
       final alerts = TestAlerts(sensors, settings, weather, farms);
       final service = PhoneNotificationService(alerts, settings)..start();
-      alerts.emit('one'); await tester.pump();
+      alerts.emit('one');
+      await tester.pump();
       final sent = calls.where((c) => c.method == 'showNotification').toList();
       expect(sent.length, 1);
       final args = sent.single.arguments as Map;
-      expect(args['title'], language == 'ta' ? 'மண் மிகவும் உலர்ந்துள்ளது' : 'Soil is very dry');
-      expect(args['sourceLabel'], language == 'ta' ? 'மாதிரி தரவு' : 'Simulation');
+      expect(args['title'],
+          language == 'ta' ? 'மண் மிகவும் உலர்ந்துள்ளது' : 'Soil is very dry');
+      expect(
+          args['sourceLabel'], language == 'ta' ? 'மாதிரி தரவு' : 'Simulation');
       if (language == 'ta') {
         expect(args['body'], isNot(matches(RegExp('[A-Za-z]'))));
         expect(args['actionLabel'], 'செயலியைத் திற');
       }
-      alerts.emit('two'); await tester.pump();
+      alerts.emit('two');
+      await tester.pump();
       expect(calls.where((c) => c.method == 'showNotification').length, 1);
-      service.dispose(); alerts.dispose(); sensors.dispose(); weather.dispose(); settings.dispose();
+      service.dispose();
+      alerts.dispose();
+      sensors.dispose();
+      weather.dispose();
+      settings.dispose();
     });
   }
 
-  testWidgets('permission granted in settings is detected without restarting', (tester) async {
+  testWidgets('permission granted in settings is detected without restarting',
+      (tester) async {
     final settings = SettingsService();
-    final sensors = SensorProviderManager(), weather = WeatherService(), farms = FarmRepository();
+    final sensors = SensorProviderManager(),
+        weather = WeatherService(),
+        farms = FarmRepository();
     final alerts = TestAlerts(sensors, settings, weather, farms);
     final service = PhoneNotificationService(alerts, settings)..start();
     permission = false;
-    alerts.emit('denied'); await tester.pump();
+    alerts.emit('denied');
+    await tester.pump();
     expect(calls.where((c) => c.method == 'showNotification'), isEmpty);
     permission = true;
-    alerts.emit('allowed'); await tester.pump();
+    alerts.emit('allowed');
+    await tester.pump();
     expect(calls.where((c) => c.method == 'showNotification').length, 1);
     expect(calls.where((c) => c.method == 'requestPermission').length, 1);
-    service.dispose(); alerts.dispose(); sensors.dispose(); weather.dispose(); settings.dispose();
+    service.dispose();
+    alerts.dispose();
+    sensors.dispose();
+    weather.dispose();
+    settings.dispose();
   });
 
   test('preview is clearly labelled and never fabricates plant data', () async {
