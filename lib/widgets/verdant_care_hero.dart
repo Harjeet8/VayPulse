@@ -1,7 +1,6 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../app/theme.dart';
-import 'live_motion.dart';
 
 /// Presentation only: score and condition are supplied by the data source.
 class VerdantCareHero extends StatelessWidget {
@@ -78,13 +77,13 @@ class VerdantCareHero extends StatelessWidget {
                 if (box.maxWidth < 280 ||
                     MediaQuery.textScalerOf(context).scale(1) > 1.2) {
                   return Column(children: [
-                    HealthArc(score: score, tamil: tamil),
+                    HealthArc(score: score, tamil: tamil, statusColor: accent),
                     const SizedBox(height: 10),
                     status
                   ]);
                 }
                 return Row(children: [
-                  HealthArc(score: score, tamil: tamil, compact: true),
+                  HealthArc(score: score, tamil: tamil, compact: true, statusColor: accent),
                   const SizedBox(width: 18),
                   Expanded(child: status)
                 ]);
@@ -164,14 +163,18 @@ class VerdantCareHero extends StatelessWidget {
 class HealthArc extends StatelessWidget {
   final double? score;
   final bool tamil, compact;
+  final Color? statusColor;
   const HealthArc(
-      {super.key, this.score, this.tamil = false, this.compact = false});
+      {super.key, this.score, this.tamil = false, this.compact = false, this.statusColor});
   @override
   Widget build(BuildContext context) {
     final value =
         score != null && score!.isFinite && score! >= 0 && score! <= 100
             ? score
             : null;
+    final markerColor = value == null
+        ? const Color(0xFF9DAAA3)
+        : Color.lerp(statusColor ?? phytoGreen, Colors.white, .35)!;
     return Semantics(
       label: value == null
           ? (tamil ? 'மதிப்பெண் இல்லை' : 'Score unavailable')
@@ -185,20 +188,19 @@ class HealthArc extends StatelessWidget {
               tween: Tween(end: value ?? 0),
               duration: MediaQuery.disableAnimationsOf(context)
                   ? Duration.zero
-                  : const Duration(milliseconds: 800),
+                  : const Duration(milliseconds: 650),
               curve: Curves.easeOutCubic,
               builder: (_, v, __) =>
-                  CustomPaint(painter: _ArcPainter(v, value != null)),
+                  CustomPaint(
+                    key: ValueKey(value == null ? 'health-dial-unavailable' : 'health-dial-available'),
+                    painter: _ArcPainter(v, value != null, markerColor)),
             )),
             Positioned(
                 bottom: 2,
                 child: Column(children: [
                   if (!compact)
-                    const LiveMotion(
-                        style: LiveMotionStyle.sway,
-                        duration: Duration(seconds: 5),
-                        child: Icon(Icons.spa_outlined,
-                            size: 34, color: Color(0xFFD4E7B8))),
+                    Icon(value == null ? Icons.sensors_off_outlined : Icons.spa_outlined,
+                        size: 30, color: markerColor),
                   const SizedBox(height: 3),
                   Text(value == null ? '—' : '${value.round()}',
                       key: const Key('plant-health-score'),
@@ -207,7 +209,7 @@ class HealthArc extends StatelessWidget {
                           height: 1.05,
                           fontWeight: FontWeight.w600,
                           color: Colors.white)),
-                  Text(tamil ? '100-க்கு' : 'OUT OF 100',
+                  Text(value == null ? (tamil ? 'காத்திருக்கிறது' : 'WAITING') : (tamil ? '100-க்கு' : 'OUT OF 100'),
                       style: const TextStyle(
                           color: Color(0xFFC5D9CD),
                           fontSize: 10,
@@ -221,32 +223,42 @@ class HealthArc extends StatelessWidget {
 class _ArcPainter extends CustomPainter {
   final double value;
   final bool available;
-  _ArcPainter(this.value, this.available);
+  final Color markerColor;
+  _ArcPainter(this.value, this.available, this.markerColor);
+
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height - 25);
     final radius = math.min(size.width / 2 - 14, size.height - 35);
     final rect = Rect.fromCircle(center: center, radius: radius);
-    final p = Paint()
+    final track = Paint()
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 11
-      ..strokeCap = StrokeCap.round;
-    p.color = const Color(0xFF406353);
-    canvas.drawArc(rect, math.pi, math.pi, false, p);
+      ..strokeWidth = 13
+      ..strokeCap = StrokeCap.round
+      ..color = const Color(0xFF718078);
+    canvas.drawArc(rect, math.pi, math.pi, false, track);
     if (!available) return;
-    p.shader = const SweepGradient(
-            startAngle: math.pi,
-            endAngle: math.pi * 2,
-            colors: [Color(0xFFDFA48B), Color(0xFFE5C781), Color(0xFFA7D6A6)])
-        .createShader(rect);
-    canvas.drawArc(rect, math.pi, math.pi * value / 100, false, p);
+
+    // Continuous visual scale only; no plant-state thresholds are inferred here.
+    // The displayed condition and marker accent come from the existing source.
+    track.shader = const SweepGradient(
+      startAngle: math.pi,
+      endAngle: math.pi * 2,
+      colors: [Color(0xFFE5937A), Color(0xFFEAC45F), Color(0xFF83D5A6)],
+      stops: [0, .5, 1],
+    ).createShader(rect);
+    canvas.drawArc(rect, math.pi, math.pi, false, track);
+
     final angle = math.pi + math.pi * value / 100;
     final point = center + Offset(math.cos(angle), math.sin(angle)) * radius;
-    canvas.drawCircle(point, 7, Paint()..color = Colors.white);
-    canvas.drawCircle(point, 3, Paint()..color = phytoGreen);
+    canvas.drawCircle(point, 11, Paint()..color = const Color(0xFF173E32));
+    canvas.drawCircle(point, 8, Paint()..color = Colors.white);
+    canvas.drawCircle(point, 4.5, Paint()..color = markerColor);
   }
 
   @override
   bool shouldRepaint(_ArcPainter old) =>
-      old.value != value || old.available != available;
+      old.value != value ||
+      old.available != available ||
+      old.markerColor != markerColor;
 }
