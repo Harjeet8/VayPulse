@@ -31,7 +31,6 @@ void main() {
   bool permission = true;
   setUp(() {
     SharedPreferences.setMockInitialValues({});
-    debugDefaultTargetPlatformOverride = TargetPlatform.android;
     calls.clear();
     permission = true;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
@@ -43,7 +42,6 @@ void main() {
     });
   });
   tearDown(() {
-    debugDefaultTargetPlatformOverride = null;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
   });
@@ -79,7 +77,7 @@ void main() {
       sensors.dispose();
       weather.dispose();
       settings.dispose();
-    });
+    }, variant: TargetPlatformVariant.only(TargetPlatform.android));
   }
 
   testWidgets('permission granted in settings is detected without restarting',
@@ -104,7 +102,7 @@ void main() {
     sensors.dispose();
     weather.dispose();
     settings.dispose();
-  });
+    }, variant: TargetPlatformVariant.only(TargetPlatform.android));
 
   test('preview is clearly labelled and never fabricates plant data', () async {
     expect(await PhoneNotificationService.showPreview('ta'), isTrue);
