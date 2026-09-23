@@ -11,6 +11,8 @@ import '../widgets/phyto_ui.dart';
 import '../widgets/verdant_care_hero.dart';
 import '../widgets/care_actions.dart';
 import 'leaf_screening_screen.dart';
+import 'ilai_screen.dart';
+import '../widgets/ilai_avatar.dart';
 
 class FarmerAnalysisScreen extends StatefulWidget {
   const FarmerAnalysisScreen({super.key});
@@ -36,6 +38,11 @@ class _FarmerAnalysisScreenState extends State<FarmerAnalysisScreen> {
             !live || sensors.connectionStatus == SensorConnectionStatus.ready;
         return Scaffold(
           appBar: AppBar(
+            actions: [IconButton(
+              tooltip: _analysisText(context, 'Ask Ilai', 'இலையிடம் கேளுங்கள்'),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IlaiScreen())),
+              icon: const IlaiAvatar(size: 30),
+            )],
             title: Text(
               _analysisText(context, 'Plant care', 'செடி பராமரிப்பு'),
             ),

@@ -21,6 +21,8 @@ import '../widgets/page_frame.dart';
 import '../widgets/verdant_care_hero.dart';
 import '../widgets/care_actions.dart';
 import 'settings_screen.dart';
+import 'ilai_screen.dart';
+import '../widgets/ilai_avatar.dart';
 import 'care_journal_screen.dart';
 import 'setup_guide_screen.dart';
 import '../widgets/time_phase_card.dart';
@@ -237,6 +239,11 @@ class LiveNodeHomeScreen extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             if (canShowCurrent) const DataSourceCard(),
+            Align(alignment: Alignment.centerRight, child: TextButton.icon(
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IlaiScreen())),
+              icon: const IlaiAvatar(size: 28),
+              label: Text(_competitionText(context, 'Ask Ilai', 'இலையிடம் கேளுங்கள்')),
+            )),
             if (!live) ...[
               const SizedBox(height: 12),
               const SimulationCommandDeck()

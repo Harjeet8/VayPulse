@@ -25,6 +25,7 @@ class MainActivity : FlutterActivity() {
     }
 
     private var carePlatform: CarePlatform? = null
+    private var ilaiSpeech: IlaiSpeech? = null
 
     private var pendingPermissionResult: MethodChannel.Result? = null
 
@@ -32,6 +33,7 @@ class MainActivity : FlutterActivity() {
         super.configureFlutterEngine(flutterEngine)
         createNotificationChannel()
         carePlatform = CarePlatform(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/care"))
+        ilaiSpeech = IlaiSpeech(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/speech"))
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
@@ -63,8 +65,14 @@ class MainActivity : FlutterActivity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
     override fun onStop() {
+        ilaiSpeech?.cancel()
         carePlatform?.stopAudio()
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        ilaiSpeech?.dispose()
+        super.onDestroy()
     }
 
     private fun notificationsEnabled(): Boolean {
@@ -103,6 +111,7 @@ class MainActivity : FlutterActivity() {
         grantResults: IntArray,
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (ilaiSpeech?.permissionResult(requestCode, grantResults) == true) return
         if (requestCode != PERMISSION_REQUEST_CODE) return
 
         val granted = grantResults.isNotEmpty() &&

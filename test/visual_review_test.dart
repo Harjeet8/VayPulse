@@ -29,6 +29,7 @@ import 'package:phytosense_ai/widgets/bottom_nav.dart';
 import 'package:phytosense_ai/services/sensor_data_provider.dart';
 import 'package:phytosense_ai/widgets/simulation_notice.dart';
 import 'package:phytosense_ai/screens/settings_screen.dart';
+import 'package:phytosense_ai/screens/ilai_screen.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -106,6 +107,7 @@ void main() {
             'care',
             'voice',
             'creator',
+            'ilai',
             'offline',
             'practice'
           ]) {
@@ -139,7 +141,9 @@ void main() {
                             key: boundary,
                             child: SimulationNotice(
                                 child: Scaffold(
-                                    body: scene == 'practice'
+                                    body: scene == 'ilai'
+                                        ? const IlaiScreen()
+                                        : scene == 'practice'
                                         ? const SingleChildScrollView(
                                             child: SimulationModeControl())
                                         : scene == 'offline'
@@ -237,6 +241,25 @@ void main() {
                 await file.writeAsBytes(data!.buffer.asUint8List());
                 image.dispose();
               });
+            }
+            if (scene == 'ilai') {
+              await tester.enterText(find.byType(TextField), language == 'ta' ? 'என்ன செய்ய வேண்டும்?' : 'What should I do?');
+              await tester.tap(find.byKey(const Key('ilai-send')));
+              await tester.pump();
+              await tester.pump(const Duration(milliseconds: 300));
+              expect(find.byKey(const Key('ilai-last-reply')), findsOneWidget);
+              expect(find.textContaining(language == 'ta' ? 'இது பயிற்சிக்கான தரவு மட்டும்.' : 'Practice data only.'), findsOneWidget);
+              expect(tester.takeException(), isNull);
+              sensors.stop();
+              sensors.configure(source: SensorDataSource.esp32, endpoint: sensors.hardwareEndpoint);
+              await tester.pump();
+              expect(find.byKey(const Key('ilai-last-reply')), findsNothing);
+              await tester.enterText(find.byType(TextField), language == 'ta' ? 'என்ன செய்ய வேண்டும்?' : 'What should I do?');
+              await tester.tap(find.byKey(const Key('ilai-send')));
+              await tester.pump();
+              await tester.pump(const Duration(milliseconds: 300));
+              expect(find.textContaining(language == 'ta' ? 'தற்போதைய செடி முடிவு கிடைக்கவில்லை.' : 'I don’t have a current plant finding.'), findsOneWidget);
+              expect(tester.takeException(), isNull);
             }
             await tester.pumpWidget(const SizedBox.shrink());
           }

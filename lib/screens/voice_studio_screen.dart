@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/phone_voice.dart';
+import '../services/voice_names.dart';
 import '../services/voice_guidance_service.dart';
 import '../widgets/page_frame.dart';
 import '../widgets/phyto_ui.dart';
@@ -20,6 +21,7 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
   bool internet = false, loading = true;
   String language = 'en', selected = '';
   List<PhoneVoice> voices = [];
+  Map<String, String> names = {};
   VoiceGuidanceService? voice;
   int generation = 0;
   String t(String en, String ta) => FarmerLanguage.isTamil(context) ? ta : en;
@@ -72,6 +74,9 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
       final enabled = prefs.getBool('phyto.internetPhoneVoice') ?? false;
       final list =
           await voice!.availablePhoneVoices(language, allowInternet: enabled);
+      if (!mounted) return;
+      final aliases = await VoiceNames.forVoices(list, language,
+          tamilLabels: FarmerLanguage.isTamil(context));
       if (!mounted || ticket != generation) {
         return;
       }
@@ -82,6 +87,7 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
             .toDouble();
         internet = enabled;
         voices = list;
+        names = aliases;
         selected = list.any((v) => v.name == saved) ? saved : '';
         loading = false;
       });
@@ -173,7 +179,7 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
                       DropdownMenuItem(
                           value: voices[i].name,
                           child: Text(
-                              '${t('Voice', 'குரல்')} ${i + 1} · ${voices[i].locale} · ${voices[i].needsInternet ? t('Internet', 'இணையம்') : t('Offline', 'இணையம் தேவையில்லை')}',
+                              '${names[voices[i].name] ?? t('Voice', 'குரல்')} · ${voices[i].locale} · ${voices[i].needsInternet ? t('Internet', 'இணையம்') : t('Offline', 'இணையம் தேவையில்லை')}',
                               overflow: TextOverflow.ellipsis)),
                   ],
                   onChanged: (value) async {
@@ -198,8 +204,8 @@ class _VoiceStudioScreenState extends State<VoiceStudioScreen>
                       )),
               const SizedBox(height: 8),
               Text(
-                  t('Phone voices vary by device. A higher reported rating does not guarantee a more natural voice.',
-                      'குரல்கள் தொலைபேசிக்கு ஏற்ப மாறும். அதிக தர மதிப்பீடு இயல்பான குரலுக்கு உத்தரவாதம் அல்ல.'),
+                  t('Nila, Malar and the other names are friendly labels for your phone’s voices. Listen to choose; the names do not change the sound.',
+                      'நிலா, மலர் போன்ற பெயர்கள் தொலைபேசி குரல்களை எளிதில் தேர்வு செய்வதற்கானவை. பெயர் மாறுவதால் ஒலி மாறாது. மாதிரியைக் கேட்டுத் தேர்வு செய்யுங்கள்.'),
                   style: theme.textTheme.bodySmall),
             ])),
         const SizedBox(height: 16),

@@ -87,7 +87,7 @@ class AboutVayPulseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text('10.2.3 • Verdant',
+            Text('10.3.0 • Verdant',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),

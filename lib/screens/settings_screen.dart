@@ -13,6 +13,8 @@ import '../services/phone_notification_service.dart';
 import 'care_journal_screen.dart';
 import 'setup_guide_screen.dart';
 import 'voice_studio_screen.dart';
+import 'ilai_screen.dart';
+import '../widgets/ilai_avatar.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -43,6 +45,13 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 22),
             Card(
                 child: Column(children: [
+              ListTile(
+                leading: const IlaiAvatar(size: 40),
+                title: Text(FarmerLanguage.isTamil(context) ? 'இலையிடம் கேளுங்கள்' : 'Ask Ilai'),
+                subtitle: Text(FarmerLanguage.isTamil(context) ? 'செடி வழிகாட்டி · உரை மற்றும் குரல்' : 'Plant guide · text and voice'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IlaiScreen())),
+              ),
               ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined,
                       color: phytoWater),
