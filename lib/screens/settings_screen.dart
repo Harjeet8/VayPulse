@@ -78,12 +78,15 @@ class SettingsScreen extends StatelessWidget {
             ])),
             const SizedBox(height: 22),
             _SettingsLabel(FarmerLanguage.isTamil(context)
-                ? 'உங்கள் செடியைக் கண்காணிக்கவும்' : 'Plant monitoring'),
+                ? 'உங்கள் செடியைக் கண்காணிக்கவும்'
+                : 'Plant monitoring'),
             const SizedBox(height: 8),
-            Card(child: ListTile(
+            Card(
+                child: ListTile(
               leading: const Icon(Icons.memory_rounded),
               title: Text(FarmerLanguage.isTamil(context)
-                  ? 'ESP32 செடி உணரி' : 'ESP32 plant sensor'),
+                  ? 'ESP32 செடி உணரி'
+                  : 'ESP32 plant sensor'),
               subtitle: Text(FarmerLanguage.isTamil(context)
                   ? 'உங்கள் சாதனத்திலிருந்து உள்ளூர் அல்லது இணைய வழி அளவீடுகள்.'
                   : 'Readings from your device, nearby or through the internet.'),
@@ -219,12 +222,15 @@ class SettingsScreen extends StatelessWidget {
             ),
             const SizedBox(height: 22),
             _SettingsLabel(FarmerLanguage.isTamil(context)
-                ? 'விருப்பப் பயிற்சி' : 'Optional practice'),
+                ? 'விருப்பப் பயிற்சி'
+                : 'Optional practice'),
             const SizedBox(height: 8),
             const SimulationModeControl(),
             if (scope.sensors.supportsScenarios) ...[
               const SizedBox(height: 18),
-              _SettingsLabel(FarmerLanguage.isTamil(context) ? 'பயிற்சி அமைப்புகள்' : 'Practice controls'),
+              _SettingsLabel(FarmerLanguage.isTamil(context)
+                  ? 'பயிற்சி அமைப்புகள்'
+                  : 'Practice controls'),
               const SizedBox(height: 8),
               Card(
                 child: Padding(
@@ -233,7 +239,9 @@ class SettingsScreen extends StatelessWidget {
                     isExpanded: true,
                     initialValue: scope.sensors.scenarioId,
                     decoration: InputDecoration(
-                      labelText: FarmerLanguage.isTamil(context) ? 'பயிற்சி நிலை' : 'Practice condition',
+                      labelText: FarmerLanguage.isTamil(context)
+                          ? 'பயிற்சி நிலை'
+                          : 'Practice condition',
                       prefixIcon: const Icon(Icons.science_outlined),
                     ),
                     items: scope.sensors.scenarioIds
@@ -881,21 +889,27 @@ class SimulationModeControl extends StatelessWidget {
         child: SwitchListTile(
           key: const Key('simulation-mode-switch'),
           secondary: const Icon(Icons.science_outlined),
-          title: Text(FarmerLanguage.isTamil(context) ? 'சிமுலேஷன்' : 'Simulation'),
+          title: Text(
+              FarmerLanguage.isTamil(context) ? 'சிமுலேஷன்' : 'Simulation'),
           subtitle: Text(FarmerLanguage.isTamil(context)
               ? 'செயலியைப் பழக மாதிரி அளவீடுகள். உங்கள் செடியின் உண்மையான தரவு அல்ல. அணைத்தால் ESP32 கண்காணிப்பு தொடரும்.'
               : 'Try the app with practice readings. These are not your plant’s data. Turn off to use your ESP32.'),
           value: scope.sensors.source == SensorDataSource.simulation,
           onChanged: (enabled) async {
             await scope.voice.stop();
-            await scope.settings.setDataSource(enabled ? 'simulation' : 'esp32');
+            await scope.settings
+                .setDataSource(enabled ? 'simulation' : 'esp32');
             scope.alerts.clear();
             if (enabled) {
-              scope.sensorManager.simulation.setScenario(scope.settings.value.demoScenario);
-              scope.sensorManager.simulation.selectNode(scope.settings.value.demoNodeId);
+              scope.sensorManager.simulation
+                  .setScenario(scope.settings.value.demoScenario);
+              scope.sensorManager.simulation
+                  .selectNode(scope.settings.value.demoNodeId);
             }
             scope.sensorManager.configure(
-              source: enabled ? SensorDataSource.simulation : SensorDataSource.esp32,
+              source: enabled
+                  ? SensorDataSource.simulation
+                  : SensorDataSource.esp32,
               endpoint: scope.settings.value.esp32Endpoint,
             );
             HapticFeedback.selectionClick();

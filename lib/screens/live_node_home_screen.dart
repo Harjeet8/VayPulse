@@ -1806,7 +1806,8 @@ class _HardwareUnavailableBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _competitionText(context,
+                      _competitionText(
+                          context,
                           'Connect your ESP32 to see how your plant is doing. No current readings are available.',
                           'உங்கள் செடியின் நிலையை அறிய ESP32 சாதனத்தை இணைக்கவும். தற்போதைய அளவீடுகள் இல்லை.'),
                       style: const TextStyle(height: 1.35),
@@ -1827,9 +1828,11 @@ class _HardwareUnavailableBanner extends StatelessWidget {
                 label: Text(context.tr('reconnect')),
               ),
               OutlinedButton.icon(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen())),
                 icon: const Icon(Icons.settings_input_antenna_rounded),
-                label: Text(_competitionText(context, 'Connect my sensor', 'உணரியை இணைக்கவும்')),
+                label: Text(_competitionText(
+                    context, 'Connect my sensor', 'உணரியை இணைக்கவும்')),
               ),
             ],
           ),
@@ -1876,9 +1879,13 @@ class _WaitingCard extends StatelessWidget {
                   ),
                   if (live)
                     FilledButton.tonalIcon(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const SettingsScreen())),
                       icon: const Icon(Icons.settings_input_antenna_rounded),
-                      label: Text(_competitionText(context, 'Connect my sensor', 'உணரியை இணைக்கவும்')),
+                      label: Text(_competitionText(
+                          context, 'Connect my sensor', 'உணரியை இணைக்கவும்')),
                     ),
                 ],
               ),

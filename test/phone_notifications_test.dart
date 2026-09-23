@@ -54,7 +54,9 @@ void main() {
       final sensors = SensorProviderManager(),
           weather = WeatherService(),
           farms = FarmRepository();
-      sensors.configure(source: SensorDataSource.simulation, endpoint: sensors.hardwareEndpoint);
+      sensors.configure(
+          source: SensorDataSource.simulation,
+          endpoint: sensors.hardwareEndpoint);
       final alerts = TestAlerts(sensors, settings, weather, farms);
       final service = PhoneNotificationService(alerts, settings)..start();
       alerts.emit('one');

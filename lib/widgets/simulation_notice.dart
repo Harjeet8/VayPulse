@@ -27,19 +27,26 @@ class SimulationNotice extends StatelessWidget {
               child: SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   child: Row(children: [
-                    Icon(Icons.science_outlined, size: 18,
-                        color: dark ? const Color(0xFFFFD78B) : const Color(0xFF664710)),
+                    Icon(Icons.science_outlined,
+                        size: 18,
+                        color: dark
+                            ? const Color(0xFFFFD78B)
+                            : const Color(0xFF664710)),
                     const SizedBox(width: 8),
-                    Expanded(child: Text(
+                    Expanded(
+                        child: Text(
                       FarmerLanguage.isTamil(context)
                           ? 'சிமுலேஷன் · பயிற்சிக்கான தரவு மட்டும்'
                           : 'Simulation · Practice readings only',
                       style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: dark ? const Color(0xFFFFD78B) : const Color(0xFF664710),
-                        fontWeight: FontWeight.w700,
-                      ),
+                            color: dark
+                                ? const Color(0xFFFFD78B)
+                                : const Color(0xFF664710),
+                            fontWeight: FontWeight.w700,
+                          ),
                     )),
                   ]),
                 ),

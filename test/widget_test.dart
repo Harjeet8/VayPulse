@@ -209,7 +209,9 @@ void main() {
     final manager = SensorProviderManager();
     expect(manager.source, SensorDataSource.esp32);
     expect(manager.current, isNull);
-    manager.configure(source: SensorDataSource.simulation, endpoint: manager.hardwareEndpoint);
+    manager.configure(
+        source: SensorDataSource.simulation,
+        endpoint: manager.hardwareEndpoint);
     expect(manager.source, SensorDataSource.simulation);
     final demoNodeId = manager.selectedNodeId;
     manager.configure(
@@ -282,7 +284,9 @@ void main() {
     final settings = SettingsService();
     final farms = FarmRepository();
     final sensors = SensorProviderManager();
-    sensors.configure(source: SensorDataSource.simulation, endpoint: sensors.hardwareEndpoint);
+    sensors.configure(
+        source: SensorDataSource.simulation,
+        endpoint: sensors.hardwareEndpoint);
     sensors.setScenario('critical');
     sensors.start();
     final weather = WeatherService();

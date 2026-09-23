@@ -91,7 +91,9 @@ void main() {
           final farms = FarmRepository(),
               sensors = SensorProviderManager(),
               weather = WeatherService();
-          sensors.configure(source: SensorDataSource.simulation, endpoint: sensors.hardwareEndpoint);
+          sensors.configure(
+              source: SensorDataSource.simulation,
+              endpoint: sensors.hardwareEndpoint);
           sensors.setScenario('critical');
           sensors.start();
           final alerts = AlertService(sensors, settings, weather, farms),
@@ -99,10 +101,19 @@ void main() {
           final offline = OfflineSyncService(sensors, settings),
               evidence = EngineeringEvidenceService(sensors),
               inspections = InspectionHistoryService();
-          for (final scene in ['home', 'care', 'voice', 'creator', 'offline', 'practice']) {
+          for (final scene in [
+            'home',
+            'care',
+            'voice',
+            'creator',
+            'offline',
+            'practice'
+          ]) {
             if (scene == 'offline') {
               sensors.stop();
-              sensors.configure(source: SensorDataSource.esp32, endpoint: sensors.hardwareEndpoint);
+              sensors.configure(
+                  source: SensorDataSource.esp32,
+                  endpoint: sensors.hardwareEndpoint);
             }
             final home = scene == 'home';
             final boundary = GlobalKey();
@@ -126,23 +137,25 @@ void main() {
                                 TextScaler.linear(width == 320 ? 1.3 : 1)),
                         child: RepaintBoundary(
                             key: boundary,
-                            child: SimulationNotice(child: Scaffold(
-                                body: scene == 'practice'
-                                    ? const SingleChildScrollView(child: SimulationModeControl())
-                                    : scene == 'offline'
-                                    ? const HomeScreen()
-                                    : scene == 'creator'
-                                    ? const SingleChildScrollView(
-                                        padding: EdgeInsets.all(20),
-                                        child: CreatorProfile())
-                                    : scene == 'voice'
-                                        ? const VoiceStudioScreen()
-                                        : home
+                            child: SimulationNotice(
+                                child: Scaffold(
+                                    body: scene == 'practice'
+                                        ? const SingleChildScrollView(
+                                            child: SimulationModeControl())
+                                        : scene == 'offline'
                                             ? const HomeScreen()
-                                            : const FarmerAnalysisScreen(),
-                                bottomNavigationBar: BottomNav(
-                                    index: home ? 0 : 1,
-                                    onChanged: (_) {}))))))));
+                                            : scene == 'creator'
+                                                ? const SingleChildScrollView(
+                                                    padding: EdgeInsets.all(20),
+                                                    child: CreatorProfile())
+                                                : scene == 'voice'
+                                                    ? const VoiceStudioScreen()
+                                                    : home
+                                                        ? const HomeScreen()
+                                                        : const FarmerAnalysisScreen(),
+                                    bottomNavigationBar: BottomNav(
+                                        index: home ? 0 : 1,
+                                        onChanged: (_) {}))))))));
             await tester.pump(const Duration(milliseconds: 1200));
             // Let controls finish their loading-to-ready colour transition.
             await tester.pump(const Duration(milliseconds: 300));
@@ -150,8 +163,13 @@ void main() {
             if (scene == 'offline') {
               expect(find.byKey(const Key('plant-health-score')), findsNothing);
               expect(find.byKey(const Key('simulation-notice')), findsNothing);
-              expect(find.byKey(const Key('simulation-mode-switch')), findsNothing);
-              expect(find.text(language == 'ta' ? 'உணரியை இணைக்கவும்' : 'Connect my sensor'), findsOneWidget);
+              expect(find.byKey(const Key('simulation-mode-switch')),
+                  findsNothing);
+              expect(
+                  find.text(language == 'ta'
+                      ? 'உணரியை இணைக்கவும்'
+                      : 'Connect my sensor'),
+                  findsOneWidget);
             }
             if (scene == 'practice') {
               await tester.tap(find.byKey(const Key('simulation-mode-switch')));
@@ -159,7 +177,8 @@ void main() {
               await tester.pump(const Duration(milliseconds: 300));
               expect(sensors.source, SensorDataSource.simulation);
               expect(settings.value.dataSource, 'simulation');
-              expect(find.byKey(const Key('simulation-notice')), findsOneWidget);
+              expect(
+                  find.byKey(const Key('simulation-notice')), findsOneWidget);
               expect(tester.takeException(), isNull);
               await tester.tap(find.byKey(const Key('simulation-mode-switch')));
               await tester.pump();

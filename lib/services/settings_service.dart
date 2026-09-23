@@ -17,9 +17,10 @@ class SettingsService extends ChangeNotifier {
       // Older releases defaulted to Simulation. Reset that legacy preference
       // once; future explicit choices in Settings remain persistent.
       final hardwareFirst = p.getBool('hardwareFirstModeV1') ?? false;
-      value.dataSource = hardwareFirst && p.getString('dataSource') == 'simulation'
-          ? 'simulation'
-          : 'esp32';
+      value.dataSource =
+          hardwareFirst && p.getString('dataSource') == 'simulation'
+              ? 'simulation'
+              : 'esp32';
       if (!hardwareFirst) {
         await p.setString('dataSource', 'esp32');
         await p.setBool('hardwareFirstModeV1', true);

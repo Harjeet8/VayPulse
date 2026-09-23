@@ -21,10 +21,14 @@ void main() {
     settings.dispose();
   });
 
-  test('legacy simulation default migrates once without losing connection settings', () async {
+  test(
+      'legacy simulation default migrates once without losing connection settings',
+      () async {
     SharedPreferences.setMockInitialValues({
-      'dataSource': 'simulation', 'esp32Endpoint': 'http://192.168.29.5',
-      'hardwareTransportMode': 'REMOTE', 'languageCode': 'ta',
+      'dataSource': 'simulation',
+      'esp32Endpoint': 'http://192.168.29.5',
+      'hardwareTransportMode': 'REMOTE',
+      'languageCode': 'ta',
     });
     final settings = SettingsService();
     await settings.load();
@@ -44,7 +48,8 @@ void main() {
   });
 
   test('invalid saved mode safely selects ESP32', () async {
-    SharedPreferences.setMockInitialValues({'hardwareFirstModeV1': true, 'dataSource': 'unknown'});
+    SharedPreferences.setMockInitialValues(
+        {'hardwareFirstModeV1': true, 'dataSource': 'unknown'});
     final settings = SettingsService();
     await settings.load();
     expect(settings.value.dataSource, 'esp32');
@@ -53,10 +58,13 @@ void main() {
 
   test('leaving simulation hides its readings immediately', () {
     final manager = SensorProviderManager();
-    manager.configure(source: SensorDataSource.simulation, endpoint: manager.hardwareEndpoint);
+    manager.configure(
+        source: SensorDataSource.simulation,
+        endpoint: manager.hardwareEndpoint);
     manager.simulation.start();
     expect(manager.current, isNotNull);
-    manager.configure(source: SensorDataSource.esp32, endpoint: manager.hardwareEndpoint);
+    manager.configure(
+        source: SensorDataSource.esp32, endpoint: manager.hardwareEndpoint);
     expect(manager.current, isNull);
     expect(manager.latestReadings, isEmpty);
     expect(manager.edgeIntelligence, isNull);
