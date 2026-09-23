@@ -1688,14 +1688,15 @@ class _ConnectionStripState extends State<_ConnectionStrip> {
     if (!widget.live) {
       title = FarmerLanguage.label(context, 'simulation_active');
     } else if (disconnected) {
-      title = _competitionText(context, 'Searching for PhytoSense node…',
-          'சாதனம் தேடப்படுகிறது…');
+      title = _competitionText(
+          context, 'Searching for PhytoSense node…', 'சாதனம் தேடப்படுகிறது…');
     } else if (stale) {
       title = _competitionText(
           context, 'Latest packet is delayed', 'புதிய அளவீடு தாமதமாகிறது');
     } else {
       title = switch (_connectionStage) {
-        1 => _competitionText(context, 'Node detected', 'சாதனம் கண்டறியப்பட்டது'),
+        1 =>
+          _competitionText(context, 'Node detected', 'சாதனம் கண்டறியப்பட்டது'),
         2 => _competitionText(
             context, 'Sensors verified', 'சென்சார்கள் சரிபார்க்கப்பட்டன'),
         _ => _competitionText(
@@ -1737,9 +1738,12 @@ class _ConnectionStripState extends State<_ConnectionStrip> {
           children: [
             Text(title, style: const TextStyle(fontWeight: FontWeight.w800)),
             const SizedBox(height: 4),
-            Text(sourceLabel, style: TextStyle(
-              color: accent, fontSize: 10.5, fontWeight: FontWeight.w900,
-            )),
+            Text(sourceLabel,
+                style: TextStyle(
+                  color: accent,
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w900,
+                )),
           ],
         ),
         subtitle: subtitle == null ? null : Text(subtitle),
@@ -1789,7 +1793,8 @@ class _HardwareUnavailableBanner extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      _competitionText(context,
+                      _competitionText(
+                          context,
                           'Connect your ESP32 to see how your plant is doing. No current readings are available.',
                           'உங்கள் செடியின் நிலையை அறிய ESP32 சாதனத்தை இணைக்கவும். தற்போதைய அளவீடுகள் இல்லை.'),
                       style: const TextStyle(height: 1.35),
@@ -1810,9 +1815,11 @@ class _HardwareUnavailableBanner extends StatelessWidget {
                 label: Text(context.tr('reconnect')),
               ),
               OutlinedButton.icon(
-                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                onPressed: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const SettingsScreen())),
                 icon: const Icon(Icons.settings_input_antenna_rounded),
-                label: Text(_competitionText(context, 'Connect my sensor', 'சாதனத்தை இணை')),
+                label: Text(_competitionText(
+                    context, 'Connect my sensor', 'சாதனத்தை இணை')),
               ),
             ],
           ),
@@ -1859,9 +1866,13 @@ class _WaitingCard extends StatelessWidget {
                   ),
                   if (live)
                     FilledButton.tonalIcon(
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                      onPressed: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (_) => const SettingsScreen())),
                       icon: const Icon(Icons.settings_input_antenna_rounded),
-                      label: Text(_competitionText(context, 'Connect my sensor', 'சாதனத்தை இணை')),
+                      label: Text(_competitionText(
+                          context, 'Connect my sensor', 'சாதனத்தை இணை')),
                     ),
                 ],
               ),
