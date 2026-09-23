@@ -35,6 +35,8 @@ void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
   setUp(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(const MethodChannel('com.harjeet.phytosense/speech'), (_) async => null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(const MethodChannel('flutter_tts'),
             (call) async {
       if (call.method == 'getVoices') {
@@ -144,20 +146,19 @@ void main() {
                                     body: scene == 'ilai'
                                         ? const IlaiScreen()
                                         : scene == 'practice'
-                                            ? const SingleChildScrollView(
-                                                child: SimulationModeControl())
-                                            : scene == 'offline'
-                                                ? const HomeScreen()
-                                                : scene == 'creator'
-                                                    ? const SingleChildScrollView(
-                                                        padding:
-                                                            EdgeInsets.all(20),
-                                                        child: CreatorProfile())
-                                                    : scene == 'voice'
-                                                        ? const VoiceStudioScreen()
-                                                        : home
-                                                            ? const HomeScreen()
-                                                            : const FarmerAnalysisScreen(),
+                                        ? const SingleChildScrollView(
+                                            child: SimulationModeControl())
+                                        : scene == 'offline'
+                                            ? const HomeScreen()
+                                            : scene == 'creator'
+                                                ? const SingleChildScrollView(
+                                                    padding: EdgeInsets.all(20),
+                                                    child: CreatorProfile())
+                                                : scene == 'voice'
+                                                    ? const VoiceStudioScreen()
+                                                    : home
+                                                        ? const HomeScreen()
+                                                        : const FarmerAnalysisScreen(),
                                     bottomNavigationBar: BottomNav(
                                         index: home ? 0 : 1,
                                         onChanged: (_) {}))))))));
@@ -244,40 +245,20 @@ void main() {
               });
             }
             if (scene == 'ilai') {
-              await tester.enterText(
-                  find.byType(TextField),
-                  language == 'ta'
-                      ? 'என்ன செய்ய வேண்டும்?'
-                      : 'What should I do?');
+              await tester.enterText(find.byType(TextField), language == 'ta' ? 'என்ன செய்ய வேண்டும்?' : 'What should I do?');
               await tester.tap(find.byKey(const Key('ilai-send')));
-              await tester.pump();
-              await tester.pump(const Duration(milliseconds: 300));
+              await tester.pumpAndSettle();
               expect(find.byKey(const Key('ilai-last-reply')), findsOneWidget);
-              expect(
-                  find.textContaining(language == 'ta'
-                      ? 'இது பயிற்சிக்கான தரவு மட்டும்.'
-                      : 'Practice data only.'),
-                  findsOneWidget);
+              expect(find.textContaining(language == 'ta' ? 'இது பயிற்சிக்கான தரவு மட்டும்.' : 'Practice data only.'), findsOneWidget);
               expect(tester.takeException(), isNull);
               sensors.stop();
-              sensors.configure(
-                  source: SensorDataSource.esp32,
-                  endpoint: sensors.hardwareEndpoint);
+              sensors.configure(source: SensorDataSource.esp32, endpoint: sensors.hardwareEndpoint);
               await tester.pump();
               expect(find.byKey(const Key('ilai-last-reply')), findsNothing);
-              await tester.enterText(
-                  find.byType(TextField),
-                  language == 'ta'
-                      ? 'என்ன செய்ய வேண்டும்?'
-                      : 'What should I do?');
+              await tester.enterText(find.byType(TextField), language == 'ta' ? 'என்ன செய்ய வேண்டும்?' : 'What should I do?');
               await tester.tap(find.byKey(const Key('ilai-send')));
-              await tester.pump();
-              await tester.pump(const Duration(milliseconds: 300));
-              expect(
-                  find.textContaining(language == 'ta'
-                      ? 'தற்போதைய செடி முடிவு கிடைக்கவில்லை.'
-                      : 'I don’t have a current plant finding.'),
-                  findsOneWidget);
+              await tester.pumpAndSettle();
+              expect(find.textContaining(language == 'ta' ? 'தற்போதைய செடி முடிவு கிடைக்கவில்லை.' : 'I don’t have a current plant finding.'), findsOneWidget);
               expect(tester.takeException(), isNull);
             }
             await tester.pumpWidget(const SizedBox.shrink());
