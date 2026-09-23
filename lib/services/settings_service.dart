@@ -14,7 +14,16 @@ class SettingsService extends ChangeNotifier {
       value.languageCode = p.getString('languageCode') ?? 'en';
       value.demoScenario = p.getString('scenario') ?? 'healthy';
       value.demoNodeId = p.getString('demoNodeId') ?? 'node-tomato-a1';
-      value.dataSource = p.getString('dataSource') ?? 'simulation';
+      // Older releases defaulted to Simulation. Reset that legacy preference
+      // once; future explicit choices in Settings remain persistent.
+      final hardwareFirst = p.getBool('hardwareFirstModeV1') ?? false;
+      value.dataSource = hardwareFirst && p.getString('dataSource') == 'simulation'
+          ? 'simulation'
+          : 'esp32';
+      if (!hardwareFirst) {
+        await p.setString('dataSource', 'esp32');
+        await p.setBool('hardwareFirstModeV1', true);
+      }
       value.esp32Endpoint =
           p.getString('esp32Endpoint') ?? 'http://192.168.4.1';
       value.hardwareTransportMode =
@@ -58,9 +67,10 @@ class SettingsService extends ChangeNotifier {
   }
 
   Future<void> setDataSource(String source) async {
-    value.dataSource = source;
+    value.dataSource = source == 'simulation' ? 'simulation' : 'esp32';
     final p = await SharedPreferences.getInstance();
-    await p.setString('dataSource', source);
+    await p.setString('dataSource', value.dataSource);
+    await p.setBool('hardwareFirstModeV1', true);
     notifyListeners();
   }
 

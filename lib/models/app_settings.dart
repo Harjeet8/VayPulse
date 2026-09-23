@@ -7,7 +7,7 @@ class AppSettings {
   String languageCode = 'en';
   String demoScenario = 'healthy';
   String demoNodeId = 'node-tomato-a1';
-  String dataSource = 'simulation';
+  String dataSource = 'esp32';
   String esp32Endpoint = 'http://192.168.4.1';
   String hardwareTransportMode = 'AUTO';
   String syncEndpoint = '';

@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -9,6 +8,7 @@ import 'package:phytosense_ai/services/phone_notification_service.dart';
 import 'package:phytosense_ai/services/sensor_provider_manager.dart';
 import 'package:phytosense_ai/services/settings_service.dart';
 import 'package:phytosense_ai/services/weather_service.dart';
+import 'package:phytosense_ai/services/sensor_data_provider.dart';
 
 class TestAlerts extends AlertService {
   TestAlerts(super.sensors, super.settings, super.weather, super.farms);
@@ -54,6 +54,7 @@ void main() {
       final sensors = SensorProviderManager(),
           weather = WeatherService(),
           farms = FarmRepository();
+      sensors.configure(source: SensorDataSource.simulation, endpoint: sensors.hardwareEndpoint);
       final alerts = TestAlerts(sensors, settings, weather, farms);
       final service = PhoneNotificationService(alerts, settings)..start();
       alerts.emit('one');

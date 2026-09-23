@@ -21,7 +21,7 @@ class SensorProviderManager extends SensorDataProvider {
 
   SensorProviderManager({String endpoint = 'http://192.168.4.1'}) {
     _hardware = _buildHardware(endpoint);
-    _active = simulation;
+    _active = _hardware;
     _attach();
   }
 

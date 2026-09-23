@@ -16,6 +16,7 @@ import '../services/sensor_data_provider.dart';
 import '../services/sensor_provider_manager.dart';
 import '../services/voice_guidance_service.dart';
 import '../services/weather_service.dart';
+import '../widgets/simulation_notice.dart';
 import 'theme.dart';
 
 const startupLoadTimeout = Duration(seconds: 5);
@@ -77,12 +78,12 @@ class _VayPulseAppState extends State<VayPulseApp> {
       engineeringEvidence.load(),
       inspectionHistory.load(),
     ]);
-    sensors.setScenario(settings.value.demoScenario);
+    sensors.simulation.setScenario(settings.value.demoScenario);
     sensors.simulation.selectNode(settings.value.demoNodeId);
     sensors.configure(
-      source: settings.value.dataSource == 'esp32'
-          ? SensorDataSource.esp32
-          : SensorDataSource.simulation,
+      source: settings.value.dataSource == 'simulation'
+          ? SensorDataSource.simulation
+          : SensorDataSource.esp32,
       endpoint: settings.value.esp32Endpoint,
       transportMode: HardwareTransportModeX.parse(
         settings.value.hardwareTransportMode,
@@ -151,7 +152,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
                 textScaler: TextScaler.linear(scale),
                 disableAnimations: settings.value.reducedMotion,
               ),
-              child: child ?? const SizedBox.shrink(),
+              child: SimulationNotice(child: child ?? const SizedBox.shrink()),
             );
           },
           home: SplashScreen(initialization: initialization),

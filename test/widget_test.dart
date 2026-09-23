@@ -34,7 +34,7 @@ void main() {
     final settings = AppSettings();
     expect(settings.largeText, isFalse);
     expect(settings.reducedMotion, isFalse);
-    expect(settings.dataSource, 'simulation');
+    expect(settings.dataSource, 'esp32');
   });
 
   test('v6.2 bioelectric and biotic fields parse without a health score', () {
@@ -207,6 +207,9 @@ void main() {
 
   test('provider manager switches sources without changing its contract', () {
     final manager = SensorProviderManager();
+    expect(manager.source, SensorDataSource.esp32);
+    expect(manager.current, isNull);
+    manager.configure(source: SensorDataSource.simulation, endpoint: manager.hardwareEndpoint);
     expect(manager.source, SensorDataSource.simulation);
     final demoNodeId = manager.selectedNodeId;
     manager.configure(
@@ -279,6 +282,7 @@ void main() {
     final settings = SettingsService();
     final farms = FarmRepository();
     final sensors = SensorProviderManager();
+    sensors.configure(source: SensorDataSource.simulation, endpoint: sensors.hardwareEndpoint);
     sensors.setScenario('critical');
     sensors.start();
     final weather = WeatherService();
