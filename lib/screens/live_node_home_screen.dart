@@ -239,11 +239,15 @@ class LiveNodeHomeScreen extends StatelessWidget {
             ],
             const SizedBox(height: 16),
             if (canShowCurrent) const DataSourceCard(),
-            Align(alignment: Alignment.centerRight, child: TextButton.icon(
-              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IlaiScreen())),
-              icon: const IlaiAvatar(size: 28),
-              label: Text(_competitionText(context, 'Ask Ilai', 'இலையிடம் கேளுங்கள்')),
-            )),
+            Align(
+                alignment: Alignment.centerRight,
+                child: TextButton.icon(
+                  onPressed: () => Navigator.push(context,
+                      MaterialPageRoute(builder: (_) => const IlaiScreen())),
+                  icon: const IlaiAvatar(size: 28),
+                  label: Text(_competitionText(
+                      context, 'Ask Ilai', 'இலையிடம் கேளுங்கள்')),
+                )),
             if (!live) ...[
               const SizedBox(height: 12),
               const SimulationCommandDeck()

@@ -47,10 +47,15 @@ class SettingsScreen extends StatelessWidget {
                 child: Column(children: [
               ListTile(
                 leading: const IlaiAvatar(size: 40),
-                title: Text(FarmerLanguage.isTamil(context) ? 'இலையிடம் கேளுங்கள்' : 'Ask Ilai'),
-                subtitle: Text(FarmerLanguage.isTamil(context) ? 'செடி வழிகாட்டி · உரை மற்றும் குரல்' : 'Plant guide · text and voice'),
+                title: Text(FarmerLanguage.isTamil(context)
+                    ? 'இலையிடம் கேளுங்கள்'
+                    : 'Ask Ilai'),
+                subtitle: Text(FarmerLanguage.isTamil(context)
+                    ? 'செடி வழிகாட்டி · உரை மற்றும் குரல்'
+                    : 'Plant guide · text and voice'),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IlaiScreen())),
+                onTap: () => Navigator.push(context,
+                    MaterialPageRoute(builder: (_) => const IlaiScreen())),
               ),
               ListTile(
                   leading: const Icon(Icons.record_voice_over_outlined,

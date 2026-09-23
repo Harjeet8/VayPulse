@@ -19,7 +19,8 @@ class IlaiSpeech extends ChangeNotifier {
     busy = true;
     notifyListeners();
     try {
-      final text = await channel.invokeMethod<String>('listen', {'language': language});
+      final text =
+          await channel.invokeMethod<String>('listen', {'language': language});
       return ticket == _generation && !_disposed ? text : null;
     } finally {
       if (!_disposed && ticket == _generation) {
@@ -29,13 +30,17 @@ class IlaiSpeech extends ChangeNotifier {
       }
     }
   }
+
   Future<void> cancel() async {
     _generation++;
     busy = false;
     listening = false;
     if (!_disposed) notifyListeners();
-    try { await channel.invokeMethod<void>('cancel'); } catch (_) {}
+    try {
+      await channel.invokeMethod<void>('cancel');
+    } catch (_) {}
   }
+
   @override
   void dispose() {
     _disposed = true;
