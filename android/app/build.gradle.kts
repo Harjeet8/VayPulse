@@ -20,6 +20,17 @@ val releaseRequested = gradle.startParameter.taskNames.any {
 }
 
 android {
+    packaging {
+        jniLibs {
+            // The leaf model runs on CPU; the TFLite GPU delegate is not used.
+            excludes += "**/libtensorflowlite_gpu_jni.so"
+            // The Flutter engine is built for arm64 only, so other ABIs' copies
+            // of the TFLite runtime could never run.
+            excludes += "lib/x86_64/**"
+            excludes += "lib/armeabi-v7a/**"
+            excludes += "lib/x86/**"
+        }
+    }
     namespace = "com.harjeet.phytosense"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion

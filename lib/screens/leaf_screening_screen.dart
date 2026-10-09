@@ -16,6 +16,7 @@ import '../services/leaf_screening_service.dart';
 import '../services/multimodal_disease_service.dart';
 import '../services/sensor_data_provider.dart';
 import '../widgets/page_frame.dart';
+import '../widgets/farm_labels_card.dart';
 import '../widgets/phyto_ui.dart';
 
 class LeafScreeningScreen extends StatefulWidget {
@@ -232,6 +233,8 @@ class _LeafScreeningScreenState extends State<LeafScreeningScreen> {
             body: context.tr('leaf_screening_hero_body'),
             icon: Icons.document_scanner_outlined,
           ),
+          const SizedBox(height: 16),
+          const LeafCheckEntryCard(),
           const SizedBox(height: 20),
           _ScreeningProgress(
             activeStep: !cropConfirmed

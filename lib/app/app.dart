@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import '../models/hardware_transport.dart';
 import '../screens/splash_screen.dart';
+import '../ml/leaf_classifier.dart';
+import '../services/farm_label_service.dart';
 import '../services/alert_service.dart';
 import '../services/device_language_sync.dart';
 import '../services/app_scope.dart';
@@ -99,6 +101,8 @@ class _VayPulseAppState extends State<VayPulseApp> {
     phoneNotifications.start();
     // Node speaker follows the app language (local Wi-Fi or Firebase).
     deviceLanguage.start();
+    unawaited(FarmLabelService.instance.start());
+    LeafClassifier.registerLicense();
     unawaited(weather.load());
   }
 

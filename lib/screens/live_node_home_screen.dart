@@ -30,6 +30,7 @@ import 'judge_view_screen.dart';
 import 'leaf_screening_screen.dart';
 import 'plant_intelligence_settings_screen.dart';
 import 'weather_center_screen.dart';
+import '../widgets/farm_labels_card.dart';
 import '../widgets/node_light_card.dart';
 
 class LiveNodeHomeScreen extends StatelessWidget {
@@ -170,6 +171,10 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 const SizedBox(height: 14),
                 const NodeLightCard(),
               ],
+              const SizedBox(height: 14),
+              const LeafCheckEntryCard(),
+              const SizedBox(height: 12),
+              const FarmLabelsCard(),
               const SizedBox(height: 16),
               const _WeatherHomeCard(),
               const SizedBox(height: 12),

@@ -2,6 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../ml/plant_disease_catalog.dart';
+import '../services/farm_label_service.dart';
+import '../services/ilai_brain.dart';
+import '../services/leaf_check_history.dart';
+import 'leaf_check_screen.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/firmware_text_adapter.dart';
@@ -22,7 +27,10 @@ class _IlaiScreenState extends State<IlaiScreen> with WidgetsBindingObserver {
   final input = TextEditingController();
   final scroll = ScrollController();
   final speech = IlaiSpeech();
-  final messages = <({String text, bool user, DateTime time})>[];
+  final messages = <({String text, bool user, DateTime time, bool leaf})>[];
+  final brain = IlaiBrain();
+  List<String> suggestions = const [];
+  bool typing = false;
   SensorDataProvider? sensors;
   VoiceGuidanceService? voice;
   SensorDataSource? previousSource;
@@ -130,25 +138,84 @@ class _IlaiScreenState extends State<IlaiScreen> with WidgetsBindingObserver {
               curve: Curves.easeOut);
         }
       });
-  Future<void> _ask(String question, [IlaiTopic? topic]) async {
+  IlaiContext _context() {
+    final snapshot = _snapshot();
+    final reading = sensors!.current;
+    final live = snapshot.available && reading != null;
+    final last = LeafCheckHistory.instance.latest;
+    String? leafCrop, leafResult;
+    var leafHealthy = false;
+    if (last != null) {
+      leafCrop =
+          PlantDiseaseCatalog.crop(last.crop)?.name.of(tamil) ?? last.crop;
+      for (final c in PlantDiseaseCatalog.conditions) {
+        if (c.cropKey == last.crop && c.conditionKey == last.result) {
+          leafResult = c.name.of(tamil);
+          leafHealthy = c.healthy;
+        }
+      }
+      leafResult ??= last.result == 'other_crop'
+          ? t('looked like another crop', 'வேறு பயிர் போலத் தெரிந்தது')
+          : t('not sure (unclear photo)', 'உறுதியில்லை (தெளிவற்ற படம்)');
+    }
+    final labels = FarmLabelService.instance;
+    return IlaiContext(
+      snapshot: snapshot,
+      soilMoisture: live ? reading.soilMoisture : null,
+      temperature: live ? reading.temperature : null,
+      humidity: live ? reading.humidity : null,
+      lastLeafCrop: leafCrop,
+      lastLeafResult: leafResult,
+      lastLeafHealthy: leafHealthy,
+      lastLeafTime: last?.time,
+      labelsToday: labels.today().length,
+      labelsPending: labels.pendingCount,
+      now: DateTime.now(),
+    );
+  }
+
+  Future<void> _ask(String question) async {
     question = question.trim();
-    if (question.isEmpty) return;
+    if (question.isEmpty || typing) return;
     final ticket = ++generation;
     await speech.cancel();
     await voice!.stop();
     if (!mounted || ticket != generation) return;
-    final data = _snapshot();
-    final answer =
-        IlaiGuide.reply(topic ?? IlaiGuide.topic(question), data, tamil: tamil);
+    await LeafCheckHistory.instance.load();
+    if (!mounted) return;
+    final reply = brain.respond(question, _context(), tamil: tamil);
+    if (reply.recordLabel != null) {
+      await FarmLabelService.instance.record(reply.recordLabel!);
+    }
+    if (!mounted) return;
+    final instant = MediaQuery.disableAnimationsOf(context);
     setState(() {
       input.clear();
       notice = null;
-      messages.add((text: question, user: true, time: DateTime.now()));
-      messages.add((text: answer, user: false, time: DateTime.now()));
+      typing = true;
+      messages.add(
+          (text: question, user: true, time: DateTime.now(), leaf: false));
+    });
+    _bottom();
+    // A short pause reads like a conversation, not a lookup table.
+    await Future<void>.delayed(Duration(milliseconds: instant ? 0 : 450));
+    if (!mounted || ticket != generation) {
+      if (mounted) setState(() => typing = false);
+      return;
+    }
+    setState(() {
+      typing = false;
+      suggestions = reply.followUps;
+      messages.add((
+        text: reply.text,
+        user: false,
+        time: DateTime.now(),
+        leaf: reply.openLeafCheck
+      ));
       if (messages.length > 40) messages.removeRange(0, messages.length - 40);
     });
     _bottom();
-    if (readAloud) await _speak(answer, ticket);
+    if (readAloud) await _speak(reply.text, ticket);
   }
 
   Future<void> _speak(String answer, int ticket) async {
@@ -272,8 +339,8 @@ class _IlaiScreenState extends State<IlaiScreen> with WidgetsBindingObserver {
                                               .titleLarge),
                                       const SizedBox(height: 8),
                                       Text(
-                                          t('Ask about your plant’s finding, next step or connection. Ilai explains PhytoSense data; it is not a general AI chatbot.',
-                                              'செடியின் நிலை, அடுத்த செயல் அல்லது இணைப்பு பற்றிக் கேளுங்கள். இலை PhytoSense முடிவுகளை விளக்கும் வழிகாட்டி; பொதுவான செயற்கை நுண்ணறிவு உரையாடல் அல்ல.'),
+                                          t('Talk to me like a friend — ask about your plant, watering, leaf spots, pests, or tell me what you did ("I watered"). I work offline, on your phone.',
+                                              'நண்பரிடம் பேசுவது போலப் பேசுங்கள் — செடி, நீர், இலைப் புள்ளி, பூச்சி பற்றிக் கேளுங்கள், அல்லது நீங்கள் செய்ததைச் சொல்லுங்கள் ("நீர் ஊற்றினேன்"). இணையம் இல்லாமல் போனிலேயே வேலை செய்வேன்.'),
                                           textAlign: TextAlign.center),
                                       const SizedBox(height: 10),
                                       Text(
@@ -320,6 +387,19 @@ class _IlaiScreenState extends State<IlaiScreen> with WidgetsBindingObserver {
                                                     .labelSmall),
                                             const SizedBox(height: 6),
                                             SelectableText(message.text),
+                                            if (message.leaf)
+                                              Padding(
+                                                  padding: const EdgeInsets.only(
+                                                      top: 10),
+                                                  child: FilledButton.tonalIcon(
+                                                      onPressed: () =>
+                                                          LeafCheckScreen.open(
+                                                              context),
+                                                      icon: const Icon(
+                                                          Icons.eco_rounded),
+                                                      label: Text(t(
+                                                          'Check a leaf',
+                                                          'இலையைச் சோதி')))),
                                           ]))),
                             if (notice != null)
                               Padding(
@@ -327,29 +407,41 @@ class _IlaiScreenState extends State<IlaiScreen> with WidgetsBindingObserver {
                                   child: Text(notice!,
                                       style: TextStyle(
                                           color: colors.onSurfaceVariant))),
+                            if (typing)
+                              Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Container(
+                                      key: const Key('ilai-typing'),
+                                      margin: const EdgeInsets.only(bottom: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 16, vertical: 12),
+                                      decoration: BoxDecoration(
+                                          color: colors.surfaceContainerLow,
+                                          borderRadius:
+                                              BorderRadius.circular(20)),
+                                      child: Text(
+                                          t('Ilai is typing…',
+                                              'இலை பதில் எழுதுகிறது…'),
+                                          style: TextStyle(
+                                              color: colors.onSurfaceVariant,
+                                              fontStyle: FontStyle.italic)))),
                             Wrap(spacing: 8, runSpacing: 8, children: [
-                              for (final choice in [
-                                (
-                                  IlaiTopic.summary,
-                                  t('What is wrong?', 'என்ன பிரச்சினை?')
-                                ),
-                                (
-                                  IlaiTopic.action,
-                                  t('What should I do?', 'என்ன செய்ய வேண்டும்?')
-                                ),
-                                (IlaiTopic.reason, t('Why?', 'ஏன்?')),
-                                (
-                                  IlaiTopic.connection,
-                                  t('Connect my sensor', 'சாதனத்தை இணை')
-                                )
-                              ])
+                              for (final choice in (suggestions.isNotEmpty
+                                  ? suggestions
+                                  : [
+                                      t('How is my plant?',
+                                          'செடி எப்படி உள்ளது?'),
+                                      t('Does it need water?', 'நீர் தேவையா?'),
+                                      t('Check a leaf', 'இலை சோதனை'),
+                                      t('What can you do?',
+                                          'என்ன செய்ய முடியும்?'),
+                                    ]))
                                 ActionChip(
-                                    label: Text(choice.$2,
+                                    label: Text(choice,
                                         style: Theme.of(context)
                                             .textTheme
                                             .labelLarge),
-                                    onPressed: () =>
-                                        _ask(choice.$2, choice.$1)),
+                                    onPressed: () => _ask(choice)),
                             ]),
                           ]))),
               AnimatedBuilder(
