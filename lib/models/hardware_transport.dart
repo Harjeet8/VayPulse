@@ -92,7 +92,7 @@ class RemoteSnapshotFreshnessPolicy {
   // Wide enough that one late upload (Wi-Fi hiccup, TLS reconnect) does not
   // flip the app between connected and disconnected.
   static const liveWindow = Duration(seconds: 30);
-  static const delayedWindow = Duration(seconds: 120);
+  static const delayedWindow = Duration(seconds: 90);
 
   /// True for an absolute time from the node's NTP clock (not an uptime
   /// counter or an unset RTC): after 2024 and not more than a minute ahead.

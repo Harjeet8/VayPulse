@@ -1,7 +1,7 @@
 name: phytosense_ai
-description: Farmer-first plant intelligence powered by ESP32 edge sensing.
+description: VayPulse — farmer-first app that powers the PhytoSense plant-monitoring node. © 2026 Harjeet.
 publish_to: "none"
-version: 10.3.1+1008
+version: 11.0.0+1015
 
 environment:
   sdk: ">=3.4.0 <4.0.0"

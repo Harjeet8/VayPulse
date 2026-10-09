@@ -203,7 +203,7 @@ void main() {
                   findsOneWidget);
             }
             if (scene == 'creator') {
-              expect(find.text('Harjeet D.'), findsOneWidget);
+              expect(find.text('Harjeet'), findsOneWidget);
               expect(
                   find.text(
                       language == 'ta' ? 'எனது அணுகுமுறை' : 'How I build'),

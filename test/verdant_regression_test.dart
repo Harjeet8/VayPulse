@@ -72,7 +72,7 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 600));
 
-    expect(find.text('PhytoSense AI'), findsOneWidget);
+    expect(find.text('VayPulse'), findsOneWidget);
     expect(find.byKey(const Key('boot-logo-clip')), findsOneWidget);
     expect(find.byIcon(Icons.water_drop_outlined), findsOneWidget);
     expect(find.byIcon(Icons.sensors_rounded), findsOneWidget);
@@ -112,7 +112,7 @@ void main() {
 
   test('Android notifications use the visible monochrome status icon', () {
     final activity = File(
-      'android/app/src/main/kotlin/com/harjeet/phytosense/MainActivity.kt',
+      'android/app/src/main/kotlin/com/harjeet/phytosense/PhytoNotifications.kt',
     ).readAsStringSync();
     final icon = File(
       'android/app/src/main/res/drawable/ic_stat_phytosense.xml',
@@ -120,7 +120,8 @@ void main() {
 
     expect(activity, contains('.setSmallIcon(R.drawable.ic_stat_phytosense)'));
     expect(activity, isNot(contains('.setSmallIcon(applicationInfo.icon)')));
-    expect(activity, contains('.setOnlyAlertOnce(true)'));
+    // Only critical alerts sound again on update; others alert once.
+    expect(activity, contains('.setOnlyAlertOnce(!critical)'));
     expect(activity, contains('setContentIntent'));
     expect(icon, contains('android:fillColor="#FFFFFFFF"'));
   });

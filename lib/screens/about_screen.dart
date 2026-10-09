@@ -314,8 +314,8 @@ class _CreatorCard extends StatelessWidget {
         leading: const Icon(Icons.person_outline_rounded),
         title: Text(tamil ? 'உருவாக்குநர்' : 'Meet the creator'),
         subtitle: Text(tamil
-            ? 'Harjeet D. · மாணவர் பொறியாளர்'
-            : 'Harjeet D. · Student engineer'),
+            ? 'Harjeet · மாணவர் பொறியாளர்'
+            : 'Harjeet · Student engineer'),
         childrenPadding: const EdgeInsets.all(20),
         children: const [CreatorProfile()],
       ),
