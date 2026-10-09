@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../models/hardware_transport.dart';
 import '../screens/splash_screen.dart';
 import '../services/alert_service.dart';
+import '../services/device_language_sync.dart';
 import '../services/app_scope.dart';
 import '../services/farm_repository.dart';
 import '../services/engineering_evidence_service.dart';
@@ -52,6 +53,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
   late final EngineeringEvidenceService engineeringEvidence;
   late final PhoneNotificationService phoneNotifications;
   late final InspectionHistoryService inspectionHistory;
+  late final DeviceLanguageSync deviceLanguage;
   late final Future<void> initialization;
 
   @override
@@ -67,6 +69,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
     inspectionHistory = InspectionHistoryService();
     alerts = AlertService(sensors, settings, weather, farms);
     phoneNotifications = PhoneNotificationService(alerts, settings);
+    deviceLanguage = DeviceLanguageSync(settings);
     initialization = _initialize();
   }
 
@@ -94,11 +97,14 @@ class _VayPulseAppState extends State<VayPulseApp> {
     engineeringEvidence.start();
     alerts.start();
     phoneNotifications.start();
+    // Node speaker follows the app language (local Wi-Fi or Firebase).
+    deviceLanguage.start();
     unawaited(weather.load());
   }
 
   @override
   void dispose() {
+    deviceLanguage.dispose();
     phoneNotifications.dispose();
     alerts.dispose();
     offlineSync.dispose();
