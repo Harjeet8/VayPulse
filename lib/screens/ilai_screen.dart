@@ -242,7 +242,7 @@ class _IlaiScreenState extends State<IlaiScreen> with WidgetsBindingObserver {
           builder: (context) => AlertDialog(
                 title: Text(t('Talk to Ilai', 'இலையிடம் பேசுங்கள்')),
                 content: Text(t(
-                    'Your phone’s speech service turns your words into text. It may use the internet and process audio through its provider. PhytoSense does not save audio. You can type instead.',
+                    'Your phone’s speech service turns your words into text. It may use the internet and process audio through its provider. VayPulse does not save audio. You can type instead.',
                     'உங்கள் தொலைபேசியின் குரல் சேவை பேச்சை எழுத்தாக மாற்றும். இணையம் வழியாக அதன் வழங்குநர் ஒலியைச் செயலாக்கலாம். PhytoSense ஒலியைச் சேமிக்காது. பதிலாகத் தட்டச்சு செய்யலாம்.')),
                 actions: [
                   TextButton(

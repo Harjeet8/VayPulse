@@ -8,6 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
+import 'app_integrity.dart';
 import 'control_seq.dart';
 import 'firebase_remote_client.dart';
 import 'node_addresses.dart';
@@ -220,6 +221,7 @@ class NodeLightControl extends ChangeNotifier {
   }
 
   static Future<bool> _firebaseUpdate(Map<String, Object> update) async {
+    if (!await AppIntegrity.cloudAllowed()) return false;
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);

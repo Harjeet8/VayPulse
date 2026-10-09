@@ -5,6 +5,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import '../models/hardware_transport.dart';
 import '../screens/splash_screen.dart';
 import '../ml/leaf_classifier.dart';
+import '../services/app_integrity.dart';
 import '../services/farm_label_service.dart';
 import '../services/alert_service.dart';
 import '../services/device_language_sync.dart';
@@ -101,6 +102,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
     phoneNotifications.start();
     // Node speaker follows the app language (local Wi-Fi or Firebase).
     deviceLanguage.start();
+    unawaited(AppIntegrity.check());
     unawaited(FarmLabelService.instance.start());
     LeafClassifier.registerLicense();
     unawaited(weather.load());
@@ -135,7 +137,7 @@ class _VayPulseAppState extends State<VayPulseApp> {
         animation: settings,
         builder: (_, __) => MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'PhytoSense AI',
+          title: 'VayPulse',
           theme: buildTheme(Brightness.light, settings.value.languageCode),
           darkTheme: buildTheme(Brightness.dark, settings.value.languageCode),
           themeMode: settings.value.themeMode,

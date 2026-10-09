@@ -35,8 +35,8 @@ class IlaiGuide {
     String t(String en, String ta) => tamil ? ta : en;
     if (topic == IlaiTopic.help) {
       return t(
-          'I’m Ilai, PhytoSense’s plant guide. I can explain the current plant finding, the next step, and the reason. I’m a guided assistant, not a general AI chatbot. Try one of the questions below.',
-          'நான் இலை, PhytoSense செடி வழிகாட்டி. தற்போதைய செடி நிலை, செய்ய வேண்டிய செயல், அதன் காரணம் ஆகியவற்றை விளக்குவேன். இது பொதுவான செயற்கை நுண்ணறிவு உரையாடல் அல்ல. கீழே உள்ள கேள்விகளில் ஒன்றைத் தேர்வு செய்யுங்கள்.');
+          'I’m Ilai, VayPulse’s plant guide. I can explain the current plant finding, the next step, and the reason. I’m a guided assistant, not a general AI chatbot. Try one of the questions below.',
+          'நான் இலை, VayPulse செடி வழிகாட்டி. தற்போதைய செடி நிலை, செய்ய வேண்டிய செயல், அதன் காரணம் ஆகியவற்றை விளக்குவேன். இது பொதுவான செயற்கை நுண்ணறிவு உரையாடல் அல்ல. கீழே உள்ள கேள்விகளில் ஒன்றைத் தேர்வு செய்யுங்கள்.');
     }
     if (topic == IlaiTopic.connection) {
       return t(

@@ -234,7 +234,7 @@ class FarmerLanguage {
     'alert_event': 'Alert',
     'firmware_compatibility_title': 'Firmware compatibility issue',
     'firmware_compatibility_body':
-        'This ESP32 payload uses a newer unsupported schema. Update PhytoSense AI before trusting the analysis.',
+        'This ESP32 payload uses a newer unsupported schema. Update VayPulse before trusting the analysis.',
     'bioelectric_response': 'Plant Signal',
     'environment_condition': 'Environmental Condition',
     'overall_plant_state': 'Overall Plant State',
@@ -448,7 +448,7 @@ class FarmerLanguage {
     'alert_event': 'எச்சரிக்கை',
     'firmware_compatibility_title': 'Firmware பொருந்தவில்லை',
     'firmware_compatibility_body':
-        'இந்த ESP32 payload ஆதரிக்கப்படாத புதிய schema-ஐ பயன்படுத்துகிறது. பகுப்பாய்வை நம்புவதற்கு முன் PhytoSense AI-ஐ புதுப்பிக்கவும்.',
+        'இந்த ESP32 payload ஆதரிக்கப்படாத புதிய schema-ஐ பயன்படுத்துகிறது. பகுப்பாய்வை நம்புவதற்கு முன் VayPulse-ஐ புதுப்பிக்கவும்.',
     'bioelectric_response': 'செடியின் சிக்னல்',
     'environment_condition': 'சுற்றுச்சூழல் நிலை',
     'overall_plant_state': 'மொத்த செடி நிலை',

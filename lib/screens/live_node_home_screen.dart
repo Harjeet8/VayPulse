@@ -72,7 +72,7 @@ class LiveNodeHomeScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 9),
-              const Flexible(child: Text('PhytoSense AI')),
+              const Flexible(child: Text('VayPulse')),
             ],
           ),
         ),

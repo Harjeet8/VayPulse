@@ -17,7 +17,7 @@ class AppStrings {
   static const Map<String, Map<String, String>> _values = {
     'en': {
       'tagline': 'Know Your Crop. Protect Your Yield.',
-      'powered_by_vaypulse': 'Powered by VayPulse',
+      'powered_by_vaypulse': 'VayPulse powers your PhytoSense node',
       'nav_home': 'Home',
       'nav_fields': 'Fields',
       'nav_insights': 'Insights',
@@ -69,7 +69,7 @@ class AppStrings {
       'stable': 'Stable',
       'needs_attention': 'Needs attention',
       'urgent_check': 'Urgent check',
-      'ai_field_insight': 'PhytoSense AI insight',
+      'ai_field_insight': 'VayPulse insight',
       'recommended_action': 'Recommended action',
       'why_this': 'Why this insight',
       'confidence': '{value}% confidence',
@@ -214,10 +214,10 @@ class AppStrings {
       'devices_subtitle': 'View sensor nodes and connection health',
       'settings': 'Settings',
       'settings_subtitle': 'Data source, ESP32, language and appearance',
-      'about': 'About PhytoSense AI',
+      'about': 'About VayPulse',
       'about_body':
           'A farmer-first plant monitoring platform built for clear, early field decisions.',
-      'version': 'PhytoSense AI • Plant intelligence platform',
+      'version': 'VayPulse • powering PhytoSense',
       'splash_quote': 'Listen to the plant before stress becomes visible.',
       'devices_title': 'Sensor nodes',
       'devices_demo_note':
@@ -300,7 +300,7 @@ class AppStrings {
       'live_data_waiting': 'Waiting for the configured ESP32 node',
       'connecting_sensor': 'Connecting to sensor node',
       'connecting_sensor_body':
-          'PhytoSense AI is requesting the first validated reading.',
+          'VayPulse is requesting the first validated reading.',
       'configure_esp32': 'ESP32 connection',
       'configure_esp32_body':
           'Enter the address shown by the ESP32. The app expects /api/status and /api/data.',
@@ -321,12 +321,12 @@ class AppStrings {
       'diagnostic_provider': 'Active provider',
       'diagnostic_connection': 'Connection',
       'diagnostic_data_quality': 'Data quality',
-      'about_settings_title': 'Learn how PhytoSense AI works',
+      'about_settings_title': 'Learn how VayPulse works',
       'about_settings_body':
           'Mission, engineering architecture, farmer design and interactive farm-impact estimator',
       'about_mission_title': 'Our mission',
       'about_mission_body':
-          'PhytoSense AI is an intelligent agricultural monitoring platform that transforms field and crop sensor data into clear, actionable insights for farmers.',
+          'VayPulse is an intelligent agricultural monitoring platform that transforms field and crop sensor data into clear, actionable insights for farmers.',
       'impact_title': 'Farm impact & savings estimator',
       'impact_subtitle':
           'See what earlier detection could be worth in rupees for one crop season.',
@@ -366,7 +366,7 @@ class AppStrings {
           'Farmers receive a plain-language reason, confidence level and practical inspection step.',
       'about_engineering_title': 'Engineering architecture',
       'about_engineering_body':
-          'PhytoSense AI separates data collection from product logic so hardware can evolve without rebuilding the farmer experience.',
+          'VayPulse separates data collection from product logic so hardware can evolve without rebuilding the farmer experience.',
       'about_engineering_1':
           'SensorDataProvider is the single contract used by dashboards, charts, analysis and alerts.',
       'about_engineering_2':
@@ -384,9 +384,9 @@ class AppStrings {
           'Local-network operation avoids making cloud access a requirement for the prototype.',
       'about_responsible_title': 'Responsible decision support',
       'about_responsible_body':
-          'PhytoSense AI does not claim to replace crop experts or direct field inspection. It shows evidence, identifies uncertainty and asks the farmer to verify conditions before acting.',
+          'VayPulse does not claim to replace crop experts or direct field inspection. It shows evidence, identifies uncertainty and asks the farmer to verify conditions before acting.',
       'about_build_status':
-          'PhytoSense AI 9.0 • Farmer/Judge experiences • Isolated ESP32 workspace • Natural voice • Presentation ready',
+          'VayPulse • Farmer/Judge experiences • Isolated ESP32 workspace • Natural voice • Presentation ready',
       'competition_center': 'Competition Center',
       'competition_center_subtitle':
           'Project case, evidence readiness and judge presentation',
@@ -400,7 +400,7 @@ class AppStrings {
       'problem_title': 'The field problem',
       'problem_body':
           'Plant stress can begin before visible symptoms. Manual checks may be late, inconsistent or difficult across multiple farm zones.',
-      'solution_title': 'The PhytoSense AI approach',
+      'solution_title': 'The VayPulse approach',
       'solution_body':
           'Affordable sensor nodes feed a farmer-first app that detects unusual patterns, explains the evidence and recommends what to inspect next.',
       'innovation_pillars': 'Innovation pillars',
@@ -439,7 +439,7 @@ class AppStrings {
       'impact_decision_model': 'Field action',
       'impact_farmer_control': 'Farmer confirmation required',
       'evidence_lab': 'Evidence and validation',
-      'validation_status': 'PhytoSense AI 9.0 delivery status',
+      'validation_status': 'VayPulse delivery status',
       'validation_transparency':
           'Every software capability shown in this release is complete. Hardware connection and field evidence tools are ready without being misrepresented as measured results.',
       'validation_app': 'Farmer app and simulation scenarios',
@@ -453,10 +453,10 @@ class AppStrings {
       'judge_questions': 'Questions judges may ask',
       'judge_q_ai': 'What exactly is the AI?',
       'judge_a_ai':
-          'PhytoSense AI uses transparent multimodal decision support: the camera measures visible colour patterns, then crop, electrode, sensor and fresh-weather evidence rank potential issue types. The shown percentage is a rule-based match score—not accuracy or a confirmed diagnosis. A validated trained model requires labelled field data and controlled accuracy testing.',
+          'VayPulse uses transparent multimodal decision support: the camera measures visible colour patterns, then crop, electrode, sensor and fresh-weather evidence rank potential issue types. The shown percentage is a rule-based match score—not accuracy or a confirmed diagnosis. A validated trained model requires labelled field data and controlled accuracy testing.',
       'judge_q_novel': 'What is different from a normal IoT dashboard?',
       'judge_a_novel':
-          'PhytoSense AI connects farm hierarchy, source-independent sensing, plant-response monitoring, fault validation and explainable farmer actions instead of only displaying raw numbers.',
+          'VayPulse connects farm hierarchy, source-independent sensing, plant-response monitoring, fault validation and explainable farmer actions instead of only displaying raw numbers.',
       'judge_q_scale': 'How can one node scale to a farm?',
       'judge_a_scale':
           'Every node follows the same API and SensorDataProvider contract. New node IDs can be assigned to fields and zones without rewriting charts, alerts or analysis.',
@@ -473,7 +473,7 @@ class AppStrings {
           'Farmers need clear early guidance, not another screen full of numbers.',
       'presentation_system_title': 'Show the complete system',
       'presentation_system_body':
-          'PhytoSense AI is an end-to-end monitoring architecture, not a disconnected app mock-up.',
+          'VayPulse is an end-to-end monitoring architecture, not a disconnected app mock-up.',
       'presentation_system_1':
           'One ESP32 node connects through a documented local API.',
       'presentation_system_2':
@@ -518,7 +518,7 @@ class AppStrings {
       'scan_leaf': 'Scan leaf',
       'irrigation_short': 'Irrigation',
       'weather_short': 'Weather',
-      'leaf_screening_title': 'PhytoSense AI Vision — Leaf screening',
+      'leaf_screening_title': 'VayPulse Vision — Leaf screening',
       'leaf_screening_menu_body':
           'Use the camera for explainable on-device disease-risk screening.',
       'leaf_screening_hero': 'Camera-assisted leaf check',
@@ -526,7 +526,7 @@ class AppStrings {
           'Analyse visible leaf symptoms from the photo without uploading it. ESP32 sensor evidence remains separate.',
       'confirm_crop_title': 'Confirm the crop before screening',
       'confirm_crop_body':
-          'PhytoSense AI uses the active field as a suggestion. Select the crop in the photo so an unrelated disease list is never forced onto the result.',
+          'VayPulse uses the active field as a suggestion. Select the crop in the photo so an unrelated disease list is never forced onto the result.',
       'select_crop': 'Crop shown in the photo',
       'confirm_crop_checkbox':
           'I confirm this photo belongs to the selected crop',
@@ -582,11 +582,11 @@ class AppStrings {
       'leaf_yellow_area': 'Yellow',
       'leaf_brown_area': 'Brown',
       'leaf_safety_note':
-          'PhytoSense AI ranks potential issue types for early inspection. It is not a laboratory diagnosis and does not choose pesticides or chemical quantities.',
+          'VayPulse ranks potential issue types for early inspection. It is not a laboratory diagnosis and does not choose pesticides or chemical quantities.',
       'disease_context_title': 'Evidence ready for this screening',
       'disease_prompt_context_title': 'Sensor-triggered field check',
       'disease_context_body':
-          'PhytoSense AI ranks crop-specific visual possibilities from the photo and your visible-symptom observations.',
+          'VayPulse ranks crop-specific visual possibilities from the photo and your visible-symptom observations.',
       'disease_prompt_context_body':
           'An unusual field signal opened this workflow. Photograph a representative affected leaf for a stronger cross-check.',
       'disease_context_no_sensor': 'Photo-only mode',
@@ -892,13 +892,13 @@ class AppStrings {
       'use_phone_location': 'Use phone GPS now',
       'detecting_location': 'Detecting current location…',
       'phone_location_privacy':
-          'Location is requested only when you press this button. PhytoSense AI saves the coordinates as the forecast location and does not continuously track the phone.',
+          'Location is requested only when you press this button. VayPulse saves the coordinates as the forecast location and does not continuously track the phone.',
       'or_enter_manually': 'or enter the farm manually',
       'location_service_disabled': 'Turn on Location Services and try again.',
       'location_permission_denied':
           'Location permission was not allowed. You can still enter the farm coordinates manually.',
       'location_permission_denied_forever':
-          'Location permission is blocked for PhytoSense AI. Enable it in device settings or enter coordinates manually.',
+          'Location permission is blocked for VayPulse. Enable it in device settings or enter coordinates manually.',
       'location_unavailable':
           'The phone could not determine its location. Move to an open area or enter the farm coordinates manually.',
       'weather_location_name': 'Farm or village name',
@@ -916,7 +916,7 @@ class AppStrings {
           'The saved forecast is more than 12 hours old, so it is displayed for reference but excluded from alerts and irrigation advice.',
       'five_day_forecast': 'Five-day forecast',
       'weather_alert_note':
-          'PhytoSense AI combines rain, humidity and temperature to create early farm alerts. Always confirm local field conditions.',
+          'VayPulse combines rain, humidity and temperature to create early farm alerts. Always confirm local field conditions.',
       'weather_attribution': 'Forecast data: Open-Meteo',
       'weather_risk_heavy_rain': 'Heavy rain risk',
       'weather_risk_heavy_rain_body':
@@ -929,7 +929,7 @@ class AppStrings {
           'Several low-rain days are forecast. Monitor soil moisture and plan irrigation checks.',
       'weather_risk_clear': 'No major weather risk detected',
       'weather_risk_clear_body':
-          'The current five-day forecast does not cross PhytoSense AI alert thresholds.',
+          'The current five-day forecast does not cross VayPulse alert thresholds.',
       'wind': 'Wind',
       'degrees_celsius': 'degrees Celsius',
       'rain_probability': 'Rain probability',
@@ -996,7 +996,7 @@ class AppStrings {
       'irrigation_balanced_evidence':
           'Sensor and forecast evidence do not indicate an urgent water action.',
       'irrigation_confirmation_note':
-          'PhytoSense AI provides decision support only. A farmer must confirm the field condition before irrigation; the app never starts pumps automatically.',
+          'VayPulse provides decision support only. A farmer must confirm the field condition before irrigation; the app never starts pumps automatically.',
       'offline_sync_title': 'Offline data and sync',
       'offline_sync_menu_body':
           'Keep readings on the phone and upload them later when a server is configured.',
@@ -1009,7 +1009,7 @@ class AppStrings {
       'never': 'Never',
       'sync_server': 'Synchronization server',
       'sync_server_body':
-          'Optional: enter the base URL of your farm or competition backend. PhytoSense AI sends batches to /api/sync.',
+          'Optional: enter the base URL of your farm or competition backend. VayPulse sends batches to /api/sync.',
       'sync_endpoint': 'Server base URL',
       'sync_endpoint_saved': 'Synchronization endpoint saved.',
       'save_endpoint': 'Save endpoint',
@@ -1022,7 +1022,7 @@ class AppStrings {
           'Add a synchronization server first. Until then, records remain safely queued locally.',
       'sync_privacy_note':
           'The queue stores numeric sensor readings and source labels, not leaf photos. Data is removed from the pending queue only after a successful server response.',
-      'crop_management': 'PhytoSense Farm — Crop management',
+      'crop_management': 'VayPulse Farm — Crop management',
       'crop_management_menu_body':
           'Update field crops and zone growth stages used by farmer guidance.',
       'crop_management_body':
@@ -1050,9 +1050,9 @@ class AppStrings {
       'alert_abnormal_sensor': 'Abnormal sensor values',
       'alert_abnormal_sensor_message':
           'A reading failed validation. Inspect the sensor and wiring before acting on it.',
-      'about_capabilities_title': 'PhytoSense AI capabilities',
+      'about_capabilities_title': 'VayPulse capabilities',
       'about_capabilities_body':
-          'PhytoSense AI joins sensing, crop-specific multimodal screening, weather and farmer guidance in one consistent workflow.',
+          'VayPulse joins sensing, crop-specific multimodal screening, weather and farmer guidance in one consistent workflow.',
       'about_capabilities_1':
           'Runtime switching between a physical ESP32 node and clearly labelled demonstration data.',
       'about_capabilities_2':
@@ -1170,7 +1170,7 @@ class AppStrings {
       'trial_samples': '{value} samples',
       'calibration_trust_title': 'Know when the sensor can be trusted',
       'calibration_trust_body':
-          'Capture at least three stable readings. PhytoSense AI calculates consistency; this score is not laboratory certification.',
+          'Capture at least three stable readings. VayPulse calculates consistency; this score is not laboratory certification.',
       'trust_score': 'Trust',
       'saved_calibration': 'Saved calibration profile',
       'calibration_samples_count': '{value} baseline samples',
@@ -1216,7 +1216,7 @@ class AppStrings {
       'plant_recovered': 'Recovery was observed later',
       'mark_false_alert': 'This appears to be a false alert',
       'save_outcome': 'Save observation',
-      'model_card_title': 'PhytoSense AI decision-support model card',
+      'model_card_title': 'VayPulse decision-support model card',
       'model_card_intro':
           'A transparent description of how the app should and should not be used.',
       'model_intended_use': 'Intended use',
@@ -1310,7 +1310,7 @@ class AppStrings {
       'resolved': 'Resolved',
       'system': 'System',
       'command_search': 'Search app',
-      'command_search_hint': 'Search PhytoSense AI',
+      'command_search_hint': 'Search VayPulse',
       'command_no_results':
           'No matching tool found. Try “sensor”, “timeline” or “settings”.',
       'clear_search': 'Clear search',
@@ -1319,7 +1319,7 @@ class AppStrings {
     },
     'ta': {
       'tagline': 'உங்கள் பயிரை அறியுங்கள். உங்கள் மகசூலைக் காப்பாற்றுங்கள்.',
-      'powered_by_vaypulse': 'VayPulse தொழில்நுட்ப ஆதரவுடன்',
+      'powered_by_vaypulse': 'உங்கள் PhytoSense கருவியை இயக்குவது VayPulse',
       'nav_home': 'முகப்பு',
       'nav_fields': 'வயல்கள்',
       'nav_insights': 'பகுப்பாய்வு',
@@ -1371,7 +1371,7 @@ class AppStrings {
       'stable': 'நிலையாக உள்ளது',
       'needs_attention': 'கவனம் தேவை',
       'urgent_check': 'உடனே பார்க்கவும்',
-      'ai_field_insight': 'PhytoSense AI தகவல்',
+      'ai_field_insight': 'VayPulse தகவல்',
       'recommended_action': 'பரிந்துரைக்கப்பட்ட செயல்',
       'why_this': 'இந்த தகவலுக்கான காரணம்',
       'confidence': '{value}% நம்பகத்தன்மை',
@@ -1513,10 +1513,10 @@ class AppStrings {
       'devices_subtitle': 'சென்சார் முனைகள் மற்றும் இணைப்பை காண்க',
       'settings': 'அமைப்புகள்',
       'settings_subtitle': 'தரவு மூலம், ESP32, மொழி மற்றும் தோற்றம்',
-      'about': 'PhytoSense AI பற்றி',
+      'about': 'VayPulse பற்றி',
       'about_body':
           'தெளிவான ஆரம்பகட்ட வயல் முடிவுகளுக்கான விவசாயி மைய செடி கண்காணிப்பு தளம்.',
-      'version': 'PhytoSense AI • செடி நுண்ணறிவு தளம்',
+      'version': 'VayPulse • PhytoSense-ஐ இயக்குகிறது',
       'splash_quote':
           'அழுத்தம் கண்ணுக்குத் தெரிவதற்கு முன் செடியைக் கேளுங்கள்.',
       'devices_title': 'சென்சார் முனைகள்',
@@ -1600,7 +1600,7 @@ class AppStrings {
       'live_data_waiting': 'ESP32 சாதன இணைப்புக்காக காத்திருக்கிறது',
       'connecting_sensor': 'சென்சார் சாதனம் இணைக்கப்படுகிறது',
       'connecting_sensor_body':
-          'PhytoSense AI முதல் சரிபார்க்கப்பட்ட அளவீட்டை பெறுகிறது.',
+          'VayPulse முதல் சரிபார்க்கப்பட்ட அளவீட்டை பெறுகிறது.',
       'configure_esp32': 'ESP32 இணைப்பு',
       'configure_esp32_body':
           'ESP32 காட்டும் முகவரியை இடுங்கள். /api/status மற்றும் /api/data தேவை.',
@@ -1619,12 +1619,12 @@ class AppStrings {
       'diagnostic_provider': 'செயலில் உள்ள தரவு மூலம்',
       'diagnostic_connection': 'இணைப்பு',
       'diagnostic_data_quality': 'தரவு தரம்',
-      'about_settings_title': 'PhytoSense AI எவ்வாறு செயல்படுகிறது',
+      'about_settings_title': 'VayPulse எவ்வாறு செயல்படுகிறது',
       'about_settings_body':
           'நோக்கம், engineering architecture, விவசாயி வடிவமைப்பு மற்றும் interactive farm-impact estimator',
       'about_mission_title': 'எங்கள் நோக்கம்',
       'about_mission_body':
-          'PhytoSense AI வயல் மற்றும் பயிர் sensor தரவை விவசாயிகளுக்கான தெளிவான, செயல்படுத்தக்கூடிய தகவலாக மாற்றும் அறிவார்ந்த வேளாண் கண்காணிப்பு தளம்.',
+          'VayPulse வயல் மற்றும் பயிர் sensor தரவை விவசாயிகளுக்கான தெளிவான, செயல்படுத்தக்கூடிய தகவலாக மாற்றும் அறிவார்ந்த வேளாண் கண்காணிப்பு தளம்.',
       'impact_title': 'வயல் impact மற்றும் savings estimator',
       'impact_subtitle':
           'ஒரு crop season-ல் early detection எவ்வளவு ரூபாய் பயன் தரலாம் என்று கணக்கிடுங்கள்.',
@@ -1682,9 +1682,9 @@ class AppStrings {
           'Prototype உள்ளூர் வலையில் cloud இல்லாமலும் செயல்பட முடியும்.',
       'about_responsible_title': 'பொறுப்பான முடிவு உதவி',
       'about_responsible_body':
-          'PhytoSense AI crop expert அல்லது நேரடி வயல் பரிசோதனைக்கு மாற்றாகாது. ஆதாரம் மற்றும் நிச்சயமின்மையை காட்டி, செயல்படும் முன் விவசாயி உறுதி செய்ய வேண்டும்.',
+          'VayPulse crop expert அல்லது நேரடி வயல் பரிசோதனைக்கு மாற்றாகாது. ஆதாரம் மற்றும் நிச்சயமின்மையை காட்டி, செயல்படும் முன் விவசாயி உறுதி செய்ய வேண்டும்.',
       'about_build_status':
-          'PhytoSense AI 9.0 • Farmer/Judge experience • தனி ESP32 workspace • இயல்பான குரல் • Presentation தயார்',
+          'VayPulse • Farmer/Judge experience • தனி ESP32 workspace • இயல்பான குரல் • Presentation தயார்',
       'competition_center': 'Competition Center',
       'competition_center_subtitle':
           'Project case, evidence readiness மற்றும் judge presentation',
@@ -1698,7 +1698,7 @@ class AppStrings {
       'problem_title': 'வயல் பிரச்சினை',
       'problem_body':
           'கண்ணுக்கு தெரியும் அறிகுறிக்கு முன் செடி அழுத்தம் தொடங்கலாம். பல மண்டலங்களில் manual check தாமதமாகலாம்.',
-      'solution_title': 'PhytoSense AI தீர்வு',
+      'solution_title': 'VayPulse தீர்வு',
       'solution_body':
           'குறைந்த செலவு sensor node தரவை விளக்கி, காரணம் மற்றும் அடுத்த பரிசோதனை படியை விவசாயி செயலி காட்டுகிறது.',
       'innovation_pillars': 'Innovation அம்சங்கள்',
@@ -1737,7 +1737,7 @@ class AppStrings {
       'impact_decision_model': 'வயல் செயல்',
       'impact_farmer_control': 'விவசாயி உறுதி அவசியம்',
       'evidence_lab': 'ஆதாரம் மற்றும் validation',
-      'validation_status': 'PhytoSense AI 9.0 வெளியீட்டு நிலை',
+      'validation_status': 'VayPulse வெளியீட்டு நிலை',
       'validation_transparency':
           'இந்த வெளியீட்டில் காட்டப்படும் அனைத்து software வசதிகளும் முடிக்கப்பட்டுள்ளன. Hardware connection மற்றும் field evidence tools, அளவிடப்பட்ட முடிவுகள் என தவறாக காட்டாமல் தயாராக உள்ளன.',
       'validation_app': 'Farmer app மற்றும் simulation scenarios',
@@ -1753,7 +1753,7 @@ class AppStrings {
       'judge_questions': 'Judges கேட்கக்கூடிய கேள்விகள்',
       'judge_q_ai': 'இதில் AI என்ன?',
       'judge_a_ai':
-          'PhytoSense AI transparent multimodal decision support பயன்படுத்துகிறது: camera visible colour pattern-ஐ அளந்து, crop, electrode, sensor மற்றும் புதிய weather evidence potential issue type-களை rank செய்கிறது. காட்டும் percentage rule-based match score; accuracy அல்லது confirmed diagnosis அல்ல. Labelled field data மற்றும் controlled testing பிறகே validated trained model உருவாகும்.',
+          'VayPulse transparent multimodal decision support பயன்படுத்துகிறது: camera visible colour pattern-ஐ அளந்து, crop, electrode, sensor மற்றும் புதிய weather evidence potential issue type-களை rank செய்கிறது. காட்டும் percentage rule-based match score; accuracy அல்லது confirmed diagnosis அல்ல. Labelled field data மற்றும் controlled testing பிறகே validated trained model உருவாகும்.',
       'judge_q_novel': 'சாதாரண IoT dashboard-இலிருந்து இது எவ்வாறு வேறு?',
       'judge_a_novel':
           'Raw numbers மட்டும் அல்ல; farm hierarchy, source-independent sensing, plant response, fault validation மற்றும் explainable farmer actions ஒன்றாக இணைகின்றன.',
@@ -1773,7 +1773,7 @@ class AppStrings {
           'விவசாயிக்கு numbers அல்ல; தெளிவான early guidance தேவை.',
       'presentation_system_title': 'முழு system-ஐ காட்டுங்கள்',
       'presentation_system_body':
-          'PhytoSense AI ஒரு disconnected app mock-up அல்ல; end-to-end architecture.',
+          'VayPulse ஒரு disconnected app mock-up அல்ல; end-to-end architecture.',
       'presentation_system_1':
           'ஒரு ESP32 node documented local API வழியாக இணையும்.',
       'presentation_system_2':
@@ -1819,7 +1819,7 @@ class AppStrings {
       'scan_leaf': 'இலை scan',
       'irrigation_short': 'நீர்ப்பாசனம்',
       'weather_short': 'வானிலை',
-      'leaf_screening_title': 'PhytoSense AI Vision — இலை பரிசோதனை',
+      'leaf_screening_title': 'VayPulse Vision — இலை பரிசோதனை',
       'leaf_screening_menu_body':
           'Camera மூலம் on-device disease-risk screening செய்யுங்கள்.',
       'leaf_screening_hero': 'Camera உதவியுடன் இலை பரிசோதனை',
@@ -1882,11 +1882,11 @@ class AppStrings {
       'leaf_yellow_area': 'மஞ்சள்',
       'leaf_brown_area': 'பழுப்பு',
       'leaf_safety_note':
-          'PhytoSense AI ஆரம்ப inspection-க்கு potential issue type-களை rank செய்கிறது. இது laboratory diagnosis அல்ல; pesticide அல்லது chemical அளவை தேர்வு செய்யாது.',
+          'VayPulse ஆரம்ப inspection-க்கு potential issue type-களை rank செய்கிறது. இது laboratory diagnosis அல்ல; pesticide அல்லது chemical அளவை தேர்வு செய்யாது.',
       'disease_context_title': 'இந்த screening-க்கு evidence தயார்',
       'disease_prompt_context_title': 'Sensor தூண்டிய வயல் பரிசோதனை',
       'disease_context_body':
-          'கிடைக்கும் புதிய evidence source அனைத்தையும் பயன்படுத்தி crop-specific possibilities-ஐ PhytoSense AI rank செய்யும்.',
+          'கிடைக்கும் புதிய evidence source அனைத்தையும் பயன்படுத்தி crop-specific possibilities-ஐ VayPulse rank செய்யும்.',
       'disease_prompt_context_body':
           'அசாதாரண field signal இந்த workflow-ஐ தொடங்கியது. சிறந்த cross-check-க்கு பாதித்த ஒரு representative இலையை photo எடுக்கவும்.',
       'disease_context_no_sensor': 'Photo-only mode',
@@ -2203,7 +2203,7 @@ class AppStrings {
       'location_permission_denied':
           'Location permission அனுமதிக்கப்படவில்லை. Farm coordinates-ஐ manually கொடுக்கலாம்.',
       'location_permission_denied_forever':
-          'PhytoSense AI location permission block செய்யப்பட்டுள்ளது. Device settings-ல் enable செய்யவும் அல்லது coordinates manually கொடுக்கவும்.',
+          'VayPulse location permission block செய்யப்பட்டுள்ளது. Device settings-ல் enable செய்யவும் அல்லது coordinates manually கொடுக்கவும்.',
       'location_unavailable':
           'Phone location கண்டறிய முடியவில்லை. திறந்த இடத்தில் முயலுங்கள் அல்லது farm coordinates manually கொடுக்கவும்.',
       'weather_location_name': 'Farm அல்லது கிராம பெயர்',
@@ -2221,7 +2221,7 @@ class AppStrings {
           'Save செய்த forecast 12 மணி நேரத்திற்கு மேல் பழையது; reference-க்கு மட்டும் காட்டப்படும், alerts மற்றும் irrigation advice-ல் பயன்படுத்தாது.',
       'five_day_forecast': '5 நாள் forecast',
       'weather_alert_note':
-          'மழை, ஈரப்பதம், வெப்பநிலை இணைத்து PhytoSense AI early farm alert தருகிறது. வயல் நிலையை நேரில் உறுதி செய்யவும்.',
+          'மழை, ஈரப்பதம், வெப்பநிலை இணைத்து VayPulse early farm alert தருகிறது. வயல் நிலையை நேரில் உறுதி செய்யவும்.',
       'weather_attribution': 'Forecast data: Open-Meteo',
       'weather_risk_heavy_rain': 'கனமழை அபாயம்',
       'weather_risk_heavy_rain_body':
@@ -2234,7 +2234,7 @@ class AppStrings {
           'பல நாட்கள் மழை குறைவாக இருக்கும். Soil moisture பார்த்து irrigation plan செய்யவும்.',
       'weather_risk_clear': 'பெரிய வானிலை அபாயம் இல்லை',
       'weather_risk_clear_body':
-          'தற்போதைய 5 நாள் forecast PhytoSense AI alert வரம்பை கடக்கவில்லை.',
+          'தற்போதைய 5 நாள் forecast VayPulse alert வரம்பை கடக்கவில்லை.',
       'wind': 'காற்று',
       'degrees_celsius': 'டிகிரி செல்சியஸ்',
       'rain_probability': 'மழை வாய்ப்பு',
@@ -2302,7 +2302,7 @@ class AppStrings {
       'irrigation_balanced_evidence':
           'Sensor மற்றும் forecast அவசர water action காட்டவில்லை.',
       'irrigation_confirmation_note':
-          'PhytoSense AI decision support மட்டும் தருகிறது. Irrigation முன் விவசாயி வயல் நிலையை உறுதி செய்ய வேண்டும்; app pump-ஐ தானாக தொடங்காது.',
+          'VayPulse decision support மட்டும் தருகிறது. Irrigation முன் விவசாயி வயல் நிலையை உறுதி செய்ய வேண்டும்; app pump-ஐ தானாக தொடங்காது.',
       'offline_sync_title': 'Offline data மற்றும் sync',
       'offline_sync_menu_body':
           'Reading-களை phone-ல் வைத்து server அமைந்த பிறகு upload செய்யுங்கள்.',
@@ -2315,7 +2315,7 @@ class AppStrings {
       'never': 'இன்னும் இல்லை',
       'sync_server': 'Synchronization server',
       'sync_server_body':
-          'Optional: farm backend base URL கொடுக்கவும். PhytoSense AI /api/sync-க்கு batch அனுப்பும்.',
+          'Optional: farm backend base URL கொடுக்கவும். VayPulse /api/sync-க்கு batch அனுப்பும்.',
       'sync_endpoint': 'Server base URL',
       'sync_endpoint_saved': 'Sync endpoint save செய்யப்பட்டது.',
       'save_endpoint': 'Endpoint save செய்',
@@ -2328,7 +2328,7 @@ class AppStrings {
           'முதலில் sync server சேர்க்கவும். அதுவரை records local queue-ல் பாதுகாப்பாக இருக்கும்.',
       'sync_privacy_note':
           'Queue numeric sensor readings மற்றும் source label மட்டும் save செய்யும்; leaf photo இல்லை. Server success பிறகே pending queue clear ஆகும்.',
-      'crop_management': 'PhytoSense Farm — பயிர் management',
+      'crop_management': 'VayPulse Farm — பயிர் management',
       'crop_management_menu_body':
           'Field crop மற்றும் zone growth stage-ஐ புதுப்பிக்கவும்.',
       'crop_management_body':
@@ -2356,7 +2356,7 @@ class AppStrings {
       'alert_abnormal_sensor': 'அசாதாரண sensor values',
       'alert_abnormal_sensor_message':
           'ஒரு reading validation-ல் தோல்வி. அதன்படி செயல்படும் முன் sensor மற்றும் wiring பார்க்கவும்.',
-      'about_capabilities_title': 'PhytoSense AI திறன்கள்',
+      'about_capabilities_title': 'VayPulse திறன்கள்',
       'about_capabilities_body':
           'Sensing, crop-specific multimodal screening, weather மற்றும் farmer guidance ஒரே workflow-ல் இணைகிறது.',
       'about_capabilities_1':
@@ -2525,7 +2525,7 @@ class AppStrings {
       'plant_recovered': 'பின்னர் recovery காணப்பட்டது',
       'mark_false_alert': 'இது false alert போல உள்ளது',
       'save_outcome': 'Observation save செய்',
-      'model_card_title': 'PhytoSense AI decision-support model card',
+      'model_card_title': 'VayPulse decision-support model card',
       'model_card_intro':
           'App-ஐ எப்படி பயன்படுத்த வேண்டும் மற்றும் எதற்குப் பயன்படுத்தக்கூடாது என்பதன் தெளிவான விளக்கம்.',
       'model_intended_use': 'Intended use',
@@ -2619,7 +2619,7 @@ class AppStrings {
       'resolved': 'தீர்வு பதிவு',
       'system': 'System',
       'command_search': 'App-ல் தேடுங்கள்',
-      'command_search_hint': 'PhytoSense AI-ல் தேடுங்கள்',
+      'command_search_hint': 'VayPulse-ல் தேடுங்கள்',
       'command_no_results':
           'பொருத்தமான tool கிடைக்கவில்லை. “sensor”, “timeline” அல்லது “settings” என்று தேடுங்கள்.',
       'clear_search': 'Search-ஐ clear செய்',

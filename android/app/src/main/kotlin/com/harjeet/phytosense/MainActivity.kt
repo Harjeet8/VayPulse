@@ -27,6 +27,7 @@ class MainActivity : FlutterActivity() {
         carePlatform = CarePlatform(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/care"))
         ilaiSpeech = IlaiSpeech(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/speech"))
         nodeWifiHttp = NodeWifiHttp(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/node_http"))
+        AppIntegrity.register(this, MethodChannel(flutterEngine.dartExecutor.binaryMessenger, "com.harjeet.phytosense/integrity"))
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,

@@ -10,7 +10,7 @@ class CropProfile {
   });
 }
 
-/// Crop contexts available to PhytoSense AI.
+/// Crop contexts available to VayPulse.
 ///
 /// Firmware-supported profiles use the exact canonical names expected
 /// by the ESP32 crop endpoint. Camera-only contexts are retained so no

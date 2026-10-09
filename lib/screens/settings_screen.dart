@@ -35,8 +35,8 @@ class SettingsScreen extends StatelessWidget {
                   ? 'உங்கள் விருப்பம்'
                   : 'YOUR APP',
               title: FarmerLanguage.isTamil(context)
-                  ? 'PhytoSense-ஐ அமைக்கவும்'
-                  : 'Make PhytoSense yours',
+                  ? 'VayPulse-ஐ அமைக்கவும்'
+                  : 'Make VayPulse yours',
               body: FarmerLanguage.isTamil(context)
                   ? 'தரவு மூலம், மொழி, தோற்றம் மற்றும் அறிவிப்புகளை ஒரே இடத்தில் மாற்றுங்கள்.'
                   : 'Choose the data source, language, appearance and alerts in one place.',
@@ -163,8 +163,8 @@ class SettingsScreen extends StatelessWidget {
                             ? 'மாதிரி அனுப்பப்பட்டது. அறிவிப்புப் பகுதியைப் பாருங்கள்.'
                             : 'Preview sent. Open your notification shade.')
                         : (tamil
-                            ? 'தொலைபேசி அமைப்பில் PhytoSense அறிவிப்புகளை அனுமதிக்கவும்.'
-                            : 'Allow PhytoSense notifications in phone settings.'))));
+                            ? 'தொலைபேசி அமைப்பில் VayPulse அறிவிப்புகளை அனுமதிக்கவும்.'
+                            : 'Allow VayPulse notifications in phone settings.'))));
               },
             )),
             const SizedBox(height: 18),

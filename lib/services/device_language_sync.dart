@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 
 import '../firebase_options.dart';
+import 'app_integrity.dart';
 import 'control_seq.dart';
 import 'firebase_remote_client.dart';
 import 'node_addresses.dart';
@@ -102,6 +103,7 @@ class DeviceLanguageSync {
   /// settings stored in the same control node are kept. A new `seq` is what
   /// makes the node apply the command.
   Future<bool> _pushRemote(String code) async {
+    if (!await AppIntegrity.cloudAllowed()) return false;
     try {
       if (Firebase.apps.isEmpty) {
         await Firebase.initializeApp(

@@ -68,7 +68,7 @@ class PhoneNotificationService {
             : 'Preview only • No live reading',
         'sourceLabel': tamil ? 'மாதிரி மட்டும்' : 'Preview only',
         'notificationTag': 'phytosense:preview',
-        'actionLabel': tamil ? 'செயலியைத் திற' : 'Open PhytoSense',
+        'actionLabel': tamil ? 'செயலியைத் திற' : 'Open VayPulse',
       });
       return true;
     } on PlatformException {
@@ -139,7 +139,7 @@ class PhoneNotificationService {
           'notificationTag': notificationTag,
           'actionLabel': settings.value.languageCode == 'ta'
               ? 'செயலியைத் திற'
-              : 'Open PhytoSense',
+              : 'Open VayPulse',
           'sourceLabel': copy.summary.split(' • ').first,
           'tamil': settings.value.languageCode == 'ta',
           if (alerts.sensors.current != null)
@@ -445,7 +445,7 @@ class PhoneNotificationService {
     'alert_low_light_message':
         'Available light is below the expected range. Check shading or placement before making any change.',
     'alert_sensor_attention_message':
-        'One or more sensor channels need a quick check. Open PhytoSense for signal quality and connection details.',
+        'One or more sensor channels need a quick check. Open VayPulse for signal quality and connection details.',
     'alert_plant_recovering_message':
         'Good news — the plant response is moving back toward its recent baseline. Keep monitoring before changing anything.',
     'alert_possible_biotic_message':
@@ -457,7 +457,7 @@ class PhoneNotificationService {
     'alert_root_stress_edge_message':
         'Root-zone evidence is outside the preferred range. Check moisture, drainage and root-zone temperature.',
     'alert_plant_stress_edge_message':
-        'Multiple independent signals agree that the plant needs attention. Open PhytoSense to see the leading cause and evidence.',
+        'Multiple independent signals agree that the plant needs attention. Open VayPulse to see the leading cause and evidence.',
     'alert_low_battery_message':
         'The sensor node battery is getting low. Recharge or replace its power source before live monitoring is interrupted.',
     'alert_weak_signal_message':
@@ -496,7 +496,7 @@ class PhoneNotificationService {
     if (action != null) return action;
     final clean = _clean(fallback);
     if (clean.length <= 110) return clean;
-    return 'Open PhytoSense to check the cause and next action.';
+    return 'Open VayPulse to check the cause and next action.';
   }
 }
 

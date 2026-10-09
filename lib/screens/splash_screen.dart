@@ -331,7 +331,7 @@ class _AnimatedLogo extends StatelessWidget {
 
     return Semantics(
       image: true,
-      label: 'PhytoSense AI logo',
+      label: 'VayPulse logo',
       child: SizedBox(
         width: 196,
         height: 196,
@@ -444,7 +444,7 @@ class _BootCopy extends StatelessWidget {
           child: Opacity(
             opacity: brand,
             child: Text(
-              'PhytoSense AI',
+              'VayPulse',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: titleColor,
@@ -519,7 +519,7 @@ class _StartupErrorView extends StatelessWidget {
                       Icon(Icons.error_outline_rounded, size: 46),
                       SizedBox(height: 14),
                       Text(
-                        'PhytoSense AI could not start',
+                        'VayPulse could not start',
                         style: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w900,

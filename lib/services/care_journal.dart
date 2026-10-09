@@ -65,7 +65,7 @@ class CareJournal {
         j['format'] != 'phytosense-care' ||
         j['version'] != 1 ||
         j['entries'] is! List) {
-      throw const FormatException('Choose a PhytoSense care backup');
+      throw const FormatException('Choose a VayPulse care backup');
     }
     final entries = j['entries'] as List;
     if (entries.length > 500) throw const FormatException('Too many entries');
@@ -120,7 +120,7 @@ class CareJournal {
   Future<bool> backup() async =>
       await platform.invokeMethod<bool>('saveFile', {
         'text': encode(await load()),
-        'name': 'PhytoSense-care-backup.json'
+        'name': 'VayPulse-care-backup.json'
       }) ??
       false;
   Future<bool> restoreFile() async {

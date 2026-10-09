@@ -934,7 +934,7 @@ class CompetitionPresentationScreen extends StatelessWidget {
         return Scaffold(
           backgroundColor: Theme.of(context).colorScheme.surface,
           appBar: AppBar(
-            title: const Text('PhytoSense AI • Presentation'),
+            title: const Text('VayPulse • Presentation'),
           ),
           body: SafeArea(
             child: ListView(

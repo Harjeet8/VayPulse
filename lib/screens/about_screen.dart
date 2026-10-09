@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../app/theme.dart';
 import '../l10n/app_strings.dart';
 import '../models/farm_impact_projection.dart';
+import '../services/app_integrity.dart';
 import '../services/app_scope.dart';
 import '../services/farmer_language.dart';
 import '../services/sensor_data_provider.dart';
@@ -55,7 +56,7 @@ class AboutVayPulseScreen extends StatelessWidget {
                       ),
                       const SizedBox(height: 18),
                       Text(
-                        'PhytoSense AI',
+                        'VayPulse',
                         style: Theme.of(context)
                             .textTheme
                             .headlineMedium
@@ -87,7 +88,7 @@ class AboutVayPulseScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 12),
-            Text('10.3.0 • Verdant',
+            Text('11.0.0 • VayPulse',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodySmall),
             const SizedBox(height: 16),
@@ -96,6 +97,8 @@ class AboutVayPulseScreen extends StatelessWidget {
               title: context.tr('about_mission_title'),
               body: context.tr('about_mission_body'),
             ),
+            const SizedBox(height: 12),
+            const _OwnershipCard(),
             const SizedBox(height: 12),
             const _CreatorCard(),
             const SizedBox(height: 12),
@@ -163,7 +166,7 @@ class AboutVayPulseScreen extends StatelessWidget {
                   color: Theme.of(context).colorScheme.primary,
                 ),
                 title: const Text(
-                  'PhytoSense AI',
+                  'VayPulse',
                   style: TextStyle(fontWeight: FontWeight.w900),
                 ),
                 subtitle: Text(FarmerLanguage.isTamil(context)
@@ -171,9 +174,131 @@ class AboutVayPulseScreen extends StatelessWidget {
                     : 'ESP32-authoritative intelligence • Farmer-first UI • English/Tamil • Sensor and visual evidence kept separate'),
               ),
             ),
+            const SizedBox(height: 12),
+            const _ModelCredits(),
           ],
         ),
       );
+}
+
+/// Ownership, copyright and whether this copy is the official build.
+class _OwnershipCard extends StatefulWidget {
+  const _OwnershipCard();
+  @override
+  State<_OwnershipCard> createState() => _OwnershipCardState();
+}
+
+class _OwnershipCardState extends State<_OwnershipCard> {
+  bool? official = AppIntegrity.official;
+
+  @override
+  void initState() {
+    super.initState();
+    AppIntegrity.check().then((v) {
+      if (mounted) setState(() => official = v);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final tamil = FarmerLanguage.isTamil(context);
+    String t(String en, String ta) => tamil ? ta : en;
+    final scheme = Theme.of(context).colorScheme;
+    final ok = official != false;
+    return Card(
+      key: const Key('about-ownership'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Row(children: [
+            Icon(Icons.copyright_rounded, color: scheme.primary),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(t('Ownership', 'உரிமை'),
+                  style: const TextStyle(fontWeight: FontWeight.w800)),
+            ),
+          ]),
+          const SizedBox(height: 8),
+          const Text('© 2026 Harjeet. All rights reserved.',
+              style: TextStyle(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 4),
+          Text(t(
+              'VayPulse (this app) and the PhytoSense node were created by Harjeet. The names, design, code and content may not be copied, modified or redistributed without his written permission.',
+              'VayPulse (இந்தச் செயலி) மற்றும் PhytoSense கருவி Harjeet அவர்களால் உருவாக்கப்பட்டவை. அவரது எழுத்துப்பூர்வ அனுமதியின்றி பெயர்கள், வடிவமைப்பு, நிரல், உள்ளடக்கத்தை நகலெடுக்கவோ மாற்றவோ பகிரவோ கூடாது.')),
+          const SizedBox(height: 10),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: (ok ? Colors.green : scheme.error).withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(ok ? Icons.verified_rounded : Icons.gpp_bad_rounded,
+                  size: 18, color: ok ? Colors.green.shade700 : scheme.error),
+              const SizedBox(width: 6),
+              Flexible(
+                child: Text(
+                    key: const Key('about-integrity'),
+                    ok
+                        ? t('Official copy, signed by Harjeet',
+                            'அதிகாரப்பூர்வ நகல், Harjeet கையொப்பமிட்டது')
+                        : t('Unofficial copy — not from Harjeet. Cloud control is off.',
+                            'அதிகாரப்பூர்வமற்ற நகல் — Harjeet வழங்கியது அல்ல. கிளவுட் கட்டுப்பாடு இயங்காது.'),
+                    style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: ok ? Colors.green.shade800 : scheme.error)),
+              ),
+            ]),
+          ),
+        ]),
+      ),
+    );
+  }
+}
+
+/// Source and licence of the bundled leaf-disease model (required credit).
+class _ModelCredits extends StatelessWidget {
+  const _ModelCredits();
+  @override
+  Widget build(BuildContext context) {
+    final tamil = FarmerLanguage.isTamil(context);
+    final muted =
+        TextStyle(color: Theme.of(context).colorScheme.onSurfaceVariant);
+    return Card(
+      key: const Key('about-model-credits'),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Text(tamil ? 'இலை சோதனை — நன்றி' : 'Leaf check — credits',
+              style: const TextStyle(fontWeight: FontWeight.w800)),
+          const SizedBox(height: 6),
+          const Text(
+              'Model: "Plant Disease Detector" — MobileNetV2 fine-tuned on the PlantVillage dataset (38 classes), by S.M Hassan.'),
+          const SizedBox(height: 2),
+          Text('Source: huggingface.co/rarfileexe/Plant-Disease-Detector',
+              style: muted),
+          Text('Licence: MIT License — Copyright (c) 2025 S.M Hassan',
+              style: muted),
+          const SizedBox(height: 4),
+          Text(
+              'Converted to TensorFlow Lite (float16) for on-device use. Runs fully offline; photos never leave the phone.',
+              style: muted),
+          Text(
+              'Dataset: PlantVillage (Hughes & Salathé, 2015). Lab photos, so field accuracy can be lower.',
+              style: muted),
+          const SizedBox(height: 8),
+          TextButton.icon(
+            onPressed: () => showLicensePage(
+                context: context,
+                applicationName: 'VayPulse',
+                applicationLegalese: '© 2026 Harjeet. All rights reserved.'),
+            icon: const Icon(Icons.description_outlined),
+            label: Text(tamil ? 'முழு உரிம விவரம்' : 'Full licence text'),
+          ),
+        ]),
+      ),
+    );
+  }
 }
 
 class _CreatorCard extends StatelessWidget {
@@ -207,7 +332,7 @@ class CreatorProfile extends StatelessWidget {
     final theme = Theme.of(context);
     String t(String en, String ta) => tamil ? ta : en;
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Text('Harjeet D.', style: theme.textTheme.headlineSmall),
+      Text('Harjeet', style: theme.textTheme.headlineSmall),
       const SizedBox(height: 5),
       Text(
           t('Student engineer from Tamil Nadu',
@@ -239,7 +364,7 @@ class CreatorProfile extends StatelessWidget {
           style: theme.textTheme.titleMedium),
       const SizedBox(height: 12),
       _CreatorBuild(
-          title: 'PhytoSense AI',
+          title: 'VayPulse',
           description: t(
               'Plant sensing, ESP32 intelligence and clear guidance for farmers.',
               'செடி அளவீடுகள், ESP32 பகுப்பாய்வு, விவசாயிகளுக்கான தெளிவான வழிகாட்டுதல்.')),

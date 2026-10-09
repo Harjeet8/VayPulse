@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../firebase_options.dart';
+import 'app_integrity.dart';
 import 'firebase_remote_client.dart';
 
 /// Farmer labels ("I watered", "Leaves have spots", leaf checks ...) for
@@ -134,6 +135,7 @@ class FarmLabelService extends ChangeNotifier {
 
   static Future<bool> _sendToFirebase(
       String id, Map<String, Object> payload) async {
+    if (!await AppIntegrity.cloudAllowed()) return false;
     if (Firebase.apps.isEmpty) {
       await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);

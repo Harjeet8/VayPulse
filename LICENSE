@@ -1,0 +1,23 @@
+VayPulse and PhytoSense
+Copyright (c) 2026 Harjeet. All rights reserved.
+
+This repository contains the VayPulse mobile application and related
+material for the PhytoSense plant-monitoring node, created by Harjeet.
+
+No licence is granted. You may not copy, modify, distribute, publish,
+sublicense, sell, or create derivative works from any part of this
+repository, in whole or in part, without the prior written permission of
+the copyright holder. Viewing this repository does not grant any right to
+use its contents.
+
+The names "VayPulse" and "PhytoSense", and the associated logos and
+designs, identify Harjeet's work and may not be used for other products.
+
+Third-party components keep their own licences, including:
+  - Leaf-disease model "Plant Disease Detector" by S.M Hassan
+    (MIT License, see assets/ml/MODEL_LICENSE.txt)
+  - Flutter, Dart and the packages listed in pubspec.yaml
+    (their respective open-source licences)
+
+Contact the copyright holder through the GitHub account Harjeet8 for
+permission requests.

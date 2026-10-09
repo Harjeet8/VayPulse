@@ -129,7 +129,7 @@ class _CareActionsState extends State<CareActions> {
                                     SensorConnectionStatus.ready) return;
                             try {
                               await CareJournal.share(
-                                  'PhytoSense AI\n${widget.plant}\n${widget.source.toUpperCase()} · ${widget.timestamp.toLocal()}\n$_script');
+                                  'VayPulse\n${widget.plant}\n${widget.source.toUpperCase()} · ${widget.timestamp.toLocal()}\n$_script');
                             } catch (_) {
                               if (context.mounted)
                                 ScaffoldMessenger.of(context).showSnackBar(
