@@ -30,6 +30,8 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   Timer? _timer;
   bool _polling = false;
   SensorConnectionStatus _status = SensorConnectionStatus.offline;
+  DateTime? _lastSuccessAt;
+  static const offlineGrace = Duration(seconds: 15);
   String? _errorMessage;
   int _consecutiveFailures = 0;
   HardwareTransportMode _transportMode;
@@ -361,6 +363,7 @@ class Esp32SensorProvider extends HardwareSensorProvider {
       isOnline: true,
     );
     _consecutiveFailures = 0;
+    _lastSuccessAt = DateTime.now();
     _status = SensorConnectionStatus.ready;
     _errorMessage = null;
     _controller.add(reading);
@@ -373,6 +376,16 @@ class Esp32SensorProvider extends HardwareSensorProvider {
   }) {
     _consecutiveFailures++;
     if (!immediate && _consecutiveFailures < 2 && _current != null) return;
+    // A node that answered moments ago is kept "connected" through short
+    // gaps (busy web server, cloud upload) instead of flapping offline.
+    final last = _lastSuccessAt;
+    if (!immediate &&
+        !invalidData &&
+        _current != null &&
+        last != null &&
+        DateTime.now().difference(last) < offlineGrace) {
+      return;
+    }
     _status = invalidData
         ? SensorConnectionStatus.error
         : SensorConnectionStatus.offline;

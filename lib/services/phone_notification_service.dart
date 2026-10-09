@@ -141,6 +141,9 @@ class PhoneNotificationService {
               ? 'செயலியைத் திற'
               : 'Open PhytoSense',
           'sourceLabel': copy.summary.split(' • ').first,
+          'tamil': settings.value.languageCode == 'ta',
+          if (alerts.sensors.current != null)
+            'healthScore': alerts.sensors.current!.healthScore.round().clamp(0, 100),
         });
         _recordSend(chosen, source);
       } on MissingPluginException {

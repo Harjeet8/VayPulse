@@ -89,8 +89,19 @@ class HardwareConnectionMetadata {
 }
 
 class RemoteSnapshotFreshnessPolicy {
-  static const liveWindow = Duration(seconds: 10);
-  static const delayedWindow = Duration(seconds: 30);
+  // Wide enough that one late upload (Wi-Fi hiccup, TLS reconnect) does not
+  // flip the app between connected and disconnected.
+  static const liveWindow = Duration(seconds: 30);
+  static const delayedWindow = Duration(seconds: 120);
+
+  /// True for an absolute time from the node's NTP clock (not an uptime
+  /// counter or an unset RTC): after 2024 and not more than a minute ahead.
+  static bool isTrustedEpoch(DateTime? value, {DateTime? now}) {
+    if (value == null) return false;
+    final reference = now ?? DateTime.now();
+    return value.isAfter(DateTime.utc(2024)) &&
+        value.isBefore(reference.add(const Duration(minutes: 1)));
+  }
 
   static RemoteSnapshotFreshness classify({
     required DateTime? lastSeen,

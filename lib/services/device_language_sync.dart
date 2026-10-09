@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
-import 'package:http/http.dart' as http;
 
 import '../firebase_options.dart';
+import 'control_seq.dart';
 import 'firebase_remote_client.dart';
+import 'node_addresses.dart';
+import 'node_http.dart';
 import 'settings_service.dart';
 
 /// Keeps the PhytoSense node's speaker language identical to the app language.
@@ -72,21 +74,28 @@ class DeviceLanguageSync {
     _retry ??= Timer.periodic(retryEvery, (_) => unawaited(_attempt()));
   }
 
-  /// Direct to the node. The firmware accepts query parameters on GET and
-  /// replies with its audio JSON, which echoes the applied language.
+  /// Direct to the node, at every known address at once (Wi-Fi routed,
+  /// 1.5 s). Success only when HTTP 200 echoes the language that was sent.
   Future<bool> _pushLocal(String code) async {
-    try {
-      final base = settings.value.esp32Endpoint.trim().replaceFirst(RegExp(r'/$'), '');
-      if (base.isEmpty) return false;
-      final response = await http
-          .get(Uri.parse('$base/api/audio?language=$code'),
-              headers: const {'Accept': 'application/json'})
-          .timeout(const Duration(seconds: 3));
-      return response.statusCode == 200 &&
-          response.body.contains('"language":"$code"');
-    } catch (_) {
-      return false;
+    await NodeAddresses.load();
+    final bases = NodeAddresses.candidates(settings);
+    final results = await Future.wait(bases.map((base) async {
+      try {
+        final response =
+            await NodeHttp.get(Uri.parse('$base/api/audio?language=$code'));
+        return response.statusCode == 200 &&
+            response.body.replaceAll(' ', '').contains('"language":"$code"');
+      } catch (_) {
+        return false;
+      }
+    }));
+    for (var i = 0; i < bases.length; i++) {
+      if (results[i]) {
+        NodeAddresses.lastWorking = bases[i];
+        return true;
+      }
     }
+    return false;
   }
 
   /// Through Firebase. `update` only touches these two keys, so display
@@ -107,7 +116,7 @@ class DeviceLanguageSync {
         databaseURL: FirebaseRemoteClient.databaseUrl,
       );
       await db.ref(controlPath).update({
-        'seq': DateTime.now().millisecondsSinceEpoch ~/ 1000,
+        'seq': await ControlSeq.next(),
         'audio/language': code,
         'audio/source': 'app',
       }).timeout(const Duration(seconds: 8));

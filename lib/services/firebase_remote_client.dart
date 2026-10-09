@@ -86,9 +86,13 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
           final value = event.snapshot.value;
           if (value is Map) {
             _latest = Map<String, dynamic>.from(value);
-            // Use the phone's actual Firebase receive time for transport
-            // freshness. The ESP32 RTC timestamp remains the reading timestamp.
-            _lastReceiveAt = DateTime.now();
+            // The first event after subscribing is Firebase replaying the
+            // stored value, which may be hours old. Only later events prove
+            // the node is uploading right now.
+            if (_initialValueSeen) {
+              _lastReceiveAt = DateTime.now();
+            }
+            _initialValueSeen = true;
             _lastErrorKey = null;
           }
         },
@@ -101,6 +105,14 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     } finally {
       _starting = false;
     }
+  }
+
+  bool _initialValueSeen = false;
+
+  static DateTime? _latestOf(DateTime? a, DateTime? b) {
+    if (a == null) return b;
+    if (b == null) return a;
+    return a.isAfter(b) ? a : b;
   }
 
   @override
@@ -126,7 +138,6 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
         if (event.value is Map) {
           payload = Map<String, dynamic>.from(event.value as Map);
           _latest = payload;
-          _lastReceiveAt = DateTime.now();
         }
       } catch (_) {
         _lastErrorKey = 'remote_cloud_unavailable';
@@ -156,7 +167,12 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     );
     // RTC timestamps may be timezone-less. A snapshot that just arrived from
     // Firebase is live regardless of how the ESP32 formats its display clock.
-    final lastSeen = _lastReceiveAt ?? payloadTimestamp;
+    // A real epoch from the node's NTP clock is trusted as-is; otherwise only
+    // a live Firebase update (not the replayed initial value) counts.
+    final trusted = RemoteSnapshotFreshnessPolicy.isTrustedEpoch(payloadTimestamp)
+        ? payloadTimestamp
+        : null;
+    final lastSeen = _latestOf(trusted, _lastReceiveAt);
     final internetConnected = _bool(_first([
       source['internetConnected'],
       network['internetConnected'],
@@ -225,6 +241,7 @@ class FirebaseRemoteClient implements RemoteHardwareClient {
     _subscription = null;
     _resolvedDatabase = null;
     _lastReceiveAt = null;
+    _initialValueSeen = false;
   }
 
   static dynamic _first(Iterable<dynamic> values) {

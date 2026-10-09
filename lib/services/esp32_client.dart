@@ -5,6 +5,8 @@ import 'package:http/http.dart' as http;
 import '../models/edge_intelligence.dart';
 import '../models/hardware_telemetry.dart';
 import '../models/sensor_reading.dart';
+import 'node_addresses.dart';
+import 'node_http.dart';
 
 class Esp32Client {
   final String baseUrl;
@@ -20,19 +22,41 @@ class Esp32Client {
     '/sensors',
   ];
 
-  // Preserve the existing UI while allowing the same ESP32 node to be reached
-  // through its AP address or its current JioFiber/router-side address.
-  static const _knownLocalNodeUrls = <String>[
-    'http://192.168.4.1',
-    'http://192.168.29.5',
-  ];
+  // The node's own Wi-Fi address; its home-Wi-Fi address is learned from
+  // /api/clouddebug (NodeAddresses) instead of being hardcoded.
+  static const _knownLocalNodeUrls = <String>['http://192.168.4.1'];
 
-  List<String> get _candidateBaseUrls => <String>[
-        baseUrl,
-        ..._knownLocalNodeUrls.where((candidate) => candidate != baseUrl),
-      ];
+  // The node's web server can take a few seconds while it is uploading to
+  // the cloud; 1.5 s made a busy node look disconnected.
+  static const _requestTimeout = Duration(seconds: 4);
+
+  // Last base address + path that answered; tried first and alone.
+  static String? _stickyBase;
+  static String? _stickyPath;
+
+  List<String> get _candidateBaseUrls {
+    final result = <String>[baseUrl];
+    for (final candidate in <String>[
+      if (NodeAddresses.homeAddress != null) NodeAddresses.homeAddress!,
+      ..._knownLocalNodeUrls,
+    ]) {
+      if (!result.contains(candidate)) result.add(candidate);
+    }
+    return result;
+  }
 
   Future<Esp32Snapshot> getSnapshot() async {
+    final base = _stickyBase, sticky = _stickyPath;
+    if (base != null && sticky != null) {
+      final response = await _getOne(base, sticky);
+      if (response != null && response.statusCode == 200) {
+        try {
+          return decodeSnapshot(response, endpoint: sticky);
+        } on FormatException {
+          // Fall through to the full search.
+        }
+      }
+    }
     for (final path in _sensorPaths) {
       final response = await _tryGet(path);
       if (response == null) continue;
@@ -59,22 +83,26 @@ class Esp32Client {
     return false;
   }
 
-  Future<http.Response?> _tryGet(String path) async {
-    final responses = await Future.wait(
-      _candidateBaseUrls.map((candidate) async {
-        try {
-          return await http.get(
-            Uri.parse('$candidate$path'),
-            headers: const {'Accept': 'application/json'},
-          ).timeout(const Duration(milliseconds: 1500));
-        } catch (_) {
-          return null;
-        }
-      }),
-    );
+  Future<http.Response?> _getOne(String base, String path) async {
+    try {
+      // Routed over Wi-Fi even when the node's Wi-Fi has no internet.
+      return await NodeHttp.get(Uri.parse('$base$path'),
+          timeout: _requestTimeout);
+    } catch (_) {
+      return null;
+    }
+  }
 
-    for (final response in responses) {
-      if (response?.statusCode == 200) return response;
+  Future<http.Response?> _tryGet(String path) async {
+    final bases = _candidateBaseUrls;
+    final responses =
+        await Future.wait(bases.map((candidate) => _getOne(candidate, path)));
+    for (var i = 0; i < bases.length; i++) {
+      if (responses[i]?.statusCode == 200) {
+        _stickyBase = bases[i];
+        if (_sensorPaths.contains(path)) _stickyPath = path;
+        return responses[i];
+      }
     }
     return null;
   }
